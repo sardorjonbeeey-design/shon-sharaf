@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face { font-family: M; src: url("file:///usr/share/fonts/opentype/montserrat/Montserrat-Black.otf"); font-weight: 900; }
+@font-face { font-family: M; src: url("file:///usr/share/fonts/opentype/montserrat/Montserrat-Bold.otf"); font-weight: 700; }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; font-family: M, sans-serif; }
+#stage { position: absolute; inset: 0; overflow: hidden; }
+.bg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; transform-origin: 0 0; }
+.spr { position: absolute; transform-origin: 50% 100%; filter: drop-shadow(0 18px 16px rgba(0,0,0,.45)); }
+.lab { position: absolute; transform-origin: 50% 50%; }
+.cap { position: absolute; left: 60px; right: 170px; bottom: 430px; text-align: center; font-weight: 900; font-size: 70px;
+  line-height: 1.12; color: #fff; -webkit-text-stroke: 10px #0D2557; paint-order: stroke fill;
+  text-shadow: 0 6px 18px rgba(0,0,0,.5); text-transform: uppercase; }
+.cap span { display: inline-block; margin: 0 .14em; }
+.cap .hl { color: #FFD23F; }
+.title { font-weight: 900; font-size: 150px; color: #fff; -webkit-text-stroke: 14px #0D2557; paint-order: stroke fill;
+  text-shadow: 0 10px 0 #0D2557; letter-spacing: 2px; }
+.chip { background: #0D2557; color: #fff; font-weight: 900; font-size: 42px; padding: 12px 26px; border-radius: 16px;
+  border: 4px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,.4); white-space: nowrap; }
+.chip.y { background: #FFD23F; color: #0D2557; border-color: #0D2557; }
+.badge { background: #0D2557; color: #fff; border: 5px solid #fff; border-radius: 28px; padding: 16px 30px 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45); text-align: center; min-width: 200px; }
+.badge small { display: block; font-weight: 700; font-size: 28px; letter-spacing: 4px; opacity: .85; }
+.badge b { display: block; font-weight: 900; font-size: 110px; line-height: 1; }
+.badge i { display: block; font-style: normal; font-weight: 700; font-size: 24px; letter-spacing: 3px; color: #9DB8FF; }
+.card { background: rgba(13,37,87,.94); color: #fff; border: 5px solid #fff; border-radius: 30px; padding: 22px 34px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45); text-align: center; width: 760px; }
+.card small { display: block; font-weight: 700; font-size: 30px; letter-spacing: 4px; color: #9DB8FF; }
+.card b { display: block; font-weight: 900; font-size: 92px; line-height: 1.05; }
+.card span { display: block; font-weight: 900; font-size: 52px; line-height: 1.15; }
+.choice { width: 780px; height: 150px; display: flex; align-items: center; gap: 28px; background: #fff; color: #0D2557;
+  border-radius: 28px; border: 6px solid #0D2557; box-shadow: 0 10px 26px rgba(0,0,0,.4); font-weight: 900; font-size: 56px; padding: 0 36px; box-sizing: border-box; }
+.choice .n { width: 92px; height: 92px; border-radius: 50%; background: #1F4FB8; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 54px; flex: none; }
+.follow { background: #1F4FB8; color: #fff; font-weight: 900; font-size: 54px; padding: 22px 44px; border-radius: 26px; border: 6px solid #fff;
+  box-shadow: 0 12px 26px rgba(0,0,0,.45); }
+.fan { width: 96px; height: 96px; border-radius: 50%; background: #FFD23F; border: 6px solid #0D2557; display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 34px; color: #0D2557; box-shadow: 0 8px 18px rgba(0,0,0,.4); }
+.tap { width: 120px; height: 120px; border-radius: 50%; border: 8px solid #fff; box-shadow: 0 0 0 6px rgba(13,37,87,.6); }
+.virtual { color: #fff; font-weight: 700; font-size: 26px; letter-spacing: 3px; background: rgba(13,37,87,.8); padding: 8px 18px; border-radius: 12px; }
+.drop { position: absolute; width: 3px; height: 46px; background: linear-gradient(transparent, rgba(255,255,255,.55)); }
+</style></head>
+<body><div id="stage"></div>
+<script src="engine.js"></script>
+</body></html>
