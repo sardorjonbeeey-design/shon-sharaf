@@ -35,16 +35,16 @@ CAP = [
  (s(2, 8.0), s(2, 11.2), "darvozabonimiz esa qo‘lqopini hali ham qidiryapti.", [2]),
  (s(2, 11.4), e(2, .3), "Klub fondida esa atigi 15 million so‘m.", [4, 5, 6]),
  (s(3), s(3, 3.2), "Maqsadimiz — eng quyi havaskor ligadan", [3, 4]),
- (s(3, 3.2), s(3, 6.0), "O‘zbekiston futbolining eng yuqori pog‘onasigacha chiqish.", [2, 3]),
- (s(3, 6.4), e(3, .3), "Ha... hozircha yo‘l uzoq.", [3]),
- (s(4), s(4, 2.0), "Lekin bu yerda SIZ keraksiz!", [3]),
- (s(4, 2.0), s(4, 5.0), "Har bir obunachi — tribunada bitta virtual muxlis.", [2, 7]),
- (s(4, 5.0), s(4, 7.3), "Har bir layk — klub fondiga bir dollar.", [2, 6, 7]),
- (s(4, 7.3), e(4, .3), "Keling, bu stadionni birga to‘ldiramiz!", [3, 4]),
- (s(5), s(5, 2.2), "Birinchi qarorni SIZ qabul qilasiz:", [2]),
- (s(5, 2.2), s(5, 7.0), "stadion, hujumchi, baza yoki murabbiy?", [0, 1, 2, 4]),
- (s(5, 7.0), s(5, 8.6), "Izohga bitta so‘z yozing.", [1, 2]),
- (s(5, 8.6), e(5, .1), "Eng ko‘p layk olgan izoh — 24 soatdan keyin g‘olib!", [6, 7]),
+ (s(3, 3.0), s(3, 5.6), "O‘zbekiston futbolining eng yuqori pog‘onasigacha chiqish.", [2, 3]),
+ (s(3, 5.9), e(3, .3), "Ha... hozircha yo‘l uzoq.", [3]),
+ (s(4), s(4, 2.1), "Lekin bu yerda SIZ keraksiz!", [3]),
+ (s(4, 2.2), s(4, 5.3), "Har bir obunachi — tribunada bitta virtual muxlis.", [2, 7]),
+ (s(4, 5.4), s(4, 8.3), "Har bir layk — klub fondiga 15 ming so‘m.", [2, 5, 6, 7]),
+ (s(4, 8.4), e(4, .3), "Keling, bu stadionni birga to‘ldiramiz!", [3, 4]),
+ (s(5), s(5, 2.0), "Birinchi qarorni SIZ qabul qilasiz:", [2]),
+ (s(5, 2.1), s(5, 7.0), "stadion, yangi hujumchi, mashg‘ulot bazasi yoki yangi murabbiy?", [0, 2, 3, 4, 7]),
+ (s(5, 7.6), s(5, 9.3), "Izohga bitta so‘z yozing.", [1, 2]),
+ (s(5, 9.4), e(5, .1), "Eng ko‘p layk olgan izoh — 24 soatdan keyin g‘olib!", [6, 7]),
 ]
 caps = []
 for a, b, text, hl in CAP:
@@ -100,14 +100,14 @@ scenes = [
    lab('<div class="tap"></div>', 720, 250, s(4, 2.5), s(4, 2.95), enter="pop"),
    lab('<div class="fan">SIZ</div>', 330, 1010, s(4, 3.0), enter="drop", enterDur=0.7),
    lab(chip("SIZ?", True), 330, 890, s(4, 3.5), enter="stamp"),
-   lab('<div class="card"><span>1 OBUNA = 1 VIRTUAL MUXLIS</span></div>', 540, 420, s(4, 2.0), s(4, 5.0), enter="up"),
-   lab('<div class="card"><span>1 LAYK = 1 $ (VIRTUAL FOND)</span></div>', 540, 420, s(4, 5.0), enter="up"),
- ] + [lab('<div class="fan">?</div>', x, y, s(4, 7.3 + k * 0.25), enter="drop", enterDur=0.6)
+   lab('<div class="card"><span>1 OBUNA = 1 VIRTUAL MUXLIS</span></div>', 540, 420, s(4, 2.2), s(4, 5.4), enter="up"),
+   lab('<div class="card"><span>1 LAYK = 15 000 SO‘M (VIRTUAL)</span></div>', 540, 420, s(4, 5.4), enter="up"),
+ ] + [lab('<div class="fan">?</div>', x, y, s(4, 8.4 + k * 0.25), enter="drop", enterDur=0.6)
       for k, (x, y) in enumerate([(160, 1150), (470, 1150), (780, 1010), (930, 1150), (620, 1010)])]},
  {"from": s(5), "to": e(5, .1), "bg": {"src": f"{AS}/S05_stadium_wide.png", "zoom": [1.0, 1.06], "blur": 10}, "items": [
    lab(f'<img src="{CREST}" style="height:300px">', 540, 300, s(5), enter="stamp"),
  ] + [lab(f'<div class="choice"><div class="n">{n}</div>{txt}</div>', 540, y, s(5, at), enter="slideR")
-      for n, txt, y, at in [(1, "STADION", 640, 2.2), (2, "HUJUMCHI", 810, 3.2), (3, "BAZA", 980, 4.3), (4, "MURABBIY", 1150, 5.5)]]},
+      for n, txt, y, at in [(1, "STADION", 640, 2.2), (2, "HUJUMCHI", 810, 3.3), (3, "BAZA", 980, 4.6), (4, "MURABBIY", 1150, 5.8)]]},
  {"from": e(5, .1), "to": TOTAL + 1, "bg": {"src": f"{AS}/BG_stand_empty.png", "zoom": [1.05, 1.1]}, "items": [
    lab('<div class="title" style="font-size:96px">IZOHGA YOZING!</div>', 540, 380, e(5, .2), enter="stamp", idle="pulse"),
    lab(chip("STADION • HUJUMCHI • BAZA • MURABBIY"), 540, 520, e(5, .5)),

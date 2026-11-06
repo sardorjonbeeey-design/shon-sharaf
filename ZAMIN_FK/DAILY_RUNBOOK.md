@@ -7,7 +7,7 @@
 
 | # | Kim | Nima | Natija |
 |---|---|---|---|
-| 1 | **Foydalanuvchi** | Cutoff (24 soat) bo‘lganda Claudega yuboradi: g‘olib izoh matni + layklari, ikkala post havolasi, Instagram + TikTok obunachilar soni, episod layklari, USD/UZS kursi | Xom ma’lumot |
+| 1 | **Foydalanuvchi** | Cutoff (24 soat) bo‘lganda Claudega yuboradi: g‘olib izoh matni + layklari, ikkala post havolasi, Instagram + TikTok obunachilar soni, episod layklari, (kurs kerak emas: 1 layk = 15 000 so‘m) | Xom ma’lumot |
 | 2 | Claude | `LEDGER.md` ni yangilaydi: ochilish balansi + layklar (kurs bo‘yicha so‘m) − xarajat = yopilish balansi | Qulflangan raqamlar |
 | 3 | Claude | Brief → Script (5 bit, o‘zbekcha, 45–48 s) | `02_Episode_NN/script.md` |
 | 4 | Claude | Art: tasdiqlangan masterlar asosida sahna kadrlari (Poyo) | `02_Episode_NN/assets/` |
