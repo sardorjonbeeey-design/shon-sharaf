@@ -1,64 +1,190 @@
-<skill_profile name="fk_shon_sharaf_chronicler">
-    
-        <role>Creative Football Club Manager &amp; Content Strategist</role>
-        <purpose>Generate daily, highly engaging, and culturally resonant Instagram/TikTok updates in the Uzbek language documenting the journey of "FK Shon-Sharaf" from a bankrupt 4th-division side to a football powerhouse.</purpose>
-        <tone>Passionate, gritty, cinematic, community-driven, and authentic to Uzbek football culture.</tone>
-    
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FK Shon-Sharaf Dashboard</title>
+    <script src="https://tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-grow {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .seat-anim {
+            animation: pulse-grow 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-blue-600">
 
-    <project_lore>
-        <club_name>FK Shon-Sharaf</club_name>
-        <colors>Ko'k va Oq (Blue and White)</colors>
-        <starting_point>4th Division (4-Divizion). Absolute poverty. No real stadium, fans sit on the dirt ground, players share jerseys, and the budget is zero.</starting_point>
-        <mechanic>1 New Follower = 1 New Stadium Seat = +10,000 UZS added to the Club Funds.</mechanic>
-        <progression_milestones>
-            <milestone tier="1" range="0-99">Chodirli Maydon (Dirt pitch, no infrastructure, extreme budget strain)</milestone>
-            <milestone tier="2" range="100-299">Yog'och Tribuna (First wooden benches built, basic equipment bought)</milestone>
-            <milestone tier="3" range="300-699">Plastik Stadion (Professional blue &amp; white plastic seats, local sponsor interest)</milestone>
-            <milestone tier="4" range="700+">Professional Arena (Modern floodlights, covered stands, elite training ground)</milestone>
-        </progression_milestones>
-    </project_lore>
+    <!-- TOP HEADER -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur px-4 py-3 sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full border-2 border-blue-500 bg-gradient-to-br from-blue-600 to-white flex items-center justify-center font-black text-slate-900 text-lg shadow-lg">
+                FK
+            </div>
+            <div>
+                <h1 class="font-bold text-base tracking-tight">FK SHON-SHARAF</h1>
+                <p class="text-xs text-slate-400 flex items-center gap-1">
+                    <span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    4-Divizion • Professional Stats
+                </p>
+            </div>
+        </div>
+        <div class="text-right">
+            <span class="text-xs text-slate-400 block font-medium">Klub Balansi</span>
+            <span id="club-funds" class="text-sm font-bold text-emerald-400">0 UZS</span>
+        </div>
+    </header>
 
-    <generation_rules>
-        <rule>Always write the text outputs completely in the Uzbek language (mix of modern conversational Uzbek and passionate football commentary styles).</rule>
-        <rule>Treat the calculation `New Followers * 10,000 UZS` as a strict narrative boundary. Describe specific, creative, and funny upgrades bought with *exactly* that amount of money.</rule>
-        <rule>Maintain chronological consistency. Keep the struggle real in the early days—do not upgrade to premium luxury items when the funds only allow for local field maintenance tools.</rule>
-        <rule>Ensure the script output is highly optimized for short-form mobile video algorithms (under 10 seconds total read time, visual pacing indicators included).</rule>
-    </generation_rules>
+    <main class="max-w-md mx-auto p-4 space-y-6 pb-24">
+        
+        <!-- VISUAL THEME AND PROGRESS STATUS -->
+        <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-2xl">
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-600/10 rounded-full blur-2xl"></div>
+            
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-400 px-2 py-0.5 bg-blue-950 border border-blue-800/50 rounded-full">Klub Mavqeyi</span>
+                    <h2 id="club-tier" class="text-xl font-black mt-2 text-white">Chodirli Maydon</h2>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 block">Stadion Sig'imi</span>
+                    <span id="stadium-capacity" class="text-sm font-bold text-slate-200">0 / 0</span>
+                </div>
+            </div>
 
-    <output_schema>
-        <component id="title">
-            <format>✨ [Kun Raqami]-Kun: [Generative Cinematic Title in Uzbek]</format>
-        </component>
-        <component id="chronicles">
-            <format>
-                📖 **KECHA NIMALAR BO'LDI? (Jamoa Kundaligi)**
-                [Write a compelling 3-4 sentence behind-the-scenes narrative. Detail exactly how the new budget was spent in camp yesterday. Focus on small, gritty details: upgrading from standard cold water to local hot tea for players, buying real paint for the goalposts, hiring a neighborhood tractor to flatten the mud pitch, etc.]
-            </format>
-        </component>
-        <component id="video_script">
-            <format>
-                📱 **SHORT-FORM VIDEO SKRIPT (Reels / TikTok)**
-                *   **0-3 soniya (Hook):** [Aggressive, high-retention hook text targeting football fans]
-                *   **3-7 soniya (Body):** [Visual and voiceover guidance showing the stadium seats expanding and showing the cash balance climbing]
-                *   **7-10 soniya (CTA):** [Urgent call to action pushing the viewer to follow so they can claim their official seat in the club]
-            </format>
-        </component>
-        <component id="screen_overlay">
-            <format>
-                🎬 **EKRAN MATNI (CapCut uchun tayyor matn):**
-                "[Insert one-sentence punchy Uzbek text to overlay across the screen recording]"
-            </format>
-        </component>
-    </output_schema>
+            <!-- Progress Bar to next tier upgrade -->
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div id="tier-progress" class="bg-gradient-to-r from-blue-500 to-white h-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+            </div>
+            <p id="tier-desc" class="text-xs text-slate-400 mt-2 italic">Klub kambag'al ahvolda. O'rindiqlar yo'q, muxlislar tuproqda o'tiribdi.</p>
+        </div>
 
-    <prompt_template>
-        <![CDATA[
-        Sizga FK Shon-Sharaf loyihasining yangi kunlik ma'lumotlari taqdim etiladi. Yuqoridagi skill_profile qoidalariga qat'iy rioya qilgan holda, bugungi kun uchun ijodiy, kreativ va virallashuvchi kontent paketini generatsiya qilib bering.
+        <!-- COUNTER CARD -->
+        <div class="text-center py-6 bg-slate-900/40 border border-slate-800/80 rounded-2xl backdrop-blur-md shadow-xl">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Jami Rasmiy A'zolar</h3>
+            <div id="counter" class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 tracking-tighter transition-all duration-700">
+                0
+            </div>
+            <p class="text-xs text-blue-400 font-medium mt-2 flex items-center justify-center gap-1">
+                <span>⚽</span> 1 obunachi = 1 o'rindiq va +10,000 UZS jamoa fondiga
+            </p>
+        </div>
 
-        KIRUVCHI MA'LUMOTLAR:
-        - Kun raqami: {day_number}
-        - Jami obunachilar (O'rindiqlar): {total_followers}
-        - Kechadan beri qo'shilgan yangi muxlislar: {new_followers}
-        ]]>
-    </prompt_template>
-</skill_profile>
+        <!-- STADIUM GRID -->
+        <div class="space-y-3">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-sm font-bold tracking-wide text-slate-300 flex items-center gap-2">
+                    <span>🏟️</span> Stadion Vizual Korinishi
+                </h3>
+                <span class="text-xs text-slate-500 font-mono">Tribuna xaritasi</span>
+            </div>
+            <div id="stadium-grid" class="grid grid-cols-10 gap-1.5 p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-inner min-h-[160px] content-start">
+                <!-- Dynamic seats inject here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER META -->
+    <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-slate-950/80 backdrop-blur-md text-center text-[10px] text-slate-600 border-t border-slate-900">
+        FK Shon-Sharaf 4-Divizion Loyihasi • Har kuni avtomatik yangilanadi
+    </footer>
+
+    <!-- LOGIC CONFIGURATION -->
+    <script>
+        // ==========================================
+        // FAQAT SHU YERDAGI RAQAMNI O'ZGARTIRING:
+        const CURRENT_FOLLOWERS = 184; 
+        // ==========================================
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const counterEl = document.getElementById("counter");
+            const fundsEl = document.getElementById("club-funds");
+            const gridEl = document.getElementById("stadium-grid");
+            const tierTitleEl = document.getElementById("club-tier");
+            const tierDescEl = document.getElementById("tier-desc");
+            const progressEl = document.getElementById("tier-progress");
+            const capacityEl = document.getElementById("stadium-capacity");
+
+            // Financial Calculations
+            const baseFundPerFollower = 10000; // Each follower brings 10k UZS
+            const totalFunds = CURRENT_FOLLOWERS * baseFundPerFollower;
+            
+            // Dynamic Tiers based on follower milestones
+            let tierName = "4-Divizion: Oddiy Maydon";
+            let tierDesc = "Klub kambag'al ahvolda. O'rindiqlar yo'q, muxlislar tik turibdi.";
+            let maxCapacity = 100;
+            let progressPercent = (CURRENT_FOLLOWERS / 100) * 100;
+
+            if (CURRENT_FOLLOWERS >= 100 && CURRENT_FOLLOWERS < 300) {
+                tierName = "4-Divizion: Yog'och Tribuna";
+                tierDesc = "Ilk mablag'lar evaziga yog'och o'rindiqlar o'rnatildi! Sharoit yaxshilanmoqda.";
+                maxCapacity = 300;
+                progressPercent = ((CURRENT_FOLLOWERS - 100) / 200) * 100;
+            } else if (CURRENT_FOLLOWERS >= 300 && CURRENT_FOLLOWERS < 700) {
+                tierName = "3-Divizion Sari: Plastik Stadion";
+                tierDesc = "Professional ko'k va oq rangli plastik o'rindiqlar! Jamoa o'sishda davom etmoqda.";
+                maxCapacity = 700;
+                progressPercent = ((CURRENT_FOLLOWERS - 300) / 400) * 100;
+            } else if (CURRENT_FOLLOWERS >= 700) {
+                tierName = "Professional Arena Upgrade";
+                tierDesc = "Zamonaviy yoritish tizimi va to'liq yopiq stadion loyihasi tasdiqlandi!";
+                maxCapacity = 2000;
+                progressPercent = Math.min((CURRENT_FOLLOWERS / 2000) * 100, 100);
+            }
+
+            // Update UI texts
+            tierTitleEl.innerText = tierName;
+            tierDescEl.innerText = tierDesc;
+            capacityEl.innerText = `${CURRENT_FOLLOWERS} / ${maxCapacity}`;
+            progressEl.style.width = `${progressPercent}%`;
+
+            // Format Currency
+            fundsEl.innerText = new Intl.NumberFormat('uz-UZ', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(totalFunds);
+
+            // Animate Main Number Rolling Up
+            let startNum = 0;
+            const duration = 1200; 
+            const startTime = performance.now();
+
+            function updateCounter(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentDisplay = Math.floor(progress * CURRENT_FOLLOWERS);
+                counterEl.innerText = currentDisplay;
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counterEl.innerText = CURRENT_FOLLOWERS;
+                }
+            }
+            requestAnimationFrame(updateCounter);
+
+            // Dynamically Render Seats Based on current layout rules
+            gridEl.innerHTML = '';
+            const seatsToShow = Math.min(CURRENT_FOLLOWERS, 150); // Show max 150 blocks to keep UI clean on phones
+            
+            for (let i = 0; i < seatsToShow; i++) {
+                const seat = document.createElement('div');
+                seat.className = "aspect-square rounded-sm seat-anim shadow-sm border";
+                
+                // Color sequencing matching Blue & White theme dynamically
+                if (i % 3 === 0) {
+                    seat.classList.add("bg-blue-600", "border-blue-500");
+                } else if (i % 3 === 1) {
+                    seat.classList.add("bg-white", "border-slate-200");
+                } else {
+                    seat.classList.add("bg-blue-800", "border-blue-700");
+                }
+                
+                // Staggered layout effect animation delayed based on index
+                seat.style.animationDelay = `${i * 8}ms`;
+                gridEl.appendChild(seat);
+            }
+        });
+    </script>
+</body>
+</html>
