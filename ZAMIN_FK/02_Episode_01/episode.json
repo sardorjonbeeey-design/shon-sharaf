@@ -1,0 +1,380 @@
+{
+ "output": "ZFK_EP01_day1_preview.mp4",
+ "lead_in": 0.3,
+ "gap": 0.3,
+ "tail": 2.4,
+ "lines": [
+  {
+   "id": "L1",
+   "file": "voice/01_hook.mp3",
+   "placeholder": 7.7
+  },
+  {
+   "id": "L2",
+   "file": "voice/02_payoff.mp3",
+   "placeholder": 14.4
+  },
+  {
+   "id": "L3",
+   "file": "voice/03_turning_point.mp3",
+   "placeholder": 8.5
+  },
+  {
+   "id": "L4",
+   "file": "voice/04_consequence.mp3",
+   "placeholder": 9.5
+  },
+  {
+   "id": "L5",
+   "file": "voice/05_question.mp3",
+   "placeholder": 11.0
+  }
+ ],
+ "shots": [
+  {
+   "from": 0,
+   "image": "assets/S01_stand_goat.png",
+   "zoom": [
+    1.0,
+    1.12
+   ],
+   "focus": [
+    0.5,
+    0.45,
+    0.47,
+    0.4
+   ]
+  },
+  {
+   "from": "L2+0",
+   "image": "assets/S02_dressing_team.png",
+   "zoom": [
+    1.0,
+    1.06
+   ],
+   "focus": [
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "from": "L2+3.0",
+   "image": "assets/S02_dressing_team.png",
+   "zoom": [
+    1.55,
+    1.65
+   ],
+   "focus": [
+    0.24,
+    0.42,
+    0.26,
+    0.42
+   ]
+  },
+  {
+   "from": "L2+5.3",
+   "image": "assets/S02_dressing_team.png",
+   "zoom": [
+    1.75,
+    1.85
+   ],
+   "focus": [
+    0.47,
+    0.47,
+    0.47,
+    0.46
+   ]
+  },
+  {
+   "from": "L2+8.0",
+   "image": "assets/S02_dressing_team.png",
+   "zoom": [
+    1.6,
+    1.7
+   ],
+   "focus": [
+    0.43,
+    0.72,
+    0.44,
+    0.72
+   ]
+  },
+  {
+   "from": "L2+11.3",
+   "image": "assets/S02_office_fund.png",
+   "zoom": [
+    1.0,
+    1.1
+   ],
+   "focus": [
+    0.5,
+    0.5,
+    0.45,
+    0.48
+   ]
+  },
+  {
+   "from": "L3+0",
+   "image": "assets/S03_rustam_whistle.png",
+   "zoom": [
+    1.0,
+    1.1
+   ],
+   "focus": [
+    0.5,
+    0.45,
+    0.5,
+    0.35
+   ]
+  },
+  {
+   "from": "L3+3.2",
+   "image": "assets/S03_bekzod_celebrates.png",
+   "zoom": [
+    1.0,
+    1.14
+   ],
+   "focus": [
+    0.5,
+    0.45,
+    0.6,
+    0.42
+   ]
+  },
+  {
+   "from": "L3+6.2",
+   "image": "assets/S03_aziz_goat.png",
+   "zoom": [
+    1.1,
+    1.0
+   ],
+   "focus": [
+    0.55,
+    0.5,
+    0.55,
+    0.5
+   ]
+  },
+  {
+   "from": "L4+0",
+   "image": "assets/S01_stand_goat.png",
+   "zoom": [
+    1.25,
+    1.0
+   ],
+   "focus": [
+    0.47,
+    0.4,
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "from": "L5+0",
+   "image": "assets/S05_stadium_wide.png",
+   "zoom": [
+    1.0,
+    1.06
+   ],
+   "blur": 14
+  },
+  {
+   "from": "L5.end+0.1",
+   "image": "assets/S01_stand_goat.png",
+   "zoom": [
+    2.0,
+    2.2
+   ],
+   "focus": [
+    0.47,
+    0.37,
+    0.47,
+    0.36
+   ]
+  }
+ ],
+ "overlays": [
+  {
+   "from": "L1+0",
+   "to": "L1+2.35",
+   "html": "<div class=\"sub\">Bu — Zamin FK stadioni.</div>",
+   "srt": "Bu — Zamin FK stadioni."
+  },
+  {
+   "from": "L1+2.6",
+   "to": "L1+5.1",
+   "html": "<div class=\"sub\">Muxlislar soni... <em>nol.</em></div>",
+   "srt": "Muxlislar soni... nol."
+  },
+  {
+   "from": "L1+6.0",
+   "to": "L1.end+0.3",
+   "html": "<div class=\"sub\">Bitta echkini hisoblamasak.</div>",
+   "srt": "Bitta echkini hisoblamasak."
+  },
+  {
+   "from": "L1+2.6",
+   "to": "L2+0",
+   "html": "<div class=\"badge\"><small>MUXLISLAR</small><b>0</b><i>VIRTUAL</i></div>"
+  },
+  {
+   "from": "L1+6.1",
+   "to": "L1.end+0.3",
+   "html": "<div class=\"tag\" style=\"left:600px;top:560px\">+1 ECHKI</div>"
+  },
+  {
+   "from": "L2+0",
+   "to": "L2+2.9",
+   "html": "<div class=\"sub\">Biz — Qoratepadan chiqqan havaskor klubmiz.</div>",
+   "srt": "Biz — Qoratepadan chiqqan havaskor klubmiz."
+  },
+  {
+   "from": "L2+3.0",
+   "to": "L2+5.2",
+   "html": "<div class=\"sub\">Bizda qattiqqo‘l murabbiy bor...</div>",
+   "srt": "Bizda qattiqqo‘l murabbiy bor..."
+  },
+  {
+   "from": "L2+5.3",
+   "to": "L2+8.0",
+   "html": "<div class=\"sub\">o‘zini <em>yulduz</em> deb o‘ylaydigan hujumchi bor...</div>",
+   "srt": "o‘zini yulduz deb o‘ylaydigan hujumchi bor..."
+  },
+  {
+   "from": "L2+8.0",
+   "to": "L2+11.2",
+   "html": "<div class=\"sub\">darvozabonimiz esa qo‘lqopini hali ham qidiryapti.</div>",
+   "srt": "darvozabonimiz esa qo‘lqopini hali ham qidiryapti."
+  },
+  {
+   "from": "L2+11.4",
+   "to": "L2.end+0.3",
+   "html": "<div class=\"sub\">Klub fondida esa atigi <em>15 million so‘m.</em></div>",
+   "srt": "Klub fondida esa atigi 15 million so‘m."
+  },
+  {
+   "from": "L2+11.4",
+   "to": "L2.end+0.3",
+   "html": "<div class=\"card\" style=\"top:560px\"><small>VIRTUAL KLUB FONDI</small><b>15 000 000</b><span>so‘m</span></div>"
+  },
+  {
+   "from": "L3+0",
+   "to": "L3+3.2",
+   "html": "<div class=\"sub\">Maqsadimiz — eng quyi havaskor ligadan</div>",
+   "srt": "Maqsadimiz — eng quyi havaskor ligadan"
+  },
+  {
+   "from": "L3+3.2",
+   "to": "L3+6.0",
+   "html": "<div class=\"sub\">O‘zbekiston futbolining eng yuqori pog‘onasigacha chiqish.</div>",
+   "srt": "O‘zbekiston futbolining eng yuqori pog‘onasigacha chiqish."
+  },
+  {
+   "from": "L3+4.4",
+   "to": "L3+6.2",
+   "html": "<div class=\"tag\" style=\"left:560px;top:700px\">TO‘P QAYERDA?</div>"
+  },
+  {
+   "from": "L3+6.4",
+   "to": "L3.end+0.3",
+   "html": "<div class=\"sub\">Ha... hozircha yo‘l <em>uzoq.</em></div>",
+   "srt": "Ha... hozircha yo‘l uzoq."
+  },
+  {
+   "from": "L4+0",
+   "to": "L4.end+0.3",
+   "html": "<div class=\"badge\"><small>MUXLISLAR</small><b>0</b><i>VIRTUAL</i></div>"
+  },
+  {
+   "from": "L4+0",
+   "to": "L4+2.0",
+   "html": "<div class=\"sub\">Lekin bu yerda <em>SIZ</em> keraksiz!</div>",
+   "srt": "Lekin bu yerda SIZ keraksiz!"
+  },
+  {
+   "from": "L4+2.0",
+   "to": "L4+5.0",
+   "html": "<div class=\"sub\">Har bir obunachi — tribunada bitta virtual muxlis.</div>",
+   "srt": "Har bir obunachi — tribunada bitta virtual muxlis."
+  },
+  {
+   "from": "L4+2.0",
+   "to": "L4.end+0.3",
+   "html": "<div class=\"card\" style=\"top:940px\"><span>1 obunachi = 1 virtual muxlis</span></div>"
+  },
+  {
+   "from": "L4+5.0",
+   "to": "L4+7.3",
+   "html": "<div class=\"sub\">Har bir layk — klub fondiga bir dollar.</div>",
+   "srt": "Har bir layk — klub fondiga bir dollar."
+  },
+  {
+   "from": "L4+5.0",
+   "to": "L4.end+0.3",
+   "html": "<div class=\"card\" style=\"top:1110px\"><span>1 layk = 1 $ (virtual fond)</span></div>"
+  },
+  {
+   "from": "L4+7.3",
+   "to": "L4.end+0.3",
+   "html": "<div class=\"sub\">Keling, bu stadionni <em>birga to‘ldiramiz!</em></div>",
+   "srt": "Keling, bu stadionni birga to‘ldiramiz!"
+  },
+  {
+   "from": "L5+0",
+   "to": "L5.end+0.1",
+   "html": "<img class=\"crest\" style=\"top:120px;height:330px\" src=\"{ep}/../03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png\">"
+  },
+  {
+   "from": "L5+0",
+   "to": "L5+2.2",
+   "html": "<div class=\"sub\">Birinchi qarorni <em>SIZ</em> qabul qilasiz:</div>",
+   "srt": "Birinchi qarorni siz qabul qilasiz:"
+  },
+  {
+   "from": "L5+2.2",
+   "to": "L5.end+0.1",
+   "html": "<div class=\"choice\" style=\"top:540px;font-size:56px\"><div class=\"n\">1</div>STADION</div>"
+  },
+  {
+   "from": "L5+3.2",
+   "to": "L5.end+0.1",
+   "html": "<div class=\"choice\" style=\"top:720px;font-size:56px\"><div class=\"n\">2</div>HUJUMCHI</div>"
+  },
+  {
+   "from": "L5+4.3",
+   "to": "L5.end+0.1",
+   "html": "<div class=\"choice\" style=\"top:900px;font-size:42px\"><div class=\"n\">3</div>MASHG‘ULOT BAZASI</div>"
+  },
+  {
+   "from": "L5+5.5",
+   "to": "L5.end+0.1",
+   "html": "<div class=\"choice\" style=\"top:1080px;font-size:56px\"><div class=\"n\">4</div>MURABBIY</div>"
+  },
+  {
+   "from": "L5+2.2",
+   "to": "L5+7.0",
+   "html": "<div class=\"sub\">stadion, yangi hujumchi, mashg‘ulot bazasi yoki yangi murabbiy?</div>",
+   "srt": "stadion, yangi hujumchi, mashg‘ulot bazasi yoki yangi murabbiy?"
+  },
+  {
+   "from": "L5+7.0",
+   "to": "L5+8.6",
+   "html": "<div class=\"sub\">Izohga <em>bitta so‘z</em> yozing.</div>",
+   "srt": "Izohga bitta so‘z yozing."
+  },
+  {
+   "from": "L5+8.6",
+   "to": "L5.end+0.1",
+   "html": "<div class=\"sub\">Eng ko‘p layk olgan izoh — <em>24 soatdan keyin</em> g‘olib!</div>",
+   "srt": "Eng ko‘p layk olgan izoh — 24 soatdan keyin g‘olib!"
+  },
+  {
+   "from": "L5.end+0.1",
+   "to": "end",
+   "html": "<div class=\"cta\" style=\"top:1270px\">Echki ham kutyapti...<small>Stadion · Hujumchi · Baza · Murabbiy</small></div><div class=\"virtual\">FOND VA MUXLISLAR — VIRTUAL</div>"
+  }
+ ],
+ "sfx": []
+}

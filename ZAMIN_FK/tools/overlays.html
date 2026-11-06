@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face { font-family: M; src: url("file:///usr/share/fonts/opentype/montserrat/Montserrat-Black.otf"); font-weight: 900; }
+@font-face { font-family: M; src: url("file:///usr/share/fonts/opentype/montserrat/Montserrat-Bold.otf"); font-weight: 700; }
+html, body { margin: 0; width: 1080px; height: 1920px; background: transparent; font-family: M, sans-serif; overflow: hidden; }
+.layer { position: absolute; inset: 0; }
+/* subtitles: above the bottom 380px app zone, clear of the right 160px */
+.sub { position: absolute; left: 70px; right: 170px; bottom: 420px; text-align: center; color: #fff;
+  font-weight: 900; font-size: 64px; line-height: 1.12; letter-spacing: 0.5px;
+  -webkit-text-stroke: 9px #0D2557; paint-order: stroke fill; text-shadow: 0 6px 18px rgba(0,0,0,.55); }
+.sub em { font-style: normal; color: #FFD23F; }
+.badge { position: absolute; left: 60px; top: 150px; background: #0D2557; color: #fff; border: 5px solid #fff;
+  border-radius: 28px; padding: 18px 34px 20px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.badge small { display: block; font-weight: 700; font-size: 30px; letter-spacing: 4px; opacity: .85; }
+.badge b { display: block; font-weight: 900; font-size: 120px; line-height: 1; }
+.badge i { display: block; font-style: normal; font-weight: 700; font-size: 26px; letter-spacing: 3px; color: #9DB8FF; }
+.tag { position: absolute; background: #FFD23F; color: #0D2557; font-weight: 900; font-size: 46px; padding: 12px 26px;
+  border-radius: 18px; border: 5px solid #0D2557; transform: rotate(-4deg); box-shadow: 0 8px 20px rgba(0,0,0,.4); }
+.card { position: absolute; left: 70px; right: 170px; background: rgba(13,37,87,.94); color: #fff; border: 5px solid #fff;
+  border-radius: 30px; padding: 26px 34px; box-shadow: 0 10px 30px rgba(0,0,0,.45); text-align: center; }
+.card small { display: block; font-weight: 700; font-size: 30px; letter-spacing: 4px; color: #9DB8FF; }
+.card b { display: block; font-weight: 900; font-size: 84px; line-height: 1.05; }
+.card span { display: block; font-weight: 900; font-size: 52px; line-height: 1.15; }
+.choice { position: absolute; left: 90px; right: 190px; height: 150px; display: flex; align-items: center; gap: 28px;
+  background: #fff; color: #0D2557; border-radius: 28px; border: 6px solid #0D2557; box-shadow: 0 10px 26px rgba(0,0,0,.4);
+  font-weight: 900; font-size: 56px; padding: 0 36px; }
+.choice .n { width: 92px; height: 92px; border-radius: 50%; background: #1F4FB8; color: #fff; display: flex;
+  align-items: center; justify-content: center; font-size: 54px; flex: none; }
+.crest { position: absolute; left: 50%; transform: translateX(-50%); }
+.cta { position: absolute; left: 70px; right: 170px; text-align: center; color: #fff; font-weight: 900; font-size: 70px;
+  line-height: 1.1; -webkit-text-stroke: 10px #0D2557; paint-order: stroke fill; }
+.cta small { display: block; font-size: 44px; color: #FFD23F; margin-top: 14px; }
+.virtual { position: absolute; left: 60px; top: 70px; color: #fff; font-weight: 700; font-size: 26px; letter-spacing: 3px;
+  background: rgba(13,37,87,.75); padding: 8px 18px; border-radius: 12px; }
+</style></head><body><div id="root"></div></body></html>
