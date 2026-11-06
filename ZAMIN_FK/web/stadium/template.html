@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Zamin FK stadioni</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0D2557; --blue:#1F4FB8; --yel:#FFD23F; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#0a1730; font-family: Montserrat, sans-serif; color:#fff; }
+  #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  .ui { position:fixed; z-index:5; }
+  .pill { background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  #brand { top:14px; left:14px; display:flex; align-items:center; gap:10px; padding:10px 16px; font-weight:900; font-size:17px; letter-spacing:.5px; }
+  #brand img { height:34px; }
+  #count { top:14px; right:14px; padding:8px 16px; text-align:center; }
+  #count small { display:block; color:var(--yel); font-weight:900; font-size:12px; letter-spacing:2px; }
+  #count b { display:block; font-weight:900; font-size:30px; line-height:1.05; }
+  #count i { display:block; font-style:normal; font-size:10px; letter-spacing:2px; color:#9DB8FF; }
+  #langs { top:74px; left:14px; display:flex; gap:6px; }
+  #langs button { font:inherit; font-weight:700; font-size:12px; color:#fff; background:rgba(13,37,87,.85); border:2px solid rgba(255,255,255,.2); border-radius:14px; padding:6px 10px; }
+  #langs button.on { background:var(--yel); color:var(--navy); border-color:var(--yel); }
+  #side { right:14px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:10px; }
+  #side button { width:52px; height:52px; border-radius:16px; font:inherit; font-weight:900; font-size:24px; color:#fff; background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); }
+  #find { left:12px; right:12px; bottom:14px; display:flex; gap:10px; }
+  #find input { flex:1; min-width:0; font:inherit; font-weight:700; font-size:17px; color:#fff; background:rgba(13,37,87,.95); border:2px solid rgba(255,255,255,.25); border-radius:18px; padding:16px 18px; outline:none; }
+  #find input::placeholder { color:#9DB8FF; }
+  #find button { font:inherit; font-weight:900; font-size:18px; color:var(--navy); background:var(--yel); border:0; border-radius:18px; padding:0 22px; }
+  #rule { left:50%; transform:translateX(-50%); bottom:86px; background:var(--yel); color:var(--navy); font-weight:900; font-size:14px; padding:8px 14px; border-radius:14px; white-space:nowrap; }
+  #toast { left:50%; transform:translateX(-50%); top:120px; padding:12px 18px; font-weight:700; font-size:15px; text-align:center; display:none; max-width:90vw; }
+  #labels { position:fixed; inset:0; pointer-events:none; z-index:3; overflow:hidden; }
+  .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.95); color:var(--navy); font-weight:900; font-size:12px; padding:4px 9px; border-radius:10px; white-space:nowrap; box-shadow:0 3px 10px rgba(0,0,0,.3); }
+  .tag::before { content:"•"; color:var(--blue); margin-right:4px; }
+  .tag.me { background:var(--yel); font-size:15px; padding:6px 12px; border:2px solid var(--navy); }
+  .tag.hero { background:var(--navy); color:#fff; border:2px solid var(--yel); }
+  .tag.hero::before { content:"★"; color:var(--yel); }
+  #card { left:50%; bottom:90px; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; }
+  #card h3 { margin:0 0 4px; font-weight:900; font-size:20px; color:var(--yel); }
+  #card p { margin:0; font-weight:700; font-size:14px; line-height:1.35; }
+  #card .x { position:absolute; right:12px; top:8px; font-size:20px; background:none; border:0; color:#fff; }
+  #demo { bottom:150px; left:14px; font-size:11px; color:#9DB8FF; font-weight:700; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="labels"></div>
+<div id="brand" class="ui pill"><img src="__CREST__" alt=""><span data-t="title"></span></div>
+<div id="count" class="ui pill"><small data-t="fans"></small><b id="n">0</b><i>VIRTUAL</i></div>
+<div id="langs" class="ui"></div>
+<div id="side" class="ui"><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button></div>
+<div id="rule" class="ui" data-t="rule"></div>
+<div id="toast" class="ui pill"></div>
+<div id="card" class="ui pill"><button class="x" id="cx">×</button><h3 id="ch"></h3><p id="cp"></p></div>
+<div id="demo" class="ui" data-t="demo"></div>
+<form id="find" class="ui"><input id="q" autocomplete="off" autocapitalize="off" spellcheck="false"><button data-t="find"></button></form>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const FANS = __FANS__;            // follow order: earliest first
+const HEROES = __HEROES__;        // [{key,name,role:{uz,ru,en},img,x,z,h}]
+const DEMO = __DEMO__;
+const T = {
+  uz:{title:"ZAMIN FK STADIONI", fans:"MUXLISLAR", rule:"1 obunachi = 1 o‘rindiq", find:"Topish", ph:"Instagram nikingiz", demo:"Namuna ro‘yxat", nf:"Bu nik hali tribunada yo‘q. Obuna bo‘ling — ertaga o‘rningiz tayyor!", seat:(s)=>`Sektor ${s.sec} · Qator ${s.row} · O‘rin ${s.no}`},
+  ru:{title:"СТАДИОН ZAMIN FK", fans:"БОЛЕЛЬЩИКИ", rule:"1 подписчик = 1 место", find:"Найти", ph:"Ваш ник в Instagram", demo:"Демо-список", nf:"Этого ника пока нет на трибуне. Подпишитесь — завтра место будет готово!", seat:(s)=>`Сектор ${s.sec} · Ряд ${s.row} · Место ${s.no}`},
+  en:{title:"ZAMIN FK STADIUM", fans:"FANS", rule:"1 follower = 1 seat", find:"Find", ph:"Your Instagram nick", demo:"Demo list", nf:"This nick isn’t in the stand yet. Follow us — your seat will be ready tomorrow!", seat:(s)=>`Sector ${s.sec} · Row ${s.row} · Seat ${s.no}`},
+};
+let L = "uz";
+try { L = localStorage.getItem("zfk_lang") || "uz"; } catch (e) {}
+
+// ---------- seats: rounded-rectangle rings around the pitch ----------
+const PW = 105, PH = 68, SEAT_W = 0.62, ROW_D = 0.95, ROW_H = 0.48;
+function rrLen(a, b, r) { return 4 * (a - r) + 4 * (b - r) + 2 * Math.PI * r; }
+function rrPoint(a, b, r, s) {          // s from the middle of the main (south, z=+b) straight, clockwise
+  const sx = 2 * (a - r), sz = 2 * (b - r), q = Math.PI * r / 2;
+  const segs = [[sx / 2, "S1"], [q, "C1"], [sz, "E"], [q, "C2"], [sx, "N"], [q, "C3"], [sz, "W"], [q, "C4"], [sx / 2, "S2"]];
+  for (const [len, k] of segs) {
+    if (s <= len) {
+      const p = s;
+      switch (k) {
+        case "S1": return [p, b, 0, 1];
+        case "C1": { const t = p / r; return [a - r + r * Math.sin(t), b - r + r * Math.cos(t), Math.sin(t), Math.cos(t)]; }
+        case "E": return [a, b - r - p, 1, 0];
+        case "C2": { const t = p / r; return [a - r + r * Math.cos(t), -(b - r) - r * Math.sin(t), Math.cos(t), -Math.sin(t)]; }
+        case "N": return [a - r - p, -b, 0, -1];
+        case "C3": { const t = p / r; return [-(a - r) - r * Math.sin(t), -(b - r) - r * Math.cos(t), -Math.sin(t), -Math.cos(t)]; }
+        case "W": return [-a, -(b - r) + p, -1, 0];
+        case "C4": { const t = p / r; return [-(a - r) - r * Math.cos(t), (b - r) + r * Math.sin(t), -Math.cos(t), Math.sin(t)]; }
+        case "S2": return [-(a - r) + p, b, 0, 1];
+      }
+    }
+    s -= len;
+  }
+  return [0, b, 0, 1];
+}
+const need = Math.max(FANS.length, 600);
+const seats = [];
+for (let ring = 0; ring < 24 || seats.length < need * 1.15 + 200; ring++) {
+  const a = PW / 2 + 9 + ring * ROW_D, b = PH / 2 + 9 + ring * ROW_D, r = 10 + ring * ROW_D;
+  const len = rrLen(a, b, r), n = Math.floor(len / SEAT_W);
+  for (let i = 0; i < n; i++) {
+    const s = (i + 0.5) * len / n;
+    const [x, z, nx, nz] = rrPoint(a, b, r, s);
+    const dist = Math.min(s, len - s);            // along the bowl from the main-stand centre
+    if (ring > 0 && i % 40 === 20) continue;      // aisles
+    seats.push({ x, z, nx, nz, y: 0.6 + ring * ROW_H, ring, s, len, cost: ring * 7 + dist / 6 });
+  }
+}
+const order = seats.map((_, i) => i).sort((i, j) => seats[i].cost - seats[j].cost);
+const SECTORS = "ABCDEFGHIJKLMNOP";
+const byNick = new Map();
+FANS.forEach((nick, i) => {
+  const st = seats[order[i]];
+  st.fan = nick;
+  st.sec = SECTORS[Math.floor(st.s / st.len * 16) % 16];
+  st.row = st.ring + 1;
+  st.no = Math.floor((st.s % (st.len / 16)) / SEAT_W) + 1;
+  byNick.set(nick.toLowerCase().replace(/^@/, ""), st);
+});
+
+// ---------- three.js scene ----------
+const canvas = document.getElementById("c");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1838);
+scene.fog = new THREE.Fog(0x0b1838, 180, 420);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.5, 1200);
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x203018, 0.9));
+const sun = new THREE.DirectionalLight(0xffe2b8, 0.9); sun.position.set(-80, 120, 60); scene.add(sun);
+
+// sky gradient dome
+{
+  const g = new THREE.SphereGeometry(600, 24, 12);
+  const m = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
+    vertexShader: "varying float h; void main(){ h = normalize(position).y; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }",
+    fragmentShader: "varying float h; void main(){ vec3 a=vec3(.98,.62,.42), b=vec3(.20,.26,.52), c=vec3(.04,.09,.22); vec3 col = h<.08 ? mix(a,b,clamp(h/.08,0.,1.)) : mix(b,c,clamp((h-.08)/.5,0.,1.)); gl_FragColor=vec4(col,1.); }" });
+  scene.add(new THREE.Mesh(g, m));
+}
+// ground + pitch texture
+{
+  const cv = document.createElement("canvas"); cv.width = 1050; cv.height = 680;
+  const x = cv.getContext("2d");
+  for (let i = 0; i < 14; i++) { x.fillStyle = i % 2 ? "#3f8a3a" : "#468f40"; x.fillRect(i * 75, 0, 75, 680); }
+  for (let i = 0; i < 160; i++) { x.fillStyle = "rgba(110,80,40,.18)"; x.beginPath(); x.ellipse(Math.random() * 1050, Math.random() * 680, 10 + Math.random() * 40, 6 + Math.random() * 20, 0, 0, 7); x.fill(); }
+  x.strokeStyle = "rgba(255,255,255,.85)"; x.lineWidth = 4;
+  x.strokeRect(20, 20, 1010, 640); x.beginPath(); x.moveTo(525, 20); x.lineTo(525, 660); x.stroke();
+  x.beginPath(); x.arc(525, 340, 91, 0, 7); x.stroke();
+  x.strokeRect(20, 138, 165, 404); x.strokeRect(865, 138, 165, 404); x.strokeRect(20, 248, 55, 184); x.strokeRect(975, 248, 55, 184);
+  const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 8;
+  const pitch = new THREE.Mesh(new THREE.PlaneGeometry(PW + 4, PH + 4), new THREE.MeshLambertMaterial({ map: tex }));
+  pitch.rotation.x = -Math.PI / 2; scene.add(pitch);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400), new THREE.MeshLambertMaterial({ color: 0x2c4a2a }));
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; scene.add(ground);
+  const track = new THREE.Mesh(new THREE.PlaneGeometry(PW + 18, PH + 18), new THREE.MeshLambertMaterial({ color: 0x8a6b4a }));
+  track.rotation.x = -Math.PI / 2; track.position.y = -0.02; scene.add(track);
+  const gm = new THREE.MeshLambertMaterial({ color: 0xdddddd });
+  for (const sx of [-1, 1]) {
+    const g = new THREE.Group();
+    const post = new THREE.BoxGeometry(0.15, 2.44, 0.15), bar = new THREE.BoxGeometry(0.15, 0.15, 7.32);
+    const p1 = new THREE.Mesh(post, gm); p1.position.set(0, 1.22, 3.66);
+    const p2 = new THREE.Mesh(post, gm); p2.position.set(0, 1.22, -3.66);
+    const cb = new THREE.Mesh(bar, gm); cb.position.set(0, 2.44, 0);
+    g.add(p1, p2, cb); g.position.x = sx * PW / 2; scene.add(g);
+  }
+}
+// seats, steps and fans (instanced)
+const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S1 = new THREE.Vector3(1, 1, 1), UP = new THREE.Vector3(0, 1, 0);
+const stepGeo = new THREE.BoxGeometry(SEAT_W, ROW_H, ROW_D), seatGeo = new THREE.BoxGeometry(SEAT_W * 0.8, 0.12, 0.42);
+const steps = new THREE.InstancedMesh(stepGeo, new THREE.MeshLambertMaterial({ color: 0xb9b4aa }), seats.length);
+const chairs = new THREE.InstancedMesh(seatGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), seats.length);
+const fans = FANS.length;
+const bodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.17, 0.22, 0.62, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, fans));
+const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.15, 8, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, fans));
+const C = new THREE.Color();
+const SKIN = [0xf1c9a5, 0xe0ac80, 0xc68a5e, 0xa86f48], SHIRT = [0x1F4FB8, 0xffffff, 0x1F4FB8, 0x2a62d6, 0x0D2557];
+const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
+let fi = 0;
+seats.forEach((st, i) => {
+  const ang = Math.atan2(-st.nx, -st.nz);              // face the pitch
+  Q.setFromAxisAngle(UP, ang);
+  M.compose(V.set(st.x, st.y - ROW_H / 2, st.z), Q, S1); steps.setMatrixAt(i, M);
+  M.compose(V.set(st.x - st.nx * 0.15, st.y + 0.06, st.z - st.nz * 0.15), Q, S1); chairs.setMatrixAt(i, M);
+  const sec = Math.floor(st.s / st.len * 16);
+  chairs.setColorAt(i, C.set(sec % 2 ? 0x1F4FB8 : 0xf2f2f2));
+  st.i = i;
+  if (st.fan) {
+    const h = hash(st.fan);
+    const bob = ((h >> 6) % 10) / 100;
+    M.compose(V.set(st.x - st.nx * 0.12, st.y + 0.43 + bob, st.z - st.nz * 0.12), Q, S1); bodies.setMatrixAt(fi, M);
+    bodies.setColorAt(fi, C.set(SHIRT[h % SHIRT.length]));
+    M.compose(V.set(st.x - st.nx * 0.12, st.y + 0.88 + bob, st.z - st.nz * 0.12), Q, S1); heads.setMatrixAt(fi, M);
+    heads.setColorAt(fi, C.set(SKIN[(h >> 3) % SKIN.length]));
+    st.fi = fi++;
+  }
+});
+[steps, chairs, bodies, heads].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
+bodies.count = heads.count = fi;
+// outer wall + club banner band
+{
+  const R = seats[seats.length - 1].ring + 1;
+  const a = PW / 2 + 9 + R * ROW_D, b = PH / 2 + 9 + R * ROW_D, r = 10 + R * ROW_D, len = rrLen(a, b, r);
+  const n = Math.floor(len / 2), hgt = R * ROW_H + 3;
+  const wall = new THREE.InstancedMesh(new THREE.BoxGeometry(2.05, hgt, 0.8), new THREE.MeshLambertMaterial({ color: 0xffffff }), n);
+  for (let i = 0; i < n; i++) {
+    const [x, z, nx, nz] = rrPoint(a, b, r, (i + .5) * len / n);
+    Q.setFromAxisAngle(UP, Math.atan2(-nx, -nz)); M.compose(V.set(x, hgt / 2, z), Q, S1); wall.setMatrixAt(i, M);
+    wall.setColorAt(i, C.set(Math.floor(i / 6) % 2 ? 0x1F4FB8 : 0x0D2557));
+  }
+  scene.add(wall);
+}
+// floodlights
+{
+  const ring = seats[seats.length - 1].ring;
+  const ext = 9 + ring * ROW_D + 4, hgt = ring * ROW_H + 18;
+  for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, hgt, 6), new THREE.MeshLambertMaterial({ color: 0x777777 }));
+    pole.position.set(sx * (PW / 2 + ext - 4), hgt / 2, sz * (PH / 2 + ext - 4)); scene.add(pole);
+    const lamp = new THREE.Mesh(new THREE.BoxGeometry(5, 3, 0.6), new THREE.MeshBasicMaterial({ color: 0xfff6d0 }));
+    lamp.position.set(pole.position.x, hgt, pole.position.z); lamp.lookAt(0, 0, 0); scene.add(lamp);
+  }
+}
+// heroes on the pitch (billboard sprites)
+const heroObjs = HEROES.map(hz => {
+  const tex = new THREE.TextureLoader().load(hz.img);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+  sp.center.set(0.5, 0); sp.position.set(hz.x, 0, hz.z);
+  tex.onload = () => {};
+  const img = new Image(); img.onload = () => sp.scale.set(hz.h * img.width / img.height, hz.h, 1); img.src = hz.img;
+  sp.userData = hz; scene.add(sp); return sp;
+});
+
+// ---------- camera / controls ----------
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.47; controls.minDistance = 6; controls.maxDistance = 330;
+const HOME = { pos: new THREE.Vector3(0, 20, 8), tgt: new THREE.Vector3(0, 6, PH / 2 + 16) };
+camera.position.copy(HOME.pos); controls.target.copy(HOME.tgt);
+let fly = null;
+function flyTo(pos, tgt, dur = 1.6) { fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, start: performance.now(), dur }; }
+document.getElementById("home").onclick = () => { me = null; flyTo(HOME.pos.clone(), HOME.tgt.clone()); };
+const zoom = f => { const d = camera.position.clone().sub(controls.target).multiplyScalar(f); flyTo(controls.target.clone().add(d), controls.target.clone(), .5); };
+document.getElementById("zin").onclick = () => zoom(0.6);
+document.getElementById("zout").onclick = () => zoom(1.6);
+
+// ---------- labels ----------
+const labelsEl = document.getElementById("labels");
+const pool = [];
+let me = null;
+function tag(i) { if (!pool[i]) { const d = document.createElement("div"); d.className = "tag"; labelsEl.appendChild(d); pool[i] = d; } return pool[i]; }
+const P = new THREE.Vector3();
+function project(x, y, z) { P.set(x, y, z).project(camera); return [(P.x + 1) / 2 * innerWidth, (1 - P.y) / 2 * innerHeight, P.z]; }
+let lastLabel = 0, used = 0;
+function updateLabels(now) {
+  if (now - lastLabel < 120 && !fly) return; lastLabel = now;
+  used = 0;
+  const cand = [];
+  const camPos = camera.position;
+  const step = Math.max(1, Math.floor(fans / 3000));
+  for (let k = 0; k < fans; k += step) {
+    const st = seats[order[k]];
+    const d2 = (st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2;
+    cand.push([d2, st]);
+  }
+  cand.sort((a, b) => a[0] - b[0]);
+  const boxes = [];
+  const place = (st, cls, txt) => {
+    const [sx, sy, sz] = project(st.x, st.y + 1.3, st.z);
+    if (sz > 1 || sx < -40 || sx > innerWidth + 40 || sy < 60 || sy > innerHeight - 90) return false;
+    const w = txt.length * 7.5 + 22, h = 22;
+    if (cls !== "tag me" && boxes.some(b => Math.abs(b[0] - sx) < (b[2] + w) / 2 && Math.abs(b[1] - sy) < h)) return false;
+    boxes.push([sx, sy, w]);
+    const d = tag(used++); d.className = cls; d.textContent = txt; d.style.left = sx + "px"; d.style.top = sy + "px"; d.style.display = "block";
+    return true;
+  };
+  if (me) place(me, "tag me", "@" + me.fan);
+  heroObjs.forEach(o => { const [sx, sy, sz] = project(o.position.x, o.userData.h + 0.6, o.position.z); if (sz < 1) { const d = tag(used++); d.className = "tag hero"; d.textContent = o.userData.name; d.style.left = sx + "px"; d.style.top = sy + "px"; d.style.display = "block"; } });
+  let shown = 0;
+  for (const [, st] of cand) { if (shown >= 22) break; if (st !== me && place(st, "tag", "@" + st.fan)) shown++; }
+  for (let k = used; k < pool.length; k++) pool[k].style.display = "none";
+}
+
+// ---------- find ----------
+const toast = document.getElementById("toast");
+function say(t) { toast.textContent = t; toast.style.display = "block"; clearTimeout(say.t); say.t = setTimeout(() => toast.style.display = "none", 4200); }
+document.getElementById("find").onsubmit = e => {
+  e.preventDefault();
+  const q = document.getElementById("q").value.trim().toLowerCase().replace(/^@/, "");
+  if (!q) return;
+  const st = byNick.get(q);
+  if (!st) { say(T[L].nf); return; }
+  me = st;
+  const tgt = new THREE.Vector3(st.x, st.y + 0.6, st.z);
+  const pos = new THREE.Vector3(st.x - st.nx * 9, st.y + 4.5, st.z - st.nz * 9);
+  flyTo(pos, tgt, 2.2);
+  say("@" + st.fan + " — " + T[L].seat(st));
+  if (st.fi != null) { bodies.setColorAt(st.fi, C.set(0xFFD23F)); bodies.instanceColor.needsUpdate = true; }
+};
+
+// hero card on tap
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+let downAt = null;
+canvas.addEventListener("pointerdown", e => downAt = [e.clientX, e.clientY]);
+canvas.addEventListener("pointerup", e => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
+  mouse.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects(heroObjs)[0];
+  if (hit) { const hz = hit.object.userData; document.getElementById("ch").textContent = hz.name; document.getElementById("cp").textContent = hz.role[L]; document.getElementById("card").style.display = "block"; }
+});
+document.getElementById("cx").onclick = () => document.getElementById("card").style.display = "none";
+
+// ---------- language ----------
+const langsEl = document.getElementById("langs");
+[["uz", "O‘zbekcha"], ["ru", "Русский"], ["en", "English"]].forEach(([k, n]) => {
+  const b = document.createElement("button"); b.textContent = n; b.onclick = () => setLang(k); b.dataset.k = k; langsEl.appendChild(b);
+});
+function setLang(k) {
+  L = k; try { localStorage.setItem("zfk_lang", k); } catch (e) {}
+  document.querySelectorAll("[data-t]").forEach(el => el.textContent = T[L][el.dataset.t]);
+  document.getElementById("q").placeholder = T[L].ph;
+  langsEl.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.k === L));
+  document.getElementById("demo").style.display = DEMO ? "block" : "none";
+}
+setLang(L);
+
+// counter roll-up
+const nEl = document.getElementById("n");
+const t0 = performance.now();
+function fmt(v) { return Math.round(v).toLocaleString("fr-FR").replace(/ | /g, " "); }
+
+function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener("resize", resize); resize();
+let prev = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+  if (fly) {
+    fly.t = (now - fly.start) / 1000 / fly.dur; const p = fly.t >= 1 ? 1 : 1 - Math.pow(1 - fly.t, 3);
+    camera.position.lerpVectors(fly.p0, fly.p1, p); controls.target.lerpVectors(fly.t0, fly.t1, p);
+    if (fly.t >= 1) fly = null;
+  }
+  controls.update();
+  heroObjs.forEach((o, i) => { o.position.y = Math.abs(Math.sin(now / 400 + i)) * 0.12; });
+  nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
+  renderer.render(scene, camera);
+  updateLabels(now);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
