@@ -1,7 +1,7 @@
 # ZAMIN FK — Klub gerbi spetsifikatsiyasi (V01)
 
-> **Holat: TAKLIF — hali tasdiqlanmagan.**
-> Bosqich: 03.3 — Art Direction. Bu hujjat faqat yozma tayyorgarlik. Rasm generatsiyasi foydalanuvchi qarori bilan to‘xtatilgan; ushbu hujjat asosida hech qanday tasvir yaratilmagan.
+> **Holat: TASDIQLANGAN (foydalanuvchi, 2026-11-06) — yozma spetsifikatsiya qulflandi.**
+> Bosqich: 03.3 — Art Direction. Gerb tasvirlari (SVG/PNG) hali yaratilmagan — rasm generatsiyasi qayta boshlanganda shu hujjat asosida yaratiladi va alohida tekshiriladi.
 
 ## 0. Tasdiqlangan va taklif qilingan ma’lumotlar
 
@@ -10,7 +10,7 @@
 | Klub nomi: ZAMIN FK | Tasdiqlangan |
 | Klub ranglari: ko‘k va oq | Tasdiqlangan (foydalanuvchi) |
 | Ko‘k-oq qalqon, futbol to‘pi va quyosh chiqishi; tepada ZAMIN, pastda FK | Avvalgi taklif — yakuniy vizual qulf hali yo‘q |
-| Quyidagi barcha o‘lchamlar, ranglar kodlari, shrift va qoidalar | **Yangi taklif (V01)** — tasdiq kutilmoqda |
+| Quyidagi barcha o‘lchamlar, ranglar kodlari, shrift va qoidalar | **Tasdiqlangan (V01)** |
 | Tashkil topgan yil, shahar nomi (Qoratepa), shiori | Gerbga **kiritilmaydi** — tasdiqlanmagan |
 
 ## 1. G‘oya
@@ -154,12 +154,12 @@ horizon. Bottom section white with FK in navy capitals. Use only #1F4FB8,
 other symbols. Centred on a plain transparent background.
 ```
 
-## 12. Tasdiq uchun savollar
+## 12. Tasdiqlangan qarorlar
 
-1. **Qalqon shakli** — klassik “heater” qalqon (5:6) mos keladimi?
-2. **Quyosh rangi** — faqat oq (taklif) yoki alohida oltin/sariq urg‘u rang qo‘shilsinmi? (Hozircha klub ranglari faqat ko‘k va oq.)
-3. **Shrift** — Montserrat ExtraBold/Black mos keladimi?
-4. **Nurlar soni** — 7 ta (asosiy) va 5 ta (kichik versiya) mos keladimi?
-5. **Darvozabon formasi** — yashil formada oq chegarali P versiyasi ma’qulmi?
+1. Qalqon shakli — klassik “heater” qalqon, 5 : 6. ✅
+2. Quyosh rangi — faqat oq; oltin/sariq rang qo‘shilmaydi. ✅
+3. Shrift — Montserrat ExtraBold/Black. ✅
+4. Nurlar — 7 ta (asosiy), 5 ta (S versiyasi). ✅
+5. Darvozabon formasi — oq chegarali P versiyasi. ✅
 
-Tasdiqdan keyin: hujjat V01 → “Tasdiqlangan” deb belgilanadi va gerb vizual qulfi yoziladi. Tasvirlar esa faqat rasm generatsiyasi qayta boshlanganda yaratiladi.
+Keyingi qadam: rasm generatsiyasi qayta boshlanganda master fayllar (P, M1, M2, S) yaratiladi, foydalanuvchi tekshiradi, so‘ng `03_Approved_Assets/` ga ko‘chiriladi.
