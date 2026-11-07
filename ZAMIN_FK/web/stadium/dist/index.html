@@ -117,7 +117,7 @@ for (let ring = 0; ring < MIN_RINGS || seats.length < need * 1.15 + 200; ring++)
 const order = seats.map((_, i) => i).sort((i, j) => seats[i].cost - seats[j].cost);
 const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
 if (FANS.length <= 300) {               // small crowd: random seat per nick, near the main stand so fans are easy to see
-  const half = Math.max(5, Math.sqrt(FANS.length) * 2.2);  // compact block in the middle of the main stand
+  const half = Math.max(9, Math.sqrt(FANS.length) * 3.6);  // compact block in the middle of the main stand
   const pool = order.filter(i => { const st = seats[i]; return Math.min(st.s, st.len - st.s) < half && st.ring < 8; }), used = new Set(), out = [];
   FANS.forEach(nick => { let k = hash(nick.toLowerCase()) % pool.length; while (used.has(k)) k = (k + 7) % pool.length; used.add(k); out.push(pool[k]); });
   order.splice(0, FANS.length, ...out);
@@ -302,8 +302,8 @@ const HOME = (() => {                 // frame the occupied seats
   if (!fs.length) return { pos: new THREE.Vector3(0, 13, 22), tgt: new THREE.Vector3(0, 3, PH / 2 + 13) };
   const cx = fs.reduce((a, s) => a + s.x, 0) / fs.length, cy = fs.reduce((a, s) => a + s.y, 0) / fs.length, cz = fs.reduce((a, s) => a + s.z, 0) / fs.length;
   const spread = Math.max(...fs.map(s => Math.hypot(s.x - cx, s.z - cz))), aspect = innerWidth / innerHeight;
-  const d = Math.max(14, spread * 1.25 / Math.max(.5, aspect));
-  return { pos: new THREE.Vector3(cx, cy + d * .45, cz - d), tgt: new THREE.Vector3(cx, cy + .5, cz) };
+  const d = Math.max(15, spread * 0.9 / Math.max(.5, aspect));
+  return { pos: new THREE.Vector3(cx, cy + d * .8, cz - d * .75), tgt: new THREE.Vector3(cx, cy + 1.0, cz + 2) };
 })();
 camera.position.copy(HOME.pos); controls.target.copy(HOME.tgt);
 let fly = null;
