@@ -184,11 +184,30 @@ const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3
 const stepGeo = new THREE.BoxGeometry(SEAT_W, ROW_H, ROW_D), seatGeo = new THREE.BoxGeometry(SEAT_W * 0.8, 0.12, 0.42);
 const steps = new THREE.InstancedMesh(stepGeo, new THREE.MeshLambertMaterial({ color: 0xb9b4aa }), seats.length);
 const chairs = new THREE.InstancedMesh(seatGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), seats.length);
-const fans = FANS.length;
-const bodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.17, 0.22, 0.62, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, fans));
-const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.15, 8, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, fans));
+const fans = FANS.length, NF = Math.max(1, fans);
+// toy-style fans (smooth, faceless, random kit colours)
+const lam = () => new THREE.MeshLambertMaterial({ color: 0xffffff });
+const IM = (g, n) => new THREE.InstancedMesh(g, lam(), n);
+const legG = new THREE.CylinderGeometry(0.075, 0.068, 0.5, 10); legG.translate(0, -0.25, 0);
+const armG = new THREE.CylinderGeometry(0.062, 0.055, 0.42, 10); armG.translate(0, -0.21, 0);
+const handG = new THREE.SphereGeometry(0.065, 10, 8);
+const bodies = IM(new THREE.CylinderGeometry(0.2, 0.175, 0.5, 14), NF);
+const heads = IM(new THREE.SphereGeometry(0.15, 18, 14), NF);
+const shorts = IM(new THREE.CylinderGeometry(0.19, 0.205, 0.2, 14), NF);
+const legs = IM(legG, NF * 2), arms = IM(armG, NF * 2), hands = IM(handG, NF * 2), shoes = IM(new THREE.BoxGeometry(0.12, 0.08, 0.22), NF * 2);
+const hair = IM(new THREE.SphereGeometry(0.16, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.58), NF);
+const afro = IM(new THREE.SphereGeometry(0.21, 14, 10), NF);
 const C = new THREE.Color();
-const SKIN = [0xf1c9a5, 0xe0ac80, 0xc68a5e, 0xa86f48], SHIRT = [0x1F4FB8, 0xffffff, 0x1F4FB8, 0x2a62d6, 0x0D2557];
+const SKIN = [0xf3d1b0, 0xe8b88f, 0xd19a6a, 0xa8714a, 0x7a4e30], HAIR = [0x1b1410, 0x2e1d12, 0x5a3a22, 0xd9b26a, 0x8a8a8a];
+const rnd = (h, k) => ((Math.imul(h ^ (k * 2654435761), 2246822519) >>> 0) % 10000) / 10000;
+const LQ = new THREE.Quaternion(), E = new THREE.Euler(), LP = new THREE.Vector3(), WQ = new THREE.Quaternion(), SC = new THREE.Vector3();
+let baseQ, base;
+function put(mesh, idx, lx, ly, lz, rx = 0, rz = 0, s = 1) {
+  LP.set(lx, ly, lz).applyQuaternion(baseQ).add(base);
+  WQ.copy(baseQ).multiply(LQ.setFromEuler(E.set(rx, 0, rz)));
+  M.compose(LP, WQ, SC.set(s, s, s)); mesh.setMatrixAt(idx, M);
+}
+const HIDE = new THREE.Matrix4().makeScale(0, 0, 0);
 let fi = 0;
 const fiSeat = [];
 seats.forEach((st, i) => {
@@ -199,18 +218,48 @@ seats.forEach((st, i) => {
   const sec = Math.floor(st.s / st.len * 16);
   chairs.setColorAt(i, C.set(sec % 2 ? 0x1F4FB8 : 0xf2f2f2));
   st.i = i;
-  if (st.fan) {
-    const h = hash(st.fan);
-    const bob = ((h >> 6) % 10) / 100;
-    M.compose(V.set(st.x - st.nx * 0.12, st.y + 0.43 + bob, st.z - st.nz * 0.12), Q, S1); bodies.setMatrixAt(fi, M);
-    bodies.setColorAt(fi, C.set(SHIRT[h % SHIRT.length]));
-    M.compose(V.set(st.x - st.nx * 0.12, st.y + 0.88 + bob, st.z - st.nz * 0.12), Q, S1); heads.setMatrixAt(fi, M);
-    heads.setColorAt(fi, C.set(SKIN[(h >> 3) % SKIN.length]));
-    fiSeat[fi] = st; st.fi = fi++;
+  if (!st.fan) return;
+  const h = hash(st.fan), f = fi;
+  baseQ = Q.clone(); base = new THREE.Vector3(st.x, st.y, st.z);
+  const shirt = new THREE.Color().setHSL(rnd(h, 1), 0.55 + rnd(h, 2) * 0.35, 0.42 + rnd(h, 3) * 0.2);
+  const pants = rnd(h, 4) < 0.35 ? new THREE.Color(0xf4f4f4) : rnd(h, 4) < 0.7 ? shirt.clone().offsetHSL(0, 0, -0.08) : new THREE.Color(0x22283a);
+  const skin = SKIN[Math.floor(rnd(h, 5) * SKIN.length)], hairC = HAIR[Math.floor(rnd(h, 6) * HAIR.length)];
+  const hoodie = rnd(h, 7) < 0.35, tall = 0.9 + rnd(h, 8) * 0.18;
+  const pose = Math.floor(rnd(h, 9) * 4);              // 0 arms down, 1 one arm up, 2 both up, 3 hands on hips
+  const side = rnd(h, 10) < 0.5 ? 1 : -1;
+  const s = tall;
+  // legs, shoes
+  for (const k of [0, 1]) {
+    const lx = (k ? 0.085 : -0.085) * s;
+    put(legs, f * 2 + k, lx, 0.56 * s, 0, 0, 0, s); legs.setColorAt(f * 2 + k, C.set(hoodie ? pants : skin));
+    put(shoes, f * 2 + k, lx, 0.04 * s, 0.03, 0, 0, s); shoes.setColorAt(f * 2 + k, C.set(rnd(h, 11) < 0.7 ? 0xf6f6f6 : 0xd94848));
   }
+  put(shorts, f, 0, 0.62 * s, 0, 0, 0, s); shorts.setColorAt(f, C.copy(pants));
+  put(bodies, f, 0, 0.94 * s, 0, 0, 0, s); bodies.setColorAt(f, C.copy(shirt));
+  put(heads, f, 0, 1.33 * s, 0, 0, 0, s); heads.setColorAt(f, C.set(skin));
+  const hs = Math.floor(rnd(h, 12) * 4);               // 0 short, 1 afro, 2 bald, 3 short+
+  if (hs === 1) { put(afro, f, 0, 1.39 * s, -0.02, 0, 0, s); afro.setColorAt(f, C.set(hairC)); hair.setMatrixAt(f, HIDE); }
+  else if (hs === 2) { hair.setMatrixAt(f, HIDE); afro.setMatrixAt(f, HIDE); }
+  else { put(hair, f, 0, 1.345 * s, -0.012, -0.25, 0, s * (hs === 3 ? 1.08 : 1)); hair.setColorAt(f, C.set(hairC)); afro.setMatrixAt(f, HIDE); }
+  if (hs !== 1) afro.setColorAt(f, C.set(hairC)); if (hs === 1 || hs === 2) hair.setColorAt(f, C.set(hairC));
+  // arms (pivot at the shoulder)
+  for (const k of [0, 1]) {
+    const sx = k ? 1 : -1;
+    let rz = sx * 0.12, rx = 0;
+    if (pose === 1 && sx === side) rz = sx * 2.75;
+    if (pose === 2) rz = sx * 2.6;
+    if (pose === 3) { rz = sx * 0.75; rx = 0.2; }
+    put(arms, f * 2 + k, sx * 0.25 * s, 1.15 * s, 0, rx, rz, s); arms.setColorAt(f * 2 + k, C.set(hoodie ? shirt : skin));
+    // hand at the end of the arm
+    const dx = Math.sin(rz) * 0.44 * s, dy = -Math.cos(rz) * 0.44 * s;
+    put(hands, f * 2 + k, sx * 0.25 * s + dx, 1.15 * s + dy, 0.02, 0, 0, s); hands.setColorAt(f * 2 + k, C.set(skin));
+  }
+  fiSeat[fi] = st; st.fi = fi++;
 });
-[steps, chairs, bodies, heads].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
-bodies.count = heads.count = fi;
+const FAN_MESHES = [bodies, heads, shorts, legs, arms, hands, shoes, hair, afro];
+[steps, chairs, ...FAN_MESHES].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
+bodies.count = heads.count = shorts.count = hair.count = afro.count = fi;
+legs.count = arms.count = hands.count = shoes.count = fi * 2;
 // outer wall + club banner band
 {
   const R = seats[seats.length - 1].ring + 1;
@@ -322,7 +371,7 @@ canvas.addEventListener("pointerup", e => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
   mouse.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
   ray.setFromCamera(mouse, camera);
-  const fh = ray.intersectObject(bodies)[0] || ray.intersectObject(heads)[0];
+  const fh = ray.intersectObject(bodies)[0] || ray.intersectObject(heads)[0] || ray.intersectObject(shorts)[0];
   if (fh && fiSeat[fh.instanceId]) { showFan(fiSeat[fh.instanceId]); return; }
   const hit = ray.intersectObjects(heroObjs)[0];
   if (hit) { const hz = hit.object.userData; document.getElementById("ch").textContent = hz.name; document.getElementById("cp").textContent = hz.role[L]; document.getElementById("card").style.display = "block"; }
