@@ -65,8 +65,8 @@
 <script>
 const TG = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Telegram.WebApp : null;
 if (TG) { TG.ready(); TG.expand(); try { TG.setHeaderColor("#0D2557"); } catch (e) {} }
-const STYLE_NAMES = ["Hovli uy", "Zamonaviy", "Ikki qavatli", "O‘tov"];
-const COLORS = [0x1F4FB8, 0xf2f2f2, 0xFFD23F, 0xd94848, 0x3f9a4a, 0xd9b48a];
+const STYLE_NAMES = ["Hovli uy", "Katta hovli", "Shisha bino", "Pog‘onali bino"];
+const COLORS = [0xf0a030, 0x1F4FB8, 0xd94848, 0x3f9a4a, 0x7a4fb8, 0x3fb8b0];
 const toastEl = document.getElementById("toast");
 function say(t) { toastEl.textContent = t; toastEl.style.display = "block"; clearTimeout(say.t); say.t = setTimeout(() => toastEl.style.display = "none", 3800); }
 
@@ -115,12 +115,35 @@ const PW = 105, PH = 68;
   }
 }
 
+// ---------- stadium complex: empty asphalt with lots reserved for the future ----------
+const LOTS = [];
+const CBOX = new THREE.BoxGeometry(1, 1, 1);
+{
+  const pad = new THREE.Mesh(new THREE.PlaneGeometry(PW + 200, PH + 200), lam(0x4a4d52)); pad.rotation.x = -Math.PI / 2; pad.position.y = 0.01; scene.add(pad);
+  const lineM = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const outline = (cx, cz, w, d) => {
+    for (let i = -w / 2; i < w / 2; i += 4) { const m = new THREE.Mesh(CBOX, lineM); m.scale.set(2.2, .05, .5); m.position.set(cx + i + 1.1, .06, cz - d / 2); scene.add(m); const n = m.clone(); n.position.z = cz + d / 2; scene.add(n); }
+    for (let i = -d / 2; i < d / 2; i += 4) { const m = new THREE.Mesh(CBOX, lineM); m.scale.set(.5, .05, 2.2); m.position.set(cx - w / 2, .06, cz + i + 1.1); scene.add(m); const n = m.clone(); n.position.x = cx + w / 2; scene.add(n); }
+  };
+  const sign = (cx, cz) => { const post = new THREE.Mesh(CBOX, lam(0x777777)); post.scale.set(.4, 5, .4); post.position.set(cx, 2.5, cz); scene.add(post);
+    const board = new THREE.Mesh(CBOX, lam(0x0D2557)); board.scale.set(6, 2.6, .3); board.position.set(cx, 5.6, cz); scene.add(board); };
+  const ex = PW / 2 + 62, ez = PH / 2 + 62;
+  for (const [name, cx, cz, w, d] of [
+    ["Mashg‘ulot maydoni", ex + 8, 0, 44, 70], ["Hovuz", -ex - 8, -30, 36, 34], ["Xodimlar binosi", -ex - 8, 30, 36, 34],
+    ["Media markaz", -45, -ez - 8, 50, 28], ["Klub ofisi", 45, -ez - 8, 50, 28]]) {
+    outline(cx, cz, w, d); sign(cx, cz); LOTS.push({ name, x: cx, z: cz });
+  }
+  // parking: stripes on the south side
+  for (let i = -60; i <= 60; i += 5) { const m = new THREE.Mesh(CBOX, lineM); m.scale.set(.4, .05, 9); m.position.set(i, .06, ez + 4); scene.add(m); const n = m.clone(); n.position.z = ez + 20; scene.add(n); }
+  LOTS.push({ name: "🅿 Avtoturargoh", x: 0, z: ez + 12, park: true });
+}
+
 // ---------- plots: grid cells around the stadium, nearest first; roads every 5th line ----------
 const CELL = 14, plots = [];
 for (let gx = -40; gx <= 40; gx++) for (let gz = -40; gz <= 40; gz++) {
   if (gx % 5 === 0 || gz % 5 === 0) continue;                       // roads
   const x = gx * CELL, z = gz * CELL;
-  if (Math.abs(x) < PW / 2 + 60 && Math.abs(z) < PH / 2 + 60) continue; // stadium area
+  if (Math.abs(x) < PW / 2 + 110 && Math.abs(z) < PH / 2 + 110) continue; // stadium complex
   plots.push({ x, z, d: Math.hypot(x, z * 1.2) });
 }
 plots.sort((a, b) => a.d - b.d);
@@ -135,18 +158,50 @@ plots.sort((a, b) => a.d - b.d);
 // ---------- homes ----------
 let HOMES = [], homeObjs = [], myId = TG && TG.initDataUnsafe && TG.initDataUnsafe.user ? String(TG.initDataUnsafe.user.id) : null;
 const homeGroup = new THREE.Group(); scene.add(homeGroup);
-const G = { box: new THREE.BoxGeometry(1, 1, 1), pyr: new THREE.ConeGeometry(0.75, 1, 4), cyl: new THREE.CylinderGeometry(0.5, 0.5, 1, 16), cone: new THREE.ConeGeometry(0.55, 1, 16) };
-const roofM = lam(0x8a3b2b), darkM = lam(0x2b2b2b), doorM = lam(0x5a3a22);
+const BOX = new THREE.BoxGeometry(1, 1, 1);
+const PRISM = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.5, 0); sh.lineTo(0.5, 0); sh.lineTo(0, 1); sh.lineTo(-0.5, 0);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); g.translate(0, 0, -0.5); return g; })();
+const HALF = new THREE.CylinderGeometry(0.5, 0.5, 1, 12, 1, false, 0, Math.PI); HALF.rotateZ(Math.PI / 2);
+const M = { wall: lam(0xf4f1ea), plinth: lam(0x8c8a84), grass: lam(0x9cc23f), path: lam(0xb8b8b8), glass: lam(0x9fd0ef), frame: lam(0xffffff),
+            door: lam(0x9c3b22), chimney: lam(0xe9e6df), cap: lam(0x555555), towerGlass: lam(0xa9d8e0), towerBody: lam(0xd6e6ec) };
 function makeHome(h) {
-  const g = new THREE.Group(), body = lam(COLORS[h.color] || COLORS[0]);
-  const add = (geo, m, sx, sy, sz, x, y, z, ry = 0) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.rotation.y = ry; g.add(o); return o; };
-  if (h.style === 0) { add(G.box, body, 8, 4.5, 7, 0, 2.25, 0); add(G.pyr, roofM, 8, 3, 8, 0, 6, 0, Math.PI / 4); }
-  else if (h.style === 1) { add(G.box, body, 9, 5, 7, 0, 2.5, 0); add(G.box, darkM, 9.6, 0.5, 7.6, 0, 5.2, 0); add(G.box, lam(0x9fd0ff), 6, 1.6, 0.2, 0, 3.2, 3.55); }
-  else if (h.style === 2) { add(G.box, body, 8, 8, 7, 0, 4, 0); add(G.pyr, roofM, 8, 3, 8, 0, 9.5, 0, Math.PI / 4); add(G.box, lam(0x9fd0ff), 2, 1.6, 0.2, -2, 6, 3.55); add(G.box, lam(0x9fd0ff), 2, 1.6, 0.2, 2, 6, 3.55); }
-  else { add(G.cyl, body, 9, 4, 9, 0, 2, 0); add(G.cone, roofM, 9.5, 3.5, 9.5, 0, 5.75, 0); }
-  add(G.box, doorM, 1.6, 2.6, 0.2, 0, 1.3, h.style === 3 ? 4.5 : 3.6);
-  // gate with fence
-  add(G.box, lam(0xeeeeee), 12, 1, 0.3, 0, 0.5, 6.2);
+  const g = new THREE.Group(), acc = lam(COLORS[h.color] || COLORS[0]);
+  const add = (geo, m, sx, sy, sz, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); g.add(o); return o; };
+  const win = (x, y, z, w = 1.4, hgt = 1.6, awn = true, ry = 0) => {
+    add(BOX, M.frame, w + .3, hgt + .3, .12, x, y, z, 0, ry); add(BOX, M.glass, w, hgt, .16, x, y, z, 0, ry);
+    if (awn) add(HALF, acc, w + .4, .5, .7, x, y + hgt / 2 + .35, z + (ry ? 0 : .3), 0, ry);
+  };
+  if (h.style <= 1) {                                   // cottage (reference: white walls, coloured roof, porch, dormer, chimney)
+    const big = h.style === 1, W = big ? 10 : 8, D = big ? 8 : 7, H = big ? 6.5 : 4.2;
+    add(BOX, M.grass, W + 4, .3, D + 5, 0, .15, .6);
+    add(BOX, M.path, 2.4, .32, 2.6, 0, .17, D / 2 + 1.6);
+    add(BOX, M.plinth, W + .2, .7, D + .2, 0, .65, 0);
+    add(BOX, M.wall, W, H, D, 0, 1 + H / 2, 0);
+    add(PRISM, acc, W + 1.2, 3.4, D + 1.2, 0, 1 + H, 0, 0, Math.PI / 2);            // gable roof
+    add(BOX, M.chimney, .9, 2.2, .9, W * .25, 1 + H + 2.2, -D * .15); add(BOX, M.cap, 1.1, .3, 1.1, W * .25, 1 + H + 3.4, -D * .15);
+    add(BOX, M.wall, 2, 1.6, 2, -W * .1, 1 + H + 1.1, D * .25); add(PRISM, acc, 2.6, 1.2, 2.4, -W * .1, 1 + H + 1.9, D * .25);   // dormer
+    add(BOX, M.glass, .9, .9, .1, -W * .1, 1 + H + 1.1, D * .25 + 1.02);
+    // porch: columns, small roof, steps, door
+    add(BOX, M.door, 1.3, 2.4, .15, 0, 2.2, D / 2 + .05);
+    for (const cx of [-1.4, 1.4]) add(BOX, M.frame, .5, 2.8, .5, cx, 2.4, D / 2 + 1.1);
+    add(BOX, M.frame, 3.6, .35, 1.8, 0, 3.95, D / 2 + .9);
+    add(BOX, M.plinth, 3.2, .3, 1, 0, .85, D / 2 + 1.6); add(BOX, M.plinth, 3.2, .3, .8, 0, .55, D / 2 + 2.3);
+    win(-W * .32, 2.6, D / 2 + .02); win(W * .32, 2.6, D / 2 + .02);
+    if (big) { win(-W * .32, 5.6, D / 2 + .02, 1.4, 1.4, false); win(W * .32, 5.6, D / 2 + .02, 1.4, 1.4, false); }
+  } else if (h.style === 2) {                           // glass tower with coloured bands
+    add(BOX, M.path, 11, .3, 11, 0, .15, 0);
+    add(BOX, M.towerGlass, 7, 34, 7, 0, 17.3, 0);
+    for (let y = 4; y < 34; y += 5) add(BOX, acc, 7.3, .5, 7.3, 0, y, 0);
+    add(BOX, M.towerBody, 7.6, 1.2, 7.6, 0, 34.9, 0); add(BOX, M.cap, 3, 2, 3, 0, 36.4, 0);
+    add(BOX, M.door, 2, 2.6, .2, 0, 1.6, 3.6);
+  } else {                                              // stepped tower
+    add(BOX, M.path, 11, .3, 11, 0, .15, 0);
+    add(BOX, M.towerBody, 9, 12, 9, 0, 6.3, 0); add(BOX, acc, 9.3, .6, 9.3, 0, 12.3, 0);
+    add(BOX, M.towerGlass, 7, 11, 7, 0, 17.9, 0); add(BOX, acc, 7.3, .6, 7.3, 0, 23.4, 0);
+    add(BOX, M.towerBody, 5, 9, 5, 0, 28.2, 0); add(BOX, M.towerGlass, 3, 3, 3, 0, 34.2, 0);
+    for (let y = 2.5; y < 12; y += 2.4) add(BOX, M.glass, 7.5, 1, .2, 0, y, 4.55);
+    add(BOX, M.door, 2, 2.6, .2, 0, 1.6, 4.6);
+  }
   return g;
 }
 function layout() {
@@ -168,7 +223,7 @@ async function load() {
 // ---------- camera ----------
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.46; controls.minDistance = 20; controls.maxDistance = 600;
-const HOME_VIEW = { pos: new THREE.Vector3(150, 170, 220), tgt: new THREE.Vector3(0, 0, 0) };
+const HOME_VIEW = { pos: new THREE.Vector3(210, 260, 330), tgt: new THREE.Vector3(0, 0, 0) };
 camera.position.copy(HOME_VIEW.pos); controls.target.copy(HOME_VIEW.tgt);
 let fly = null;
 function flyTo(pos, tgt, dur = 1.6) { fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, start: performance.now(), dur }; }
@@ -193,6 +248,7 @@ function labels(now) {
   if (now - lastL < 150 && !fly) return; lastL = now;
   let k = 0;
   if (put(k, "tag big", "🏟 ZAMIN FK STADIONI", 0, 34, 0)) k++;
+  for (const l of LOTS) if (put(k, "tag", (l.park ? "" : "Kelajakda: ") + l.name, l.x, l.park ? 2 : 8, l.z)) k++;
   const c = camera.position;
   const near = homeObjs.map(o => [o.position.distanceToSquared(c), o]).sort((a, b) => a[0] - b[0]).slice(0, 26);
   for (const [, o] of near) { const h = o.userData; if (put(k, h.id === myId ? "tag me" : "tag", h.nick, o.position.x, 12, o.position.z)) k++; }
