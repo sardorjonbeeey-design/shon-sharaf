@@ -36,10 +36,14 @@
   .tag.me { background:var(--yel); font-size:15px; padding:6px 12px; border:2px solid var(--navy); }
   .tag.hero { background:var(--navy); color:#fff; border:2px solid var(--yel); }
   .tag.hero::before { content:"★"; color:var(--yel); }
-  #card { left:50%; bottom:90px; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; }
+  #card { left:50%; bottom:130px; z-index:6; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; }
   #card h3 { margin:0 0 4px; font-weight:900; font-size:20px; color:var(--yel); }
   #card p { margin:0; font-weight:700; font-size:14px; line-height:1.35; }
   #card .x { position:absolute; right:12px; top:8px; font-size:20px; background:none; border:0; color:#fff; }
+  #panel { left:12px; right:78px; top:120px; bottom:90px; padding:14px; display:none; overflow:auto; }
+  #panel h3 { margin:0 0 8px; color:var(--yel); font-weight:900; }
+  #panel .x { position:absolute; right:12px; top:6px; font-size:22px; background:none; border:0; color:#fff; }
+  #plist button { display:block; width:100%; text-align:left; font:inherit; font-weight:700; font-size:16px; color:#fff; background:rgba(255,255,255,.08); border:0; border-radius:12px; padding:11px 12px; margin:6px 0; }
   #demo { bottom:150px; left:14px; font-size:11px; color:#9DB8FF; font-weight:700; }
 </style>
 </head>
@@ -49,11 +53,12 @@
 <div id="brand" class="ui pill"><img src="__CREST__" alt=""><span data-t="title"></span></div>
 <div id="count" class="ui pill"><small data-t="fans"></small><b id="n">0</b><i>VIRTUAL</i></div>
 <div id="langs" class="ui"></div>
-<div id="side" class="ui"><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button></div>
+<div id="side" class="ui"><button id="list">👥</button><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button></div>
 <div id="rule" class="ui" data-t="rule"></div>
 <div id="toast" class="ui pill"></div>
 <div id="card" class="ui pill"><button class="x" id="cx">×</button><h3 id="ch"></h3><p id="cp"></p></div>
 <div id="demo" class="ui" data-t="demo"></div>
+<div id="panel" class="ui pill"><button class="x" id="px">×</button><h3 data-t="fans"></h3><div id="plist"></div></div>
 <form id="find" class="ui"><input id="q" autocomplete="off" autocapitalize="off" spellcheck="false"><button data-t="find"></button></form>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -97,7 +102,8 @@ function rrPoint(a, b, r, s) {          // s from the middle of the main (south,
 }
 const need = Math.max(FANS.length, 600);
 const seats = [];
-for (let ring = 0; ring < 24 || seats.length < need * 1.15 + 200; ring++) {
+const MIN_RINGS = FANS.length < 300 ? 12 : 24;
+for (let ring = 0; ring < MIN_RINGS || seats.length < need * 1.15 + 200; ring++) {
   const a = PW / 2 + 9 + ring * ROW_D, b = PH / 2 + 9 + ring * ROW_D, r = 10 + ring * ROW_D;
   const len = rrLen(a, b, r), n = Math.floor(len / SEAT_W);
   for (let i = 0; i < n; i++) {
@@ -109,6 +115,13 @@ for (let ring = 0; ring < 24 || seats.length < need * 1.15 + 200; ring++) {
   }
 }
 const order = seats.map((_, i) => i).sort((i, j) => seats[i].cost - seats[j].cost);
+const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
+if (FANS.length <= 300) {               // small crowd: random seat per nick, near the main stand so fans are easy to see
+  const half = Math.max(5, Math.sqrt(FANS.length) * 2.2);  // compact block in the middle of the main stand
+  const pool = order.filter(i => { const st = seats[i]; return Math.min(st.s, st.len - st.s) < half && st.ring < 8; }), used = new Set(), out = [];
+  FANS.forEach(nick => { let k = hash(nick.toLowerCase()) % pool.length; while (used.has(k)) k = (k + 7) % pool.length; used.add(k); out.push(pool[k]); });
+  order.splice(0, FANS.length, ...out);
+}
 const SECTORS = "ABCDEFGHIJKLMNOP";
 const byNick = new Map();
 FANS.forEach((nick, i) => {
@@ -176,8 +189,8 @@ const bodies = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.17, 0.22, 0.
 const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.15, 8, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, fans));
 const C = new THREE.Color();
 const SKIN = [0xf1c9a5, 0xe0ac80, 0xc68a5e, 0xa86f48], SHIRT = [0x1F4FB8, 0xffffff, 0x1F4FB8, 0x2a62d6, 0x0D2557];
-const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
 let fi = 0;
+const fiSeat = [];
 seats.forEach((st, i) => {
   const ang = Math.atan2(-st.nx, -st.nz);              // face the pitch
   Q.setFromAxisAngle(UP, ang);
@@ -193,7 +206,7 @@ seats.forEach((st, i) => {
     bodies.setColorAt(fi, C.set(SHIRT[h % SHIRT.length]));
     M.compose(V.set(st.x - st.nx * 0.12, st.y + 0.88 + bob, st.z - st.nz * 0.12), Q, S1); heads.setMatrixAt(fi, M);
     heads.setColorAt(fi, C.set(SKIN[(h >> 3) % SKIN.length]));
-    st.fi = fi++;
+    fiSeat[fi] = st; st.fi = fi++;
   }
 });
 [steps, chairs, bodies, heads].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
@@ -235,7 +248,14 @@ const heroObjs = HEROES.map(hz => {
 // ---------- camera / controls ----------
 const controls = new THREE.OrbitControls(camera, canvas);
 controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.47; controls.minDistance = 6; controls.maxDistance = 330;
-const HOME = { pos: new THREE.Vector3(0, 20, 8), tgt: new THREE.Vector3(0, 6, PH / 2 + 16) };
+const HOME = (() => {                 // frame the occupied seats
+  const fs = seats.filter(s => s.fan);
+  if (!fs.length) return { pos: new THREE.Vector3(0, 13, 22), tgt: new THREE.Vector3(0, 3, PH / 2 + 13) };
+  const cx = fs.reduce((a, s) => a + s.x, 0) / fs.length, cy = fs.reduce((a, s) => a + s.y, 0) / fs.length, cz = fs.reduce((a, s) => a + s.z, 0) / fs.length;
+  const spread = Math.max(...fs.map(s => Math.hypot(s.x - cx, s.z - cz))), aspect = innerWidth / innerHeight;
+  const d = Math.max(14, spread * 1.25 / Math.max(.5, aspect));
+  return { pos: new THREE.Vector3(cx, cy + d * .45, cz - d), tgt: new THREE.Vector3(cx, cy + .5, cz) };
+})();
 camera.position.copy(HOME.pos); controls.target.copy(HOME.tgt);
 let fly = null;
 function flyTo(pos, tgt, dur = 1.6) { fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, start: performance.now(), dur }; }
@@ -277,7 +297,8 @@ function updateLabels(now) {
   if (me) place(me, "tag me", "@" + me.fan);
   heroObjs.forEach(o => { const [sx, sy, sz] = project(o.position.x, o.userData.h + 0.6, o.position.z); if (sz < 1) { const d = tag(used++); d.className = "tag hero"; d.textContent = o.userData.name; d.style.left = sx + "px"; d.style.top = sy + "px"; d.style.display = "block"; } });
   let shown = 0;
-  for (const [, st] of cand) { if (shown >= 22) break; if (st !== me && place(st, "tag", "@" + st.fan)) shown++; }
+  const LIM = fans <= 60 ? 60 : 22;
+  for (const [, st] of cand) { if (shown >= LIM) break; if (st !== me && place(st, "tag", "@" + st.fan)) shown++; }
   for (let k = used; k < pool.length; k++) pool[k].style.display = "none";
 }
 
@@ -290,12 +311,7 @@ document.getElementById("find").onsubmit = e => {
   if (!q) return;
   const st = byNick.get(q);
   if (!st) { say(T[L].nf); return; }
-  me = st;
-  const tgt = new THREE.Vector3(st.x, st.y + 0.6, st.z);
-  const pos = new THREE.Vector3(st.x - st.nx * 9, st.y + 4.5, st.z - st.nz * 9);
-  flyTo(pos, tgt, 2.2);
-  say("@" + st.fan + " — " + T[L].seat(st));
-  if (st.fi != null) { bodies.setColorAt(st.fi, C.set(0xFFD23F)); bodies.instanceColor.needsUpdate = true; }
+  goTo(st);
 };
 
 // hero card on tap
@@ -306,11 +322,36 @@ canvas.addEventListener("pointerup", e => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
   mouse.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
   ray.setFromCamera(mouse, camera);
+  const fh = ray.intersectObject(bodies)[0] || ray.intersectObject(heads)[0];
+  if (fh && fiSeat[fh.instanceId]) { showFan(fiSeat[fh.instanceId]); return; }
   const hit = ray.intersectObjects(heroObjs)[0];
   if (hit) { const hz = hit.object.userData; document.getElementById("ch").textContent = hz.name; document.getElementById("cp").textContent = hz.role[L]; document.getElementById("card").style.display = "block"; }
 });
+function showFan(st) {
+  me = st;
+  document.getElementById("ch").textContent = "@" + st.fan;
+  const cp = document.getElementById("cp");
+  cp.innerHTML = "";
+  cp.append(T[L].seat(st), document.createElement("br"));
+  const a = document.createElement("a"); a.href = "https://instagram.com/" + encodeURIComponent(st.fan); a.target = "_blank"; a.rel = "noopener";
+  a.textContent = "Instagram ↗"; a.style.color = "#FFD23F"; cp.append(a);
+  document.getElementById("card").style.display = "block";
+}
 document.getElementById("cx").onclick = () => document.getElementById("card").style.display = "none";
 
+// ---------- fans list ----------
+function goTo(st) {
+  const tgt = new THREE.Vector3(st.x, st.y + 0.6, st.z);
+  flyTo(new THREE.Vector3(st.x - st.nx * 9, st.y + 4.5, st.z - st.nz * 9), tgt, 2.0);
+  if (st.fi != null) { bodies.setColorAt(st.fi, C.set(0xFFD23F)); bodies.instanceColor.needsUpdate = true; }
+  showFan(st);
+}
+document.getElementById("list").onclick = () => {
+  const pl = document.getElementById("plist"); pl.innerHTML = "";
+  FANS.slice(0, 500).forEach(nick => { const b = document.createElement("button"); b.textContent = "@" + nick; b.onclick = () => { document.getElementById("panel").style.display = "none"; goTo(byNick.get(nick.toLowerCase())); }; pl.appendChild(b); });
+  document.getElementById("panel").style.display = "block";
+};
+document.getElementById("px").onclick = () => document.getElementById("panel").style.display = "none";
 // ---------- language ----------
 const langsEl = document.getElementById("langs");
 [["uz", "O‘zbekcha"], ["ru", "Русский"], ["en", "English"]].forEach(([k, n]) => {
