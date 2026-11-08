@@ -61,30 +61,19 @@ for i in range(-N, N + 1):
             roads.append([6, flat([(cx - h + 8, cz + h - 8), (cx + h - 8, cz - h + 8)])])
             labels.append([PARK_NAMES[pn % len(PARK_NAMES)], cx, cz, "park"]); pn += 1
             continue
-        # courtyard garden in the middle of the block
-        g = h - DEPTH - 2
-        areas.append(["garden", flat(octagon(cx, cz, g, max(4, C - 8)))])
-        ring = max(abs(i), abs(j))
-        fan_block = ring <= 4                                  # nearest blocks: empty lots for fans
-        lv = 0 if fan_block else 4 + (i * 13 + j * 7) % 4      # outer blocks: 4–7 floor apartment rows
-        # 4 sides x 4 lots each, between the chamfers
-        side = B - 2 * C
+        # whole block is green; square, equal fan lots around the edge (grass between them), courtyard garden inside
+        areas.append(["garden", flat(octagon(cx, cz, h, C))])
+        if max(abs(i), abs(j)) > 6: continue                      # outer blocks stay green (future growth)
+        LOT, GAP = 16, 5
         for sd in range(4):
-            for k in range(4):
-                a0, a1 = -h + C + side * k / 4 + .8, -h + C + side * (k + 1) / 4 - .8
-                d0, d1 = -h + .8, -h + DEPTH
-                rect = [(a0, d0), (a1, d0), (a1, d1), (a0, d1)]
+            for k in (-1, 0, 1):
+                a0 = k * (LOT + GAP) - LOT / 2; d0 = -h + 3
+                rect = [(a0, d0), (a0 + LOT, d0), (a0 + LOT, d0 + LOT), (a0, d0 + LOT)]
                 pts = []
                 for (x, z) in rect:
                     X, Z = [(x, z), (-z, x), (-x, -z), (z, -x)][sd]
                     pts.append((cx + X, cz + Z))
-                buildings.append(["house", 1, flat(pts)] if fan_block else ["flat", lv, flat(pts)])
-        # chamfer corner buildings (always built: the Eixample look)
-        for sx in (-1, 1):
-            for sz in (-1, 1):
-                p1 = (cx + sx * (h - C), cz + sz * h); p2 = (cx + sx * h, cz + sz * (h - C))
-                p3 = (cx + sx * (h - DEPTH), cz + sz * (h - DEPTH * .35)); p4 = (cx + sx * (h - DEPTH * .35), cz + sz * (h - DEPTH))
-                buildings.append(["flat", 5 if not fan_block else 3, flat([p1, p2, p4, p3])])
+                buildings.append(["house", 1, flat(pts)])
 
 stadium = [[-STADIUM[0], -STADIUM[1]], [STADIUM[0], -STADIUM[1]], [STADIUM[0], STADIUM[1]], [-STADIUM[0], STADIUM[1]]]
 out = {"name": "Zamin shahri", "lat": 39.9, "lon": 66.26, "rot": 0, "stadium": stadium,

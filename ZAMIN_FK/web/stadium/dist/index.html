@@ -665,17 +665,18 @@ function buildRealTown(map) {
     if (kind === "house" && lv <= 2) houses.push({ ...rect(ring), lv, ring, id }); else other.push([kind, lv, ring]);
   });
   // empty lots: every real house is only its exact footprint drawn on the ground, with a "+" where a fan can build
-  { const lp = [], ln = [], fp = [], fn = [];
+  { const lp = [], ln = [], fp = [], fn = [], FENCE = [], POSTS = [];
     for (const h of houses) {
       const r = h.ring, v = r.map(([x, z]) => new THREE.Vector2(x, z));
       for (const t of THREE.ShapeUtils.triangulateShape(v, [])) for (const k of up(v, t)) { fp.push(v[k].x, -.026, v[k].y); fn.push(0, 1, 0); }
-      for (let i = 0; i < r.length; i++) {                     // outline ribbon
-        const [x1, z1] = r[i], [x2, z2] = r[(i + 1) % r.length], L = Math.hypot(x2 - x1, z2 - z1) || 1, nx = -(z2 - z1) / L * .2, nz = (x2 - x1) / L * .2;
-        for (const [x, z] of [[x1 + nx, z1 + nz], [x2 + nx, z2 + nz], [x2 - nx, z2 - nz], [x1 + nx, z1 + nz], [x2 - nx, z2 - nz], [x1 - nx, z1 - nz]]) { lp.push(x, -.018, z); ln.push(0, 1, 0); }
+      for (let i = 0; i < r.length; i++) {                     // low wooden fence on every side + corner posts
+        const [x1, z1] = r[i], [x2, z2] = r[(i + 1) % r.length], L = Math.hypot(x2 - x1, z2 - z1) || 1;
+        FENCE.push([(x1 + x2) / 2, .45, (z1 + z2) / 2, .16, .9, L, Math.atan2(x2 - x1, z2 - z1)], [(x1 + x2) / 2, .82, (z1 + z2) / 2, .22, .12, L, Math.atan2(x2 - x1, z2 - z1)]);
+        POSTS.push([x1, .6, z1, .32, 1.2, .32]);
       }
     }
-    scene.add(new THREE.Mesh(merged(fp, fn), new THREE.MeshLambertMaterial({ color: 0xcdbf9c, side: THREE.DoubleSide })));
-    scene.add(new THREE.Mesh(merged(lp, ln), new THREE.MeshBasicMaterial({ color: 0xfff6dc, side: THREE.DoubleSide })));
+    scene.add(new THREE.Mesh(merged(fp, fn), new THREE.MeshLambertMaterial({ color: 0x8fbf5a, side: THREE.DoubleSide })));
+    instanced(CBOX, lamC(0x9a6a3c), FENCE); instanced(CBOX, lamC(0x6e4a28), POSTS);
   }
   { const pos = [], nrm = [], col = [], domes = [];
     const KC = { flat: 0xd6d0c2, school: 0xe8cfa6, mosque: 0xeee6d2, public: 0xd8d2c4, house: 0xdccdb0 }, cc = new THREE.Color();
@@ -1064,7 +1065,7 @@ layoutHomes(STATE.homes);
 const KENNEY = {};
 const HQ_MODEL = { fan: "building-type-a", media: "building-type-f", scouting: "building-type-k", stadium: "building-type-n", academy: "building-type-d" };
 const CAR_MODEL = { 1: "van", 2: "sedan", 3: "suv", 4: "suv-luxury" };          // home car by car id (see server CARS)
-const PERSON_MODEL = ["character-male-a", "character-male-b", "character-female-a", "character-female-b"];
+const PERSON_MODEL = ["character-male-a", "character-male-b", "character-female-a", "character-female-b", "character-male-c", "character-female-c", "character-male-d", "character-female-d"];
 const KENNEY_PATH = n => (n.startsWith("character-") ? "models/kenney/people/" : TRAFFIC.includes(n) || ["suv-luxury"].includes(n) ? "models/kenney/cars/" : "models/kenney/") + n + ".glb";
 const KENNEY_READY = (async () => {
   if (!THREE.GLTFLoader) return;
@@ -1072,6 +1073,7 @@ const KENNEY_READY = (async () => {
   await Promise.all(names.map(n => new Promise(r => ld.load(KENNEY_PATH(n), g => { KENNEY[n] = g.scene; r(); }, undefined, () => r()))));
   if (typeof layoutHomes === "function" && HOMES) layoutHomes(HOMES);      // rebuild homes with the real car models
   swapStreetsToKenney();
+  spawnWalkers();
 })();
 // street trees and traffic: real models replace the simple shapes (the simple ones are hidden, not deleted)
 function swapStreetsToKenney() {
@@ -1085,6 +1087,31 @@ function swapStreetsToKenney() {
     if (cars.length > 60) cars.splice(60);                     // phones: 60 real cars is plenty, each is many draw calls
     CAR_BOXES.forEach(m => m.visible = false);
     CAR_CLONES = cars.map((k, i) => { const o = fitModel(KENNEY[TRAFFIC[i % TRAFFIC.length]].clone(), 4.4, 1.5); scene.add(o); return o; });
+  }
+}
+// ---------- people: walkers on the sidewalks + fans circling the stadium in club colours ----------
+const WALKERS = [];
+function spawnWalkers() {
+  const models = PERSON_MODEL.filter(n => KENNEY[n]); if (!models.length) return;
+  const mk = (ps, side, sp, fan) => {
+    const cum = [0]; for (let i = 1; i < ps.length; i++) cum.push(cum[i - 1] + Math.hypot(ps[i][0] - ps[i - 1][0], ps[i][1] - ps[i - 1][1]));
+    const o = fitModel(KENNEY[models[WALKERS.length % models.length]].clone(), 1.1, 1.85);
+    if (fan) o.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.color = new THREE.Color(rr() < .5 ? 0x1F4FB8 : 0xffffff); } });
+    scene.add(o); const L0 = cum[cum.length - 1]; WALKERS.push({ o, ps, cum, L: L0, s: fan ? rr() * L0 : Math.max(0, Math.min(L0, L0 / 2 + (rr() - .5) * 700)), dir: rr() < .5 ? 1 : -1, sp, side, loop: fan });
+  };
+  const streets = carPaths.filter(ps => ps.length > 1).sort((a, b) => Math.hypot(...a[0]) - Math.hypot(...b[0]));
+  for (let i = 0; i < 70 && streets.length; i++) mk(streets[i % Math.min(streets.length, 24)], (rr() < .5 ? -1 : 1) * 8.5, 1.1 + rr() * .6, false);
+  const A = OUT_A + 22, B = OUT_B + 18, loop = [[-A, -B], [A, -B], [A, B], [-A, B], [-A, -B]];
+  for (let i = 0; i < 40; i++) mk(loop, (rr() - .5) * 8, 1 + rr() * .7, true);
+}
+function walkersTick(dt, t) {
+  for (const w of WALKERS) {
+    w.s += w.dir * w.sp * dt;
+    if (w.loop) w.s = (w.s % w.L + w.L) % w.L; else { if (w.s > w.L) { w.s = w.L; w.dir = -1; } if (w.s < 0) { w.s = 0; w.dir = 1; } }
+    let j = 1; while (j < w.cum.length - 1 && w.cum[j] < w.s) j++;
+    const [x1, z1] = w.ps[j - 1], [x2, z2] = w.ps[j], seg = w.cum[j] - w.cum[j - 1] || 1, k = (w.s - w.cum[j - 1]) / seg, ux = (x2 - x1) / seg, uz = (z2 - z1) / seg;
+    w.o.position.set(x1 + (x2 - x1) * k - uz * w.side, Math.abs(Math.sin(t * 8 + w.s)) * .08, z1 + (z2 - z1) * k + ux * w.side);
+    w.o.rotation.y = Math.atan2(ux, uz) + (w.dir < 0 ? Math.PI : 0);
   }
 }
 // scale a model to fit a w x h box (uniform), stand it on the ground and centre it on its origin
@@ -1906,7 +1933,7 @@ function loop(now) {
   controls.update();
   sky.position.copy(camera.position);
   animateTeam(now / 1000);
-  cityTick(dt);
+  cityTick(dt); walkersTick(dt, now / 1000);
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
   DN.tick(now); DN.render();
   updateLabels(now);
@@ -1914,7 +1941,7 @@ function loop(now) {
 }
 DN.init();
 requestAnimationFrame(loop);
-if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
+if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
