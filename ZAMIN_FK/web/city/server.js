@@ -154,6 +154,9 @@ app.post("/api/seat", async (req, res) => {
 
 app.get("/healthz", (req, res) => res.send("ok"));
 app.get(["/", "/index.html"], (req, res) => { res.set("Cache-Control", "no-cache"); res.sendFile(PAGE); });
+const DIST = path.dirname(PAGE);                              // Kenney 3D models + GLTF loader
+app.use("/models", express.static(path.join(DIST, "models"), { maxAge: "1d" }));
+app.use("/vendor", express.static(path.join(DIST, "vendor"), { maxAge: "1d" }));
 app.use("/map", express.static(path.join(path.dirname(PAGE), "map"), { maxAge: "1d" }));   // real-town OpenStreetMap data
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

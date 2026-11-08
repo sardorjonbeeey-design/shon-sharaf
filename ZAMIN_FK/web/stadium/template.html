@@ -194,6 +194,7 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script type="module">
 // One project, two entrances:
@@ -1032,6 +1033,22 @@ function layoutHomes(list) {
 }
 let BUILT = new Set();
 layoutHomes(STATE.homes);
+// ---------- Kenney 3D models (CC0, see models/kenney/LICENSE-kenney.txt). Loaded once; the scene uses them when ready. ----------
+const KENNEY = {};
+const HQ_MODEL = { fan: "building-type-a", media: "building-type-f", scouting: "building-type-k", stadium: "building-type-n", academy: "building-type-d" };
+const KENNEY_READY = (async () => {
+  if (!THREE.GLTFLoader) return;
+  const ld = new THREE.GLTFLoader(), names = [...new Set([...Object.values(HQ_MODEL), "tree-large"])];
+  await Promise.all(names.map(n => new Promise(r => ld.load("models/kenney/" + n + ".glb", g => { KENNEY[n] = g.scene; r(); }, undefined, () => r()))));
+})();
+// scale a model to fit a w x h box (uniform), stand it on the ground and centre it on its origin
+function fitModel(obj, w, h) {
+  const sz = new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
+  obj.scale.setScalar(Math.min(w / Math.max(sz.x, sz.z, .01), h / Math.max(sz.y, .01)));
+  const b = new THREE.Box3().setFromObject(obj), c = b.getCenter(new THREE.Vector3());
+  obj.position.set(-c.x, -b.min.y, -c.z); const wrap = new THREE.Group(); wrap.add(obj); return wrap;
+}
+
 // ---------- CLUB DISTRICT: department headquarters around the stadium (the heart of the city) ----------
 const DEPT_BASE = [["fan", "📣", "Muxlislar jamoasi", 0xd94848], ["media", "🎬", "Media", 0x7a4fb8], ["scouting", "🔭", "Skauting", 0x3f9a4a], ["stadium", "🏟", "Stadion", 0x1F4FB8], ["academy", "🎓", "Akademiya", 0xf0a030]];
 const HQ_SPOT = { fan: [0, OUT_B + 27], stadium: [0, -(OUT_B + 27)], media: [OUT_A + 30, -27], scouting: [OUT_A + 30, 27], academy: [-(OUT_A + 30), 0] };
@@ -1055,6 +1072,10 @@ function buildHQ(d) {
     for (const [x, z, w, dd] of [[0, -7, 26, .3], [0, 7, 26, .3], [-13, 0, .3, 14], [13, 0, .3, 14]]) box(lamC(0xf0a030), w, 1.6, dd, x, 1.1, z);
     box(LM.soil, 9, 1.4, 6, -5, .9, -1); box(lamC(0x9c9c9c), 12, 3, 8, 4, 1.8, -1);
     box(lamC(0xf0c419), .8, 22, .8, 9, 11, -4); box(lamC(0xf0c419), 18, .7, .7, 3, 22, -4); box(LM.rail, 1.6, 1.6, 1.6, 10.5, 21, -4);
+  } else if (KENNEY[HQ_MODEL[d.id]] && KENNEY["tree-large"]) {        // built HQ: real building model + two trees
+    const F = d.level === 1 ? 2 : 4, H = F * 3.4;
+    g.add(fitModel(KENNEY[HQ_MODEL[d.id]].clone(), 24, H));
+    for (const x of [-12.5, 12.5]) { const t = fitModel(KENNEY["tree-large"].clone(), 4.5, 6.5); t.position.set(x, 0, 6.5); g.add(t); }
   } else {
     const F = d.level === 1 ? 2 : 4, H = F * 3.4;
     box(LM.white, 24, H, 11, 0, .3 + H / 2, -1);
@@ -1078,6 +1099,7 @@ function layoutHQ() {
   HQ_OBJS.forEach(o => hqGroup.remove(o)); HQ_OBJS = ds.map(d => { const o = buildHQ(d); o.userData.info = d; hqGroup.add(o); return o; });
 }
 layoutHQ();
+KENNEY_READY.then(() => { HQ_SIG = ""; layoutHQ(); });
 // =============== end CITY ===============
 
 // heroes on the pitch (billboard sprites)

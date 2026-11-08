@@ -60,6 +60,9 @@ html = open(os.path.join(HERE, "template.html")).read()
 html = (html.replace("__FANS__", json.dumps(fans, ensure_ascii=False)).replace("__HEROES__", json.dumps(heroes, ensure_ascii=False))
         .replace("__DEMO__", "true" if demo else "false").replace("__VIP__", json.dumps(vip)).replace("__SCREEN__", json.dumps(screen, ensure_ascii=False)).replace("__CREST__", crest).replace("__API__", json.dumps(API_ORIGIN)).replace("__MAP__", json.dumps("map/" + MAP if MAP else "")))
 os.makedirs(os.path.join(HERE, "dist"), exist_ok=True)
+import shutil as _sh                                          # 3D models (Kenney CC0) + GLTF loader go next to the page
+for d in ("models", "vendor"):
+    if os.path.isdir(os.path.join(HERE, d)): _sh.copytree(os.path.join(HERE, d), os.path.join(HERE, "dist", d), dirs_exist_ok=True)
 out = os.path.join(HERE, "dist", "index.html")
 open(out, "w").write(html)
 print(out, len(fans), "fans", round(len(html) / 1024), "KB")
