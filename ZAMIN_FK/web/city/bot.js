@@ -25,6 +25,25 @@ function welcome(user) {
     `Boshlash uchun pastdagi tugmani bosing 👇`;
 }
 const isStart = text => /^\/start(@\w+)?(\s|$)/i.test(String(text || "").trim());
+const isFeedback = text => /^\/feedback(@\w+)?(\s|$)/i.test(String(text || "").trim());
+
+let feedbackDb = null, feedbackReady = Promise.resolve();
+function initFeedback(db) {
+  feedbackDb = db;
+  if (!db) return;
+  feedbackReady = db.query(`
+    create table if not exists feedback (
+      id bigserial primary key, tg_id bigint, username text, message text,
+      created_at timestamptz default now());`).catch(e => console.error("feedback table", e.message));
+}
+
+async function saveFeedback(tgId, username, text) {
+  if (!feedbackDb) return;
+  try {
+    await feedbackReady;
+    await feedbackDb.query("insert into feedback (tg_id, username, message) values ($1, $2, $3)", [tgId, username, text]);
+  } catch (e) { console.error("save feedback", e.message); }
+}
 
 // Build the reply for one update. Returned object is sent back in the webhook HTTP response
 // (Telegram executes it), so answering needs no extra outbound request.
@@ -32,6 +51,14 @@ function replyFor(update) {
   const msg = update && (update.message || update.edited_message);
   if (msg && msg.chat && msg.from && /^\/id(@\w+)?$/i.test(String(msg.text || "").trim()))     // helper for setting ADMIN_IDS
     return { method: "sendMessage", chat_id: msg.chat.id, text: `Sizning Telegram ID raqamingiz: <code>${msg.from.id}</code>`, parse_mode: "HTML" };
+  if (msg && msg.chat && msg.from && isFeedback(msg.text)) {
+    saveFeedback(msg.from.id, msg.from.username || msg.from.first_name, "");
+    return { method: "sendMessage", chat_id: msg.chat.id, text: "Fikringizni yozib yuboring 📝", parse_mode: "HTML" };
+  }
+  if (msg && msg.chat && msg.from && msg.text && !isStart(msg.text)) {
+    saveFeedback(msg.from.id, msg.from.username || msg.from.first_name, msg.text);
+    return { method: "sendMessage", chat_id: msg.chat.id, text: "Rahmat! 🙏 Fikringiz saqlandi.", parse_mode: "HTML" };
+  }
   if (!msg || !msg.chat || !isStart(msg.text)) return null;
   const reply = { method: "sendMessage", chat_id: msg.chat.id, text: welcome(msg.from), parse_mode: "HTML" };
   if (WEBAPP_URL.startsWith("https://")) reply.reply_markup = { inline_keyboard: [[{ text: BUTTON, web_app: { url: WEBAPP_URL } }]] };
@@ -80,4 +107,4 @@ function mount(app) {
   app.get("/tg/status", (req, res) => res.json({ bot: !!BOT_TOKEN, username: info.username, webhook: info.webhook, webapp: WEBAPP_URL }));
 }
 
-module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api };
+module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api, initFeedback };

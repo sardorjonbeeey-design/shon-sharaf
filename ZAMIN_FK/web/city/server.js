@@ -42,6 +42,7 @@ app.use((req, res, next) => {
 
 const bot = require("./bot");
 bot.mount(app);                                            // Telegram webhook: /start -> welcome + Mini App button
+if (db) bot.initFeedback(db);                              // Initialize feedback storage
 
 // --- storage: Postgres when DATABASE_URL is set, otherwise memory (local testing only)
 let db = null, DB_READY = Promise.resolve();
