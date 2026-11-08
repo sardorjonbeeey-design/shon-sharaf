@@ -63,15 +63,19 @@ async function setup() {
   info.webhook = "error";
 }
 
+let startHook = null;
+const setStartHook = fn => { startHook = fn; };
 function mount(app) {
-  app.post(HOOK_PATH, (req, res) => {
+  app.post(HOOK_PATH, async (req, res) => {
     if (!SECRET || req.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) return res.sendStatus(401);
     let reply = null;
     try { reply = replyFor(req.body); } catch (e) { console.error("bot update", e.message); }
+    const msg = req.body && req.body.message, payload = reply && msg && String(msg.text || "").trim().split(/\s+/)[1];
+    if (payload && startHook && msg.from) { try { await startHook(msg.from, payload); } catch (e) { console.error("start hook", e.message); } }
     if (!reply) return res.sendStatus(200);
     res.json(reply);
   });
   app.get("/tg/status", (req, res) => res.json({ bot: !!BOT_TOKEN, username: info.username, webhook: info.webhook, webapp: WEBAPP_URL }));
 }
 
-module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON };
+module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook };

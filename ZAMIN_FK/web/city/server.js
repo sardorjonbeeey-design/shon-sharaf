@@ -16,12 +16,12 @@ const bot = require("./bot");
 bot.mount(app);                                            // Telegram webhook: /start -> welcome + Mini App button
 
 // --- storage: Postgres when DATABASE_URL is set, otherwise memory (local testing only)
-let db = null;
+let db = null, DB_READY = Promise.resolve();
 const mem = { homes: [], seats: [], apps: [] };
 if (process.env.DATABASE_URL) {
   const { Pool } = require("pg");
   db = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.PGSSL === "off" ? false : { rejectUnauthorized: false } });
-  db.query(`
+  DB_READY = db.query(`
     create table if not exists homes (
       tg_id bigint primary key, nick text not null, style int not null, color int not null,
       created_at timestamptz not null default now(), updated_at timestamptz not null default now());
@@ -46,7 +46,7 @@ async function listHomes() {
 }
 async function listSeats() {
   if (!db) return mem.seats.slice();
-  return q("select tg_id, nick, tg_username, instagram from seats order by created_at, tg_id");
+  return q("select tg_id, nick, tg_username, instagram, seat_no from seats order by created_at, tg_id");
 }
 function memUpsert(list, row) {
   const i = list.findIndex(x => String(x.tg_id) === String(row.tg_id));
@@ -85,7 +85,8 @@ app.get("/api/state", async (req, res) => {
       miniapp: MINIAPP_URL || (bot.info.username ? "https://t.me/" + bot.info.username : ""),
       maxLevel: MAX_LEVEL,
       homes: homes.map(homeOut),
-      seats: seats.map(s => ({ tg_id: String(s.tg_id), nick: s.nick.replace(/^@/, ""), tg_username: s.tg_username, instagram: s.instagram })),
+      seats: seats.map(s => ({ tg_id: String(s.tg_id), nick: s.nick.replace(/^@/, ""), tg_username: s.tg_username, instagram: s.instagram, seat_no: s.seat_no ?? null })),
+      club: await CLUB.summary().catch(() => null),
     });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
 });
@@ -96,10 +97,10 @@ app.get("/api/homes", async (req, res) => {             // kept for older client
 
 const homeOut = (r, i) => ({ id: String(r.tg_id), nick: r.nick, style: r.style || 0, color: r.color, level: r.level || 1, lot: r.lot == null ? null : r.lot, car: r.car || 0,
   up: new Date(r.up || r.created_at).toISOString(), n: i + 1 });
-async function ensureSeat(user) {                          // every house owner is also a fan in the stadium
+async function ensureSeat(user) {                          // every house owner is also a club member with a permanent seat
   const nick = nickOf(user), tgu = user.username || null;
   if (!db) { if (!mem.seats.some(s => String(s.tg_id) === String(user.id))) memUpsert(mem.seats, { tg_id: user.id, nick, tg_username: tgu, instagram: null }); return; }
-  await q(`insert into seats (tg_id, nick, tg_username) values ($1,$2,$3) on conflict (tg_id) do nothing`, [user.id, nick, tgu]);
+  await CLUB.ensureMember(user);
 }
 
 // Claim my house (starts as a 1-floor house) or change its colour. Also gives a stadium seat.
@@ -126,7 +127,9 @@ app.post("/api/home", async (req, res) => {
 });
 
 // Coins, jobs, house upgrades and cars live in economy.js (server-authoritative).
-require("./economy").init({ app, db, mem, auth, ensureSeat });
+require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READY });
+// Supporter Portal: membership, permanent seats, Fan XP, departments, missions, referrals, admin (club.js)
+const CLUB = require("./club").init({ app, db, auth, bot, nickOf, ready: () => Promise.all([DB_READY, mem.econReady]) });
 
 // One stadium seat per Telegram user. An Instagram nick links the seat to that follower (first claim wins).
 app.post("/api/seat", async (req, res) => {

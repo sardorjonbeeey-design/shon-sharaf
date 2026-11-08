@@ -35,15 +35,16 @@ function customer(job, seed, k) {
 }
 const tashkentDay = (t = Date.now()) => new Date(t + 5 * 3600e3).toISOString().slice(0, 10);
 
-function init({ app, db, mem, auth, ensureSeat }) {
+function init({ app, db, mem, auth, ensureSeat, ready }) {
   mem.wallets = mem.wallets || new Map(); mem.shifts = mem.shifts || []; mem.ledger = mem.ledger || [];
-  if (db) db.query(`
+  const econReady = !db ? Promise.resolve() : ready().then(() => db.query(`
     create table if not exists wallets (tg_id bigint primary key, coins int not null default 0, streak int not null default 0,
       last_bonus date, earned int not null default 0, updated_at timestamptz not null default now());
     create table if not exists shifts (id bigserial primary key, tg_id bigint not null, job text not null, seed int not null,
       started_at timestamptz not null default now(), served jsonb not null default '[]', earned int not null default 0, last_serve_at timestamptz);
     create index if not exists shifts_user_idx on shifts (tg_id, started_at desc);
-    create table if not exists ledger (id bigserial primary key, tg_id bigint not null, delta int not null, reason text not null, at timestamptz not null default now());`).catch(e => console.error("economy db init", e.message));
+    create table if not exists ledger (id bigserial primary key, tg_id bigint not null, delta int not null, reason text not null, at timestamptz not null default now());`)).catch(e => console.error("economy db init", e.message));
+  mem.econReady = econReady;
 
   // Run fn on one user's state inside a transaction (row locks) — or a per-user lock in memory mode.
   const locks = new Map();
