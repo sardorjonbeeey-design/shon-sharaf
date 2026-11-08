@@ -20,7 +20,13 @@ let db = null, DB_READY = Promise.resolve();
 const mem = { homes: [], seats: [], apps: [] };
 if (process.env.DATABASE_URL) {
   const { Pool } = require("pg");
-  db = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.PGSSL === "off" ? false : { rejectUnauthorized: false } });
+  let connStr = process.env.DATABASE_URL;
+  if (process.env.PGSSL !== "off") {
+    const url = new URL(connStr);
+    if (!url.searchParams.has("sslmode")) url.searchParams.set("sslmode", "require");
+    connStr = url.toString();
+  }
+  db = new Pool({ connectionString: connStr, ssl: process.env.PGSSL === "off" ? false : { rejectUnauthorized: false } });
   DB_READY = db.query(`
     create table if not exists homes (
       tg_id bigint primary key, nick text not null, style int not null, color int not null,
