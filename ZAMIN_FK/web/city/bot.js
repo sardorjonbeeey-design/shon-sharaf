@@ -30,6 +30,8 @@ const isStart = text => /^\/start(@\w+)?(\s|$)/i.test(String(text || "").trim())
 // (Telegram executes it), so answering needs no extra outbound request.
 function replyFor(update) {
   const msg = update && (update.message || update.edited_message);
+  if (msg && msg.chat && msg.from && /^\/id(@\w+)?$/i.test(String(msg.text || "").trim()))     // helper for setting ADMIN_IDS
+    return { method: "sendMessage", chat_id: msg.chat.id, text: `Sizning Telegram ID raqamingiz: <code>${msg.from.id}</code>`, parse_mode: "HTML" };
   if (!msg || !msg.chat || !isStart(msg.text)) return null;
   const reply = { method: "sendMessage", chat_id: msg.chat.id, text: welcome(msg.from), parse_mode: "HTML" };
   if (WEBAPP_URL.startsWith("https://")) reply.reply_markup = { inline_keyboard: [[{ text: BUTTON, web_app: { url: WEBAPP_URL } }]] };
