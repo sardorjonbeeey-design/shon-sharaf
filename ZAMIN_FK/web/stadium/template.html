@@ -357,6 +357,14 @@ FANS.forEach((nick, i) => {
 const debugLog = document.getElementById("debug-log");
 const dbgLines = [];
 function dbg(msg) { console.log(msg); dbgLines.push(msg); debugLog.textContent = dbgLines.join("\n"); debugLog.style.display = "block"; }
+
+// Catch uncaught errors
+window.onerror = (msg, url, line, col, err) => {
+  dbg("❌ ERROR: " + msg + " @" + line);
+  console.error("Uncaught error:", err);
+  return false;
+};
+
 dbg("🔧 Init starting...");
 dbg("Canvas: " + (!!document.getElementById("c")));
 dbg("THREE: " + (typeof THREE));
@@ -367,10 +375,15 @@ dbg("Creating renderer...");
 let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
+  if (!renderer.getContext) throw new Error("No WebGL context");
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   dbg("✓ WebGL renderer OK");
 } catch (e) {
   dbg("✗ WebGL FAILED: " + e.message);
+  const msg = document.createElement("div");
+  msg.innerHTML = "<h1 style='color:#f00; text-align:center; margin-top:100px; font-family:sans-serif;'>WebGL Not Supported</h1><p style='text-align:center; color:#ccc;'>" + e.message + "</p>";
+  document.body.appendChild(msg);
+  debugLog.textContent = "WebGL initialization failed: " + e.message;
   throw e;
 }
 const scene = new THREE.Scene();
