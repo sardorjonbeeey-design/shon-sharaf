@@ -225,7 +225,8 @@ app.get("/api/profession", async (req, res) => {
 });
 
 // Admin: approve/reject profession applications
-const isAdmin = id => process.env.ADMIN_ID && String(process.env.ADMIN_ID).split(/[\s,]+/).includes(String(id));
+const ADMINS = new Set(String(process.env.ADMIN_IDS || "").split(/[\s,]+/).filter(Boolean));
+const isAdmin = id => ADMINS.has(String(id));
 app.post("/api/admin/profession", async (req, res) => {
   const user = auth(req, res); if (!user) return;
   if (!isAdmin(user.id)) return res.status(403).json({ error: "admin only" });
