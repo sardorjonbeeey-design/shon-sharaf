@@ -116,12 +116,12 @@ k = 0
 for f, off in audio:
     k += 1; inputs += ["-i", f]; ms = int(off * 1000)
     fc.append(f"[{k}:a]aresample=48000,adelay={ms}|{ms}[a{k}]"); mix.append(f"[a{k}]")
-for f, at, vol in [("sfx/crowd_bed.wav", 0.25, 0.5), ("sfx/whistle.wav", s(1), 0.8), ("sfx/whistle.wav", s(5), 0.6)]:
+for f, at, vol in []:                      # same as Day 1 and Day 2: narration only
     k += 1; inputs += ["-i", os.path.join(HERE, f)]; ms = int(at * 1000)
     fc.append(f"[{k}:a]aresample=48000,adelay={ms}|{ms},volume={vol}[a{k}]"); mix.append(f"[a{k}]")
 fc.append(f"{''.join(mix)}amix=inputs={len(mix)}:normalize=0,apad,atrim=0:{TOTAL:.3f},loudnorm=I=-14:TP=-1.5[aout]")
 out = os.path.join(HERE, "exports", "ZFK_EP03_day3.mp4")
 os.makedirs(os.path.dirname(out), exist_ok=True)
 subprocess.run(["ffmpeg", "-loglevel", "error", "-y", *inputs, "-filter_complex", ";".join(fc), "-map", "0:v", "-map", "[aout]",
-                "-c:v", "copy", "-ac", "2", "-ar", "48000", "-c:a", "aac", "-b:a", "192k", "-t", f"{TOTAL:.3f}", "-movflags", "+faststart", out], check=True)
+                "-c:v", "copy", "-ac", "1", "-ar", "96000", "-c:a", "aac", "-b:a", "192k", "-t", f"{TOTAL:.3f}", "-movflags", "+faststart", out], check=True)
 print("OK", out, round(TOTAL, 2))
