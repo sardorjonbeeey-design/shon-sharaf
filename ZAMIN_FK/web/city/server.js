@@ -11,7 +11,9 @@ const PAGE = path.join(__dirname, "..", "stadium", "dist", "index.html");
 const STYLES = 5, COLORS = 6;
 const ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
 const app = express();
-app.use(express.json({ limit: "32kb" }));
+app.use(express.json({ limit: "256kb" }));
+const bot = require("./bot");
+bot.mount(app);                                            // Telegram webhook: /start -> welcome + Mini App button
 
 // --- storage: Postgres when DATABASE_URL is set, otherwise memory (local testing only)
 let db = null;
@@ -74,7 +76,7 @@ app.get("/api/state", async (req, res) => {
     const [homes, seats] = await Promise.all([listHomes(), listSeats()]);
     res.set("Cache-Control", "no-store");
     res.json({
-      miniapp: MINIAPP_URL,
+      miniapp: MINIAPP_URL || (bot.info.username ? "https://t.me/" + bot.info.username : ""),
       homes: homes.map((r, i) => ({ id: String(r.tg_id), nick: r.nick, style: r.style, color: r.color, n: i + 1 })),
       seats: seats.map(s => ({ tg_id: String(s.tg_id), nick: s.nick.replace(/^@/, ""), tg_username: s.tg_username, instagram: s.instagram })),
     });
@@ -138,4 +140,7 @@ app.get("/healthz", (req, res) => res.send("ok"));
 app.get(["/", "/index.html"], (req, res) => { res.set("Cache-Control", "no-cache"); res.sendFile(PAGE); });
 app.use("/map", express.static(path.join(path.dirname(PAGE), "map"), { maxAge: "1d" }));   // real-town OpenStreetMap data
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log("zamin fk on", port, db ? "postgres" : "memory", BOT_TOKEN ? "bot ok" : "NO BOT_TOKEN"));
+app.listen(port, () => {
+  console.log("zamin fk on", port, db ? "postgres" : "memory", BOT_TOKEN ? "bot ok" : "NO BOT_TOKEN");
+  bot.setup().catch(e => console.error("bot setup", e.message));
+});
