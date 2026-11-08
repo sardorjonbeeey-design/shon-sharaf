@@ -413,8 +413,8 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   app.get("/api/squad", async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
     try { await ready;
-      const rows = (await db.query(`select a.id, a.kind, coalesce(nullif(a.name,''), m.nick, a.nick) as name, a.position, a.dept
-        from applications a left join members m on m.tg_id = a.tg_id where a.status = 'accepted' and a.kind in ('player','staff') order by a.decided_at`)).rows;
+      const rows = (await db.query(`select a.id, a.kind, case when a.kind = 'city' then coalesce(m.nick, a.nick) else coalesce(nullif(a.name,''), m.nick, a.nick) end as name, a.position, a.dept, case when a.kind = 'city' then a.role end as role
+        from applications a left join members m on m.tg_id = a.tg_id where a.status = 'accepted' order by a.decided_at`)).rows;
       res.json(rows);
     } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
   });
