@@ -1263,7 +1263,39 @@ function moveTo(o, x, z, y = 0) {
   const p = last.get(o) || [x, z]; face(o, x - p[0]); last.set(o, [x, z]);
   o.position.set(x, y, z);
 }
+// ---------- accepted players (from applications) train on the pitch; staff stand on the touchline ----------
+const SQUAD = [];
+const POS_SPOT = { GK: [42, 0], DEF: [26, 0], MID: [10, 0], FWD: [-8, 0] };
+function makeSquadPlayer(p, i) {
+  const g = new THREE.Group(), kit = p.kind === "staff" ? 0x0D2557 : p.position === "GK" ? 0x2e9e4f : 0x1F4FB8, m = c => new THREE.MeshLambertMaterial({ color: c });
+  const add = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); g.add(o); return o; };
+  add(new THREE.CylinderGeometry(.32, .28, .9, 10), m(kit), 0, 1.25, 0);
+  add(new THREE.SphereGeometry(.26, 12, 10), m(0xe0ac80), 0, 1.95, 0);
+  add(new THREE.CylinderGeometry(.3, .3, .3, 10), m(p.kind === "staff" ? 0x0D2557 : 0xffffff), 0, .7, 0);
+  const lL = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), -.13, .3, 0), lR = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), .13, .3, 0);
+  g.scale.setScalar(1.6); scene.add(g);
+  const [bx, bz] = p.kind === "staff" ? [-30 + i * 6, 33] : POS_SPOT[p.position] || [0, 0];
+  return { g, lL, lR, p, bx, bz: bz + ((i % 5) - 2) * 7, ph: i * 1.7 };
+}
+async function loadSquad() {
+  try {
+    const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
+    const list = await r.json(); SQUAD.forEach(s => scene.remove(s.g)); SQUAD.length = 0;
+    list.forEach((p, i) => SQUAD.push(makeSquadPlayer(p, i)));
+  } catch (e) {}
+}
+loadSquad(); setInterval(loadSquad, 60000);
+function animateSquad(t) {
+  for (const s of SQUAD) {
+    const k = t * .6 + s.ph, run = s.p.kind !== "staff";
+    const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
+    s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
+    const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
+  }
+}
+function squadLabels(place) { for (const s of SQUAD) place(s.g.position.x, 4.4, s.g.position.z, "tag hero", (s.p.kind === "staff" ? "🧑‍💼 " : "⚽ ") + s.p.name + (s.p.position ? " · " + s.p.position : "")); }
 function animateTeam(t) {
+  animateSquad(t);
   const bek = H("bekzod"), az = H("aziz"), jas = H("jasur"), rus = H("rustam"), goat = H("echki");
   // Bekzod: sprint up and down the right half, small hop while running
   if (bek) { const u = (Math.sin(t * 0.7) + 1) / 2; moveTo(bek, 6 + u * 22, 6 + Math.sin(t * 0.35) * 8, Math.abs(Math.sin(t * 9)) * 0.18); }
@@ -1424,6 +1456,7 @@ function updateLabels(now) {
   const mine = myId && homeObjs.find(o => o.userData.id === myId);
   const hy = o => LEVEL_H[o.userData.level || 1] * o.scale.y + 3;
   if (mine) placeAt(mine.position.x, hy(mine), mine.position.z, "tag me home", mine.userData.nick, true);
+  squadLabels((x, y, z, cls, txt) => placeAt(x, y, z, cls, txt, true));
   if (!near || MODE === "city") {
     for (const l of LOTS) placeAt(l.x, l.park ? 2 : 8, l.z, "tag lot", (l.park ? "" : T[L].soon) + T[L].lots[l.i]);
     for (const o of HQ_OBJS) { const d = o.userData.info; placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", `${d.emoji} ${d.name} · ${d.level ? d.level + "-daraja" : "qurilmoqda"}`, true); }

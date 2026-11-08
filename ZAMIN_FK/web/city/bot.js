@@ -80,4 +80,4 @@ function mount(app) {
   app.get("/tg/status", (req, res) => res.json({ bot: !!BOT_TOKEN, username: info.username, webhook: info.webhook, webapp: WEBAPP_URL }));
 }
 
-module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook };
+module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api };

@@ -397,8 +397,27 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     await c.query("update applications set status = $2, admin_note = $3, decided_at = now(), decided_by = $4, dept = coalesce($5, dept) where id = $1",
       [id, status, String(body.note || "").slice(0, 200), String(user.id), bodyDept]);
     if (status === "accepted" && bodyDept && a.tg_id) await c.query("update members set dept = $2, dept_at = now() where tg_id = $1", [a.tg_id, bodyDept]);
-    cache = null; return { ok: true, status };
+    cache = null;
+    // tell the applicant in Telegram (after commit; a failed message never blocks the decision)
+    if (a.tg_id) {
+      const what = a.kind === "player" ? "futbolchi" : a.kind === "staff" ? "klub xodimi" : (a.role || "ish");
+      const text = status === "accepted"
+        ? `✅ <b>Tabriklaymiz!</b> Zamin FK ga ${what} sifatida qabul qilindingiz.` + (a.kind === "player" ? "\n⚽ Endi siz jamoa tarkibidasiz — stadionda mashg‘ulotda ko‘rinasiz!" : "") + (body.note ? "\n\n" + String(body.note).slice(0, 200) : "")
+        : `ℹ️ Arizangiz ko‘rib chiqildi: bu safar qabul qilinmadi.` + (body.note ? "\n" + String(body.note).slice(0, 200) : "") + "\nKeyingi imkoniyatlarni kuzatib boring!";
+      setTimeout(() => bot.api("sendMessage", { chat_id: String(a.tg_id), text, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)), 0);
+    }
+    return { ok: true, status };
   }), true);
+
+  // accepted players (squad shown on the pitch) and staff — public, no personal data beyond name/position
+  app.get("/api/squad", async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    try { await ready;
+      const rows = (await db.query(`select a.id, a.kind, coalesce(nullif(a.name,''), m.nick, a.nick) as name, a.position, a.dept
+        from applications a left join members m on m.tg_id = a.tg_id where a.status = 'accepted' and a.kind in ('player','staff') order by a.decided_at`)).rows;
+      res.json(rows);
+    } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
+  });
 
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
   return { ensureMember, summary, registerReferral };
