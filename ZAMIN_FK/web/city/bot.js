@@ -5,6 +5,7 @@ const crypto = require("crypto");
 
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const TG_API = process.env.TG_API || "https://api.telegram.org";          // overridable for tests
+const ADMIN_ID = process.env.ADMIN_ID || "";                               // Admin user ID for feedback
 // The Mini App's current HTTPS address = this service (Render sets RENDER_EXTERNAL_URL). Not changed here.
 const WEBAPP_URL = process.env.WEBAPP_URL || process.env.RENDER_EXTERNAL_URL || "";
 const PUBLIC_URL = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || "";
@@ -42,6 +43,10 @@ async function saveFeedback(tgId, username, text) {
   try {
     await feedbackReady;
     await feedbackDb.query("insert into feedback (tg_id, username, message) values ($1, $2, $3)", [tgId, username, text]);
+    if (ADMIN_ID && text && BOT_TOKEN) {
+      const msg = `📬 <b>Yangi feedback:</b>\n\n<b>Foydalanuvchi:</b> @${username || tgId}\n<b>Xabar:</b> ${esc(text)}`;
+      await api("sendMessage", { chat_id: ADMIN_ID, text: msg, parse_mode: "HTML" }).catch(e => console.error("admin notify", e.message));
+    }
   } catch (e) { console.error("save feedback", e.message); }
 }
 
