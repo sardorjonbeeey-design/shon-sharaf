@@ -19,7 +19,7 @@ def dur(p):
 LINES = [
  ("01_hook", [("SIZ TANLADINGIZ: DOSTON!", [1, 2])]),
  ("02_result", [("Sherzod emas — DOSTON. Rahmat, har bir ovoz uchun.", [2, 3])]),
- ("03_update", [("Klub fondi: 21 690 000 so‘m (virtual)", [3, 4])]),
+ ("03_update", [("Klub fondi: 21 690 000 so‘m. Sherzod endi bizda — erkin agent!", [3, 4])]),
  ("04_cta", [("@zaminfk_bot — jamoaga qo‘shiling yoki shaharda ish toping", [0, 3, 4])]),
  ("05_question", [("Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik?", [3, 4])]),
  ("06_outro", [("Ertaga echkiga nima bo‘ldi? Klub nomini yozing!", [4, 5, 6])]),
@@ -75,6 +75,8 @@ scenes = [
        counter=roll(frac(3, 0.3), FUND_OLD, FUND_NEW, 20)),
    lab(chip("+107 × 15 000 = 1 605 000 so‘m", True), 540, 1080, frac(3, 0.7), enter="stamp", idle="pulse"),
    spr("bekzod_celebrate", 800, 1750, 680, frac(3, 0.1), enter="up", idle="hop", z=9),
+   spr("sherzod", 260, 1780, 760, frac(3, 0.6), enter="slideL", idle="sway", z=10),
+   lab(chip("SHERZOD — ERKIN AGENT ✅", True), 540, 1080 + 0, frac(3, 0.62), enter="stamp", z=26),
  ]},
  # CTA: three choices slide in, shahar ochildi
  {"from": s(4), "to": s(5), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.06], "blur": 8}, "items": [
