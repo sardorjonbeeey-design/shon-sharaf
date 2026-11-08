@@ -1,0 +1,149 @@
+{
+ "output": "ZFK_EP03_day3.mp4",
+ "lead_in": 0.25,
+ "gap": 0.3,
+ "tail": 1.8,
+ "lines": [
+  {
+   "id": "L1",
+   "file": "voice/01_hook.mp3",
+   "placeholder": 3.0
+  },
+  {
+   "id": "L2",
+   "file": "voice/02_result.mp3",
+   "placeholder": 6.0
+  },
+  {
+   "id": "L3",
+   "file": "voice/03_update.mp3",
+   "placeholder": 6.3
+  },
+  {
+   "id": "L4",
+   "file": "voice/04_cta.mp3",
+   "placeholder": 7.2
+  },
+  {
+   "id": "L5",
+   "file": "voice/05_question.mp3",
+   "placeholder": 4.8
+  },
+  {
+   "id": "L6",
+   "file": "voice/06_outro.mp3",
+   "placeholder": 4.4
+  }
+ ],
+ "shots": [
+  {
+   "from": "L1",
+   "image": "../02_Episode_02/assets/BG_stand_renovated.png",
+   "zoom": [
+    1.0,
+    1.1
+   ],
+   "blur": 16
+  },
+  {
+   "from": "L2",
+   "image": "../02_Episode_02/exports/ZFK_EP02_story_defender_vote.png",
+   "zoom": [
+    1.0,
+    1.05
+   ],
+   "blur": 0
+  },
+  {
+   "from": "L3",
+   "image": "../02_Episode_01/assets/S05_stadium_wide.png",
+   "zoom": [
+    1.05,
+    1.0
+   ],
+   "blur": 14
+  },
+  {
+   "from": "L4",
+   "image": "../02_Episode_02/assets/BG_stand_renovated.png",
+   "zoom": [
+    1.0,
+    1.08
+   ],
+   "blur": 14
+  },
+  {
+   "from": "L5",
+   "image": "../02_Episode_02/assets/BG_stand_renovated.png",
+   "zoom": [
+    1.0,
+    1.08
+   ],
+   "blur": 14
+  },
+  {
+   "from": "L6",
+   "image": "../01_Art_Direction/Sprites/goat_side.png",
+   "zoom": [
+    1.0,
+    1.1
+   ],
+   "blur": 0
+  }
+ ],
+ "overlays": [
+  {
+   "from": "L1",
+   "to": "L2",
+   "html": "<div class=\"card\" style=\"top:560px\"><small>SIZ TANLADINGIZ</small><b>DOSTON!</b><span>Mudofaa · 22 yosh · OVR 67</span></div><div class=\"sub\"><em>SIZ TANLADINGIZ:</em> DOSTON!</div>",
+   "srt": "SIZ TANLADINGIZ: DOSTON!"
+  },
+  {
+   "from": "L2",
+   "to": "L3",
+   "html": "<div class=\"tag\" style=\"top:330px;left:90px\">78% OVOZ</div><div class=\"card\" style=\"top:1280px\"><small>G‘OLIB IZOH</small><b>Doston</b><span>Sherzod emas — rahmat!</span></div><div class=\"sub\">Sherzod emas — <em>DOSTON</em>. Rahmat, har bir ovoz uchun.</div>",
+   "srt": "Sherzod emas — DOSTON. Rahmat, har bir ovoz uchun."
+  },
+  {
+   "from": "L3",
+   "to": "L4",
+   "html": "<div class=\"badge\" style=\"left:60px;top:150px\"><small>MUXLISLAR</small><b>127</b><i>VIRTUAL</i></div><div class=\"badge\" style=\"left:auto;right:60px;top:150px\"><small>KLUB FONDI</small><b style=\"font-size:70px\">20 085 000</b><i>SO‘M</i></div><div class=\"card\" style=\"top:700px\"><small>VIRTUAL KLUB FONDI</small><b>20 085 000</b><span>so‘m</span></div><div class=\"tag\" style=\"top:1010px;left:200px\">+178 × 15 000 so‘m</div><div class=\"sub\">Klub fondi: <em>20 085 000</em> so‘m (virtual)</div>",
+   "srt": "Klub fondi: 20 085 000 so‘m (virtual)"
+  },
+  {
+   "from": "L4",
+   "to": "L5",
+   "html": "<div class=\"cta\" style=\"top:300px\">SHAHAR OCHILDI<small>@zaminfk_bot — /start</small></div><div class=\"choice\" style=\"top:620px\"><span class=\"n\">1</span>Klub jamoasiga qo‘shiling</div><div class=\"choice\" style=\"top:800px\"><span class=\"n\">2</span>Shaharda ish toping</div><div class=\"choice\" style=\"top:980px\"><span class=\"n\">3</span>O‘rindiq va uy oling</div><div class=\"sub\">Telegram’da <em>@zaminfk_bot</em> ga kiring</div>",
+   "srt": "Telegram’da @zaminfk_bot ga kiring"
+  },
+  {
+   "from": "L5",
+   "to": "L6",
+   "html": "<div class=\"card\" style=\"top:560px\"><small>DO‘STONA O‘YIN</small><b>KLUB?</b><span>Izohga klub nomini yozing</span></div><div class=\"tag\" style=\"top:1200px;left:200px\">1 IZOH = 1 OVOZ</div><div class=\"sub\">Qaysi klubga qarshi <em>o‘rtoqlik o‘yini</em> o‘tkazaylik?</div>",
+   "srt": "Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik?"
+  },
+  {
+   "from": "L6",
+   "to": "end",
+   "html": "<div class=\"tag\" style=\"top:330px;left:90px\">ERTAGA</div><div class=\"cta\" style=\"top:1250px\">ECHKIGA NIMA BO‘LDI? 🐐<small>Klub nomini yozing!</small></div><div class=\"sub\">Ertaga echkiga nima bo‘ldi? <em>Klub nomini yozing!</em></div>",
+   "srt": "Ertaga echkiga nima bo‘ldi? Klub nomini yozing!"
+  }
+ ],
+ "sfx": [
+  {
+   "file": "sfx/crowd_bed.wav",
+   "at": "L1",
+   "volume": 0.6
+  },
+  {
+   "file": "sfx/whistle.wav",
+   "at": "L1",
+   "volume": 0.8
+  },
+  {
+   "file": "sfx/whistle.wav",
+   "at": "L5",
+   "volume": 0.7
+  }
+ ]
+}
