@@ -1002,7 +1002,9 @@ function buildHome(h) {
     for (const [x, z] of [[-5, 4.6], [5, 4.6], [-5, -5], [5, -5]]) { box(LM.trim, 1.8, .7, 1.2, x, G + .35, z); mesh(SPH, LM.bush, .7, .5, .45, x, G + .9, z); }
     tree(-5, .5, 1.1); tree(5, .5, 1.1);
   }
-  if (h.car) {                                              // car parked on the lawn (bought in the market)
+  if (h.car && KENNEY[CAR_MODEL[h.car]]) {                  // real car model parked on the lawn
+    const c = fitModel(KENNEY[CAR_MODEL[h.car]].clone(), 2.2, 1.9); c.position.set(3.1, G, 3.9); c.rotation.y = Math.PI / 2; g.add(c);
+  } else if (h.car) {                                       // car parked on the lawn (bought in the market), simple fallback
     const cc = [0, 0xf2f2f2, 0xb8bcc2, 0x2a4f8a, 0x1d1f24][h.car] || 0xf2f2f2, cm = lamC(cc), van = h.car === 1, big = h.car === 3;
     const cx = 3.1, cz = 3.9, bh = van ? 1.7 : big ? 1.3 : 1.05;
     box(cm, 2, bh, 4.2, cx, G + .35 + bh / 2, cz); box(LM.glass, 1.8, .7, van ? 3.6 : 2.2, cx, G + .35 + bh + .3, cz - (van ? .1 : .2));
@@ -1036,10 +1038,14 @@ layoutHomes(STATE.homes);
 // ---------- Kenney 3D models (CC0, see models/kenney/LICENSE-kenney.txt). Loaded once; the scene uses them when ready. ----------
 const KENNEY = {};
 const HQ_MODEL = { fan: "building-type-a", media: "building-type-f", scouting: "building-type-k", stadium: "building-type-n", academy: "building-type-d" };
+const CAR_MODEL = { 1: "van", 2: "sedan", 3: "suv", 4: "suv-luxury" };          // home car by car id (see server CARS)
+const PERSON_MODEL = ["character-male-a", "character-male-b", "character-female-a", "character-female-b"];
+const KENNEY_PATH = n => (n.startsWith("character-") ? "models/kenney/people/" : ["van", "sedan", "suv", "suv-luxury", "taxi"].includes(n) ? "models/kenney/cars/" : "models/kenney/") + n + ".glb";
 const KENNEY_READY = (async () => {
   if (!THREE.GLTFLoader) return;
-  const ld = new THREE.GLTFLoader(), names = [...new Set([...Object.values(HQ_MODEL), "tree-large"])];
-  await Promise.all(names.map(n => new Promise(r => ld.load("models/kenney/" + n + ".glb", g => { KENNEY[n] = g.scene; r(); }, undefined, () => r()))));
+  const ld = new THREE.GLTFLoader(), names = [...new Set([...Object.values(HQ_MODEL), "tree-large", ...Object.values(CAR_MODEL), ...PERSON_MODEL])];
+  await Promise.all(names.map(n => new Promise(r => ld.load(KENNEY_PATH(n), g => { KENNEY[n] = g.scene; r(); }, undefined, () => r()))));
+  if (typeof layoutHomes === "function" && HOMES) layoutHomes(HOMES);      // rebuild homes with the real car models
 })();
 // scale a model to fit a w x h box (uniform), stand it on the ground and centre it on its origin
 function fitModel(obj, w, h) {
@@ -1076,6 +1082,7 @@ function buildHQ(d) {
     const F = d.level === 1 ? 2 : 4, H = F * 3.4;
     g.add(fitModel(KENNEY[HQ_MODEL[d.id]].clone(), 24, H));
     for (const x of [-12.5, 12.5]) { const t = fitModel(KENNEY["tree-large"].clone(), 4.5, 6.5); t.position.set(x, 0, 6.5); g.add(t); }
+    PERSON_MODEL.forEach((n, i) => { if (!KENNEY[n]) return; const q = fitModel(KENNEY[n].clone(), 1, 1.8); q.position.set(-6 + i * 4, 0, 9.5); g.add(q); });   // people on the forecourt
   } else {
     const F = d.level === 1 ? 2 : 4, H = F * 3.4;
     box(LM.white, 24, H, 11, 0, .3 + H / 2, -1);
@@ -1810,7 +1817,7 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, selectLot, plots: () => plots, built: () => BUILT };
+if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS };
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
