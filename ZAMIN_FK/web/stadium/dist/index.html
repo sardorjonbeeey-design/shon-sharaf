@@ -2061,7 +2061,13 @@ dbg("✓ Ready!");
 let prev = performance.now();
 let loopStarted = false;
 function loop(now) {
-  if (!loopStarted) { dbg("🎬 Render loop active"); loopStarted = true; }
+  if (!loopStarted) {
+    dbg("🎬 Loop frame 1");
+    dbg("Canvas: " + canvas.width + "x" + canvas.height);
+    dbg("Camera pos: " + camera.position.x.toFixed(1) + "," + camera.position.y.toFixed(1) + "," + camera.position.z.toFixed(1));
+    dbg("Renderer: " + (renderer ? "OK" : "NULL"));
+    loopStarted = true;
+  }
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
   if (fly) {
     fly.t = (now - fly.start) / 1000 / fly.dur; const p = fly.t >= 1 ? 1 : 1 - Math.pow(1 - fly.t, 3);
