@@ -10,6 +10,14 @@ const CARS = [null,
   { id: 2, name: "Sedan", price: 1200, color: 0xb8bcc2 },
   { id: 3, name: "Krossover", price: 2500, color: 0x2a4f8a },
   { id: 4, name: "Biznes sedan", price: 8000, color: 0x1d1f24 },
+  { id: 5, name: "Sport xetchbek", price: 3500, color: 0x2e9e4f },
+  { id: 6, name: "Sport sedan", price: 5000, color: 0xd94848 },
+  { id: 7, name: "Taksi", price: 1500, color: 0xf2c230 },
+  { id: 8, name: "Xetchbek", price: 900, color: 0xd93030 },
+  { id: 9, name: "Politsiya", price: 6000, color: 0x1d1f24 },
+  { id: 10, name: "Klassik sedan", price: 1800, color: 0x2a4f8a },
+  { id: 11, name: "Universal", price: 2200, color: 0x2e8b3c },
+  { id: 12, name: "Sariq taksi", price: 1600, color: 0xf2c230 },
 ];
 const JOBS = {
   coffee: {

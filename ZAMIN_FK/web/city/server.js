@@ -109,16 +109,18 @@ app.post("/api/home", async (req, res) => {
   const color = Number(req.body.color);
   if (!Number.isInteger(color) || color < 0 || color >= COLORS) return res.status(400).json({ error: "bad choice" });
   const lot = req.body.lot == null ? null : Number(req.body.lot);           // chosen empty lot on the map
+  const style = req.body.style == null ? 0 : Number(req.body.style);       // 0 built-in house, 1..29 model
+  if (!Number.isInteger(style) || style < 0 || style > 29) return res.status(400).json({ error: "style" });
   if (lot !== null && (!Number.isInteger(lot) || lot < 0 || lot > 1e6)) return res.status(400).json({ error: "lot" });
   const nick = nickOf(user);
   try {
     if (!db) { const ex = mem.homes.find(h => String(h.tg_id) === String(user.id));
       if (lot !== null && mem.homes.some(h => h.lot === lot && h !== ex)) return res.status(409).json({ error: "taken" });
-      if (ex) Object.assign(ex, { nick, color, lot: ex.lot ?? lot }); else mem.homes.push({ tg_id: user.id, nick, style: 0, color, level: 1, car: 0, lot, up: Date.now(), created_at: Date.now() }); }
+      if (ex) Object.assign(ex, { nick, color, style, lot: ex.lot ?? lot }); else mem.homes.push({ tg_id: user.id, nick, style, color, level: 1, car: 0, lot, up: Date.now(), created_at: Date.now() }); }
     else {
       try {
-        await q(`insert into homes (tg_id, nick, style, color, level, lot) values ($1,$2,0,$3,1,$4)
-          on conflict (tg_id) do update set nick = excluded.nick, color = excluded.color, lot = coalesce(homes.lot, excluded.lot), updated_at = now()`, [user.id, nick, color, lot]);
+        await q(`insert into homes (tg_id, nick, style, color, level, lot) values ($1,$2,$5,$3,1,$4)
+          on conflict (tg_id) do update set nick = excluded.nick, color = excluded.color, style = excluded.style, lot = coalesce(homes.lot, excluded.lot), updated_at = now()`, [user.id, nick, color, lot, style]);
       } catch (e) { if (e.code === "23505") return res.status(409).json({ error: "taken" }); throw e; }
     }
     await ensureSeat(user);
