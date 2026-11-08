@@ -13,17 +13,17 @@
   #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
   .ui { position:fixed; z-index:5; }
   .pill { background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
-  #brand { top:14px; left:14px; display:flex; align-items:center; gap:10px; padding:10px 16px; font-weight:900; font-size:17px; letter-spacing:.5px; }
-  #brand img { height:34px; }
-  #count { top:14px; right:14px; padding:8px 16px; text-align:center; }
-  #count small { display:block; color:var(--yel); font-weight:900; font-size:12px; letter-spacing:2px; }
-  #count b { display:block; font-weight:900; font-size:30px; line-height:1.05; }
-  #count i { display:block; font-style:normal; font-size:10px; letter-spacing:2px; color:#9DB8FF; }
-  #langs { top:74px; left:14px; display:flex; gap:6px; }
-  #langs button { font:inherit; font-weight:700; font-size:12px; color:#fff; background:rgba(13,37,87,.85); border:2px solid rgba(255,255,255,.2); border-radius:14px; padding:6px 10px; }
+  #brand { top:10px; left:10px; display:flex; align-items:center; gap:6px; padding:6px 10px; font-weight:900; font-size:14px; letter-spacing:.3px; }
+  #brand img { height:28px; }
+  #count { top:10px; right:10px; padding:4px 10px; text-align:center; }
+  #count small { display:block; color:var(--yel); font-weight:900; font-size:10px; letter-spacing:1px; }
+  #count b { display:block; font-weight:900; font-size:22px; line-height:1.05; }
+  #count i { display:block; font-style:normal; font-size:8px; letter-spacing:1px; color:#9DB8FF; }
+  #langs { top:54px; left:10px; display:flex; gap:4px; }
+  #langs button { font:inherit; font-weight:700; font-size:10px; color:#fff; background:rgba(13,37,87,.85); border:1.5px solid rgba(255,255,255,.2); border-radius:10px; padding:4px 7px; cursor:pointer; }
   #langs button.on { background:var(--yel); color:var(--navy); border-color:var(--yel); }
-  #side { right:14px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:10px; }
-  #side button { width:52px; height:52px; border-radius:16px; font:inherit; font-weight:900; font-size:24px; color:#fff; background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); }
+  #side { right:10px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:6px; }
+  #side button { width:40px; height:40px; border-radius:12px; font:inherit; font-weight:900; font-size:18px; color:#fff; background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); cursor:pointer; }
   #find { left:12px; right:12px; bottom:14px; display:flex; gap:10px; }
   #find input { flex:1; min-width:0; font:inherit; font-weight:700; font-size:17px; color:#fff; background:rgba(13,37,87,.95); border:2px solid rgba(255,255,255,.25); border-radius:18px; padding:16px 18px; outline:none; }
   #find input::placeholder { color:#9DB8FF; }
@@ -89,8 +89,8 @@
   .apfilt { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 10px; } .apfilt button { font:inherit; font-size:12px; font-weight:900; color:#fff; background:rgba(255,255,255,.08); border:2px solid transparent; border-radius:10px; padding:7px 9px; } .apfilt button.on { border-color:var(--yel); background:rgba(255,210,63,.18); }
   .apfilt small { display:block; } .appc { font-size:11px; color:#9DB8FF; margin-left:4px; }
   /* city */
-  #actions { left:12px; right:12px; bottom:86px; display:none; gap:8px; }
-  #actions button { flex:1; font:inherit; font-weight:900; font-size:13px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:12px 6px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  #actions { left:10px; right:10px; bottom:78px; display:none; gap:6px; }
+  #actions button { flex:1; font:inherit; font-weight:900; font-size:11px; color:var(--navy); background:var(--yel); border:0; border-radius:12px; padding:9px 4px; box-shadow:0 6px 16px rgba(0,0,0,.3); }
   #actions button.alt { color:#fff; background:var(--blue); }
   body.city #actions { display:flex; }
   body.city #rule { display:none; }
@@ -148,12 +148,15 @@
   .tag.lot::before { content:""; margin:0; }
   .tag.big { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:14px; padding:6px 12px; }
   .tag.big::before { content:"🏟"; margin-right:6px; }
+  .mrow { display:flex; gap:8px; overflow-x:auto; padding:6px 2px 10px; -webkit-overflow-scrolling:touch; }
+  .mdl { flex:none; width:76px; height:64px; border-radius:12px; border:3px solid transparent; background:#fff center/contain no-repeat; font:inherit; font-weight:900; font-size:12px; color:#0D2557; }
+  .mdl.on { border-color:#FFD23F; box-shadow:0 0 0 2px #0D2557; }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="labels"></div>
-<div id="brand" class="ui pill"><img src="data:image/webp;base64,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" alt=""><span data-t="title"></span></div>
+<div id="brand" class="ui pill"><img src=""data:image/webp;base64,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"" alt=""><span data-t="title"></span></div>
 <div id="count" class="ui pill"><small data-t="fans"></small><b id="n">0</b><i>VIRTUAL</i><div class="homes"><small data-t="pop"></small><b id="nh">0</b></div></div>
 <div id="langs" class="ui"></div>
 <div id="place" class="ui"></div>
@@ -173,7 +176,7 @@
 <div id="sSeat" class="ui pill sheet"><button class="x">×</button><h3 data-t="seatH"></h3><p data-t="seatP"></p>
   <input id="igNick" maxlength="31" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="go" id="seatGo" data-t="seatGo"></button></div>
 <div id="sHome" class="ui pill sheet"><button class="x">×</button><h3 id="homeTitle"></h3><p id="homeInfo"></p>
-  <div id="lvls"></div><div class="row" id="colors"></div>
+  <div id="lvls"></div><div class="mrow" id="models"></div><div class="row" id="colors"></div>
   <button class="go" id="homeGo"></button><button class="go alt2" id="homeUp"></button><button class="go gift" id="homeBonus"></button><button class="go alt3" id="homeVisit" data-t="visit"></button>
   <button class="go alt3" id="homeSeat" data-t="linkIg"></button></div>
 <div id="sJob" class="ui pill sheet"><button class="x">×</button><h3 id="jTitle"></h3><p id="jSub"></p>
@@ -953,12 +956,15 @@ const ICO = new THREE.IcosahedronGeometry(1, 1), SPH = new THREE.SphereGeometry(
 // a house is built from ~100 boxes; merge them into one mesh per material so each house costs a few draw calls
 function mergeGroup(g) {
   const buckets = new Map();
+  const keep = [];
   g.children.forEach(m => {
+    if (!m.isMesh || !m.geometry) { keep.push(m); return; }      // car models etc. stay as they are
     m.updateMatrix(); let geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); geo.applyMatrix4(m.matrix);
     if (!buckets.has(m.material)) buckets.set(m.material, { p: [], n: [] });
     const b = buckets.get(m.material); b.p.push(...geo.attributes.position.array); b.n.push(...geo.attributes.normal.array); geo.dispose();
   });
   const out = new THREE.Group();
+  keep.forEach(o => out.add(o));
   buckets.forEach((b, mat) => { const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(b.p, 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(b.n, 3)); out.add(new THREE.Mesh(geo, mat)); });
   return out;
 }
@@ -1027,8 +1033,10 @@ function buildHome(h) {
     for (const [x, z] of [[-5, 4.6], [5, 4.6], [-5, -5], [5, -5]]) { box(LM.trim, 1.8, .7, 1.2, x, G + .35, z); mesh(SPH, LM.bush, .7, .5, .45, x, G + .9, z); }
     tree(-5, .5, 1.1); tree(5, .5, 1.1);
   }
-  if (h.car && KENNEY[CAR_MODEL[h.car]]) {                  // real car model parked on the lawn
-    const c = fitModel(KENNEY[CAR_MODEL[h.car]].clone(), 2.2, 1.9); c.position.set(3.1, G, 3.9); c.rotation.y = Math.PI / 2; g.add(c);
+  const ckey = h.car && CAR_MODEL[h.car] ? (CAR_MODEL[h.car].includes(":") ? CAR_MODEL[h.car] : "kn:" + CAR_MODEL[h.car]) : null;
+  if (ckey && !MODELS[ckey]) loadModel(ckey).then(m => m && relayoutSoon());
+  if (ckey && MODELS[ckey]) {                               // parked car model
+    const c = fitModel(MODELS[ckey].clone(), 2.2, 1.9); c.position.set(3.1, G, 3.9); c.rotation.y = Math.PI / 2; g.add(c);
   } else if (h.car) {                                       // car parked on the lawn (bought in the market), simple fallback
     const cc = [0, 0xf2f2f2, 0xb8bcc2, 0x2a4f8a, 0x1d1f24][h.car] || 0xf2f2f2, cm = lamC(cc), van = h.car === 1, big = h.car === 3;
     const cx = 3.1, cz = 3.9, bh = van ? 1.7 : big ? 1.3 : 1.05;
@@ -1047,7 +1055,7 @@ function layoutHomes(list) {
   HOMES.forEach(h => {
     let p = h.lot != null ? byId.get(h.lot) : null;
     if (!p) { while (k < plots.length && used.has(plots[k].id)) k++; p = plots[k]; if (!p) return; used.add(p.id); }
-    const o = makeHome(h); o.position.set(p.x, 0, p.z);
+    const o = modelHome(h) || makeHome(h); o.position.set(p.x, 0, p.z);
     if (p.len) {                                          // real lot: align to its footprint, front towards the stadium
       const want = Math.atan2(-p.x, -p.z); let best = p.ry, bd = 9;
       for (let q = 0; q < 4; q++) { const r = p.ry + q * Math.PI / 2, d = Math.abs(Math.atan2(Math.sin(r - want), Math.cos(r - want))); if (d < bd) { bd = d; best = r; } }
@@ -1064,7 +1072,46 @@ layoutHomes(STATE.homes);
 
 const KENNEY = {};
 const HQ_MODEL = { fan: "building-type-a", media: "building-type-f", scouting: "building-type-k", stadium: "building-type-n", academy: "building-type-d" };
-const CAR_MODEL = { 1: "van", 2: "sedan", 3: "suv", 4: "suv-luxury" };          // home car by car id (see server CARS)
+const CAR_MODEL = { 1: "van", 2: "sedan", 3: "suv", 4: "suv-luxury", 5: "hatchback-sports", 6: "sedan-sports", 7: "taxi",
+  8: "ky:car_hatchback", 9: "ky:car_police", 10: "ky:car_sedan", 11: "ky:car_stationwagon", 12: "ky:car_taxi" };   // home car by car id (see server CARS)
+const KN_L = "abcdefghijklmnopqrstu", KY_L = "ABCDEFGH";
+const HOUSE_MODEL = i => i >= 1 && i <= 21 ? "kn:building-type-" + KN_L[i - 1] : i >= 22 && i <= 29 ? "ky:building_" + KY_L[i - 22] : null;   // style 1..29
+const HOUSE_THUMB = i => i <= 21 ? "models/thumbs/kn_" + KN_L[i - 1] + ".png" : "models/thumbs/kk_" + KY_L[i - 22] + ".png";
+const CAR_THUMB = id => { const m = CAR_MODEL[id]; return m ? "models/thumbs/car_" + (m.startsWith("ky:") ? "kk_" + m.slice(7) : m) + ".png" : ""; };
+// lazy model cache: "kn:name" (Kenney .glb) or "ky:name" (KayKit .gltf); MODELS[key] is set once loaded
+const MODELS = {}, MODEL_P = {};
+function loadModel(key) {
+  if (!MODEL_P[key]) MODEL_P[key] = new Promise(r => {
+    if (!THREE.GLTFLoader) return r(null);
+    const [src, n] = key.includes(":") ? key.split(":") : ["kn", key];
+    const url = src === "ky" ? "models/kaykit/" + n + ".gltf" : KENNEY_PATH(n);
+    new THREE.GLTFLoader().load(url, g => { MODELS[key] = g.scene; r(g.scene); }, undefined, () => r(null));
+  });
+  return MODEL_P[key];
+}
+let relayoutT = null;
+const relayoutSoon = () => { clearTimeout(relayoutT); relayoutT = setTimeout(() => { if (HOMES) layoutHomes(HOMES); }, 120); };
+// Kenney roofs are green in their colour sheet: swap that green for the owner's colour (shading kept)
+const ROOF_TEX = {};
+function roofTex(orig, ci) {
+  if (ROOF_TEX[ci]) return ROOF_TEX[ci];
+  const img = orig.image, c = document.createElement("canvas"); c.width = img.width; c.height = img.height; const x = c.getContext("2d"); x.drawImage(img, 0, 0);
+  const d = x.getImageData(0, 0, c.width, c.height), px = d.data, hex = COLORS[ci] || COLORS[0], tr = hex >> 16 & 255, tg = hex >> 8 & 255, tb = hex & 255;
+  for (let i = 0; i < px.length; i += 4) { const r = px[i], g = px[i + 1], b = px[i + 2];
+    if (g > r + 25 && g > b + 25) { const l = Math.min(1.25, (r + g + b) / 3 / 150); px[i] = Math.min(255, tr * l); px[i + 1] = Math.min(255, tg * l); px[i + 2] = Math.min(255, tb * l); } }
+  x.putImageData(d, 0, 0); const t = new THREE.CanvasTexture(c); t.flipY = orig.flipY; t.encoding = orig.encoding; return ROOF_TEX[ci] = t;
+}
+function modelHome(h) {                                    // picked model (style 1..29); null -> built-in house
+  const key = HOUSE_MODEL(h.style || 0); if (!key) return null;
+  const src = MODELS[key]; if (!src) { loadModel(key).then(m => m && relayoutSoon()); return null; }
+  const obj = src.clone(true);
+  if (key.startsWith("kn:")) obj.traverse(m => { if (m.isMesh && m.material && m.material.map) { m.material = m.material.clone(); m.material.map = roofTex(src.children.length ? m.material.map : m.material.map, h.color); } });
+  const g = new THREE.Group(); g.add(fitModel(obj, 11.5, 40));
+  const ck = h.car && CAR_MODEL[h.car];
+  if (ck) { const cm = MODELS[ck.includes(":") ? ck : "kn:" + ck]; if (cm) { const c = fitModel(cm.clone(), 2.2, 1.9); c.position.set(4.6, 0, 5.2); c.rotation.y = Math.PI / 2; g.add(c); }
+    else loadModel(ck.includes(":") ? ck : "kn:" + ck).then(m => m && relayoutSoon()); }
+  return g;
+}
 const PERSON_MODEL = ["character-male-a", "character-male-b", "character-female-a", "character-female-b", "character-male-c", "character-female-c", "character-male-d", "character-female-d"];
 const KENNEY_PATH = n => (n.startsWith("character-") ? "models/kenney/people/" : TRAFFIC.includes(n) || ["suv-luxury"].includes(n) ? "models/kenney/cars/" : "models/kenney/") + n + ".glb";
 const KENNEY_READY = (async () => {
@@ -1073,7 +1120,8 @@ const KENNEY_READY = (async () => {
   await Promise.all(names.map(n => new Promise(r => ld.load(KENNEY_PATH(n), g => { KENNEY[n] = g.scene; r(); }, undefined, () => r()))));
   if (typeof layoutHomes === "function" && HOMES) layoutHomes(HOMES);      // rebuild homes with the real car models
   swapStreetsToKenney();
-  spawnWalkers();
+  try { spawnWalkers(); } catch (e) { console.error("spawnWalkers failed:", e); }
+  try { await placeProps(); } catch (e) { console.error("placeProps failed:", e); }
 })();
 // street trees and traffic: real models replace the simple shapes (the simple ones are hidden, not deleted)
 function swapStreetsToKenney() {
@@ -1088,6 +1136,23 @@ function swapStreetsToKenney() {
     CAR_BOXES.forEach(m => m.visible = false);
     CAR_CLONES = cars.map((k, i) => { const o = fitModel(KENNEY[TRAFFIC[i % TRAFFIC.length]].clone(), 4.4, 1.5); scene.add(o); return o; });
   }
+}
+// ---------- street props: traffic lights, hydrants, bins, bushes, a water tower (KayKit CC0) ----------
+async function placeProps() {
+  const names = ["trafficlight_A", "trafficlight_C", "firehydrant", "trash_A", "bush", "dumpster", "watertower", "box_A", "bench", "streetlight"];
+  await Promise.all(names.map(n => loadModel("ky:" + n)));
+  const M = n => MODELS["ky:" + n], put = (n, x, z, ry, w, h) => { if (!M(n)) return; const o = fitModel(M(n).clone(), w, h); o.position.set(x, 0, z); o.rotation.y = ry || 0; scene.add(o); };
+  const CL = (x, z) => Math.abs(x) < OUT_A + 52 && Math.abs(z) < OUT_B + 46;
+  const xs = new Set(), zs = new Set();
+  for (const ps of carPaths) { if (ps.length !== 2) continue; const [[x1, z1], [x2, z2]] = ps; if (x1 === x2) xs.add(x1); if (z1 === z2) zs.add(z1); }
+  const XS = [...xs].filter(v => Math.abs(v) < 420), ZS = [...zs].filter(v => Math.abs(v) < 420);
+  let k = 0;
+  for (const x of XS) for (const z of ZS) { if (CL(x, z)) continue;
+    put(k++ % 2 ? "trafficlight_A" : "trafficlight_C", x + 9, z + 9, Math.PI / 4, 1.6, 6);
+    if (rr() < .5) put("firehydrant", x - 9, z + 9, 0, .7, 1); if (rr() < .5) put("trash_A", x + 9, z - 9, 0, .8, 1.1); }
+  for (let i = 0; i < 70; i++) { const x = choose(XS) + (rr() < .5 ? -1 : 1) * 9.5, z = (rr() - .5) * 800; if (!CL(x, z)) put(i % 3 ? "bush" : "bench", x, z, Math.PI / 2, i % 3 ? 2 : 2.4, i % 3 ? 1.6 : 1.2); }
+  for (const [x, z] of [[-520, 470], [560, -500], [480, 520], [-560, -460]]) put("watertower", x, z, 0, 9, 18);
+  for (let i = 0; i < 8; i++) { const z = choose(ZS) + 9.5, x = (rr() - .5) * 700; if (!CL(x, z)) put(i % 2 ? "dumpster" : "box_A", x, z, 0, i % 2 ? 2.6 : 1.2, 1.8); }
 }
 // ---------- people: walkers on the sidewalks + fans circling the stadium in club colours ----------
 const WALKERS = [];
@@ -1199,7 +1264,41 @@ function moveTo(o, x, z, y = 0) {
   const p = last.get(o) || [x, z]; face(o, x - p[0]); last.set(o, [x, z]);
   o.position.set(x, y, z);
 }
+// ---------- accepted players (from applications) train on the pitch; staff stand on the touchline ----------
+const SQUAD = [];
+const POS_SPOT = { GK: [42, 0], DEF: [26, 0], MID: [10, 0], FWD: [-8, 0] };
+function makeSquadPlayer(p, i) {
+  const g = new THREE.Group(), kit = p.kind === "city" ? 0xf0a030 : p.kind === "staff" ? 0x0D2557 : p.position === "GK" ? 0x2e9e4f : 0x1F4FB8, m = c => new THREE.MeshLambertMaterial({ color: c });
+  const add = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); g.add(o); return o; };
+  add(new THREE.CylinderGeometry(.32, .28, .9, 10), m(kit), 0, 1.25, 0);
+  add(new THREE.SphereGeometry(.26, 12, 10), m(0xe0ac80), 0, 1.95, 0);
+  add(new THREE.CylinderGeometry(.3, .3, .3, 10), m(p.kind === "player" ? 0xffffff : 0x0D2557), 0, .7, 0);
+  const lL = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), -.13, .3, 0), lR = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), .13, .3, 0);
+  g.scale.setScalar(1.6); scene.add(g);
+  const W = SQUAD.filter(q => q.p.kind === p.kind).length;
+  const [bx, bz] = p.kind === "city" ? [-(OUT_A + 14) + (W % 8) * 5, OUT_B + 14 + Math.floor(W / 8) * 5] : p.kind === "staff" ? [-30 + W * 6, 33] : POS_SPOT[p.position] || [0, 0];
+  return { g, lL, lR, p, bx, bz: p.kind === "player" ? bz + ((i % 5) - 2) * 7 : bz, ph: i * 1.7 };
+}
+async function loadSquad() {
+  try {
+    const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
+    const list = await r.json(); SQUAD.forEach(s => scene.remove(s.g)); SQUAD.length = 0;
+    list.forEach((p, i) => SQUAD.push(makeSquadPlayer(p, i)));
+  } catch (e) { console.error("loadSquad fetch failed:", e); }
+}
+try { loadSquad(); } catch (e) { console.error("loadSquad init failed:", e); }
+try { setInterval(loadSquad, 60000); } catch (e) { console.error("loadSquad interval failed:", e); }
+function animateSquad(t) {
+  for (const s of SQUAD) {
+    const k = t * .6 + s.ph, run = s.p.kind === "player";
+    const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
+    s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
+    const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
+  }
+}
+function squadLabels(place) { for (const s of SQUAD) place(s.g.position.x, 4.4, s.g.position.z, "tag hero", (s.p.kind === "city" ? "🛠 " : s.p.kind === "staff" ? "🧑‍💼 " : "⚽ ") + s.p.name + (s.p.position ? " · " + s.p.position : s.p.role ? " · " + s.p.role : "")); }
 function animateTeam(t) {
+  animateSquad(t);
   const bek = H("bekzod"), az = H("aziz"), jas = H("jasur"), rus = H("rustam"), goat = H("echki");
   // Bekzod: sprint up and down the right half, small hop while running
   if (bek) { const u = (Math.sin(t * 0.7) + 1) / 2; moveTo(bek, 6 + u * 22, 6 + Math.sin(t * 0.35) * 8, Math.abs(Math.sin(t * 9)) * 0.18); }
@@ -1360,6 +1459,7 @@ function updateLabels(now) {
   const mine = myId && homeObjs.find(o => o.userData.id === myId);
   const hy = o => LEVEL_H[o.userData.level || 1] * o.scale.y + 3;
   if (mine) placeAt(mine.position.x, hy(mine), mine.position.z, "tag me home", mine.userData.nick, true);
+  squadLabels((x, y, z, cls, txt) => placeAt(x, y, z, cls, txt, true));
   if (!near || MODE === "city") {
     for (const l of LOTS) placeAt(l.x, l.park ? 2 : 8, l.z, "tag lot", (l.park ? "" : T[L].soon) + T[L].lots[l.i]);
     for (const o of HQ_OBJS) { const d = o.userData.info; placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", `${d.emoji} ${d.name} · ${d.level ? d.level + "-daraja" : "qurilmoqda"}`, true); }
@@ -1508,10 +1608,12 @@ document.getElementById("seatGo").onclick = async () => {
 };
 
 // my house
-let pick = { color: 2 };
+let pick = { color: 2, style: 0 };
 const colorsEl = document.getElementById("colors"), rolesEl = document.getElementById("roles");
-function mark() { [...colorsEl.children].forEach((b, i) => b.classList.toggle("on", i === pick.color)); }
+function mark() { [...colorsEl.children].forEach((b, i) => b.classList.toggle("on", i === pick.color)); [...document.getElementById("models").children].forEach((b, i) => b.classList.toggle("on", i === pick.style)); }
 function buildPickers() {
+  const mEl = document.getElementById("models"); mEl.innerHTML = "";
+  for (let i = 0; i <= 29; i++) { const b = document.createElement("button"); b.className = "mdl"; if (i) b.style.backgroundImage = `url(${HOUSE_THUMB(i)})`; else b.textContent = "🏠 Asl"; b.onclick = () => { pick.style = i; mark(); }; mEl.appendChild(b); }
   colorsEl.innerHTML = ""; COLORS.forEach((c, i) => { const b = document.createElement("button"); b.className = "sw"; b.style.background = "#" + c.toString(16).padStart(6, "0"); b.onclick = () => { pick.color = i; mark(); }; colorsEl.appendChild(b); });
   rolesEl.innerHTML = ""; T[L].roles.forEach((n, i) => { const b = document.createElement("button"); b.className = "opt"; b.textContent = n; b.dataset.i = i; b.onclick = () => { [...rolesEl.children].forEach(x => x.classList.toggle("on", x === b)); }; rolesEl.appendChild(b); });
   mark(); updateHomeUi();
@@ -1535,12 +1637,12 @@ function updateHomeUi() {
   }
 }
 async function refreshHomes() { const s = await getState(8000); if (s) { STATE = s; layoutHomes(s.homes); } updateHomeUi(); }
-document.getElementById("bHome").onclick = needTg(() => { const m = myHome(); if (m) pick.color = m.color; mark(); updateHomeUi(); open("sHome"); fetchMe(); });
+document.getElementById("bHome").onclick = needTg(() => { const m = myHome(); if (m) { pick.color = m.color; pick.style = m.style || 0; } mark(); updateHomeUi(); open("sHome"); fetchMe(); });
 document.getElementById("homeGo").onclick = async () => {
   const had = !!myHome();
   try {
     const lot = had ? undefined : (SEL_LOT && !BUILT.has(SEL_LOT.id) ? SEL_LOT : plots.find(p => !BUILT.has(p.id)));
-    await post("/api/home", { color: pick.color, lot: lot ? lot.id : undefined });
+    await post("/api/home", { color: pick.color, style: pick.style, lot: lot ? lot.id : undefined });
     if (!had) { try { sessionStorage.setItem("zfk_newhome", "1"); } catch (e) {} location.reload(); return; }   // stadium gets the new seat
     document.getElementById("sHome").style.display = "none";
     await refreshHomes(); const m = myHome(); if (m) { goHome(m); say(T[L].homeOk + " " + m.nick); }
@@ -1700,7 +1802,7 @@ function renderShop() {
   const el = document.getElementById("shopList"); el.innerHTML = "";
   for (const c of ME ? ME.catalog.cars : []) {
     const own = ME.home && ME.home.car === c.id, d = document.createElement("div"); d.className = "card";
-    d.innerHTML = `<div class="ic">${CAR_IC[c.id]}</div><div class="tx"><b>${c.name}</b><small>${fmt(c.price)} 🪙</small></div>`;
+    d.innerHTML = `<div class="ic" style="background:#fff url(${CAR_THUMB(c.id)}) center/contain no-repeat;border-radius:10px">${CAR_THUMB(c.id) ? "" : CAR_IC[c.id] || "🚗"}</div><div class="tx"><b>${c.name}</b><small>${fmt(c.price)} 🪙</small></div>`;
     const b = document.createElement("button"); b.textContent = own ? T[L].owned : T[L].buy; b.disabled = own || !ME.home || ME.coins < c.price;
     b.onclick = async () => { try { const r = await post("/api/buy", { item: "car", id: c.id }); applyMe(r); haptic("ok"); await refreshHomes(); renderShop(); say(T[L].bought(c.name)); const m = myHome(); if (m) { sheets.forEach(s => s.style.display = "none"); goHome(m); } }
       catch (e) { say(e.data && e.data.need ? T[L].poor(fmt(e.data.need - ME.coins)) : e.message === "no home" ? T[L].needHome : T[L].err); } };
@@ -1932,16 +2034,16 @@ function loop(now) {
   }
   controls.update();
   sky.position.copy(camera.position);
-  animateTeam(now / 1000);
-  cityTick(dt); walkersTick(dt, now / 1000);
+  try { animateTeam(now / 1000); } catch (e) { console.error("animateTeam failed:", e); }
+  try { cityTick(dt); walkersTick(dt, now / 1000); } catch (e) { console.error("city/walkers tick failed:", e); }
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
-  DN.tick(now); DN.render();
-  updateLabels(now);
+  try { DN.tick(now); DN.render(); } catch (e) { console.error("DN tick/render failed:", e); }
+  try { updateLabels(now); } catch (e) { console.error("updateLabels failed:", e); }
   requestAnimationFrame(loop);
 }
-DN.init();
+try { DN.init(); } catch (e) { console.error("DN.init failed:", e); }
 requestAnimationFrame(loop);
-if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
+if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, layoutHomes, homes: () => HOMES, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
