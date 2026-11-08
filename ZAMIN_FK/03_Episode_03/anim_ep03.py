@@ -79,10 +79,10 @@ scenes = [
    lab(chip("SHERZOD — JAMOAGA QO‘SHILDI ✅", True), 540, 1260, frac(3, 0.62), enter="stamp", z=26),
  ]},
  # GOAT: brand face + Paxtakor friendly
- {"from": s(4), "to": s(5), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.06], "blur": 8}, "items": [
-   spr("doston", 300, 1010, 300, s(4, 0.0), enter="up", idle="hop", z=3),
-   spr("sherzod", 760, 1010, 300, s(4, 0.1), enter="up", idle="hop", z=3),
-   lab('<div class="chip" style="font-size:28px">⚽ MASHG‘ULOT</div>', 540, 1000, s(4, 0.15), enter="pop", z=4),
+ {"from": s(4), "to": s(5), "bg": {"src": f"{A1}/S05_stadium_wide.png", "zoom": [1.35, 1.15], "focus": [0.82, 0.62, 0.78, 0.6], "blur": 3}, "items": [
+   spr("doston", 790, 1150, 200, s(4, 0.0), enter="pop", idle="hop", z=3),
+   spr("sherzod", 880, 1150, 200, s(4, 0.1), enter="pop", idle="hop", z=3),
+   lab('<div class="chip" style="font-size:24px">⚽ MASHG‘ULOT</div>', 820, 1070, s(4, 0.15), enter="pop", z=4),
    spr("goat_chew", 540, 1800, 1000, s(4, 0.05), enter="up", idle="talk", z=12),
    lab(chip("MEN — BREND YUZI! 🐐", True), 540, 380, s(4, 0.2), enter="stamp", z=25),
    lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">O‘RTOQLIK O‘YINI</small><div style="font-size:90px;font-weight:900;line-height:1.05">PAXTAKOR</div><div style="font-size:36px">🔥 Muxlislar tanladi</div>'),
