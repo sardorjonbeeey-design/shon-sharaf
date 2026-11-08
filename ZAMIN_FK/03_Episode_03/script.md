@@ -15,7 +15,7 @@
 ## 2. OQIBAT (12–22 s) — yangilanish
 - **Kadr:** stadion ta’miri, yangi LED ekran, Doston darvoza oldida.
 - **Subtitr:** `Stadion ta’mirlandi · LED ekran ishlamoqda`
-- **Ovoz:** “Klub fondi: 20 085 000 so‘m. Virtual, lekin har bir layk bilan o‘sadi.”
+- **Ovoz:** “Klub fondi: 21 690 000 so‘m. Virtual, lekin har bir layk bilan o‘sadi.”
 
 ## 3. SHAHAR CTA (22–34 s) — yangi imkoniyat
 - **Kadr:** shahar 3D ko‘rinishi, telefon ekranida “⚽ Klub” tugmasi.
@@ -36,7 +36,7 @@
 ## Post matni (caption)
 ```
 3-kun. Doston jamoada! ⚽ Ovoz bergan har bir muxlisga rahmat.
-Klub fondi: 20 085 000 so‘m (virtual). Shahar ochildi — @zaminfk_bot ga kiring 👇
+Klub fondi: 21 690 000 so‘m (virtual). Shahar ochildi — @zaminfk_bot ga kiring 👇
 Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik? Izohga klub nomini yozing.
 G‘olib 10 soatdan keyin e’lon qilinadi. Klub jamoasiga qo‘shiling yoki shaharda ish toping: @zaminfk_bot (Fond va muxlislar — virtual o‘yin mexanikasi.)
 ```

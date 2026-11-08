@@ -19,7 +19,7 @@ def dur(p):
 LINES = [
  ("01_hook", [("SIZ TANLADINGIZ: DOSTON!", [1, 2])]),
  ("02_result", [("Sherzod emas — DOSTON. Rahmat, har bir ovoz uchun.", [2, 3])]),
- ("03_update", [("Klub fondi: 20 085 000 so‘m (virtual)", [3, 4])]),
+ ("03_update", [("Klub fondi: 21 690 000 so‘m (virtual)", [3, 4])]),
  ("04_cta", [("@zaminfk_bot — jamoaga qo‘shiling yoki shaharda ish toping", [0, 3, 4])]),
  ("05_question", [("Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik?", [3, 4])]),
  ("06_outro", [("Ertaga echkiga nima bo‘ldi? Klub nomini yozing!", [4, 5, 6])]),
@@ -49,7 +49,7 @@ roll = lambda t0, v0, v1, n=16, dt=0.06: [[t0 + i * dt, round(v0 + (v1 - v0) * (
 story = lambda rot=0: f'<img src="{E2}/ZFK_EP02_story_defender_vote.png" style="width:860px;border-radius:30px;border:6px solid #FFD23F;box-shadow:0 14px 30px rgba(0,0,0,.5);transform:rotate({rot}deg)">'
 crest = f'<img src="{CREST}" style="height:110px">'
 
-FUND_OLD, FUND_NEW, FOLLOW = 17_415_000, 20_085_000, 127
+FUND_OLD, FUND_NEW, FOLLOW = 20_085_000, 21_690_000, 142
 card_g = lambda body, w=900: (f'<div style="width:{w}px;padding:30px 34px;box-sizing:border-box;border-radius:34px;background:rgba(13,37,87,.94);'
                              f'border:6px solid #fff;color:#fff;text-align:center;box-shadow:0 14px 34px rgba(0,0,0,.5)">{body}</div>')
 
@@ -73,7 +73,7 @@ scenes = [
    lab('<div class="badge"><small>MUXLISLAR</small><b>0</b><i>VIRTUAL</i></div>', 290, 430, s(3, 0.1), counter=roll(s(3, 0.2), 0, FOLLOW)),
    lab('<div class="card"><small>VIRTUAL KLUB FONDI</small><b>0</b><span>so‘m</span></div>', 540, 860, frac(3, 0.25), enter="up",
        counter=roll(frac(3, 0.3), FUND_OLD, FUND_NEW, 20)),
-   lab(chip("+178 × 15 000 so‘m", True), 540, 1080, frac(3, 0.7), enter="stamp", idle="pulse"),
+   lab(chip("+107 × 15 000 = 1 605 000 so‘m", True), 540, 1080, frac(3, 0.7), enter="stamp", idle="pulse"),
    spr("bekzod_celebrate", 800, 1750, 680, frac(3, 0.1), enter="up", idle="hop", z=9),
  ]},
  # CTA: three choices slide in, shahar ochildi
