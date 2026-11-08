@@ -1203,7 +1203,7 @@ document.getElementById("homeGo").onclick = async () => {
 document.getElementById("homeUp").onclick = async () => {
   try {
     const d = await post("/api/home/upgrade", {});
-    await refreshHomes(); const m = myHome();
+    await refreshHomes(); const m = myHome(); document.getElementById("sHome").style.display = "none";
     if (m) { if (MODE !== "city") setMode("city", false); goHome(m); say(T[L].upOk(T[L].lv[d.level])); }
   } catch (e) { await refreshHomes(); say(T[L].err); }
 };
