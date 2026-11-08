@@ -1030,7 +1030,7 @@ function buildHome(h) {
     for (const [x, z] of [[-5, 4.6], [5, 4.6], [-5, -5], [5, -5]]) { box(LM.trim, 1.8, .7, 1.2, x, G + .35, z); mesh(SPH, LM.bush, .7, .5, .45, x, G + .9, z); }
     tree(-5, .5, 1.1); tree(5, .5, 1.1);
   }
-  if (h.car && KENNEY[CAR_MODEL[h.car]]) {                  // real car model parked on the lawn
+  if (false && h.car && KENNEY[CAR_MODEL[h.car]]) {         // user asked for the previous (built-in) car shapes
     const c = fitModel(KENNEY[CAR_MODEL[h.car]].clone(), 2.2, 1.9); c.position.set(3.1, G, 3.9); c.rotation.y = Math.PI / 2; g.add(c);
   } else if (h.car) {                                       // car parked on the lawn (bought in the market), simple fallback
     const cc = [0, 0xf2f2f2, 0xb8bcc2, 0x2a4f8a, 0x1d1f24][h.car] || 0xf2f2f2, cm = lamC(cc), van = h.car === 1, big = h.car === 3;
