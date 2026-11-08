@@ -23,7 +23,13 @@ Repo: sardorjonbeeey-design/shon-sharaf, branch `claude/new-session-aniok6`. Eve
 - `/add` skill: `.claude/skills/add/`.
 - Make.com: scenario 8437226 replies to every Instagram comment (filter skips its own replies). Next: add commenters to the stadium automatically — needs a GitHub connection inside Make.
 
+## One project: stadium + city (single page)
+- Source: `web/stadium/template.html` -> `build.py` -> `dist/index.html`. Same page everywhere.
+- zaminfk.onrender.com (static, Instagram link) opens on the stadium; Telegram Mini App (zaminfk-city service, `web/city/server.js` serves the same dist page) opens on the city. `?view=city|stadium` overrides.
+- City backend on Postgres/Neon (`DATABASE_URL`): tables `homes`, `seats` (Telegram seat claims, optional IG nick), `applications` (work in the city). Env: `BOT_TOKEN`, `MINIAPP_URL` (t.me link shown to web visitors).
+
 ## Open items
+- Set `MINIAPP_URL` on zaminfk-city so Instagram visitors get the "Open city" button.
 - Post Day 2 video + story; collect Day 2 vote at cutoff.
 - Confirm real vs fictional fund name.
 - Make → GitHub auto-add (user must connect GitHub in Make).

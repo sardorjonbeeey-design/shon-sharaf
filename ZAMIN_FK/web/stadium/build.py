@@ -47,10 +47,12 @@ screen = [
     {"title": "STADION TA’MIRLANDI", "big": "20 000 000 so‘m", "small": "Qoratepa sport jamg‘armasi"},
     {"title": "MUXLISLAR", "big": f"{len(fans)} ta", "small": "1 obunachi = 1 o‘rindiq"},
 ]
+# City backend (Telegram Mini App + Neon). The page reads live seats/homes from it.
+API_ORIGIN = os.environ.get("ZFK_API", "https://zaminfk-city.onrender.com")
 crest = data_uri(os.path.join(Z, "03_Approved_Assets", "ZFK_CREST_MASTER_V01_P_2048.png"), 96)
 html = open(os.path.join(HERE, "template.html")).read()
 html = (html.replace("__FANS__", json.dumps(fans, ensure_ascii=False)).replace("__HEROES__", json.dumps(heroes, ensure_ascii=False))
-        .replace("__DEMO__", "true" if demo else "false").replace("__VIP__", json.dumps(vip)).replace("__SCREEN__", json.dumps(screen, ensure_ascii=False)).replace("__CREST__", crest))
+        .replace("__DEMO__", "true" if demo else "false").replace("__VIP__", json.dumps(vip)).replace("__SCREEN__", json.dumps(screen, ensure_ascii=False)).replace("__CREST__", crest).replace("__API__", json.dumps(API_ORIGIN)))
 os.makedirs(os.path.join(HERE, "dist"), exist_ok=True)
 out = os.path.join(HERE, "dist", "index.html")
 open(out, "w").write(html)
