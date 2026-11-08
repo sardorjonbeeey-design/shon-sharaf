@@ -45,6 +45,8 @@
   #panel .x { position:absolute; right:12px; top:6px; font-size:22px; background:none; border:0; color:#fff; }
   #plist button { display:block; width:100%; text-align:left; font:inherit; font-weight:700; font-size:16px; color:#fff; background:rgba(255,255,255,.08); border:0; border-radius:12px; padding:11px 12px; margin:6px 0; }
   #demo { bottom:150px; left:14px; font-size:11px; color:#9DB8FF; font-weight:700; }
+  #place { top:112px; left:14px; font-size:11px; font-weight:700; color:#cfdcff; background:rgba(13,37,87,.7); border-radius:10px; padding:4px 8px; display:none; }
+  body.city #place.on { display:block; }
   /* city */
   #actions { left:12px; right:12px; bottom:86px; display:none; gap:8px; }
   #actions button { flex:1; font:inherit; font-weight:900; font-size:14px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:12px 6px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
@@ -80,6 +82,7 @@
 <div id="brand" class="ui pill"><img src="__CREST__" alt=""><span data-t="title"></span></div>
 <div id="count" class="ui pill"><small data-t="fans"></small><b id="n">0</b><i>VIRTUAL</i><div class="homes"><small data-t="pop"></small><b id="nh">0</b></div></div>
 <div id="langs" class="ui"></div>
+<div id="place" class="ui"></div>
 <div id="side" class="ui"><button id="list">👥</button><button id="view">🏙</button><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button></div>
 <button id="cta" class="ui" data-t="cta"></button>
 <div id="actions" class="ui"><button id="bSeat" data-t="bSeat"></button><button id="bHome" data-t="bHome"></button><button id="bJob" class="alt" data-t="bJob"></button></div>
@@ -148,7 +151,14 @@ async function getState(ms) {
   catch (e) { return null; } finally { clearTimeout(t); }
 }
 const norm = s => String(s || "").trim().toLowerCase().replace(/^@/, "");
-let STATE = await getState(MODE === "city" ? 8000 : 2500) || { seats: [], homes: [], miniapp: "" };
+// real town from OpenStreetMap; ?map=0 (or a missing file) falls back to the generated town
+const MAP_FILE = __MAP__;
+async function getMap() {
+  if (!MAP_FILE || new URLSearchParams(location.search).get("map") === "0") return null;
+  try { const r = await fetch(MAP_FILE); return r.ok ? await r.json() : null; } catch (e) { return null; }
+}
+const [STATE0, MAP] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap()]);
+let STATE = STATE0 || { seats: [], homes: [], miniapp: "" };
 const FAN_META = new Map();       // nick -> { tg: telegram username or null }
 const FANS = IG_FANS.slice();
 {
@@ -253,8 +263,9 @@ const sun = new THREE.DirectionalLight(0xffe2b8, 0.9); sun.position.set(-80, 120
   const pitch = new THREE.Mesh(new THREE.PlaneGeometry(PW + 4, PH + 4), new THREE.MeshLambertMaterial({ map: tex }));
   pitch.rotation.x = -Math.PI / 2; scene.add(pitch);
   const gc = document.createElement("canvas"); gc.width = gc.height = 256; const gx = gc.getContext("2d");   // grass with soil patches
-  gx.fillStyle = "#4f7a38"; gx.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 2200; i++) { gx.fillStyle = ["#5a8640", "#46703a", "#62893f", "#6d7d42", "#557f3c"][i % 5]; gx.fillRect(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 5, 2 + Math.random() * 5); }
+  const dusty = !!MAP;                                     // real town: dusty yards with patches of grass
+  gx.fillStyle = dusty ? "#b9ab8a" : "#4f7a38"; gx.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2200; i++) { gx.fillStyle = (dusty ? ["#a99a78", "#c4b796", "#8f9a5e", "#7d8f52", "#b2a27f"] : ["#5a8640", "#46703a", "#62893f", "#6d7d42", "#557f3c"])[i % 5]; gx.fillRect(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 5, 2 + Math.random() * 5); }
   const gt = new THREE.CanvasTexture(gc); gt.wrapS = gt.wrapT = THREE.RepeatWrapping; gt.repeat.set(160, 160);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshLambertMaterial({ map: gt }));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; scene.add(ground);
@@ -403,7 +414,8 @@ const lamC = c => new THREE.MeshLambertMaterial({ color: c });
 const OUT_R = seats[seats.length - 1].ring + 1;
 const OUT_A = PW / 2 + 9 + OUT_R * ROW_D, OUT_B = PH / 2 + 9 + OUT_R * ROW_D;   // stadium footprint half-sizes
 const CX = Math.max(PW / 2 + 110, OUT_A + 70), CZ = Math.max(PH / 2 + 110, OUT_B + 70); // complex half-sizes
-const LOTS = [];
+let LOTS = [], plots = [], WORLD = 560, PLAZA = null, hideBuiltLand = () => {};
+const carPaths = [];                                    // polylines cars drive along
 const CBOX = new THREE.BoxGeometry(1, 1, 1);
 // instancing helpers
 const iM = new THREE.Matrix4(), iQ = new THREE.Quaternion(), iP = new THREE.Vector3(), iS = new THREE.Vector3(), iY = new THREE.Vector3(0, 1, 0), iC = new THREE.Color();
@@ -415,6 +427,143 @@ function instanced(geo, mat, items, colors) {           // items: [x,y,z,sx,sy,s
 }
 const rr = (() => { let s = 20241107; return () => ((s = Math.imul(s ^ (s >>> 15), 2246822519) + 0x6d2b79f5 | 0) >>> 0) / 4294967296; })();
 const choose = a => a[Math.floor(rr() * a.length)];
+const PRISM = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.5, 0); sh.lineTo(0.5, 0); sh.lineTo(0, 1); sh.lineTo(-0.5, 0);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); g.translate(0, 0, -0.5); return g; })();
+// ---------- REAL TOWN from OpenStreetMap (web/stadium/map/*.json, built by tools/map/osm_to_map.py) ----------
+let MAP_LABELS = [];
+function buildRealTown(map) {
+  const CLR = (x, z) => Math.abs(x) < OUT_A + 10 && Math.abs(z) < OUT_B + 10;   // ground kept clear for our stadium
+  const pts = f => { const o = []; for (let i = 0; i < f.length; i += 2) o.push([f[i], f[i + 1]]); return o; };
+  // order a triangle so its front face looks up (+y); with DoubleSide a down-facing triangle is lit as the underside (black)
+  const up = (v, [a, b, c]) => ((v[b].x - v[a].x) * (v[c].y - v[a].y) - (v[b].y - v[a].y) * (v[c].x - v[a].x)) < 0 ? [a, b, c] : [a, c, b];
+  const merged = (pos, nrm, col) => { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute("normal", new THREE.Float32BufferAttribute(nrm, 3)); if (col) g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3)); return g; };
+  // flat polygons (parks, water, cemeteries...) -> one mesh per colour
+  function flat(polys, y, color) {
+    const pos = [], nrm = [];
+    for (const ring of polys) {
+      const v = ring.map(([x, z]) => new THREE.Vector2(x, z)); if (v.length < 3) continue;
+      for (const t of THREE.ShapeUtils.triangulateShape(v, [])) for (const k of up(v, t)) { pos.push(v[k].x, y, v[k].y); nrm.push(0, 1, 0); }
+    }
+    if (pos.length) { const m = new THREE.Mesh(merged(pos, nrm), new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide })); scene.add(m); }
+  }
+  // road / canal ribbons with filled joints
+  function strips(lines, y, color) {
+    const pos = [], nrm = [];
+    const quad = (a, b, c, d) => { for (const p of [a, b, c, a, c, d]) { pos.push(p[0], y, p[1]); nrm.push(0, 1, 0); } };
+    for (const [w, ps] of lines) {
+      const h = w / 2;
+      for (let i = 0; i < ps.length - 1; i++) {
+        const [x1, z1] = ps[i], [x2, z2] = ps[i + 1], dx = x2 - x1, dz = z2 - z1, L = Math.hypot(dx, dz) || 1, nx = -dz / L * h, nz = dx / L * h;
+        quad([x1 + nx, z1 + nz], [x2 + nx, z2 + nz], [x2 - nx, z2 - nz], [x1 - nx, z1 - nz]);
+      }
+      for (const [x, z] of ps) for (let k = 0; k < 8; k++) {             // round joints
+        const a1 = k / 8 * Math.PI * 2, a2 = (k + 1) / 8 * Math.PI * 2;
+        for (const p of [[x, z], [x + Math.cos(a2) * h, z + Math.sin(a2) * h], [x + Math.cos(a1) * h, z + Math.sin(a1) * h]]) { pos.push(p[0], y, p[1]); nrm.push(0, 1, 0); }
+      }
+    }
+    if (pos.length) scene.add(new THREE.Mesh(merged(pos, nrm), new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide })));
+  }
+  // stadium grounds: real stadium plot + our bowl apron
+  flat([map.stadium.map(([x, z]) => [x, z])], -.04, 0x6f6a60);
+  { const pad = new THREE.Mesh(new THREE.PlaneGeometry((OUT_A + 10) * 2, (OUT_B + 10) * 2), lamC(0x4a4d52)); pad.rotation.x = -Math.PI / 2; pad.position.y = -.035; scene.add(pad); }
+  const AREA = { park: 0x5b9442, garden: 0x6aa04c, grass: 0x6aa04c, pitch: 0x3f8f3f, sports_centre: 0x8fa0a8, cemetery: 0x8c9a6b, farmland: 0xb8a965, orchard: 0x6f9a42, industrial: 0x9a948a, water: 0x5d8ea3 };
+  const byKind = {};
+  for (const [k, f] of map.areas) (byKind[k] = byKind[k] || []).push(pts(f));
+  for (const k in byKind) flat(byKind[k], k === "water" ? -.03 : -.042, AREA[k] || 0x6aa04c);
+  // roads by class: 1 primary … 6 footway
+  const RW = { 1: 14, 2: 12, 3: 10, 4: 7, 5: 5, 6: 3 }, walks = [], asph = [], peds = [], roadsXY = [];
+  for (const [c, f] of map.roads) {
+    const ps = pts(f).filter(([x, z]) => !CLR(x, z)); if (ps.length < 2) continue;
+    roadsXY.push([c, ps]);
+    if (c === 6) peds.push([RW[c], ps]); else asph.push([RW[c], ps]);
+    if (c <= 3) walks.push([RW[c] + 6, ps]);
+  }
+  strips(walks, -.034, 0xbdb5a6); strips(asph, -.03, 0x3b3e43); strips(peds, -.032, 0xcfc6b4);
+  strips(map.water.map(([w, f]) => [w, pts(f)]), -.028, 0x5d8ea3);
+  // main streets: centre dashes, poplar rows, street lights
+  { const dash = [], pop = [], trunk = [], pole = [], head = [];
+    for (const [c, ps] of roadsXY) {
+      if (c > 3) continue;
+      for (let i = 0; i < ps.length - 1; i++) {
+        const [x1, z1] = ps[i], [x2, z2] = ps[i + 1], dx = x2 - x1, dz = z2 - z1, L = Math.hypot(dx, dz); if (L < 1) continue;
+        const ux = dx / L, uz = dz / L, ry = Math.atan2(ux, uz), off = RW[c] / 2 + 3.5;
+        for (let s = 3; s < L - 2; s += 9) {
+          const x = x1 + ux * s, z = z1 + uz * s;
+          dash.push([x, -.02, z, .25, .02, 3, ry]);
+          for (const sd of [-1, 1]) { const px = x - uz * off * sd, pz = z + ux * off * sd; if (CLR(px, pz)) continue;
+            const h = 10 + rr() * 6; pop.push([px, h / 2 + 1.4, pz, 1.7, h, 1.7]); trunk.push([px, 1, pz, .3, 2, .3]); }
+          if ((s | 0) % 36 < 9) { const px = x + uz * (off - 1.5), pz = z - ux * (off - 1.5); pole.push([px, 3.5, pz, .25, 7, .25]); head.push([px, 7, pz, .6, .3, .6]); }
+        }
+      }
+    }
+    instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xe8e8e8 }), dash);
+    instanced(new THREE.ConeGeometry(.5, 1, 7), lamC(0xffffff), pop, pop.map(() => choose([0x3e6b2c, 0x46772f, 0x37602a, 0x52813a])));
+    instanced(new THREE.CylinderGeometry(.5, .5, 1, 5), lamC(0x6b5236), trunk);
+    instanced(CBOX, lamC(0x6f747b), pole); instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xfff1c4 }), head);
+  }
+  // buildings: houses = oriented boxes + tin gable roofs (instanced); everything else = extruded footprints
+  const rect = ring => {                                                  // PCA-oriented rectangle
+    let cx = 0, cz = 0; for (const [x, z] of ring) { cx += x; cz += z; } cx /= ring.length; cz /= ring.length;
+    let a = 0, b = 0, c = 0; for (const [x, z] of ring) { a += (x - cx) ** 2; b += (z - cz) ** 2; c += (x - cx) * (z - cz); }
+    const ang = 0.5 * Math.atan2(2 * c, a - b), ux = Math.cos(ang), uz = Math.sin(ang);
+    let l0 = 1e9, l1 = -1e9, w0 = 1e9, w1 = -1e9;
+    for (const [x, z] of ring) { const l = (x - cx) * ux + (z - cz) * uz, w = -(x - cx) * uz + (z - cz) * ux; l0 = Math.min(l0, l); l1 = Math.max(l1, l); w0 = Math.min(w0, w); w1 = Math.max(w1, w); }
+    const lm = (l0 + l1) / 2, wm = (w0 + w1) / 2;
+    return { x: cx + ux * lm - uz * wm, z: cz + uz * lm + ux * wm, len: l1 - l0, wid: w1 - w0, ang };
+  };
+  const houses = [], other = [];
+  for (const [kind, lv, f] of map.buildings) {
+    const ring = pts(f); if (ring.some(([x, z]) => CLR(x, z))) continue;
+    if (kind === "house" && lv <= 2) houses.push({ ...rect(ring), lv }); else other.push([kind, lv, ring]);
+  }
+  const WALL = [0xe9dfc9, 0xdccdb0, 0xf2ece0, 0xd8c3a0, 0xe6d6bf, 0xcfc2a8], TIN = [0x6f8f6a, 0xa04a3a, 0x5a6f8f, 0x8d9096, 0xb5643c, 0x3f6f8f];
+  const hw = [], hr = [], hwc = [], hrc = [];
+  for (const h of houses) {
+    const ry = Math.PI / 2 - h.ang, H = h.lv === 2 || rr() < .14 ? 6.2 : 3.3, rh = Math.min(h.wid * .32, 2.4);
+    h.ry = ry; h.H = H;
+    hw.push([h.x, H / 2, h.z, h.wid, H, h.len, ry]); hwc.push(choose(WALL));
+    hr.push([h.x, H, h.z, h.wid + .9, rh, h.len + .9, ry]); hrc.push(choose(TIN));
+  }
+  const houseWalls = instanced(CBOX, lamC(0xffffff), hw, hwc), houseRoofs = instanced(PRISM, lamC(0xffffff), hr, hrc);
+  { const pos = [], nrm = [], col = [], domes = [];
+    const KC = { flat: 0xd6d0c2, school: 0xe8cfa6, mosque: 0xeee6d2, public: 0xd8d2c4, house: 0xdccdb0 }, cc = new THREE.Color();
+    for (const [kind, lv, ring] of other) {
+      const H = lv ? lv * 3.1 : kind === "flat" ? 12.4 : kind === "school" ? 9.3 : kind === "mosque" ? 8 : kind === "house" ? 4 : 6.5;
+      cc.set(KC[kind] || 0xd8d2c4).offsetHSL(0, 0, (rr() - .5) * .06);
+      let mx = 0, mz = 0; ring.forEach(([x, z]) => { mx += x; mz += z; }); mx /= ring.length; mz /= ring.length;
+      const push = (x, y, z, nx, nz, ny = 0) => { pos.push(x, y, z); nrm.push(nx, ny, nz); col.push(cc.r, cc.g, cc.b); };
+      for (let i = 0; i < ring.length; i++) {
+        const [x1, z1] = ring[i], [x2, z2] = ring[(i + 1) % ring.length]; let nx = z2 - z1, nz = -(x2 - x1); const L = Math.hypot(nx, nz) || 1; nx /= L; nz /= L;
+        if (nx * ((x1 + x2) / 2 - mx) + nz * ((z1 + z2) / 2 - mz) < 0) { nx = -nx; nz = -nz; }
+        push(x1, 0, z1, nx, nz); push(x2, 0, z2, nx, nz); push(x2, H, z2, nx, nz); push(x1, 0, z1, nx, nz); push(x2, H, z2, nx, nz); push(x1, H, z1, nx, nz);
+      }
+      const v = ring.map(([x, z]) => new THREE.Vector2(x, z));
+      cc.offsetHSL(0, 0, -.08);
+      for (const t of THREE.ShapeUtils.triangulateShape(v, [])) for (const k of up(v, t)) push(v[k].x, H, v[k].y, 0, 0, 1);
+      if (kind === "mosque") domes.push([mx, H, mz]);
+    }
+    if (pos.length) { const bm = new THREE.Mesh(merged(pos, nrm, col), new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); bm.name = "otherBuildings"; scene.add(bm); }
+    instanced(new THREE.SphereGeometry(.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), lamC(0x2f7fc1), domes.map(([x, y, z]) => [x, y, z, 9, 7, 9]));
+  }
+  // fans move into real houses: nearest to the stadium first
+  plots = houses.map(h => ({ ...h, d: Math.hypot(h.x, h.z) })).sort((a, b) => a.d - b.d);
+  const hidden = [], HID = new THREE.Matrix4().makeScale(0, 0, 0);
+  hideBuiltLand = n => {
+    hidden.splice(0).forEach(h => { const i = houses.indexOf(h);
+      iQ.setFromAxisAngle(iY, h.ry); iM.compose(iP.set(h.x, h.H / 2, h.z), iQ, iS.set(h.wid, h.H, h.len)); houseWalls.setMatrixAt(i, iM);
+      iM.compose(iP.set(h.x, h.H, h.z), iQ, iS.set(h.wid + .9, Math.min(h.wid * .32, 2.4), h.len + .9)); houseRoofs.setMatrixAt(i, iM); });
+    plots.slice(0, n).forEach(p => { const i = houses.findIndex(h => h.x === p.x && h.z === p.z); if (i < 0) return; houseWalls.setMatrixAt(i, HID); houseRoofs.setMatrixAt(i, HID); hidden.push(houses[i]); });
+    houseWalls.instanceMatrix.needsUpdate = houseRoofs.instanceMatrix.needsUpdate = true;
+  };
+  // traffic on real streets, labels from real names
+  for (const [c, ps] of roadsXY) if (c <= 4 && ps.length > 1) carPaths.push(ps);
+  MAP_LABELS = map.labels.filter(l => !CLR(l[1], l[2]));
+  let ext = 0; for (const [, f] of map.roads) for (let i = 0; i < f.length; i++) ext = Math.max(ext, Math.abs(f[i]));
+  WORLD = Math.min(1400, ext);
+}
+
+if (MAP) buildRealTown(MAP); else {                      // fallback: generated Qoratepa town
 
 { // stadium complex: asphalt, reserved lots, parking
   const pad = new THREE.Mesh(new THREE.PlaneGeometry(CX * 2, CZ * 2), lamC(0x4a4d52)); pad.rotation.x = -Math.PI / 2; pad.position.y = -0.035; scene.add(pad);
@@ -440,8 +589,8 @@ const choose = a => a[Math.floor(rr() * a.length)];
 }
 
 // ---------- plots: mahalla blocks between streets; nearest to the stadium are built first ----------
-const CELL = 14, GRID = 40, WORLD = CELL * GRID, plots = [];
-const PLAZA = { x: 0, z: -(CZ + 66), r: 54 };            // choyxona square north of the stadium
+const CELL = 14, GRID = 40; WORLD = CELL * GRID;
+PLAZA = { x: 0, z: -(CZ + 66), r: 54 };            // choyxona square north of the stadium
 for (let gx = -GRID; gx <= GRID; gx++) for (let gz = -GRID; gz <= GRID; gz++) {
   if (gx % 5 === 0 || gz % 5 === 0) continue;
   const x = gx * CELL, z = gz * CELL;
@@ -514,7 +663,7 @@ let orchardTrunk, orchardCrown, fieldMesh, nearCount = 0;
   for (let i = far.length - 1; i >= 0; i--) { const p = far[i]; fields.push([p.x, -.04, p.z, 13.2, .02, 13.2]); fc.push(choose([0xc9b25a, 0x7fa24a, 0x8a6a48, 0x5f9a3c, 0xa3b45a, 0x6e8f3e])); }
   fieldMesh = instanced(CBOX, lamC(0xffffff), fields, fc);
 }
-function hideBuiltLand(n) {
+hideBuiltLand = function (n) {
   const nb = Math.min(n, nearCount), fb = Math.max(0, n - nearCount);
   orchardCrown.count = orchardTrunk.count = (nearCount - nb) * 3;
   fieldMesh.count = Math.max(0, plots.length - nearCount - fb);
@@ -566,6 +715,10 @@ function hideBuiltLand(n) {
   }
 }
 
+for (let g = -GRID; g <= GRID; g += 5) { const c = g * CELL;
+  if (Math.abs(c) >= CZ) carPaths.push([[-WORLD, c], [WORLD, c]]); if (Math.abs(c) >= CX) carPaths.push([[c, -WORLD], [c, WORLD]]); }
+}  // end generated town
+
 // ---------- Qoratepa mountains on the horizon (not fogged, so they read as distant haze) ----------
 {
   const mt = [], sn = [], mc = [];
@@ -580,16 +733,15 @@ function hideBuiltLand(n) {
   instanced(new THREE.ConeGeometry(.5, 1, 6), new THREE.MeshLambertMaterial({ color: 0xf2f4f8, fog: false }), sn);
 }
 
-// ---------- traffic: cars drive the outer streets ----------
+// ---------- traffic: cars drive along street polylines, turning back at the ends ----------
 const cars = [];
 let carBody, carTop;
 {
-  const lines = [];
-  for (let g = -GRID; g <= GRID; g += 5) { const c = g * CELL; if (Math.abs(c) >= CZ) lines.push([c, 0]); if (Math.abs(c) >= CX) lines.push([c, 1]); }
-  const N = 140, col = [];
-  for (let i = 0; i < N; i++) {
-    const [c, v] = choose(lines), dir = rr() < .5 ? 1 : -1;
-    cars.push({ c, v, dir, a: (rr() * 2 - 1) * WORLD, sp: 9 + rr() * 9 });
+  const paths = carPaths.map(ps => { const cum = [0]; for (let i = 1; i < ps.length; i++) cum.push(cum[i - 1] + Math.hypot(ps[i][0] - ps[i - 1][0], ps[i][1] - ps[i - 1][1])); return { ps, cum, L: cum[cum.length - 1] }; }).filter(p => p.L > 60);
+  const total = paths.reduce((s, p) => s + p.L, 0), N = Math.min(220, Math.max(60, Math.round(total / 120))), col = [];
+  for (let i = 0; i < N && paths.length; i++) {
+    let r = rr() * total, p = paths[0]; for (const q of paths) { if (r < q.L) { p = q; break; } r -= q.L; }
+    cars.push({ p, s: rr() * p.L, dir: rr() < .5 ? 1 : -1, sp: 8 + rr() * 8 });
     col.push(rr() < .62 ? 0xf2f2f2 : choose([0xb8bcc2, 0x1d1f24, 0x8a1c1c, 0x2a4f8a, 0x3c6b3a]));
   }
   carBody = instanced(CBOX, lamC(0xffffff), cars.map(() => [0, -50, 0, 1, 1, 1]), col);
@@ -597,13 +749,17 @@ let carBody, carTop;
 }
 function cityTick(dt) {
   cars.forEach((k, i) => {
-    k.a += k.dir * k.sp * dt; if (k.a > WORLD) k.a = -WORLD; if (k.a < -WORLD) k.a = WORLD;
-    const off = k.dir * 1.7, x = k.v ? k.c + off : k.a, z = k.v ? k.a : k.c - off, ry = k.v ? 0 : Math.PI / 2;
-    iQ.setFromAxisAngle(iY, ry);
+    const p = k.p; k.s += k.dir * k.sp * dt;
+    if (k.s > p.L) { k.s = p.L; k.dir = -1; } if (k.s < 0) { k.s = 0; k.dir = 1; }
+    let j = 1; while (j < p.cum.length - 1 && p.cum[j] < k.s) j++;
+    const [x1, z1] = p.ps[j - 1], [x2, z2] = p.ps[j], seg = p.cum[j] - p.cum[j - 1] || 1, t = (k.s - p.cum[j - 1]) / seg;
+    const ux = (x2 - x1) / seg, uz = (z2 - z1) / seg, off = 1.7 * k.dir;
+    const x = x1 + (x2 - x1) * t - uz * off, z = z1 + (z2 - z1) * t + ux * off;
+    iQ.setFromAxisAngle(iY, Math.atan2(ux, uz));
     iM.compose(iP.set(x, .75, z), iQ, iS.set(1.9, 1.1, 4.3)); carBody.setMatrixAt(i, iM);
     iM.compose(iP.set(x, 1.6, z), iQ, iS.set(1.7, .75, 2.3)); carTop.setMatrixAt(i, iM);
   });
-  carBody.instanceMatrix.needsUpdate = carTop.instanceMatrix.needsUpdate = true;
+  if (cars.length) carBody.instanceMatrix.needsUpdate = carTop.instanceMatrix.needsUpdate = true;
 }
 
 // ---------- homes (one per Telegram user, built in the Mini App) ----------
@@ -612,7 +768,7 @@ let HOMES = [], homeObjs = [];
 const myId = TG_USER ? String(TG_USER.id) : null;
 const homeGroup = new THREE.Group(); scene.add(homeGroup);
 const BOX = new THREE.BoxGeometry(1, 1, 1);
-const PRISM = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.5, 0); sh.lineTo(0.5, 0); sh.lineTo(0, 1); sh.lineTo(-0.5, 0);
+const PRISM0 = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.5, 0); sh.lineTo(0.5, 0); sh.lineTo(0, 1); sh.lineTo(-0.5, 0);
   const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); g.translate(0, 0, -0.5); return g; })();
 const HALF = new THREE.CylinderGeometry(0.5, 0.5, 1, 12, 1, false, 0, Math.PI); HALF.rotateZ(Math.PI / 2);
 const COL = new THREE.CylinderGeometry(0.5, 0.5, 1, 8);
@@ -653,9 +809,9 @@ function makeHome(h) {
     const big = h.style === 1, W = big ? 10 : 8, D = big ? 8 : 7, H = big ? 6.5 : 4.2;
     add(BOX, HM.grass, W + 4, .3, D + 5, 0, .15, .6); add(BOX, HM.path, 2.4, .32, 2.6, 0, .17, D / 2 + 1.6);
     add(BOX, HM.plinth, W + .2, .7, D + .2, 0, .65, 0); add(BOX, HM.wall, W, H, D, 0, 1 + H / 2, 0);
-    add(PRISM, acc, W + 1.2, 3.4, D + 1.2, 0, 1 + H, 0, 0, Math.PI / 2);
+    add(PRISM0, acc, W + 1.2, 3.4, D + 1.2, 0, 1 + H, 0, 0, Math.PI / 2);
     add(BOX, HM.chimney, .9, 2.2, .9, W * .25, 1 + H + 2.2, -D * .15); add(BOX, HM.cap, 1.1, .3, 1.1, W * .25, 1 + H + 3.4, -D * .15);
-    add(BOX, HM.wall, 2, 1.6, 2, -W * .1, 1 + H + 1.1, D * .25); add(PRISM, acc, 2.6, 1.2, 2.4, -W * .1, 1 + H + 1.9, D * .25);
+    add(BOX, HM.wall, 2, 1.6, 2, -W * .1, 1 + H + 1.1, D * .25); add(PRISM0, acc, 2.6, 1.2, 2.4, -W * .1, 1 + H + 1.9, D * .25);
     add(BOX, HM.glass, .9, .9, .1, -W * .1, 1 + H + 1.1, D * .25 + 1.02);
     add(BOX, HM.door, 1.3, 2.4, .15, 0, 2.2, D / 2 + .05);
     for (const cx of [-1.4, 1.4]) add(BOX, HM.frame, .5, 2.8, .5, cx, 2.4, D / 2 + 1.1);
@@ -682,7 +838,12 @@ function layoutHomes(list) {
   homeObjs.forEach(o => homeGroup.remove(o)); homeObjs = [];
   HOMES.forEach((h, i) => {
     const p = plots[i]; if (!p) return;
-    const o = makeHome(h); o.position.set(p.x, 0, p.z); o.rotation.y = Math.atan2(-p.x, -p.z);   // gate faces the stadium
+    const o = makeHome(h); o.position.set(p.x, 0, p.z);
+    if (p.len) {                                          // real house: align to its footprint, gate side towards the stadium
+      const want = Math.atan2(-p.x, -p.z); let best = p.ry, bd = 9;
+      for (let k = 0; k < 4; k++) { const r = p.ry + k * Math.PI / 2, d = Math.abs(Math.atan2(Math.sin(r - want), Math.cos(r - want))); if (d < bd) { bd = d; best = r; } }
+      o.rotation.y = best; o.scale.setScalar(Math.max(.6, Math.min(1.25, Math.min(p.len, p.wid) / 11)));
+    } else o.rotation.y = Math.atan2(-p.x, -p.z);           // gate faces the stadium
     o.userData = h; h.p = p; homeGroup.add(o); homeObjs.push(o);
   });
   hideBuiltLand(HOMES.length);
@@ -746,7 +907,7 @@ controls.enablePan = true; controls.screenSpacePanning = false; controls.panSpee
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 const VIEWS = {
   stadium: { pos: new THREE.Vector3(95, 75, 105), tgt: new THREE.Vector3(0, 2, 0) },
-  city: { pos: new THREE.Vector3(300, 360, 470), tgt: new THREE.Vector3(0, 0, 0) },
+  city: { pos: new THREE.Vector3(260, 300, 400), tgt: new THREE.Vector3(0, 0, 0) },
 };
 camera.position.copy(VIEWS[MODE].pos); controls.target.copy(VIEWS[MODE].tgt);
 let fly = null;
@@ -810,7 +971,12 @@ function updateLabels(now) {
     cand.sort((a, b) => a[0] - b[0]);
     let shown = 0; const LIM = fans <= 60 ? 60 : 22;
     for (const [, st] of cand) { if (shown >= LIM) break; if (st !== me && place(st, "tag", "@" + st.fan)) shown++; }
-  } else { placeAt(0, OUT_R * ROW_H + 14, 0, "tag big", T[L].stad, true); placeAt(PLAZA.x, 24, PLAZA.z - 30, "tag lot", T[L].plaza, true); }
+  } else {
+    placeAt(0, OUT_R * ROW_H + 14, 0, "tag big", T[L].stad, true);
+    if (PLAZA) placeAt(PLAZA.x, 24, PLAZA.z - 30, "tag lot", T[L].plaza, true);
+    const tg = controls.target, ml = MAP_LABELS.map(l => [(l[1] - tg.x) ** 2 + (l[2] - tg.z) ** 2, l]).sort((a, b) => a[0] - b[0]).slice(0, 10);
+    for (const [, l] of ml) placeAt(l[1], l[3] === "road" ? 1 : 12, l[2], "tag lot", (l[3] === "road" ? "🛣 " : l[3] === "mosque" ? "🕌 " : l[3] === "school" ? "🏫 " : l[3] === "park" ? "🌳 " : "") + l[0]);
+  }
   const mine = myId && homeObjs.find(o => o.userData.id === myId);
   if (mine) placeAt(mine.position.x, 14, mine.position.z, "tag me home", mine.userData.nick, true);
   if (!near || MODE === "city") {
@@ -941,6 +1107,7 @@ function setLang(k) {
   buildPickers();
 }
 setLang(L);
+if (MAP) { const pl = document.getElementById("place"); pl.textContent = "📍 " + MAP.name + " · © OpenStreetMap"; pl.classList.add("on"); }
 setMode(MODE, false);
 updateCta();
 
@@ -973,6 +1140,7 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo };
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
