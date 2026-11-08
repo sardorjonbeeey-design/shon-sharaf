@@ -19,8 +19,8 @@
 
 ## 3. SHAHAR CTA (22–34 s) — yangi imkoniyat
 - **Kadr:** shahar 3D ko‘rinishi, telefon ekranida “⚽ Klub” tugmasi.
-- **Subtitr:** `Yangi: Shahar ochildi · @zaminfk_bot · /start`
-- **Ovoz:** “Telegram’da @zaminfk_bot ga kiring: o‘rindiq oling, uy qurib, klub bo‘limlariga qo‘shiling.”
+- **Subtitr:** `Shahar ochildi · Jamoaga qo‘shiling yoki shaharda ish toping · @zaminfk_bot`
+- **Ovoz:** “Telegram’da @zaminfk_bot ga kiring: o‘rindiq oling, uy qurib, shaharda ish toping yoki klub jamoasiga qo‘shiling.”
 
 ## 4. KEYINGI SAVOL (34–42 s)
 - **Kadr:** Bekzod, Jasur, Aziz — yonma-yon siluet, bo‘sh o‘rin.
@@ -29,7 +29,7 @@
 
 ## OUTRO HOOK (42–48 s) — eng muhim 6 soniya
 - **Kadr:** echki tribunada, yuzi kameraga qaraydi (qayta ko‘rishga arziydigan detal).
-- **Subtitr:** `Eng ko‘p layk olgan izoh — ertaga e’lon. Echkiga nima bo‘ldi? 🐐`
+- **Subtitr:** `G‘olib 10 soatdan keyin e’lon qilinadi. Echkiga nima bo‘ldi? 🐐`
 - **Ovoz:** “Ertaga echkiga nima bo‘lganini ko‘rasiz. Hozir — bitta so‘z.”
 
 ---
@@ -38,7 +38,7 @@
 3-kun. Doston jamoada! ⚽ Ovoz bergan har bir muxlisga rahmat.
 Klub fondi: 22 500 000 so‘m (virtual). Shahar ochildi — @zaminfk_bot ga kiring 👇
 Keyingi savol: izohga bitta so‘z — HUJUMCHI yoki DARVOZABON.
-Eng ko‘p layk olgan izoh — ertaga. (Fond va muxlislar — virtual o‘yin mexanikasi.)
+G‘olib 10 soatdan keyin e’lon qilinadi. Klub jamoasiga qo‘shiling yoki shaharda ish toping: @zaminfk_bot (Fond va muxlislar — virtual o‘yin mexanikasi.)
 ```
 
 ## Hooks tekshiruvi
