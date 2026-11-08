@@ -310,6 +310,96 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     cache = null; return { ok: true };
   }, true);
 
+  // ---------- applications: city work (free roles) and club (player / staff) — all come to the admin ----------
+  const POSITIONS = ["GK", "DEF", "MID", "FWD"];
+  const CITY_ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
+  const CLUB_DEPTS = DEPTS.map(d => d[0]);
+  const APP_KINDS = ["city", "player", "staff"];
+  ready.then(() => db.query(`
+    alter table applications add column if not exists kind text not null default 'city';
+    alter table applications add column if not exists name text;
+    alter table applications add column if not exists age int;
+    alter table applications add column if not exists position text;
+    alter table applications add column if not exists height int;
+    alter table applications add column if not exists link text;
+    alter table applications add column if not exists status text not null default 'new';
+    alter table applications add column if not exists dept text;
+    alter table applications add column if not exists admin_note text;
+    alter table applications add column if not exists decided_at timestamptz;
+    alter table applications add column if not exists decided_by bigint;
+    create index if not exists applications_filter_idx on applications (kind, status, created_at desc);`)).catch(e => console.error("apps init", e.message));
+
+  route("/api/apply", async (user, body) => tx(async c => {
+    const id = String(user.id), kind = String(body.kind || "city");
+    if (!APP_KINDS.includes(kind)) throw fail(400, "kind");
+    const note = String(body.note || "").trim().slice(0, 400);
+    const row = { kind, name: null, age: null, position: null, height: null, link: null, dept: null, role: null };
+    if (kind === "city") {
+      if (!CITY_ROLES.includes(body.role)) throw fail(400, "role");
+      row.role = body.role;
+    } else {
+      row.name = String(body.name || "").trim().slice(0, 40);
+      row.age = Number(body.age) | 0;
+      if (row.name.length < 2) throw fail(400, "name");
+      if (!(row.age >= 8 && row.age <= 80)) throw fail(400, "age");
+      if (kind === "player") {
+        if (!POSITIONS.includes(body.position)) throw fail(400, "position");
+        row.position = body.position;
+        row.height = body.height == null || body.height === "" ? null : Math.max(100, Math.min(230, Number(body.height) | 0));
+        row.link = String(body.link || "").trim().slice(0, 200) || null;
+        if (row.link && !/^https?:\/\/\S+$/.test(row.link)) throw fail(400, "link");
+      } else {
+        if (!CLUB_DEPTS.includes(body.dept)) throw fail(400, "dept");
+        row.dept = body.dept;
+      }
+    }
+    await ensureMemberTx(c, user);                       // applicants become club members (supporter ID + seat) so they can be assigned
+    await c.query("select pg_advisory_xact_lock(7710002)");
+    const open = await one(c, "select count(*)::int as n from applications where tg_id = $1 and kind = $2 and status = 'new'", [id, kind]);
+    if (open.n >= (kind === "city" ? 3 : 1)) throw fail(409, "pending");
+    const r = await one(c, `insert into applications (tg_id, nick, role, note, kind, name, age, position, height, link, dept)
+      values ($1,$11,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id, status`,
+      [id, row.role || row.name || "", note, kind, row.name, row.age, row.position, row.height, row.link, row.dept, nickOf(user)]);
+    return { ok: true, id: r.id, status: r.status };
+  }));
+
+  // admin list with filters: kind, status, position, dept
+  route("/api/admin/applications", async (user, body) => {
+    await ready;
+    const where = ["1=1"], args = [];
+    const add = (sql, v) => { args.push(v); where.push(sql.replace("?", "$" + args.length)); };
+    if (APP_KINDS.includes(body.kind)) add("a.kind = ?", body.kind);
+    if (["new", "accepted", "rejected"].includes(body.status)) add("a.status = ?", body.status);
+    if (POSITIONS.includes(body.position)) add("a.position = ?", body.position);
+    if (CLUB_DEPTS.includes(body.dept)) add("a.dept = ?", body.dept);
+    const rows = (await db.query(`select a.id, a.kind, a.status, a.name, a.age, a.position, a.height, a.link, a.dept, a.role, a.note, a.admin_note,
+        a.created_at, a.tg_id, coalesce(m.nick, a.nick) as nick, m.member_no
+      from applications a left join members m on m.tg_id = a.tg_id where ${where.join(" and ")} order by a.created_at desc limit 200`, args)).rows;
+    const counts = (await db.query(`select kind, status, count(*)::int as n from applications group by kind, status`)).rows;
+    return { rows, counts, positions: POSITIONS, depts: DEPTS.map(d => ({ id: d[0], name: d[2] })), roles: CITY_ROLES };
+  }, true);
+
+  // accept / reject / assign to a department (staff, or a player's department role)
+  route("/api/admin/application/decide", async (user, body) => tx(async c => {
+    const id = Number(body.id) | 0, action = String(body.action || "");
+    if (!["accept", "reject", "assign"].includes(action)) throw fail(400, "action");
+    const a = await one(c, "select * from applications where id = $1 for update", [id]);
+    if (!a) throw fail(404, "application");
+    if (action === "assign") {
+      if (!CLUB_DEPTS.includes(body.dept)) throw fail(400, "dept");
+      await c.query("update applications set dept = $2 where id = $1", [id, body.dept]);
+      if (a.tg_id) await c.query("update members set dept = $2, dept_at = now() where tg_id = $1", [a.tg_id, body.dept]);
+      cache = null; return { ok: true, dept: body.dept };
+    }
+    const status = action === "accept" ? "accepted" : "rejected";
+    if (a.status !== "new") throw fail(409, "already decided");
+    const bodyDept = CLUB_DEPTS.includes(body.dept) ? body.dept : null;
+    await c.query("update applications set status = $2, admin_note = $3, decided_at = now(), decided_by = $4, dept = coalesce($5, dept) where id = $1",
+      [id, status, String(body.note || "").slice(0, 200), String(user.id), bodyDept]);
+    if (status === "accepted" && bodyDept && a.tg_id) await c.query("update members set dept = $2, dept_at = now() where tg_id = $1", [a.tg_id, bodyDept]);
+    cache = null; return { ok: true, status };
+  }), true);
+
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
   return { ensureMember, summary, registerReferral };
 }

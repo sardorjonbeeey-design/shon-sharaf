@@ -80,6 +80,14 @@
   .kinds { display:flex; flex-wrap:wrap; gap:6px; } .kinds button { font:inherit; font-size:12px; font-weight:700; color:#fff; background:rgba(255,255,255,.1); border:2px solid transparent; border-radius:10px; padding:7px 9px; } .kinds button.on { border-color:var(--yel); }
   .adm { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; } .adm input { margin:0 !important; }
   .tag.hq { background:var(--navy); color:#fff; border:2px solid var(--yel); } .tag.hq::before { content:""; margin:0; }
+  #jpath button, #jkind button { flex:1; font:inherit; font-weight:900; font-size:14px; color:#fff; background:rgba(255,255,255,.1); border:3px solid transparent; border-radius:14px; padding:12px 6px; }
+  #jpath button.on, #jkind button.on { border-color:var(--yel); }
+  #sJob input { width:100%; font:inherit; font-weight:700; font-size:15px; color:#fff; background:rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.25); border-radius:14px; padding:12px; margin-bottom:10px; outline:none; }
+  #sJob input::placeholder, #sJob textarea::placeholder { color:#9DB8FF; }
+  #pPos button, #sDept button { flex:1; min-width:70px; font:inherit; font-weight:900; font-size:13px; color:#fff; background:rgba(255,255,255,.1); border:3px solid transparent; border-radius:12px; padding:10px 4px; }
+  #pPos button.on, #sDept button.on { border-color:var(--yel); }
+  .apfilt { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 10px; } .apfilt button { font:inherit; font-size:12px; font-weight:900; color:#fff; background:rgba(255,255,255,.08); border:2px solid transparent; border-radius:10px; padding:7px 9px; } .apfilt button.on { border-color:var(--yel); background:rgba(255,210,63,.18); }
+  .apfilt small { display:block; } .appc { font-size:11px; color:#9DB8FF; margin-left:4px; }
   /* city */
   #actions { left:12px; right:12px; bottom:86px; display:none; gap:8px; }
   #actions button { flex:1; font:inherit; font-weight:900; font-size:13px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:12px 6px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
@@ -168,8 +176,15 @@
   <div id="lvls"></div><div class="row" id="colors"></div>
   <button class="go" id="homeGo"></button><button class="go alt2" id="homeUp"></button><button class="go gift" id="homeBonus"></button><button class="go alt3" id="homeVisit" data-t="visit"></button>
   <button class="go alt3" id="homeSeat" data-t="linkIg"></button></div>
-<div id="sJob" class="ui pill sheet"><button class="x">×</button><h3 data-t="jobH"></h3><p data-t="jobP"></p><div class="row" id="roles"></div>
-  <textarea id="jobNote" rows="3" maxlength="400"></textarea><button class="go" id="jobGo" data-t="jobGo"></button></div>
+<div id="sJob" class="ui pill sheet"><button class="x">×</button><h3 id="jTitle"></h3><p id="jSub"></p>
+  <div id="jpath" class="row"></div>
+  <div id="jcity" style="display:none"><div class="row" id="roles"></div><textarea id="jobNote" rows="3" maxlength="400"></textarea><button class="go" id="jobGo"></button></div>
+  <div id="jclub" style="display:none"><div class="row" id="jkind"></div>
+    <div id="jplayer" style="display:none"><input id="pName" maxlength="40" placeholder=""><input id="pAge" type="number" min="8" max="80" placeholder=""><input id="pH" type="number" min="100" max="230" placeholder="">
+      <div class="row" id="pPos"></div><input id="pLink" maxlength="200" placeholder=""><textarea id="pNote" rows="2" maxlength="400"></textarea><button class="go" id="pGo"></button></div>
+    <div id="jstaff" style="display:none"><input id="sName" maxlength="40" placeholder=""><input id="sAge" type="number" min="8" max="80" placeholder="">
+      <div class="row" id="sDept"></div><textarea id="sNote" rows="2" maxlength="400"></textarea><button class="go" id="sGo"></button></div></div>
+</div>
 <div id="rule" class="ui" data-t="rule"></div>
 <div id="toast" class="ui pill"></div>
 <div id="card" class="ui pill"><button class="x" id="cx">×</button><h3 id="ch"></h3><p id="cp"></p></div>
@@ -1404,12 +1419,71 @@ function renderJobs() {
   for (const id of LOCKED_JOBS) { const c = document.createElement("div"); c.className = "card lock"; c.innerHTML = `<div class="ic">${T[L].jobNames[id].split(" ")[0]}</div><div class="tx"><b>${T[L].jobNames[id]}</b><small>${T[L].soon}</small></div>`; el.appendChild(c); }
 }
 document.getElementById("bJob").onclick = needTg(async () => { await fetchMe(); renderJobs(); open("sJobs"); });
-document.getElementById("toApply").onclick = () => open("sJob");
+// ---------- applications: city work (free choice) or club (player / staff); everything goes to the admin ----------
+const POS_NAME = { GK: "🧤 GK", DEF: "🛡 DEF", MID: "🎯 MID", FWD: "⚡ FWD" };
+const JX = {
+  uz: { path: "Qanday ariza?", pathP: "Shaharda o‘z ishingizni tanlang yoki klub jamoasiga qo‘shiling.", city: "🏙 Shaharda ishlash", club: "⚽ Klub jamoasi",
+    clubP: "Klub uchun: futbolchi yoki jamoa a’zosi sifatida.", player: "🏃 Futbolchi", staff: "🧑‍💼 Jamoa a’zosi",
+    name: "Ism va familiya", age: "Yoshingiz", height: "Bo‘yingiz (sm, ixtiyoriy)", pos: "Pozitsiya", link: "Video havola (ixtiyoriy)", note: "Qo‘shimcha ma’lumot",
+    dept: "Qaysi bo‘limda ishlamoqchisiz?", send: "📨 Yuborish", sent: "Arizangiz adminga yuborildi! Javobni kuting.", pend: "Sizda ko‘rib chiqilayotgan ariza bor.",
+    errs: { name: "Ismingizni kiriting", age: "Yoshingizni to‘g‘ri kiriting", position: "Pozitsiyani tanlang", dept: "Bo‘limni tanlang", link: "Havola noto‘g‘ri", pending: "Sizda ko‘rib chiqilayotgan ariza bor", role: "Sohani tanlang", "kind": "Xato" } },
+  ru: { path: "Какая заявка?", pathP: "Выберите работу в городе или вступите в команду клуба.", city: "🏙 Работа в городе", club: "⚽ Команда клуба", clubP: "Для клуба: игроком или членом команды.",
+    player: "🏃 Игрок", staff: "🧑‍💼 Член команды", name: "Имя и фамилия", age: "Возраст", height: "Рост (см, необязательно)", pos: "Позиция", link: "Ссылка на видео (необязательно)",
+    note: "Дополнительно", dept: "В каком отделе хотите работать?", send: "📨 Отправить", sent: "Заявка отправлена админу! Ждите ответа.", pend: "У вас уже есть заявка на рассмотрении.",
+    errs: { name: "Введите имя", age: "Введите возраст", position: "Выберите позицию", dept: "Выберите отдел", link: "Неверная ссылка", pending: "У вас уже есть заявка на рассмотрении", role: "Выберите сферу" } },
+  en: { path: "What kind of application?", pathP: "Work in the city, or join the club team.", city: "🏙 Work in the city", club: "⚽ Club team",
+    clubP: "For the club: as a player or a team member.", player: "🏃 Player", staff: "🧑‍💼 Team member", name: "Full name", age: "Age", height: "Height (cm, optional)", pos: "Position",
+    link: "Video link (optional)", note: "Anything else", dept: "Which department?", send: "📨 Send", sent: "Your application was sent to the admin!", pend: "You already have an application pending.",
+    errs: { name: "Enter your name", age: "Enter a valid age", position: "Choose a position", dept: "Choose a department", link: "Invalid link", pending: "You already have an application pending", role: "Choose an area" } },
+};
+const JT = k => (JX[L] && JX[L][k] !== undefined ? JX[L][k] : JX.uz[k]);
+const APP = { path: null, kind: "player", pos: null, dept: null };
+function jobShow(which) {
+  ["jcity", "jclub"].forEach(id => document.getElementById(id).style.display = id === which ? "block" : "none");
+}
+function jobRender() {
+  document.getElementById("jTitle").textContent = "💼 " + T[L].jobsH.replace(/^💼\s*/, "");
+  document.getElementById("jSub").textContent = JT("path") ;
+  const p = document.getElementById("jpath"); p.innerHTML = "";
+  [["city", JT("city")], ["club", JT("club")]].forEach(([k, n]) => { const b = document.createElement("button"); b.textContent = n; b.className = APP.path === k ? "on" : ""; b.onclick = () => { APP.path = k; jobRender(); }; p.appendChild(b); });
+  if (APP.path === "city") { jobShow("jcity"); document.getElementById("jSub").textContent = JT("pathP"); }
+  else if (APP.path === "club") {
+    jobShow("jclub"); document.getElementById("jSub").textContent = JT("clubP");
+    const k = document.getElementById("jkind"); k.innerHTML = "";
+    [["player", JT("player")], ["staff", JT("staff")]].forEach(([kk, n]) => { const b = document.createElement("button"); b.textContent = n; b.className = APP.kind === kk ? "on" : ""; b.onclick = () => { APP.kind = kk; jobRender(); }; k.appendChild(b); });
+    document.getElementById("jplayer").style.display = APP.kind === "player" ? "block" : "none";
+    document.getElementById("jstaff").style.display = APP.kind === "staff" ? "block" : "none";
+    document.getElementById("pName").placeholder = JT("name"); document.getElementById("sName").placeholder = JT("name");
+    document.getElementById("pAge").placeholder = JT("age"); document.getElementById("sAge").placeholder = JT("age");
+    document.getElementById("pH").placeholder = JT("height"); document.getElementById("pLink").placeholder = JT("link");
+    document.getElementById("pNote").placeholder = JT("note"); document.getElementById("sNote").placeholder = JT("note");
+    document.getElementById("pGo").textContent = JT("send"); document.getElementById("sGo").textContent = JT("send");
+    const pp = document.getElementById("pPos"); pp.innerHTML = "";
+    ["GK", "DEF", "MID", "FWD"].forEach(x => { const b = document.createElement("button"); b.textContent = POS_NAME[x]; b.className = APP.pos === x ? "on" : ""; b.onclick = () => { APP.pos = x; jobRender(); }; pp.appendChild(b); });
+    const sd = document.getElementById("sDept"); sd.innerHTML = "";
+    DEPT_BASE.forEach(([id, emoji, name]) => { const b = document.createElement("button"); b.textContent = emoji + " " + name; b.className = APP.dept === id ? "on" : ""; b.onclick = () => { APP.dept = id; jobRender(); }; sd.appendChild(b); });
+  } else jobShow("none");
+  const rl = document.getElementById("roles"); if (rl && !rl.children.length) { T[L].roles.forEach((n, i) => { const b = document.createElement("button"); b.className = "opt"; b.textContent = n; b.dataset.i = i; b.onclick = () => { [...rl.children].forEach(x => x.classList.toggle("on", x === b)); }; rl.appendChild(b); }); }
+  document.getElementById("jobGo").textContent = JT("send");
+}
+document.getElementById("toApply").onclick = () => { APP.path = null; open("sJob"); jobRender(); };
+async function sendApp(payload) {
+  try { const d = await post("/api/apply", payload); haptic("ok"); say(JT("sent")); document.getElementById("sJob").style.display = "none"; return d; }
+  catch (e) { say((JX[L] && JX[L].errs[e.message]) || (JX.uz.errs[e.message]) || (e.message === "pending" ? JT("pend") : T[L].err)); }
+}
 document.getElementById("jobGo").onclick = async () => {
-  const on = rolesEl.querySelector(".on");
-  if (!on) { rolesEl.animate([{ transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "none" }], 250); return; }
-  try { await post("/api/apply", { role: T.uz.roles[+on.dataset.i], note: document.getElementById("jobNote").value }); document.getElementById("sJob").style.display = "none"; say(T[L].jobOk); }
-  catch (e) { say(T[L].err); }
+  const on = document.getElementById("roles").querySelector(".on");
+  if (!on) { say(JT("errs").role); return; }
+  await sendApp({ kind: "city", role: T.uz.roles[+on.dataset.i], note: document.getElementById("jobNote").value });
+};
+document.getElementById("pGo").onclick = async () => {
+  if (!APP.pos) { say(JT("errs").position); return; }
+  await sendApp({ kind: "player", name: document.getElementById("pName").value, age: document.getElementById("pAge").value, height: document.getElementById("pH").value,
+    position: APP.pos, link: document.getElementById("pLink").value, note: document.getElementById("pNote").value });
+};
+document.getElementById("sGo").onclick = async () => {
+  if (!APP.dept) { say(JT("errs").dept); return; }
+  await sendApp({ kind: "staff", name: document.getElementById("sName").value, age: document.getElementById("sAge").value, dept: APP.dept, note: document.getElementById("sNote").value });
 };
 
 // ---------- roleplay shift: coffee-shop counter ----------
@@ -1598,10 +1672,35 @@ function dashHtml(me, m, club) {
   ${TG && m ? `<div class="sec">💛 ${PP("donate")}</div><div class="item"><small>${PT.uz.donateP}</small><div class="hd" style="margin-top:8px">${[10, 50, 100, 250].map(a => `<button class="btn" data-a="donate" data-n="${a}">${a} 🪙</button>`).join("")}</div></div>` : ""}`;
 }
 // ---------- admin ----------
-async function adminLoad() { try { const [list, ms] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {})]); CLUB.admin = { list, ms }; } catch (e) { CLUB.admin = null; } clubRender(); }
+CLUB.appF = { kind: "", status: "new", pos: "", dept: "" };
+async function adminLoad() {
+  try { const [list, ms, apps] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {}), post("/api/admin/applications", { kind: CLUB.appF.kind, status: CLUB.appF.status, position: CLUB.appF.pos, dept: CLUB.appF.dept })]); CLUB.admin = { list, ms, apps }; }
+  catch (e) { CLUB.admin = null; }
+  clubRender();
+}
+const KIND_NAME = { city: "🏙 Shahar", player: "⚽ Futbolchi", staff: "🧑‍💼 Jamoa" }, STATUS_NAME = { new: "🆕 Yangi", accepted: "✅ Qabul", rejected: "❌ Rad" };
+function appsHtml(apps) {
+  const F = CLUB.appF, cnt = (k, st) => (apps.counts.find(c => c.kind === k && (!st || c.status === st)) || { n: 0 }).n;
+  const tot = apps.counts.filter(c => c.status === "new").reduce((x, c) => x + c.n, 0);
+  const chip = (key, val, label) => `<button data-a="apf" data-k="${key}" data-v="${val}" class="${F[key] === val ? "on" : ""}">${label}</button>`;
+  let h = `<div class="sec">📥 Arizalar (${tot} yangi)</div>
+    <div class="apfilt">${chip("kind", "", "Hammasi")}${chip("kind", "player", "⚽ Futbolchi " + cnt("player", "new"))}${chip("kind", "staff", "🧑‍💼 Jamoa " + cnt("staff", "new"))}${chip("kind", "city", "🏙 Shahar " + cnt("city", "new"))}</div>
+    <div class="apfilt">${chip("status", "new", "🆕 Yangi")}${chip("status", "accepted", "✅ Qabul")}${chip("status", "rejected", "❌ Rad")}${chip("status", "", "Barchasi")}</div>`;
+  if (F.kind !== "city") h += `<div class="apfilt">${chip("pos", "", "Pozitsiya: hammasi")}${apps.positions.map(p => chip("pos", p, POS_NAME[p])).join("")}</div>`;
+  if (F.kind !== "city") h += `<div class="apfilt">${chip("dept", "", "Bo‘lim: hammasi")}${apps.depts.map(d => chip("dept", d.id, d.name)).join("")}</div>`;
+  h += apps.rows.map(a => `<div class="item"><div class="hd"><b>${esc(a.name || a.role || a.nick)}</b><span class="chip">${KIND_NAME[a.kind] || a.kind} · ${STATUS_NAME[a.status]}</span></div>
+      <small>${esc(a.nick)}${a.member_no ? " · ZFK-" + String(a.member_no).padStart(5, "0") : ""}${a.age ? " · " + a.age + " yosh" : ""}${a.position ? " · " + (POS_NAME[a.position] || a.position) : ""}${a.height ? " · " + a.height + " sm" : ""}</small>
+      ${a.dept ? `<br><small>🏢 ${esc(a.dept)}</small>` : ""}${a.link ? `<br><small>🔗 <a style="color:#FFD23F" href="${esc(a.link)}" target="_blank" rel="noopener">video</a></small>` : ""}
+      ${a.note ? `<p style="margin:6px 0;font-size:13px">${esc(a.note)}</p>` : ""}
+      ${a.status === "new" ? `<div class="adm" style="grid-template-columns:1fr 1fr"><button class="btn green" data-a="appdec" data-id="${a.id}" data-ok="1">✅ Qabul</button><button class="btn red" data-a="appdec" data-id="${a.id}">❌ Rad</button></div>` : ""}
+      ${a.kind !== "city" && a.status !== "rejected" ? `<div class="hd"><select id="asd${a.id}">${apps.depts.map(d => `<option value="${d.id}" ${d.id === a.dept ? "selected" : ""}>${d.name}</option>`).join("")}</select><button class="btn blue" data-a="appassign" data-id="${a.id}">🏢 Bo‘limga</button></div>` : ""}
+    </div>`).join("") || `<small>${PT.uz.none}</small>`;
+  return h;
+}
+
 function adminHtml(me, m, club) {
   const a = CLUB.admin; if (!a) return `<small>…</small>`;
-  return `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
+  return appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
       <small>${esc(c.nick)} · ZFK-${String(c.member_no).padStart(5, "0")}</small><p style="margin:6px 0;font-size:13px">${esc(c.body)}</p>${c.link ? `<small>🔗 <a style="color:#FFD23F" href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></small>` : ""}
       <div class="adm"><input id="ax${c.id}" type="number" value="50" title="XP"><input id="ai${c.id}" type="number" value="20" title="Influence"><input id="af${c.id}" type="number" value="0" title="Funds"></div>
       <input id="an${c.id}" placeholder="Izoh (ixtiyoriy)"><div class="hd"><button class="btn green" data-a="decide" data-id="${c.id}" data-ok="1">${PT.uz.approve}</button><button class="btn red" data-a="decide" data-id="${c.id}">${PT.uz.reject}</button></div></div>`).join("") || `<small>${PT.uz.none}</small>`}
@@ -1630,6 +1729,9 @@ function clubBind() {
       else if (a === "donate") { const d = await post("/api/club/donate", { amount: +b.dataset.n }); haptic("ok"); say(PT.uz.donated(b.dataset.n, d.xp)); await fetchMe(); await clubLoad(); }
       else if (a === "decide") { const id = b.dataset.id; await post("/api/admin/contribution/decide", { id: +id, approve: !!b.dataset.ok, xp: +v("ax" + id).value, influence: +v("ai" + id).value, funds: +v("af" + id).value, note: v("an" + id).value }); await adminLoad(); return; }
       else if (a === "msave") { const id = b.dataset.id, k = s => v(s + id); await post("/api/admin/mission/save", { id: id === "new" ? undefined : +id, title: k("mt").value, period: k("mp").value, action: k("ma").value, target: +k("mg").value, xp: +k("mx").value, active: id === "new" ? true : k("mo").checked }); say("✅"); await adminLoad(); return; }
+      else if (a === "apf") { CLUB.appF[b.dataset.k] = b.dataset.v; await adminLoad(); return; }
+      else if (a === "appdec") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: b.dataset.ok ? "accept" : "reject" }); say("✅"); await adminLoad(); return; }
+      else if (a === "appassign") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: "assign", dept: v("asd" + b.dataset.id).value }); say("✅ 🏢"); await adminLoad(); return; }
       else if (a === "dsave") { const id = b.dataset.id; await post("/api/admin/dept/save", { id, name: v("dn" + id).value, description: v("dd" + id).value, active: v("do" + id).checked }); say("✅"); await clubLoad(); }
       clubRender();
     } catch (e) { cErr(e); }

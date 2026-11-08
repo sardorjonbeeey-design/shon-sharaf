@@ -152,19 +152,6 @@ app.post("/api/seat", async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
 });
 
-// Work applications for building the city together.
-app.post("/api/apply", async (req, res) => {
-  const user = auth(req, res); if (!user) return;
-  const role = String(req.body.role || ""), note = String(req.body.note || "").trim().slice(0, 400);
-  if (!ROLES.includes(role)) return res.status(400).json({ error: "role" });
-  const nick = nickOf(user);
-  try {
-    if (!db) mem.apps.push({ tg_id: user.id, nick, role, note });
-    else await q("insert into applications (tg_id, nick, role, note) values ($1,$2,$3,$4)", [user.id, nick, role, note]);
-    res.json({ ok: true });
-  } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
-});
-
 app.get("/healthz", (req, res) => res.send("ok"));
 app.get(["/", "/index.html"], (req, res) => { res.set("Cache-Control", "no-cache"); res.sendFile(PAGE); });
 app.use("/map", express.static(path.join(path.dirname(PAGE), "map"), { maxAge: "1d" }));   // real-town OpenStreetMap data
