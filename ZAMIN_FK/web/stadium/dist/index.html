@@ -756,6 +756,16 @@ function setMode(m, animate = true) {
   MODE = m; document.body.classList.toggle("city", m === "city");
   viewBtn.textContent = m === "city" ? "🏟" : "🏙";
   const [n, f] = FOG[m]; scene.fog.near = n; scene.fog.far = f;
+  // city = map-style free camera (1 finger drags the map, 2 fingers zoom + rotate); stadium = orbit around the pitch
+  if (m === "city") {
+    controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE };
+    controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
+    controls.panSpeed = 1.6; controls.maxPolarAngle = Math.PI * 0.44;
+  } else {
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+    controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+    controls.panSpeed = 1.2; controls.maxPolarAngle = Math.PI * 0.495;
+  }
   if (animate) { me = null; flyTo(VIEWS[m].pos.clone(), VIEWS[m].tgt.clone(), 2.2); }
 }
 viewBtn.onclick = () => setMode(MODE === "city" ? "stadium" : "city");
@@ -948,6 +958,10 @@ function loop(now) {
     fly.t = (now - fly.start) / 1000 / fly.dur; const p = fly.t >= 1 ? 1 : 1 - Math.pow(1 - fly.t, 3);
     camera.position.lerpVectors(fly.p0, fly.p1, p); controls.target.lerpVectors(fly.t0, fly.t1, p);
     if (fly.t >= 1) fly = null;
+  }
+  { // keep the camera over the town
+    const t = controls.target, lim = WORLD + 60, cx = Math.max(-lim, Math.min(lim, t.x)) - t.x, cz = Math.max(-lim, Math.min(lim, t.z)) - t.z;
+    if (cx || cz) { t.x += cx; t.z += cz; camera.position.x += cx; camera.position.z += cz; }
   }
   controls.update();
   sky.position.copy(camera.position);
