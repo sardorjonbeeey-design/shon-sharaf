@@ -19,10 +19,10 @@ def dur(p):
 LINES = [
  ("01_hook", [("SIZ TANLADINGIZ: DOSTON!", [1, 2])]),
  ("02_result", [("Sherzod emas — DOSTON. Rahmat, har bir ovoz uchun.", [2, 3])]),
- ("03_update", [("Klub fondi: 21 690 000 so‘m. Sherzod endi bizda — erkin agent!", [3, 4])]),
- ("04_cta", [("@zaminfk_bot — jamoaga qo‘shiling yoki shaharda ish toping", [0, 3, 4])]),
- ("05_question", [("Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik?", [3, 4])]),
- ("06_outro", [("Ertaga echkiga nima bo‘ldi? Klub nomini yozing!", [4, 5, 6])]),
+ ("03_update", [("Klub fondi: 21 690 000 so‘m. Biz Sherzodni ham jalb qildik!", [3, 4])]),
+ ("04_cta", [("Men — echki. Endi klubning brend yuzi! Sizga aytaman: Paxtakor bilan o‘rtoqlik o‘yini!", [5, 6])]),
+ ("05_question", [("Toshkentga avtobus haydovchisi kerak. Izohga “MEN HAYDOVCHIMAN” deb yozing. Eng ko‘p layk olgan izoh 24 soatdan keyin e’lon qilinadi.", [3, 4])]),
+ ("06_outro", [("Echkiga nima bo‘ldi? U endi klubning brend yuzi!", [4, 5, 6])]),
 ]
 t, L, audio, caps = 0.25, [], [], []
 for name, phrases in LINES:
@@ -76,30 +76,28 @@ scenes = [
    lab(chip("+107 × 15 000 = 1 605 000 so‘m", True), 540, 1080, frac(3, 0.7), enter="stamp", idle="pulse"),
    spr("bekzod_celebrate", 800, 1750, 680, frac(3, 0.1), enter="up", idle="hop", z=9),
    spr("sherzod", 260, 1780, 760, frac(3, 0.6), enter="slideL", idle="sway", z=10),
-   lab(chip("SHERZOD — ERKIN AGENT ✅", True), 540, 1080 + 0, frac(3, 0.62), enter="stamp", z=26),
+   lab(chip("SHERZOD — JAMOAGA QO‘SHILDI ✅", True), 540, 1080 + 0, frac(3, 0.62), enter="stamp", z=26),
  ]},
- # CTA: three choices slide in, shahar ochildi
+ # GOAT: brand face + Paxtakor friendly
  {"from": s(4), "to": s(5), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.06], "blur": 8}, "items": [
-   lab('<div class="cta">SHAHAR OCHILDI<small>@zaminfk_bot — /start</small></div>', 540, 360, s(4, 0.05), enter="stamp", z=25),
-   lab('<div class="choice"><span class="n">1</span>Klub jamoasiga qo‘shiling</div>', 540, 700, frac(4, 0.2), enter="slideL", idle="sway"),
-   lab('<div class="choice"><span class="n">2</span>Shaharda ish toping</div>', 540, 880, frac(4, 0.36), enter="slideR", idle="sway"),
-   lab('<div class="choice"><span class="n">3</span>O‘rindiq va uy oling</div>', 540, 1060, frac(4, 0.52), enter="slideL", idle="sway"),
-   spr("rustam_whistle", 860, 1800, 760, frac(4, 0.3), enter="up", idle="sway", z=9),
+   spr("goat_chew", 540, 1800, 1000, s(4, 0.05), enter="up", idle="chew", z=12),
+   lab(chip("MEN — BREND YUZI! 🐐", True), 540, 380, s(4, 0.2), enter="stamp", z=25),
+   lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">O‘RTOQLIK O‘YINI</small><div style="font-size:90px;font-weight:900;line-height:1.05">PAXTAKOR</div><div style="font-size:36px">🔥 Muxlislar tanladi</div>'),
+       540, 620, frac(4, 0.35), enter="drop", enterDur=0.5, idle="sway", z=25),
  ]},
- # QUESTION: critical question card + 1 izoh = 1 ovoz
+ # BUS CALL-OUT: comment wins the driver seat
  {"from": s(5), "to": e(5), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.05], "blur": 10}, "items": [
-   lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">DO‘STONA O‘YIN</small><div style="font-size:72px;font-weight:900;line-height:1.1">QAYSI KLUBGA<br>QARSHI?</div>'),
-       540, 620, s(5, 0.05), enter="stamp", z=25),
-   lab(chip("IZOHGA KLUB NOMINI YOZING", True), 540, 1080, frac(5, 0.4), enter="drop", enterDur=0.5, idle="pulse", z=25),
-   spr("sherzod", 300, 1800, 720, frac(5, 0.2), enter="slideL", idle="sway", z=9),
-   spr("doston", 780, 1800, 720, frac(5, 0.3), enter="slideR", idle="sway", z=9),
+   lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">TOSHKENTGA BORAMIZ</small><div style="font-size:80px;font-weight:900;line-height:1.1">AVTOBUS<br>HAYDOVCHISI 🚌</div>'),
+       540, 560, s(5, 0.05), enter="stamp", z=25),
+   lab(chip("IZOHGA: MEN HAYDOVCHIMAN", True), 540, 1080, frac(5, 0.35), enter="drop", enterDur=0.5, idle="pulse", z=25),
+   lab(chip("ENG KO‘P LAYK = HAYDOVCHI"), 540, 1200, frac(5, 0.6), enter="stamp", z=25),
  ]},
- # OUTRO HOOK: the goat, ertaga
+ # OUTRO: goat finishes the promise
  {"from": e(5), "to": TOTAL + 1, "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.1, 1.3], "focus": [0.5, 0.5, 0.5, 0.42]}, "items": [
    lab('<div style="position:absolute;left:-600px;top:-1000px;width:1200px;height:2000px;background:radial-gradient(circle at 50% 60%,transparent 30%,rgba(0,0,0,.75) 70%)"></div>', 540, 960, e(5), enter="fade", z=5),
    spr("goat_chew", 540, 1650, 1000, s(6, 0.2), enter="up", idle="chew", z=12),
-   lab('<div class="title" style="font-size:96px">ERTAGA...</div>', 540, 330, s(6, 0.1), enter="stamp", z=25),
-   lab(chip("KLUB NOMINI YOZING! 🐐", True), 540, 470, s(6, 0.8), enter="stamp", z=25),
+   lab('<div class="title" style="font-size:96px">BREND YUZI 🐐</div>', 540, 330, s(6, 0.1), enter="stamp", z=25),
+   lab(chip("ECHKI ENDI KLUBDA!", True), 540, 470, s(6, 0.8), enter="stamp", z=25),
    lab('<div class="follow">+ OBUNA BO‘LING</div>', 540, 1760, e(6, -0.5), idle="pulse", z=25),
  ]},
 ]
