@@ -10,7 +10,7 @@
   :root { --navy:#0D2557; --blue:#1F4FB8; --yel:#FFD23F; }
   * { box-sizing: border-box; }
   html, body { margin:0; height:100%; overflow:hidden; background:#0a1730; font-family: Montserrat, sans-serif; color:#fff; }
-  #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; z-index:0; }
   .ui { position:fixed; z-index:5; }
   .pill { background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
   #brand { top:14px; left:14px; display:flex; align-items:center; gap:10px; padding:10px 16px; font-weight:900; font-size:17px; letter-spacing:.5px; }
@@ -351,16 +351,26 @@ FANS.forEach((nick, i) => {
 });
 
 // ---------- three.js scene ----------
-const canvas = document.getElementById("c");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });  // city scale: no z-fighting
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b1838);
-const FOG = { stadium: [220, 700], city: [500, 1700] };
-scene.fog = new THREE.Fog(0x8d96b8, ...FOG[MODE]);   // evening haze
-const camera = new THREE.PerspectiveCamera(50, 1, 0.5, 5000);
-const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x203018, 0.9); scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xffe2b8, 0.9); sun.position.set(-80, 120, 60); scene.add(sun);
+let canvas, renderer, scene, camera;
+try {
+  canvas = document.getElementById("c");
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });  // city scale: no z-fighting
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0b1838);
+  const FOG = { stadium: [220, 700], city: [500, 1700] };
+  scene.fog = new THREE.Fog(0x8d96b8, ...FOG[MODE]);   // evening haze
+  camera = new THREE.PerspectiveCamera(50, 1, 0.5, 5000);
+  const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x203018, 0.9); scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xffe2b8, 0.9); sun.position.set(-80, 120, 60); scene.add(sun);
+} catch (e) {
+  console.error("Three.js initialization failed:", e.message);
+  if (canvas) canvas.style.backgroundColor = "#1a2332";
+  const msg = document.createElement("div");
+  msg.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#1a2332;color:#fff;font-family:sans-serif;z-index:10;";
+  msg.innerHTML = "<div style='text-align:center;'><p style='font-size:18px;margin:0 0 10px;'>⚠️ WebGL not available</p><p style='font-size:14px;color:#aaa;'>Your browser doesn't support 3D graphics.</p></div>";
+  document.body.appendChild(msg);
+}
 
 // sky gradient dome
 {
@@ -2022,6 +2032,7 @@ function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.asp
 addEventListener("resize", resize); resize();
 let prev = performance.now();
 function loop(now) {
+  if (!renderer || !scene || !camera) { requestAnimationFrame(loop); return; }  // renderer not ready
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
   if (fly) {
     fly.t = (now - fly.start) / 1000 / fly.dur; const p = fly.t >= 1 ? 1 : 1 - Math.pow(1 - fly.t, 3);
