@@ -1,6 +1,0 @@
-file '/workspace/shon-sharaf/ZAMIN_FK/03_Episode_03/build/seg00.mp4'
-file '/workspace/shon-sharaf/ZAMIN_FK/03_Episode_03/build/seg01.mp4'
-file '/workspace/shon-sharaf/ZAMIN_FK/03_Episode_03/build/seg02.mp4'
-file '/workspace/shon-sharaf/ZAMIN_FK/03_Episode_03/build/seg03.mp4'
-file '/workspace/shon-sharaf/ZAMIN_FK/03_Episode_03/build/seg04.mp4'
-file '/workspace/shon-sharaf/ZAMIN_FK/03_Episode_03/build/seg05.mp4'
