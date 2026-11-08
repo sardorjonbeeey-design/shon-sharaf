@@ -190,6 +190,7 @@
 </div>
 <div id="rule" class="ui" data-t="rule"></div>
 <div id="toast" class="ui pill"></div>
+<div id="debug-log" style="position:fixed; top:0; left:0; right:0; background:rgba(0,0,0,.95); color:#0f0; font-family:monospace; font-size:11px; padding:10px; max-height:200px; overflow-y:auto; z-index:1000; display:none; line-height:1.4;"></div>
 <div id="card" class="ui pill"><button class="x" id="cx">×</button><h3 id="ch"></h3><p id="cp"></p></div>
 <div id="demo" class="ui" data-t="demo"></div>
 <div id="panel" class="ui pill"><button class="x" id="px">×</button><h3 data-t="fans"></h3><div id="plist"></div></div>
@@ -267,9 +268,9 @@ async function getMap() {
   if (!MAP_FILE || new URLSearchParams(location.search).get("map") === "0") return null;
   try { const r = await fetch(MAP_FILE); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
-console.log("Fetching state and map...");
+dbg("Fetching state & map (mode: " + MODE + ")...");
 const [STATE0, MAP] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap()]);
-console.log("State loaded:", STATE0 ? "OK" : "TIMEOUT", "Map:", MAP ? "loaded" : "none");
+dbg("✓ State: " + (STATE0 ? "OK" : "TIMEOUT") + ", Map: " + (MAP ? "loaded" : "none"));
 let STATE = STATE0 || { seats: [], homes: [], miniapp: "" };
 const FAN_META = new Map();       // nick -> { tg: telegram username or null }
 // Club members sit in the Supporters' Stand (main-stand straight). Their seat number comes from the server and never moves.
@@ -352,16 +353,24 @@ FANS.forEach((nick, i) => {
   byNick.set(nick.toLowerCase().replace(/^@/, ""), st);
 });
 
+// ---------- debug logging ----------
+const debugLog = document.getElementById("debug-log");
+const dbgLines = [];
+function dbg(msg) { console.log(msg); dbgLines.push(msg); debugLog.textContent = dbgLines.join("\n"); debugLog.style.display = "block"; }
+dbg("🔧 Init starting...");
+dbg("Canvas: " + (!!document.getElementById("c")));
+dbg("THREE: " + (typeof THREE));
+
 // ---------- three.js scene ----------
 const canvas = document.getElementById("c");
-console.log("Canvas:", canvas, "THREE:", typeof THREE);
+dbg("Creating renderer...");
 let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  console.log("WebGL renderer created");
+  dbg("✓ WebGL renderer OK");
 } catch (e) {
-  console.error("WebGL renderer failed:", e);
+  dbg("✗ WebGL FAILED: " + e.message);
   throw e;
 }
 const scene = new THREE.Scene();
@@ -2033,13 +2042,13 @@ function resize() {
   renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize();
 }
 addEventListener("resize", resize);
-console.log("Calling initial resize...");
+dbg("Calling initial resize " + innerWidth + "x" + innerHeight + "...");
 resize();
-console.log("Initial resize done, animation loop starting...");
+dbg("✓ Ready!");
 let prev = performance.now();
-let dbg = false;
+let loopStarted = false;
 function loop(now) {
-  if (!dbg) { console.log("Loop frame 1, renderer:", renderer ? "OK" : "NULL", "size:", innerWidth, innerHeight); dbg = true; }
+  if (!loopStarted) { dbg("🎬 Render loop active"); loopStarted = true; }
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
   if (fly) {
     fly.t = (now - fly.start) / 1000 / fly.dur; const p = fly.t >= 1 ? 1 : 1 - Math.pow(1 - fly.t, 3);
