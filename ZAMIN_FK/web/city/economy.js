@@ -72,7 +72,7 @@ function init({ app, db, mem, auth, ensureSeat }) {
       const w = (await c.query("select coins, streak, to_char(last_bonus, 'YYYY-MM-DD') as last_bonus, earned from wallets where tg_id = $1 for update", [tgId])).rows[0];
       const home = (await c.query("select tg_id, level, car from homes where tg_id = $1 for update", [tgId])).rows[0] || null;
       const shiftRow = (await c.query("select id, job, seed, started_at, served, earned, last_serve_at from shifts where tg_id = $1 order by id desc limit 1 for update", [tgId])).rows[0] || null;
-      const shift = shiftRow && { ...shiftRow, started_at: new Date(shiftRow.started_at).getTime(), last_serve_at: shiftRow.last_serve_at && new Date(shiftRow.last_serve_at).getTime() };
+      const shift = shiftRow && { ...shiftRow, id: Number(shiftRow.id), started_at: new Date(shiftRow.started_at).getTime(), last_serve_at: shiftRow.last_serve_at && new Date(shiftRow.last_serve_at).getTime() };
       const cnt = (await c.query("select count(*)::int as n from shifts where tg_id = $1 and (started_at at time zone 'Asia/Tashkent')::date = $2::date", [tgId, day])).rows[0].n;
       const before = JSON.stringify([w, home, shift]);
       const ctx = { now, day, w, home, shift, shiftsToday: cnt, log: [] };
@@ -83,7 +83,7 @@ function init({ app, db, mem, auth, ensureSeat }) {
         if (shift && !ctx.newShift) await c.query("update shifts set served = $2, earned = $3, last_serve_at = to_timestamp($4 / 1000.0) where id = $1",
           [shift.id, JSON.stringify(shift.served), shift.earned, shift.last_serve_at || null]);
         if (ctx.newShift) { const r = await c.query("insert into shifts (tg_id, job, seed, started_at) values ($1,$2,$3,to_timestamp($4 / 1000.0)) returning id", [tgId, ctx.newShift.job, ctx.newShift.seed, ctx.newShift.started_at]);
-          ctx.newShift.id = r.rows[0].id; ctx.shift = ctx.newShift; }
+          ctx.newShift.id = Number(r.rows[0].id); ctx.shift = ctx.newShift; }
         for (const l of ctx.log) await c.query("insert into ledger (tg_id, delta, reason) values ($1,$2,$3)", [tgId, l.delta, l.reason]);
       }
       await c.query("commit");
