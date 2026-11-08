@@ -517,15 +517,43 @@ function buildRealTown(map) {
     const ring = pts(f); if (ring.some(([x, z]) => CLR(x, z))) continue;
     if (kind === "house" && lv <= 2) houses.push({ ...rect(ring), lv }); else other.push([kind, lv, ring]);
   }
-  const WALL = [0xe9dfc9, 0xdccdb0, 0xf2ece0, 0xd8c3a0, 0xe6d6bf, 0xcfc2a8], TIN = [0x6f8f6a, 0xa04a3a, 0x5a6f8f, 0x8d9096, 0xb5643c, 0x3f6f8f];
-  const hw = [], hr = [], hwc = [], hrc = [];
+  // houses in the same style as the fan homes: white walls on a stone plinth, coloured gable roof,
+  // framed windows with coloured awnings, front door with a porch, chimney. All instanced (thousands of houses).
+  const WALL = [0xf4f1ea, 0xefe8da, 0xf6f3ec, 0xe9dfc9, 0xeee6d6], ROOF = [0xa8743a, 0x34507f, 0x93413a, 0x45703f, 0x5b4f78, 0x407874, 0x767a80, 0x868a90, 0x8c4d33, 0x93413a];
+  const HALFG = new THREE.CylinderGeometry(.5, .5, 1, 10, 1, false, 0, Math.PI); HALFG.rotateZ(Math.PI / 2);
+  const P = { plinth: [], wall: [], roof: [], frame: [], glass: [], awn: [], door: [], porch: [], chim: [], cap: [] }, PC = { wall: [], roof: [], awn: [] };
+  const local = (h, lx, ly, lz, sx, sy, sz, dr = 0) => {                 // house-local -> world item
+    const c = Math.cos(h.ry), sn = Math.sin(h.ry);
+    return [h.x + lx * c + lz * sn, ly, h.z - lx * sn + lz * c, sx, sy, sz, h.ry + dr];
+  };
   for (const h of houses) {
-    const ry = Math.PI / 2 - h.ang, H = h.lv === 2 || rr() < .14 ? 6.2 : 3.3, rh = Math.min(h.wid * .32, 2.4);
-    h.ry = ry; h.H = H;
-    hw.push([h.x, H / 2, h.z, h.wid, H, h.len, ry]); hwc.push(choose(WALL));
-    hr.push([h.x, H, h.z, h.wid + .9, rh, h.len + .9, ry]); hrc.push(choose(TIN));
+    h.ry = Math.PI / 2 - h.ang; h.H = h.lv === 2 || rr() < .14 ? 6.2 : 3.4;
+    const { wid: W, len: Ln, H } = h, rh = Math.min(W * .3, 2.2), roofC = choose(ROOF), refs = h.refs = [];
+    const add = (k, it, col) => { refs.push([k, P[k].length]); P[k].push(it); if (PC[k]) PC[k].push(col); };
+    add("plinth", local(h, 0, .3, 0, W + .3, .6, Ln + .3));
+    add("wall", local(h, 0, .6 + (H - .6) / 2, 0, W, H - .6, Ln), choose(WALL));
+    add("roof", local(h, 0, H, 0, W + 1, rh, Ln + 1), roofC);
+    const nW = Ln > 10 ? 3 : Ln > 5.5 ? 2 : 1;
+    for (const side of [1, -1]) for (let k = 0; k < nW; k++) {
+      const lz = nW === 1 ? (side > 0 ? Ln * .25 : 0) : (k / (nW - 1) - .5) * Ln * .62, lx = side * (W / 2 + .03);
+      if (side > 0 && Math.abs(lz) < 1.2 && nW !== 2) continue;            // door goes in the middle of the front
+      for (const y of H > 5 ? [1.9, 4.7] : [1.9]) {
+        add("frame", local(h, lx, y, lz, .12, 1.75, 1.55)); add("glass", local(h, lx + side * .03, y, lz, .12, 1.45, 1.25));
+        if (y < 3) add("awn", local(h, lx + side * .3, y + 1.1, lz, 1.9, .5, .7, side > 0 ? Math.PI / 2 : -Math.PI / 2), roofC);
+      }
+    }
+    const dz = nW === 2 ? 0 : 0;
+    add("door", local(h, W / 2 + .06, 1.45, dz, .15, 2.3, 1.2));
+    add("porch", local(h, W / 2 + .9, 2.85, dz, 1.8, .25, 2.6));
+    add("chim", local(h, -W * .18, H + rh * .55, Ln * .22, .8, 1.8, .8)); add("cap", local(h, -W * .18, H + rh * .55 + .95, Ln * .22, 1, .25, 1));
   }
-  const houseWalls = instanced(CBOX, lamC(0xffffff), hw, hwc), houseRoofs = instanced(PRISM, lamC(0xffffff), hr, hrc);
+  const M3 = {
+    plinth: instanced(CBOX, lamC(0x8c8a84), P.plinth), wall: instanced(CBOX, lamC(0xffffff), P.wall, PC.wall),
+    roof: instanced(PRISM, lamC(0xffffff), P.roof, PC.roof), frame: instanced(CBOX, lamC(0xffffff), P.frame),
+    glass: instanced(CBOX, lamC(0x9fd0ef), P.glass), awn: instanced(HALFG, lamC(0xffffff), P.awn, PC.awn),
+    door: instanced(CBOX, lamC(0x9c3b22), P.door), porch: instanced(CBOX, lamC(0xffffff), P.porch),
+    chim: instanced(CBOX, lamC(0xe9e6df), P.chim), cap: instanced(CBOX, lamC(0x555555), P.cap),
+  };
   { const pos = [], nrm = [], col = [], domes = [];
     const KC = { flat: 0xd6d0c2, school: 0xe8cfa6, mosque: 0xeee6d2, public: 0xd8d2c4, house: 0xdccdb0 }, cc = new THREE.Color();
     for (const [kind, lv, ring] of other) {
@@ -549,12 +577,11 @@ function buildRealTown(map) {
   // fans move into real houses: nearest to the stadium first
   plots = houses.map(h => ({ ...h, d: Math.hypot(h.x, h.z) })).sort((a, b) => a.d - b.d);
   const hidden = [], HID = new THREE.Matrix4().makeScale(0, 0, 0);
+  const setRef = ([k, i], show) => { if (show) { const t = P[k][i]; iQ.setFromAxisAngle(iY, t[6]); iM.compose(iP.set(t[0], t[1], t[2]), iQ, iS.set(t[3], t[4], t[5])); M3[k].setMatrixAt(i, iM); } else M3[k].setMatrixAt(i, HID); };
   hideBuiltLand = n => {
-    hidden.splice(0).forEach(h => { const i = houses.indexOf(h);
-      iQ.setFromAxisAngle(iY, h.ry); iM.compose(iP.set(h.x, h.H / 2, h.z), iQ, iS.set(h.wid, h.H, h.len)); houseWalls.setMatrixAt(i, iM);
-      iM.compose(iP.set(h.x, h.H, h.z), iQ, iS.set(h.wid + .9, Math.min(h.wid * .32, 2.4), h.len + .9)); houseRoofs.setMatrixAt(i, iM); });
-    plots.slice(0, n).forEach(p => { const i = houses.findIndex(h => h.x === p.x && h.z === p.z); if (i < 0) return; houseWalls.setMatrixAt(i, HID); houseRoofs.setMatrixAt(i, HID); hidden.push(houses[i]); });
-    houseWalls.instanceMatrix.needsUpdate = houseRoofs.instanceMatrix.needsUpdate = true;
+    hidden.splice(0).forEach(h => h.refs.forEach(r => setRef(r, true)));
+    plots.slice(0, n).forEach(p => { const h = houses.find(q => q.x === p.x && q.z === p.z); if (!h) return; h.refs.forEach(r => setRef(r, false)); hidden.push(h); });
+    for (const k in M3) M3[k].instanceMatrix.needsUpdate = true;
   };
   // traffic on real streets, labels from real names
   for (const [c, ps] of roadsXY) if (c <= 4 && ps.length > 1) carPaths.push(ps);
