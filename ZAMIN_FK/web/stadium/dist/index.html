@@ -15,10 +15,10 @@
   .pill { background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
   #brand { top:14px; left:14px; display:flex; align-items:center; gap:10px; padding:10px 16px; font-weight:900; font-size:17px; letter-spacing:.5px; }
   #brand img { height:34px; }
-  #count { top:14px; right:14px; padding:8px 16px; text-align:center; }
-  #count small { display:block; color:var(--yel); font-weight:900; font-size:12px; letter-spacing:2px; }
-  #count b { display:block; font-weight:900; font-size:30px; line-height:1.05; }
-  #count i { display:block; font-style:normal; font-size:10px; letter-spacing:2px; color:#9DB8FF; }
+  #count { top:14px; right:14px; padding:6px 12px 7px; min-width:72px; box-sizing:border-box; text-align:center; border-radius:14px; border-width:1.5px; }
+  #count small { display:block; color:var(--yel); font-weight:900; font-size:9px; letter-spacing:1.5px; }
+  #count b { display:block; font-weight:900; font-size:22px; line-height:1.05; }
+  #count i { display:block; font-style:normal; font-size:7.5px; letter-spacing:1.5px; color:#9DB8FF; }
   #langs { top:74px; left:14px; display:flex; align-items:center; gap:6px; padding:5px; border-radius:16px; background:rgba(13,37,87,.85); border:2px solid rgba(255,255,255,.2); box-sizing:border-box; max-width:48px; overflow:hidden; transition:max-width .3s ease; }
   #langs.open { max-width:160px; }
   #langs button { flex:0 0 auto; width:34px; height:24px; padding:0; border:2px solid transparent; border-radius:6px; overflow:hidden; background:none; line-height:0; cursor:pointer; }
@@ -97,7 +97,7 @@
   body.city #actions { display:flex; }
   body.city #rule { display:none; }
   #count .homes { display:none; }
-  body.city #count .homes { display:block; margin-top:4px; }
+  body.city #count .homes { display:block; margin-top:5px; padding-top:5px; border-top:1px solid rgba(255,255,255,.15); }
   #cta { left:50%; transform:translateX(-50%); bottom:130px; display:none; font:inherit; font-weight:900; font-size:14px; color:#fff; background:var(--blue); border:2px solid var(--yel); border-radius:16px; padding:10px 16px; white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,.35); }
   body:not(.city) #cta.on { display:block; }
   .sheet { left:12px; right:12px; bottom:14px; z-index:7; padding:18px; display:none; max-height:80vh; overflow:auto; }
