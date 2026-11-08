@@ -24,8 +24,8 @@
 
 ## 4. KEYINGI SAVOL (34–42 s)
 - **Kadr:** Bekzod, Jasur, Aziz — yonma-yon siluet, bo‘sh o‘rin.
-- **Subtitr:** `Keyingi bosh qarorda kim bo‘lsin?`
-- **Ovoz:** “Izohga bitta so‘z yozing: HUJUMCHI yoki DARVOZABON.”
+- **Subtitr:** `Do‘stona o‘yin: qaysi klubga taklif yuboramiz?`
+- **Ovoz:** “Qaysi klubga do‘stona o‘yin taklif qilaylik? Izohga klub nomini yozing.”
 
 ## OUTRO HOOK (42–48 s) — eng muhim 6 soniya
 - **Kadr:** echki tribunada, yuzi kameraga qaraydi (qayta ko‘rishga arziydigan detal).
@@ -37,13 +37,16 @@
 ```
 3-kun. Doston jamoada! ⚽ Ovoz bergan har bir muxlisga rahmat.
 Klub fondi: 22 500 000 so‘m (virtual). Shahar ochildi — @zaminfk_bot ga kiring 👇
-Keyingi savol: izohga bitta so‘z — HUJUMCHI yoki DARVOZABON.
+Do‘stona o‘yin: qaysi klubga taklif yuboramiz? Izohga klub nomini yozing.
 G‘olib 10 soatdan keyin e’lon qilinadi. Klub jamoasiga qo‘shiling yoki shaharda ish toping: @zaminfk_bot (Fond va muxlislar — virtual o‘yin mexanikasi.)
 ```
 
+## G‘olib
+- Izoh: Doston (Instagram, @isomova_sabina) — ovoz ulushi 78%. E’lon: 10 soatdan keyin.
+
 ## Hooks tekshiruvi
 - [ ] 1-soniya kadri ovozsiz tushunarlimi? (SIZ TANLADINGIZ)
-- [ ] Savol bitta, javob bitta so‘z? (HUJUMCHI / DARVOZABON)
+- [ ] Savol bitta, javob bitta so‘z — klub nomi? (do‘stona o‘yin)
 - [ ] CTA bitta: @zaminfk_bot /start
 - [ ] Outro: keyingi kun uchun sabab bormi? (echki + ertangi natija)
 - [ ] Virtual mexanika belgilangan
