@@ -17,12 +17,12 @@ def dur(p):
 
 # narration lines: (file, [(caption text, highlighted word indexes)])
 LINES = [
- ("01_hook", [("SIZ TANLADINGIZ: DOSTON!", [1, 2])]),
- ("02_result", [("Sherzod emas — DOSTON. Rahmat, har bir ovoz uchun.", [2, 3])]),
- ("03_update", [("Klub fondi: 21 690 000 so‘m. Biz Sherzodni ham jalb qildik!", [3, 4])]),
- ("04_cta", [("Men — echki. Endi klubning brend yuzi! Sizga aytaman: Paxtakor bilan o‘rtoqlik o‘yini!", [5, 6])]),
- ("05_question", [("Toshkentga avtobus haydovchisi kerak. Izohga “MEN HAYDOVCHIMAN” deb yozing. Eng ko‘p layk olgan izoh 24 soatdan keyin e’lon qilinadi.", [3, 4])]),
- ("06_outro", [("Echkiga nima bo‘ldi? U endi klubning brend yuzi!", [4, 5, 6])]),
+ ("v2_01_hook", [("Men — echki. Va bugundan men gapiraman! Uchinchi kun — katta yangiliklar!", [0, 1, 5, 6])]),
+ ("v2_02_roster", [("Birinchi: jamoamizga yangi himoyachi qo‘shildi — Sherzod!", [5, 6])]),
+ ("v2_03_friendly", [("Ikkinchi: siz tanladingiz — Paxtakor bilan o‘rtoqlik o‘yini!", [3, 5, 6])]),
+ ("v2_04_fund", [("Klub fondi: 21 690 000 so‘m. Muxlislar: 142.", [2, 3, 5])]),
+ ("v2_05_bus", [("Lekin muammo bor: Toshkentga boradigan avtobusni haydaydigan odam yo‘q!", [3, 4, 9, 10])]),
+ ("v2_06_outro", [("Izohga “MEN HAYDOVCHIMAN” deb yozing. Eng ko‘p layk olgan izoh — 24 soatdan keyin e’lon qilinadi!", [1, 2, 5, 6])]),
 ]
 t, L, audio, caps = 0.25, [], [], []
 for name, phrases in LINES:
@@ -53,55 +53,70 @@ FUND_OLD, FUND_NEW, FOLLOW = 20_085_000, 21_690_000, 142
 card_g = lambda body, w=900: (f'<div style="width:{w}px;padding:30px 34px;box-sizing:border-box;border-radius:34px;background:rgba(13,37,87,.94);'
                              f'border:6px solid #fff;color:#fff;text-align:center;box-shadow:0 14px 34px rgba(0,0,0,.5)">{body}</div>')
 
+def tag(n, name, joke, new=False):
+    acc = "#FFD23F" if new else "#fff"
+    return (f'<div style="background:#0D2557;border:5px solid {acc};border-radius:22px;padding:12px 18px;text-align:center;color:#fff;'
+            f'box-shadow:0 8px 20px rgba(0,0,0,.5);min-width:210px"><div style="font-size:44px;font-weight:900;color:{acc}">#{n} {name}</div>'
+            f'<div style="font-size:26px;font-weight:700;color:#cfdcff">{joke}</div></div>')
+bubble = lambda t: f'<div style="background:#fff;color:#0D2557;border:6px solid #0D2557;border-radius:30px;padding:18px 26px;font-weight:900;font-size:46px;max-width:620px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.4)">{t}</div>'
+comment = lambda t, likes: (f'<div style="width:860px;background:#fff;color:#0D2557;border-radius:30px;border:6px solid #0D2557;padding:22px 28px;box-shadow:0 12px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:22px">'
+                            f'<div style="width:96px;height:96px;border-radius:50%;background:#1F4FB8;color:#fff;font-size:56px;display:flex;align-items:center;justify-content:center">👤</div>'
+                            f'<div style="flex:1"><div style="font-size:26px;opacity:.6;font-weight:700">sizning izohingiz</div><div style="font-size:58px;font-weight:900">{t}</div></div>'
+                            f'<div style="font-size:44px;font-weight:900;color:#e63950">❤ {likes}</div></div>')
+
 scenes = [
- # HOOK: Doston pops in, title stamps
- {"from": 0, "to": s(2), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.15, 1.0], "blur": 6}, "items": [
-   spr("doston", 540, 1800, 1150, frac(1, 0.2), enter="up", idle="bob", z=12),
-   lab('<div class="title" style="font-size:150px">DOSTON!</div>', 540, 430, frac(1, 0.35), enter="stamp", idle="pulse", z=25),
-   lab(chip("SIZ TANLADINGIZ", True), 540, 600, frac(1, 0.15), enter="stamp", z=25),
-   lab(crest, 540, 120, s(1, 0.1), enter="drop", enterDur=0.5, z=25),
+ # HOOK: the goat speaks, series title
+ {"from": 0, "to": s(2), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.2, 1.0], "blur": 5}, "items": [
+   lab('<div class="title" style="font-size:150px">3-KUN</div>', 540, 330, s(1, 0.05), enter="stamp", idle="pulse", z=25),
+   lab(chip("ECHKI GAPIRYAPTI! 🐐", True), 540, 520, frac(1, 0.2), enter="stamp", z=25),
+   spr("goat_chew", 540, 1850, 1150, s(1, 0.05), enter="up", idle="talk", z=12),
+   lab(bubble("Men — klubning brend yuzi!"), 540, 800, frac(1, 0.45), enter="pop", idle="sway", z=24),
  ]},
- # RESULT: the defender vote story + 78% stamp + winner card
- {"from": s(2), "to": s(3), "bg": {"src": f"{A1}/BG_stand_empty.png", "zoom": [1.0, 1.1], "blur": 12}, "items": [
-   spr("doston", 540, 1820, 1100, s(2, 0.05), enter="up", idle="bob", z=12),
-   lab(chip("78% OVOZ", True), 800, 300, frac(2, 0.25), enter="stamp", z=25),
-   lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">G‘OLIB IZOH</small><div style="font-size:84px;font-weight:900;line-height:1.1">DOSTON</div><div style="font-size:34px">Mudofaa · 22 yosh · OVR 67</div>'),
-       540, 700, frac(2, 0.3), enter="up", idle="sway", z=25),
+ # ROSTER: lineup reveal with joke tags, Sherzod is new
+ {"from": s(2), "to": s(3), "bg": {"src": f"{A1}/S05_stadium_wide.png", "zoom": [1.0, 1.12], "blur": 8}, "items": [
+   lab(chip("JAMOA TARKIBI", True), 540, 230, s(2, 0.05), enter="stamp", z=25),
+   spr("jasur_oneglove", 160, 1420, 520, s(2, 0.1), enter="slideL", idle="bob", z=9),
+   lab(tag(1, "JASUR", "bahonasi tayyor"), 160, 900, s(2, 0.2), enter="pop", z=20),
+   spr("aziz_ball", 400, 1420, 520, frac(2, 0.2), enter="slideL", idle="bob", z=9),
+   lab(tag(8, "AZIZ", "jiddiy yuz"), 400, 780, frac(2, 0.25), enter="pop", z=20),
+   spr("bekzod_celebrate", 650, 1420, 560, frac(2, 0.4), enter="slideR", idle="hop", z=9),
+   lab(tag(9, "BEKZOD", "erta bayram"), 650, 900, frac(2, 0.45), enter="pop", z=20),
+   spr("sherzod", 900, 1420, 500, frac(2, 0.62), enter="drop", enterDur=0.6, idle="sway", z=10),
+   lab(tag(5, "SHERZOD", "YANGI! ✅", True), 900, 780, frac(2, 0.66), enter="stamp", idle="pulse", z=26),
  ]},
- # UPDATE: fund counter rolls up, follower badge, +178 chip
- {"from": s(3), "to": s(4), "bg": {"src": f"{A1}/S05_stadium_wide.png", "zoom": [1.0, 1.08], "blur": 10}, "items": [
-   lab('<div class="badge"><small>MUXLISLAR</small><b>0</b><i>VIRTUAL</i></div>', 290, 430, s(3, 0.1), counter=roll(s(3, 0.2), 0, FOLLOW)),
-   lab('<div class="card"><small>VIRTUAL KLUB FONDI</small><b>0</b><span>so‘m</span></div>', 540, 860, frac(3, 0.25), enter="up",
-       counter=roll(frac(3, 0.3), FUND_OLD, FUND_NEW, 20)),
-   lab(chip("+107 × 15 000 = 1 605 000 so‘m", True), 540, 1080, frac(3, 0.7), enter="stamp", idle="pulse"),
-   spr("bekzod_celebrate", 800, 1750, 680, frac(3, 0.1), enter="up", idle="hop", z=9),
-   spr("sherzod", 260, 1780, 760, frac(3, 0.6), enter="slideL", idle="sway", z=10),
-   lab(chip("SHERZOD — JAMOAGA QO‘SHILDI ✅", True), 540, 1260, frac(3, 0.62), enter="stamp", z=26),
+ # FRIENDLY: match card
+ {"from": s(3), "to": s(4), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.08], "blur": 9}, "items": [
+   lab(chip("O‘RTOQLIK O‘YINI", True), 540, 260, s(3, 0.05), enter="stamp", z=25),
+   lab(card_g('<div style="display:flex;align-items:center;justify-content:space-between"><div><img src="'+CREST+'" style="height:130px"><div style="font-size:40px;font-weight:900;margin-top:6px">ZAMIN FK</div></div>'
+              '<div style="font-size:110px;font-weight:900;color:#FFD23F">VS</div>'
+              '<div><div style="font-size:90px">⚽</div><div style="font-size:40px;font-weight:900;margin-top:6px">PAXTAKOR</div></div></div>'),
+       540, 760, frac(3, 0.25), enter="drop", enterDur=0.6, idle="sway", z=22),
+   lab(chip("4 TA IZOH: PAXTAKOR 🔥", True), 540, 1120, frac(3, 0.55), enter="stamp", idle="pulse", z=25),
+   spr("aziz_ball", 220, 1760, 560, frac(3, 0.4), enter="slideL", idle="hop", z=9),
+   spr("bekzod_celebrate", 860, 1760, 620, frac(3, 0.45), enter="slideR", idle="hop", z=9),
  ]},
- # GOAT: brand face + Paxtakor friendly
- {"from": s(4), "to": s(5), "bg": {"src": f"{A1}/S05_stadium_wide.png", "zoom": [1.35, 1.15], "focus": [0.82, 0.62, 0.78, 0.6], "blur": 3}, "items": [
-   spr("doston", 790, 1150, 200, s(4, 0.0), enter="pop", idle="hop", z=3),
-   spr("sherzod", 880, 1150, 200, s(4, 0.1), enter="pop", idle="hop", z=3),
-   lab('<div class="chip" style="font-size:24px">⚽ MASHG‘ULOT</div>', 820, 1070, s(4, 0.15), enter="pop", z=4),
-   spr("goat_chew", 540, 1800, 1000, s(4, 0.05), enter="up", idle="talk", z=12),
-   lab(chip("MEN — BREND YUZI! 🐐", True), 540, 380, s(4, 0.2), enter="stamp", z=25),
-   lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">O‘RTOQLIK O‘YINI</small><div style="font-size:90px;font-weight:900;line-height:1.05">PAXTAKOR</div><div style="font-size:36px">🔥 Muxlislar tanladi</div>'),
-       540, 620, frac(4, 0.35), enter="drop", enterDur=0.5, idle="sway", z=25),
+ # FUND + FOLLOWERS
+ {"from": s(4), "to": s(5), "bg": {"src": f"{A1}/S05_stadium_wide.png", "zoom": [1.05, 1.0], "blur": 10}, "items": [
+   lab('<div class="badge"><small>MUXLISLAR</small><b>0</b><i>VIRTUAL</i></div>', 290, 430, s(4, 0.1), counter=roll(s(4, 0.2), 127, FOLLOW, 14)),
+   lab('<div class="card"><small>VIRTUAL KLUB FONDI</small><b>0</b><span>so‘m</span></div>', 540, 860, frac(4, 0.2), enter="up",
+       counter=roll(frac(4, 0.25), FUND_OLD, FUND_NEW, 20)),
+   lab(chip("+107 × 15 000 = 1 605 000 so‘m", True), 540, 1080, frac(4, 0.6), enter="stamp", idle="pulse"),
  ]},
- # BUS CALL-OUT: comment wins the driver seat
- {"from": s(5), "to": e(5), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.05], "blur": 10}, "items": [
-   lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">TOSHKENTGA BORAMIZ</small><div style="font-size:80px;font-weight:900;line-height:1.1">AVTOBUS<br>HAYDOVCHISI 🚌</div>'),
-       540, 560, s(5, 0.05), enter="stamp", z=25),
-   lab(chip("IZOHGA: MEN HAYDOVCHIMAN", True), 540, 820, frac(5, 0.35), enter="drop", enterDur=0.5, idle="pulse", z=25),
-   lab(chip("ENG KO‘P LAYK = HAYDOVCHI"), 540, 950, frac(5, 0.6), enter="stamp", z=25),
+ # BUS PROBLEM: the bus drives in, no driver
+ {"from": s(5), "to": s(6), "bg": {"src": f"{A1}/BG_stand_empty.png", "zoom": [1.0, 1.1], "blur": 10}, "items": [
+   lab('<div style="font-size:380px;line-height:1">🚌</div>', 540, 560, s(5, 0.1), enter="slideR", enterDur=0.7, idle="shake", z=15),
+   lab(chip("TOSHKENT!", True), 540, 330, s(5, 0.2), enter="stamp", z=25),
+   lab(card_g('<div style="font-size:68px;font-weight:900;line-height:1.1">HAYDOVCHI<br>YO‘Q! 😬</div>'), 540, 880, frac(5, 0.45), enter="drop", enterDur=0.5, idle="sway", z=25),
+   spr("goat_side", 900, 1880, 520, frac(5, 0.55), enter="peekR", idle="chew", z=24),
  ]},
- # OUTRO: goat finishes the promise
- {"from": e(5), "to": TOTAL + 1, "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.1, 1.3], "focus": [0.5, 0.5, 0.5, 0.42]}, "items": [
-   lab('<div style="position:absolute;left:-600px;top:-1000px;width:1200px;height:2000px;background:radial-gradient(circle at 50% 60%,transparent 30%,rgba(0,0,0,.75) 70%)"></div>', 540, 960, e(5), enter="fade", z=5),
-   spr("goat_chew", 540, 1650, 1000, s(6, 0.2), enter="up", idle="chew", z=12),
-   lab('<div class="title" style="font-size:96px">BREND YUZI 🐐</div>', 540, 330, s(6, 0.1), enter="stamp", z=25),
-   lab(chip("ECHKI ENDI KLUBDA!", True), 540, 470, s(6, 0.8), enter="stamp", z=25),
-   lab('<div class="follow">+ OBUNA BO‘LING</div>', 540, 1760, e(6, -0.5), idle="pulse", z=25),
+ # OUTRO: comment call-out, 24 hours, goat speaks
+ {"from": s(6), "to": TOTAL + 1, "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.1, 1.25], "focus": [0.5, 0.5, 0.5, 0.42], "blur": 6}, "items": [
+   lab(chip("HAYDOVCHI BO‘LING! 🚌", True), 540, 280, s(6, 0.05), enter="stamp", z=25),
+   lab(comment("MEN HAYDOVCHIMAN", "0"), 540, 640, s(6, 0.25), enter="slideL", enterDur=0.5, idle="sway", z=22, counter=roll(frac(6, 0.5), 0, 128, 14)),
+   lab(chip("ENG KO‘P LAYK = HAYDOVCHI"), 540, 880, frac(6, 0.55), enter="stamp", z=25),
+   lab(chip("⏳ 24 SOATDAN KEYIN E’LON"), 540, 1000, frac(6, 0.7), enter="stamp", idle="pulse", z=25),
+   spr("goat_chew", 860, 1860, 720, s(6, 0.4), enter="up", idle="talk", z=12),
+   lab('<div class="follow">+ OBUNA BO‘LING</div>', 540, 1800, e(6, -0.6), idle="pulse", z=25),
  ]},
 ]
 EP = {"total": TOTAL, "scenes": scenes, "captions": caps}
