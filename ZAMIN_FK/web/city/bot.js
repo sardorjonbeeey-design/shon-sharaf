@@ -5,8 +5,6 @@ const crypto = require("crypto");
 
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const TG_API = process.env.TG_API || "https://api.telegram.org";          // overridable for tests
-const ADMIN_ID = process.env.ADMIN_ID || "";                               // Admin user ID for feedback
-const ADMIN_CHANNEL = process.env.ADMIN_CHANNEL || "";                     // Admin channel for activity logging
 // The Mini App's current HTTPS address = this service (Render sets RENDER_EXTERNAL_URL). Not changed here.
 const WEBAPP_URL = process.env.WEBAPP_URL || process.env.RENDER_EXTERNAL_URL || "";
 const PUBLIC_URL = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || "";
@@ -27,29 +25,6 @@ function welcome(user) {
     `Boshlash uchun pastdagi tugmani bosing 👇`;
 }
 const isStart = text => /^\/start(@\w+)?(\s|$)/i.test(String(text || "").trim());
-const isFeedback = text => /^\/feedback(@\w+)?(\s|$)/i.test(String(text || "").trim());
-
-let feedbackDb = null, feedbackReady = Promise.resolve();
-function initFeedback(db) {
-  feedbackDb = db;
-  if (!db) return;
-  feedbackReady = db.query(`
-    create table if not exists feedback (
-      id bigserial primary key, tg_id bigint, username text, message text,
-      created_at timestamptz default now());`).catch(e => console.error("feedback table", e.message));
-}
-
-async function saveFeedback(tgId, username, text) {
-  if (!feedbackDb) return;
-  try {
-    await feedbackReady;
-    await feedbackDb.query("insert into feedback (tg_id, username, message) values ($1, $2, $3)", [tgId, username, text]);
-    if (ADMIN_ID && text && BOT_TOKEN) {
-      const msg = `📬 <b>Yangi feedback:</b>\n\n<b>Foydalanuvchi:</b> @${username || tgId}\n<b>Xabar:</b> ${esc(text)}`;
-      await api("sendMessage", { chat_id: ADMIN_ID, text: msg, parse_mode: "HTML" }).catch(e => console.error("admin notify", e.message));
-    }
-  } catch (e) { console.error("save feedback", e.message); }
-}
 
 // Build the reply for one update. Returned object is sent back in the webhook HTTP response
 // (Telegram executes it), so answering needs no extra outbound request.
@@ -57,14 +32,6 @@ function replyFor(update) {
   const msg = update && (update.message || update.edited_message);
   if (msg && msg.chat && msg.from && /^\/id(@\w+)?$/i.test(String(msg.text || "").trim()))     // helper for setting ADMIN_IDS
     return { method: "sendMessage", chat_id: msg.chat.id, text: `Sizning Telegram ID raqamingiz: <code>${msg.from.id}</code>`, parse_mode: "HTML" };
-  if (msg && msg.chat && msg.from && isFeedback(msg.text)) {
-    saveFeedback(msg.from.id, msg.from.username || msg.from.first_name, "");
-    return { method: "sendMessage", chat_id: msg.chat.id, text: "Fikringizni yozib yuboring 📝", parse_mode: "HTML" };
-  }
-  if (msg && msg.chat && msg.from && msg.text && !isStart(msg.text)) {
-    saveFeedback(msg.from.id, msg.from.username || msg.from.first_name, msg.text);
-    return { method: "sendMessage", chat_id: msg.chat.id, text: "Rahmat! 🙏 Fikringiz saqlandi.", parse_mode: "HTML" };
-  }
   if (!msg || !msg.chat || !isStart(msg.text)) return null;
   const reply = { method: "sendMessage", chat_id: msg.chat.id, text: welcome(msg.from), parse_mode: "HTML" };
   if (WEBAPP_URL.startsWith("https://")) reply.reply_markup = { inline_keyboard: [[{ text: BUTTON, web_app: { url: WEBAPP_URL } }]] };
@@ -76,14 +43,6 @@ async function api(method, body) {
   const d = await r.json().catch(() => ({}));
   if (!d.ok) throw new Error(`${method}: ${d.description || r.status}`);
   return d.result;
-}
-
-async function logToAdminChannel(title, details) {
-  if (!ADMIN_CHANNEL || !BOT_TOKEN) return;
-  try {
-    const msg = `<b>📊 ${title}</b>\n\n${details}`;
-    await api("sendMessage", { chat_id: ADMIN_CHANNEL, text: msg, parse_mode: "HTML" }).catch(e => console.error("admin channel log", e.message));
-  } catch (e) { console.error("log to admin channel", e.message); }
 }
 
 // Register the webhook on startup. A webhook pointing somewhere else is left alone unless BOT_WEBHOOK_FORCE=1,
@@ -121,4 +80,4 @@ function mount(app) {
   app.get("/tg/status", (req, res) => res.json({ bot: !!BOT_TOKEN, username: info.username, webhook: info.webhook, webapp: WEBAPP_URL }));
 }
 
-module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api, initFeedback, logToAdminChannel };
+module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api };
