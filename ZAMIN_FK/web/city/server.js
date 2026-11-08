@@ -42,7 +42,6 @@ app.use((req, res, next) => {
 
 const bot = require("./bot");
 bot.mount(app);                                            // Telegram webhook: /start -> welcome + Mini App button
-if (db) bot.initFeedback(db);                              // Initialize feedback storage
 
 // --- storage: Postgres when DATABASE_URL is set, otherwise memory (local testing only)
 let db = null, DB_READY = Promise.resolve();
@@ -73,6 +72,7 @@ if (process.env.DATABASE_URL) {
       id bigserial primary key, tg_id bigint not null, nick text not null, role text not null, note text,
       created_at timestamptz not null default now());`)
     .catch(e => console.error("db init", e.message));
+  bot.initFeedback(db);
 }
 const q = (sql, args) => db.query(sql, args).then(r => r.rows);
 async function listHomes() {
