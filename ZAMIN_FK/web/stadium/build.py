@@ -56,9 +56,9 @@ if MAP:
     os.makedirs(os.path.join(HERE, "dist", "map"), exist_ok=True)
     shutil.copy(os.path.join(HERE, "map", MAP), os.path.join(HERE, "dist", "map", MAP))
 crest = data_uri(os.path.join(Z, "03_Approved_Assets", "ZFK_CREST_MASTER_V01_P_2048.png"), 96)
-html = open(os.path.join(HERE, "template_new.html")).read()
+html = open(os.path.join(HERE, "template.html")).read()
 html = (html.replace("__FANS__", json.dumps(fans, ensure_ascii=False)).replace("__HEROES__", json.dumps(heroes, ensure_ascii=False))
-        .replace("__DEMO__", "true" if demo else "false").replace("__VIP__", json.dumps(vip)).replace("__SCREEN__", json.dumps(screen, ensure_ascii=False)).replace("__CREST__", crest).replace("__API__", json.dumps(API_ORIGIN)).replace("__MAP__", json.dumps("map/" + MAP if MAP else "")))
+        .replace("__DEMO__", "true" if demo else "false").replace("__VIP__", json.dumps(vip)).replace("__SCREEN__", json.dumps(screen, ensure_ascii=False)).replace("__CREST__", json.dumps(crest)).replace("__API__", json.dumps(API_ORIGIN)).replace("__MAP__", json.dumps("map/" + MAP if MAP else "")))
 os.makedirs(os.path.join(HERE, "dist"), exist_ok=True)
 import shutil as _sh                                          # 3D models (Kenney CC0) + GLTF loader go next to the page
 for d in ("models", "vendor"):
