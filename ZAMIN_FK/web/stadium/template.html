@@ -526,6 +526,9 @@ const lamC = c => new THREE.MeshLambertMaterial({ color: c });
 const OUT_R = seats[seats.length - 1].ring + 1;
 const OUT_A = PW / 2 + 9 + OUT_R * ROW_D, OUT_B = PH / 2 + 9 + OUT_R * ROW_D;   // stadium footprint half-sizes
 const CX = Math.max(PW / 2 + 110, OUT_A + 70), CZ = Math.max(PH / 2 + 110, OUT_B + 70); // complex half-sizes
+let TREE_SPOTS = null, CAR_CLONES = [], CAR_BOXES = [];
+const TREE_MESHES = [];
+const TRAFFIC = ["sedan", "van", "suv", "taxi", "hatchback-sports", "sedan-sports", "suv-luxury"];
 let LOTS = [], plots = [], WORLD = 560, PLAZA = null, hideBuiltLand = () => {}, LOT_PLUS = null;
 const PLUS_GEO = (() => {                                 // flat "+" sign for free lots
   const a = new THREE.BoxGeometry(3.2, .14, .8).toNonIndexed(), b = new THREE.BoxGeometry(.8, .14, 3.2).toNonIndexed(), g = new THREE.BufferGeometry();
@@ -622,11 +625,12 @@ function buildRealTown(map) {
       }
     }
     instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xe8e8e8 }), dash);
-    instanced(new THREE.ConeGeometry(.5, 1, 7), lamC(0xffffff), pop, pop.map(() => choose([0x3e6b2c, 0x46772f, 0x37602a, 0x52813a])));
+    TREE_MESHES.push(instanced(new THREE.ConeGeometry(.5, 1, 7), lamC(0xffffff), pop, pop.map(() => choose([0x3e6b2c, 0x46772f, 0x37602a, 0x52813a]))));
+    TREE_SPOTS = { pop: pop.map(t => [t[0], t[2], t[4]]), round: round.map(t => [t[0], t[2], t[4]]) };
     instanced(new THREE.CylinderGeometry(.5, .5, 1, 5), lamC(0x6b5236), trunk);
     instanced(CBOX, lamC(0x2b3038), pole); instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xffd36b }), head);
     instanced(CBOX, lamC(0x2b3038), head.map(t => [t[0], t[1] + .55, t[2], .9, .2, .9]));
-    instanced(new THREE.IcosahedronGeometry(.5, 1), lamC(0xffffff), round, round.map(() => choose([0x4caf50, 0x66bb3a, 0x43a047, 0x5aa83c])));
+    TREE_MESHES.push(instanced(new THREE.IcosahedronGeometry(.5, 1), lamC(0xffffff), round, round.map(() => choose([0x4caf50, 0x66bb3a, 0x43a047, 0x5aa83c]))));
     instanced(new THREE.CylinderGeometry(.5, .5, 1, 6), lamC(0x7a5233), rtrunk);
     instanced(CBOX, lamC(0xa0663a), bench); instanced(CBOX, lamC(0x2b3038), legs); instanced(CBOX, lamC(0x3a4250), bin);
   }
@@ -883,8 +887,21 @@ let carBody, carTop;
   }
   carBody = instanced(CBOX, lamC(0xffffff), cars.map(() => [0, -50, 0, 1, 1, 1]), col);
   carTop = instanced(CBOX, lamC(0x2b3440), cars.map(() => [0, -50, 0, 1, 1, 1]));
+  CAR_BOXES = [carBody, carTop];
 }
 function cityTick(dt) {
+  if (CAR_CLONES.length) {                                   // real car models drive the streets
+    cars.forEach((k, i) => {
+      const p = k.p; k.s += k.dir * k.sp * dt;
+      if (k.s > p.L) { k.s = p.L; k.dir = -1; } if (k.s < 0) { k.s = 0; k.dir = 1; }
+      let j = 1; while (j < p.cum.length - 1 && p.cum[j] < k.s) j++;
+      const [x1, z1] = p.ps[j - 1], [x2, z2] = p.ps[j], seg = p.cum[j] - p.cum[j - 1] || 1, t = (k.s - p.cum[j - 1]) / seg;
+      const ux = (x2 - x1) / seg, uz = (z2 - z1) / seg, off = 1.7 * k.dir, c = CAR_CLONES[i];
+      if (!c) return;
+      c.position.set(x1 + (x2 - x1) * t - uz * off, 0, z1 + (z2 - z1) * t + ux * off); c.rotation.y = Math.atan2(ux, uz) + (k.dir < 0 ? Math.PI : 0);
+    });
+    return;
+  }
   cars.forEach((k, i) => {
     const p = k.p; k.s += k.dir * k.sp * dt;
     if (k.s > p.L) { k.s = p.L; k.dir = -1; } if (k.s < 0) { k.s = 0; k.dir = 1; }
@@ -1036,17 +1053,33 @@ function layoutHomes(list) {
 let BUILT = new Set();
 layoutHomes(STATE.homes);
 // ---------- Kenney 3D models (CC0, see models/kenney/LICENSE-kenney.txt). Loaded once; the scene uses them when ready. ----------
+
 const KENNEY = {};
 const HQ_MODEL = { fan: "building-type-a", media: "building-type-f", scouting: "building-type-k", stadium: "building-type-n", academy: "building-type-d" };
 const CAR_MODEL = { 1: "van", 2: "sedan", 3: "suv", 4: "suv-luxury" };          // home car by car id (see server CARS)
 const PERSON_MODEL = ["character-male-a", "character-male-b", "character-female-a", "character-female-b"];
-const KENNEY_PATH = n => (n.startsWith("character-") ? "models/kenney/people/" : ["van", "sedan", "suv", "suv-luxury", "taxi"].includes(n) ? "models/kenney/cars/" : "models/kenney/") + n + ".glb";
+const KENNEY_PATH = n => (n.startsWith("character-") ? "models/kenney/people/" : TRAFFIC.includes(n) || ["suv-luxury"].includes(n) ? "models/kenney/cars/" : "models/kenney/") + n + ".glb";
 const KENNEY_READY = (async () => {
   if (!THREE.GLTFLoader) return;
-  const ld = new THREE.GLTFLoader(), names = [...new Set([...Object.values(HQ_MODEL), "tree-large", ...Object.values(CAR_MODEL), ...PERSON_MODEL])];
+  const ld = new THREE.GLTFLoader(), names = [...new Set([...Object.values(HQ_MODEL), "tree-large", "tree-small", ...TRAFFIC, ...Object.values(CAR_MODEL), ...PERSON_MODEL])];
   await Promise.all(names.map(n => new Promise(r => ld.load(KENNEY_PATH(n), g => { KENNEY[n] = g.scene; r(); }, undefined, () => r()))));
   if (typeof layoutHomes === "function" && HOMES) layoutHomes(HOMES);      // rebuild homes with the real car models
+  swapStreetsToKenney();
 })();
+// street trees and traffic: real models replace the simple shapes (the simple ones are hidden, not deleted)
+function swapStreetsToKenney() {
+  if (TREE_SPOTS && KENNEY["tree-large"] && KENNEY["tree-small"]) {
+    TREE_MESHES.forEach(m => m.visible = false);
+    const all = [...TREE_SPOTS.pop.map(t => ({ n: "tree-large", t })), ...TREE_SPOTS.round.map(t => ({ n: "tree-small", t }))]
+      .sort((a, b) => Math.hypot(a.t[0], a.t[1]) - Math.hypot(b.t[0], b.t[1])).slice(0, 120);
+    for (const { n, t } of all) { const h = Math.max(4, Math.min(12, t[2])); const o = fitModel(KENNEY[n].clone(), h * .55, h); o.position.x += t[0]; o.position.z += t[1]; scene.add(o); }
+  }
+  if (CAR_BOXES.length && cars.length && TRAFFIC.every(n => KENNEY[n])) {
+    if (cars.length > 60) cars.splice(60);                     // phones: 60 real cars is plenty, each is many draw calls
+    CAR_BOXES.forEach(m => m.visible = false);
+    CAR_CLONES = cars.map((k, i) => { const o = fitModel(KENNEY[TRAFFIC[i % TRAFFIC.length]].clone(), 4.4, 1.5); scene.add(o); return o; });
+  }
+}
 // scale a model to fit a w x h box (uniform), stand it on the ground and centre it on its origin
 function fitModel(obj, w, h) {
   const sz = new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
@@ -1817,7 +1850,7 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS };
+if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
