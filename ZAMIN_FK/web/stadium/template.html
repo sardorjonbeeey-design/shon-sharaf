@@ -184,9 +184,10 @@ const sun = new THREE.DirectionalLight(0xffe2b8, 0.9); sun.position.set(-80, 120
 // seats, steps and fans (instanced)
 const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S1 = new THREE.Vector3(1, 1, 1), UP = new THREE.Vector3(0, 1, 0);
 const stepGeo = new THREE.BoxGeometry(SEAT_W, ROW_H, ROW_D), seatGeo = new THREE.BoxGeometry(SEAT_W * 0.8, 0.12, 0.42);
-const steps = new THREE.InstancedMesh(stepGeo, new THREE.MeshLambertMaterial({ color: 0xb9b4aa }), seats.length);
+const steps = new THREE.InstancedMesh(stepGeo, new THREE.MeshLambertMaterial({ color: 0xeef1f6 }), seats.length);
 const chairs = new THREE.InstancedMesh(seatGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), seats.length);
 const fans = FANS.length, NF = Math.max(1, fans);
+const VIP = new Set(__VIP__);              // honoured fans: gold seat + name on the screen
 // toy-style fans (smooth, faceless, random kit colours)
 const lam = () => new THREE.MeshLambertMaterial({ color: 0xffffff });
 const IM = (g, n) => new THREE.InstancedMesh(g, lam(), n);
@@ -218,7 +219,7 @@ seats.forEach((st, i) => {
   M.compose(V.set(st.x, st.y - ROW_H / 2, st.z), Q, S1); steps.setMatrixAt(i, M);
   M.compose(V.set(st.x - st.nx * 0.15, st.y + 0.06, st.z - st.nz * 0.15), Q, S1); chairs.setMatrixAt(i, M);
   const sec = Math.floor(st.s / st.len * 16);
-  chairs.setColorAt(i, C.set(sec % 2 ? 0x1F4FB8 : 0xf2f2f2));
+  chairs.setColorAt(i, C.set(VIP.has(st.fan) ? 0xFFD23F : (sec % 4 === 0 ? 0xffffff : 0x1F4FB8)));
   st.i = i;
   if (!st.fan) return;
   const h = hash(st.fan), f = fi;
@@ -274,6 +275,28 @@ legs.count = arms.count = hands.count = shoes.count = fi * 2;
     wall.setColorAt(i, C.set(Math.floor(i / 6) % 2 ? 0x1F4FB8 : 0x0D2557));
   }
   scene.add(wall);
+}
+// LED screen above the far stand (renovation) — cycles comment of the day / top fan / new fans
+const SCREEN_SLIDES = __SCREEN__;
+const scv = document.createElement("canvas"); scv.width = 1024; scv.height = 512;
+const scTex = new THREE.CanvasTexture(scv);
+function drawScreen(i) {
+  const x = scv.getContext("2d"), sl = SCREEN_SLIDES[i % SCREEN_SLIDES.length];
+  x.fillStyle = "#06122c"; x.fillRect(0, 0, 1024, 512);
+  x.fillStyle = "#1F4FB8"; x.fillRect(0, 0, 1024, 70); x.fillStyle = "#fff"; x.font = "900 44px Montserrat, sans-serif"; x.textAlign = "center"; x.fillText("ZAMIN FK", 512, 52);
+  x.fillStyle = "#FFD23F"; x.font = "900 54px Montserrat, sans-serif"; x.fillText(sl.title, 512, 170);
+  x.fillStyle = "#fff"; x.font = "900 " + (sl.big.length > 18 ? 56 : 76) + "px Montserrat, sans-serif"; x.fillText(sl.big, 512, 290);
+  x.fillStyle = "#9DB8FF"; x.font = "700 40px Montserrat, sans-serif"; x.fillText(sl.small || "", 512, 390);
+  scTex.needsUpdate = true;
+}
+{
+  const R = seats[seats.length - 1].ring, zb = -(PH / 2 + 9 + R * ROW_D) - 2, hy = R * ROW_H + 10;
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(26, 14, 1.2), new THREE.MeshLambertMaterial({ color: 0x222831 }));
+  frame.position.set(0, hy, zb); scene.add(frame);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(24.5, 12.25), new THREE.MeshBasicMaterial({ map: scTex }));
+  face.position.set(0, hy, zb + 0.65); scene.add(face);
+  for (const lx of [-9, 9]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.8, hy, 0.8), new THREE.MeshLambertMaterial({ color: 0x555555 })); leg.position.set(lx, hy / 2 - 3.5, zb - 0.5); scene.add(leg); }
+  drawScreen(0); let k = 0; setInterval(() => drawScreen(++k), 4000);
 }
 // floodlights
 {

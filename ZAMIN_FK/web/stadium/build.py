@@ -40,10 +40,17 @@ heroes = [
     {"key": "echki", "name": "Echki", "img": data_uri(os.path.join(SPR, "goat_side.png")), "x": 46, "z": -26, "h": 1.6,
      "role": {"uz": "Stadionning eng sodiq muxlisi. Ismini siz tanlaysiz!", "ru": "Самый верный болельщик стадиона. Имя выберете вы!", "en": "The stadium’s most loyal fan. You pick its name!"}},
 ]
+vip = ["legends00000001"]
+screen = [
+    {"title": "ENG FAOL MUXLIS ⭐", "big": "@legends00000001", "small": "VIP o‘rindiq • Rahmat!"},
+    {"title": "KUN IZOHI", "big": "@kewl.imjay45", "small": "“Stadion” ❤"},
+    {"title": "STADION TA’MIRLANDI", "big": "20 000 000 so‘m", "small": "Qoratepa sport jamg‘armasi"},
+    {"title": "MUXLISLAR", "big": f"{len(fans)} ta", "small": "1 obunachi = 1 o‘rindiq"},
+]
 crest = data_uri(os.path.join(Z, "03_Approved_Assets", "ZFK_CREST_MASTER_V01_P_2048.png"), 96)
 html = open(os.path.join(HERE, "template.html")).read()
 html = (html.replace("__FANS__", json.dumps(fans, ensure_ascii=False)).replace("__HEROES__", json.dumps(heroes, ensure_ascii=False))
-        .replace("__DEMO__", "true" if demo else "false").replace("__CREST__", crest))
+        .replace("__DEMO__", "true" if demo else "false").replace("__VIP__", json.dumps(vip)).replace("__SCREEN__", json.dumps(screen, ensure_ascii=False)).replace("__CREST__", crest))
 os.makedirs(os.path.join(HERE, "dist"), exist_ok=True)
 out = os.path.join(HERE, "dist", "index.html")
 open(out, "w").write(html)
