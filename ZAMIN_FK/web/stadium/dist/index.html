@@ -47,9 +47,42 @@
   #demo { bottom:150px; left:14px; font-size:11px; color:#9DB8FF; font-weight:700; }
   #place { top:112px; left:14px; font-size:11px; font-weight:700; color:#cfdcff; background:rgba(13,37,87,.7); border-radius:10px; padding:4px 8px; display:none; }
   body.city #place.on { display:block; }
+  /* supporter portal */
+  #actions button.club { flex:1.3; background:linear-gradient(135deg,#FFD23F,#ffb300); }
+  #club { position:fixed; inset:0; z-index:25; display:none; flex-direction:column; background:#0a1730; }
+  #club.on { display:flex; }
+  .ctop { display:flex; align-items:center; gap:10px; padding:12px 14px; background:linear-gradient(135deg,#0D2557,#1F4FB8); }
+  .ctop img { height:38px; } .ctop b { display:block; font-size:17px; font-weight:900; } .ctop small { color:var(--yel); font-weight:700; font-size:12px; }
+  .ctop button { margin-left:auto; background:none; border:0; color:#fff; font-size:28px; }
+  #ctabs { display:flex; gap:6px; padding:10px 10px 0; overflow-x:auto; scrollbar-width:none; }
+  #ctabs button { flex:none; font:inherit; font-weight:900; font-size:13px; color:#cfdcff; background:rgba(255,255,255,.07); border:0; border-radius:12px; padding:9px 12px; }
+  #ctabs button.on { background:var(--yel); color:var(--navy); }
+  #cbody { flex:1; overflow-y:auto; padding:12px 12px 30px; }
+  .mcard { position:relative; border-radius:22px; padding:18px; overflow:hidden; background:linear-gradient(135deg,#0D2557 0%,#1F4FB8 60%,#3a6fe0 100%); box-shadow:0 14px 30px rgba(0,0,0,.45); border:2px solid rgba(255,210,63,.6); }
+  .mcard::after { content:""; position:absolute; right:-40px; top:-40px; width:170px; height:170px; border-radius:50%; background:rgba(255,255,255,.07); }
+  .mcard .row1 { display:flex; align-items:center; gap:10px; } .mcard .row1 img { height:44px; } .mcard .row1 b { font-size:15px; letter-spacing:2px; }
+  .mcard .nm { font-size:24px; font-weight:900; margin:16px 0 2px; } .mcard .id { font-family:monospace; font-size:16px; color:var(--yel); letter-spacing:2px; }
+  .mcard .meta { display:flex; justify-content:space-between; margin-top:14px; font-size:12px; color:#cfdcff; font-weight:700; } .mcard .meta b { display:block; color:#fff; font-size:14px; }
+  .tier { display:inline-block; background:var(--yel); color:var(--navy); font-weight:900; font-size:12px; border-radius:10px; padding:3px 9px; }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
+  .stat { background:rgba(255,255,255,.07); border-radius:14px; padding:10px 12px; } .stat small { display:block; color:#9DB8FF; font-weight:700; font-size:11px; } .stat b { font-size:20px; font-weight:900; }
+  .bar { height:8px; background:rgba(255,255,255,.12); border-radius:4px; overflow:hidden; margin:6px 0; } .bar i { display:block; height:100%; background:linear-gradient(90deg,#FFD23F,#ff9f1a); }
+  .sec { margin:16px 2px 8px; font-weight:900; font-size:15px; color:var(--yel); }
+  .item { background:rgba(255,255,255,.06); border-radius:14px; padding:12px; margin-bottom:8px; }
+  .item .hd { display:flex; justify-content:space-between; gap:8px; align-items:center; } .item .hd b { font-size:14px; } .item small { color:#9DB8FF; font-weight:700; font-size:12px; }
+  .chip { font-size:11px; font-weight:900; border-radius:8px; padding:3px 8px; background:rgba(255,255,255,.12); white-space:nowrap; }
+  .chip.ok { background:#3fb950; } .chip.no { background:#d94848; } .chip.wait { background:#f0a030; color:var(--navy); }
+  .btn { font:inherit; font-weight:900; font-size:13px; border:0; border-radius:12px; padding:9px 12px; background:var(--yel); color:var(--navy); }
+  .btn:disabled { background:#55617a; color:#cfdcff; } .btn.blue { background:var(--blue); color:#fff; } .btn.red { background:#d94848; color:#fff; } .btn.green { background:#3fb950; color:#fff; }
+  .badges { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; } .badge { text-align:center; background:rgba(255,255,255,.06); border-radius:14px; padding:10px 4px; font-size:11px; font-weight:700; }
+  .badge i { display:block; font-style:normal; font-size:28px; } .badge.off { opacity:.3; filter:grayscale(1); }
+  #cbody input, #cbody textarea, #cbody select { width:100%; font:inherit; font-weight:700; font-size:14px; color:#fff; background:rgba(0,0,0,.3); border:2px solid rgba(255,255,255,.2); border-radius:12px; padding:10px; margin:6px 0; }
+  .kinds { display:flex; flex-wrap:wrap; gap:6px; } .kinds button { font:inherit; font-size:12px; font-weight:700; color:#fff; background:rgba(255,255,255,.1); border:2px solid transparent; border-radius:10px; padding:7px 9px; } .kinds button.on { border-color:var(--yel); }
+  .adm { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; } .adm input { margin:0 !important; }
+  .tag.hq { background:var(--navy); color:#fff; border:2px solid var(--yel); } .tag.hq::before { content:""; margin:0; }
   /* city */
   #actions { left:12px; right:12px; bottom:86px; display:none; gap:8px; }
-  #actions button { flex:1; font:inherit; font-weight:900; font-size:14px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:12px 6px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  #actions button { flex:1; font:inherit; font-weight:900; font-size:13px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:12px 6px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
   #actions button.alt { color:#fff; background:var(--blue); }
   body.city #actions { display:flex; }
   body.city #rule { display:none; }
@@ -118,7 +151,9 @@
 <div id="place" class="ui"></div>
 <div id="side" class="ui"><button id="list">👥</button><button id="view">🏙</button><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button></div>
 <button id="cta" class="ui" data-t="cta"></button>
-<div id="actions" class="ui"><button id="bHome" data-t="bHome"></button><button id="bJob" data-t="bJob"></button><button id="bShop" class="alt" data-t="bShop"></button></div>
+<div id="actions" class="ui"><button id="bClub" class="club">⚽ Klub</button><button id="bHome" data-t="bHome"></button><button id="bJob" data-t="bJob"></button><button id="bShop" class="alt" data-t="bShop"></button></div>
+<div id="club"><div class="ctop"><img id="cCrest" alt=""><div><b>ZAMIN FK</b><small id="cSub">Muxlislar portali</small></div><button id="cX">×</button></div>
+  <div id="ctabs"></div><div id="cbody"></div></div>
 <div id="wallet" class="ui pill">🪙 <b id="coins">0</b></div>
 <div id="sJobs" class="ui pill sheet"><button class="x">×</button><h3 data-t="jobsH"></h3><p data-t="jobsP"></p><div id="jobList"></div>
   <button class="go alt3" id="toApply" data-t="toApply"></button></div>
@@ -164,7 +199,7 @@ const API_ORIGIN = "https://zaminfk-city.onrender.com";       // city backend (N
 const API = (location.origin === API_ORIGIN || /^(localhost|127\.)/.test(location.hostname)) ? "" : API_ORIGIN;
 const T = {
   uz:{title:"ZAMIN FK", fans:"MUXLISLAR", pop:"AHOLI", rule:"1 obunachi = 1 o‘rindiq", find:"Topish", ph:"Nik bo‘yicha qidirish", demo:"Namuna ro‘yxat", nf:"Bu nik hali stadionda ham, shaharda ham yo‘q. Obuna bo‘ling — o‘rningiz tayyor bo‘ladi!", seat:(s)=>`Sektor ${s.sec} · Qator ${s.row} · O‘rin ${s.no}`,
-      cta:"🏙 Zamin FK shahrini ochish", bSeat:"🎟 O‘rindiq", bHome:"🏠 Uyimni olish", bHomeMine:"🏠 Mening uyim", bJob:"💼 Ish",
+      cta:"🏙 Zamin FK shahrini ochish", bSeat:"🎟 O‘rindiq", bHome:"🏠 Uy olish", bHomeMine:"🏠 Uyim", bJob:"💼 Ish",
       seatH:"Stadionda o‘rningiz", seatP:"Telegram orqali o‘rindiq oling. Instagram nikingizni yozsangiz, o‘sha o‘rin sizniki bo‘ladi.", seatGo:"O‘rindiq olish", igPh:"Instagram nik (ixtiyoriy)",
       homeH:"Uyingizni oling", homeGo:"Uyimni olish", homeP:"Shaharda bepul 1 qavatli uy olasiz va stadionda nomingiz bilan o‘rindiq paydo bo‘ladi. Har kuni uyingizni bir darajaga yaxshilang!", homeSave:"Rangni saqlash", lotSel:"📍 Tanlangan joyga quriladi.", lotAuto:"📍 Xaritadagi “+” belgisini bosib joy tanlang yoki stadionga eng yaqin bo‘sh joy olinadi.", lotFree:"Bo‘sh joy — bu yerda uy qurish mumkin.", lotWeb:"Bu bo‘sh joy! Uy qurish uchun @zaminfk_bot ga kiring.", lotTaken:"Bu joy band bo‘lib qoldi, boshqasini tanlang.",
       lv:["","Kichik uy","Ikki qavatli uy","Uch qavatli uy","To‘rt qavatli uy","Besh qavatli bino","Olti qavatli bino","Osmono‘par 🚁"], lvOf:(a,b)=>`Daraja ${a}/${b}`,
@@ -210,16 +245,19 @@ async function getMap() {
 const [STATE0, MAP] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap()]);
 let STATE = STATE0 || { seats: [], homes: [], miniapp: "" };
 const FAN_META = new Map();       // nick -> { tg: telegram username or null }
-const FANS = IG_FANS.slice();
-{
-  const have = new Set(FANS.map(norm));
-  for (const s of STATE.seats || []) {            // Telegram seat claims: linked IG nick keeps its seat, otherwise a new seat
-    const ig = norm(s.instagram), nick = ig || norm(s.nick);
-    if (!nick) continue;
-    if (!have.has(nick)) { FANS.push(nick); have.add(nick); }
-    FAN_META.set(nick, { tg: s.tg_username || null, ig: !!ig });
-  }
+// Club members sit in the Supporters' Stand (main-stand straight). Their seat number comes from the server and never moves.
+const STAND_W = 160;
+const CENTER_OUT = Array.from({ length: STAND_W }, (_, j) => j).sort((p, q) => Math.abs(p - 79.5) - Math.abs(q - 79.5) || p - q);
+const MEMBERS = [], memberNicks = new Set(), extraFans = [];
+for (const s of STATE.seats || []) {
+  const ig = norm(s.instagram), nick = ig || norm(s.nick);
+  if (!nick) continue;
+  FAN_META.set(nick, { tg: s.tg_username || null, ig: !!ig, member: s.seat_no > 0 });
+  if (s.seat_no > 0 && !memberNicks.has(nick)) { memberNicks.add(nick); const k = s.seat_no - 1; MEMBERS.push({ nick, no: s.seat_no, ring: Math.floor(k / STAND_W), j: CENTER_OUT[k % STAND_W] }); }
+  else if (!(s.seat_no > 0)) extraFans.push(nick);
 }
+const IG_REST = [...new Set([...IG_FANS.map(norm), ...extraFans])].filter(n => n && !memberNicks.has(n));
+const FANS = [...MEMBERS.map(m => m.nick), ...IG_REST];
 
 // ---------- seats: rounded-rectangle rings around the pitch ----------
 const PW = 105, PH = 68, SEAT_W = 0.62, ROW_D = 0.95, ROW_H = 0.48;
@@ -247,35 +285,43 @@ function rrPoint(a, b, r, s) {          // s from the middle of the main (south,
   return [0, b, 0, 1];
 }
 const need = Math.max(FANS.length, 600);
-const seats = [];
-const MIN_RINGS = FANS.length < 300 ? 12 : 24;
-for (let ring = 0; ring < MIN_RINGS || seats.length < need * 1.15 + 200; ring++) {
-  const a = PW / 2 + 9 + ring * ROW_D, b = PH / 2 + 9 + ring * ROW_D, r = 10 + ring * ROW_D;
-  const len = rrLen(a, b, r), n = Math.floor(len / SEAT_W);
+const seats = [], standIdx = new Map();
+const MIN_RINGS = FANS.length < 300 ? 12 : 24, MAX_MEMBER_RING = MEMBERS.reduce((m, x) => Math.max(m, x.ring), -1);
+for (let ring = 0; ring < MIN_RINGS || ring <= MAX_MEMBER_RING || seats.length < need * 1.15 + 200; ring++) {
+  const a = PW / 2 + 9 + ring * ROW_D, b = PH / 2 + 9 + ring * ROW_D, r = 10 + ring * ROW_D, y = 0.6 + ring * ROW_H;
+  const len = rrLen(a, b, r), n = Math.floor(len / SEAT_W), half = a - r;     // half = half length of the straight (same every ring)
+  for (let j = 0; j < STAND_W; j++) {                                          // Supporters' Stand: fixed grid, slot j of row `ring`
+    const x = -half + (j + .5) * 2 * half / STAND_W, s = x >= 0 ? x : len + x;
+    standIdx.set(ring + ":" + j, seats.length);
+    seats.push({ x, z: b, nx: 0, nz: 1, y, ring, s, len, cost: ring * 7 + Math.abs(x) / 6, stand: true, slot: j });
+  }
   for (let i = 0; i < n; i++) {
     const s = (i + 0.5) * len / n;
+    if (s < half || s > len - half) continue;                                   // straight already covered by the stand grid
     const [x, z, nx, nz] = rrPoint(a, b, r, s);
-    const dist = Math.min(s, len - s);            // along the bowl from the main-stand centre
+    const dist = Math.min(s, len - s);
     if (ring > 0 && i % 40 === 20) continue;      // aisles
-    seats.push({ x, z, nx, nz, y: 0.6 + ring * ROW_H, ring, s, len, cost: ring * 7 + dist / 6 });
+    seats.push({ x, z, nx, nz, y, ring, s, len, cost: ring * 7 + dist / 6 });
   }
 }
-const order = seats.map((_, i) => i).sort((i, j) => seats[i].cost - seats[j].cost);
 const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
-if (FANS.length <= 300) {               // small crowd: random seat per nick, near the main stand so fans are easy to see
-  // two long sides (main + opposite stand), random seat per nick
-  const pool = order.filter(i => { const st = seats[i]; return Math.abs(st.nz) > 0.99 && st.ring < 14; }), used = new Set(), out = [];
-  FANS.forEach(nick => { let k = hash(nick.toLowerCase()) % pool.length; while (used.has(k)) k = (k + 7) % pool.length; used.add(k); out.push(pool[k]); });
-  order.splice(0, FANS.length, ...out);
-}
+const memberIdx = MEMBERS.map(m => standIdx.get(m.ring + ":" + m.j)), takenIdx = new Set(memberIdx);
+const seatByNo = no => { const k = no - 1, i = standIdx.get(Math.floor(k / STAND_W) + ":" + CENTER_OUT[k % STAND_W]); return i == null ? null : seats[i]; };
+let free = seats.map((_, i) => i).filter(i => !takenIdx.has(i)).sort((i, j) => seats[i].cost - seats[j].cost), restIdx;
+if (IG_REST.length <= 300) {            // small crowd: random seat per nick on the two long sides, so fans are easy to see
+  const pool = free.filter(i => { const st = seats[i]; return Math.abs(st.nz) > 0.99 && st.ring < 14; }), used = new Set();
+  restIdx = IG_REST.map(nick => { let k = hash(nick) % pool.length; while (used.has(k)) k = (k + 7) % pool.length; used.add(k); return pool[k]; });
+} else restIdx = free.slice(0, IG_REST.length);
+const restSet = new Set(restIdx);
+const order = [...memberIdx, ...restIdx, ...free.filter(i => !restSet.has(i))];   // first FANS.length entries = occupied seats in FANS order
 const SECTORS = "ABCDEFGHIJKLMNOP";
 const byNick = new Map();
 FANS.forEach((nick, i) => {
   const st = seats[order[i]];
   st.fan = nick;
-  st.sec = SECTORS[Math.floor(st.s / st.len * 16) % 16];
+  st.sec = st.stand ? "ZFK" : SECTORS[Math.floor(st.s / st.len * 16) % 16];
   st.row = st.ring + 1;
-  st.no = Math.floor((st.s % (st.len / 16)) / SEAT_W) + 1;
+  st.no = st.stand ? st.slot + 1 : Math.floor((st.s % (st.len / 16)) / SEAT_W) + 1;
   byNick.set(nick.toLowerCase().replace(/^@/, ""), st);
 });
 
@@ -369,7 +415,7 @@ seats.forEach((st, i) => {
   M.compose(V.set(st.x, st.y - ROW_H / 2, st.z), Q, S1); steps.setMatrixAt(i, M);
   M.compose(V.set(st.x - st.nx * 0.15, st.y + 0.06, st.z - st.nz * 0.15), Q, S1); chairs.setMatrixAt(i, M);
   const sec = Math.floor(st.s / st.len * 16);
-  chairs.setColorAt(i, C.set(VIP.has(st.fan) ? 0xFFD23F : (sec % 4 === 0 ? 0xffffff : 0x1F4FB8)));
+  chairs.setColorAt(i, C.set(VIP.has(st.fan) ? 0xFFD23F : st.fan && FAN_META.get(st.fan) && FAN_META.get(st.fan).member ? 0xffe27a : st.stand ? 0x0D2557 : (sec % 4 === 0 ? 0xffffff : 0x1F4FB8)));
   st.i = i;
   if (!st.fan) return;
   const h = hash(st.fan), f = fi;
@@ -486,7 +532,7 @@ const PRISM = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.5, 0); sh.line
 // ---------- REAL TOWN from OpenStreetMap (web/stadium/map/*.json, built by tools/map/osm_to_map.py) ----------
 let MAP_LABELS = [];
 function buildRealTown(map) {
-  const CLR = (x, z) => Math.abs(x) < OUT_A + 10 && Math.abs(z) < OUT_B + 10;   // ground kept clear for our stadium
+  const CLR = (x, z) => Math.abs(x) < OUT_A + 48 && Math.abs(z) < OUT_B + 42;   // stadium + club district
   const pts = f => { const o = []; for (let i = 0; i < f.length; i += 2) o.push([f[i], f[i + 1]]); return o; };
   // order a triangle so its front face looks up (+y); with DoubleSide a down-facing triangle is lit as the underside (black)
   const up = (v, [a, b, c]) => ((v[b].x - v[a].x) * (v[c].y - v[a].y) - (v[b].y - v[a].y) * (v[c].x - v[a].x)) < 0 ? [a, b, c] : [a, c, b];
@@ -520,7 +566,11 @@ function buildRealTown(map) {
   }
   // stadium grounds: real stadium plot + our bowl apron
   flat([map.stadium.map(([x, z]) => [x, z])], -.04, 0x6f6a60);
-  { const pad = new THREE.Mesh(new THREE.PlaneGeometry((OUT_A + 10) * 2, (OUT_B + 10) * 2), lamC(0x4a4d52)); pad.rotation.x = -Math.PI / 2; pad.position.y = -.035; scene.add(pad); }
+  { const pad = new THREE.Mesh(new THREE.PlaneGeometry((OUT_A + 10) * 2, (OUT_B + 10) * 2), lamC(0x4a4d52)); pad.rotation.x = -Math.PI / 2; pad.position.y = -.035; scene.add(pad);
+    const pc = document.createElement("canvas"); pc.width = pc.height = 128; const px = pc.getContext("2d"); px.fillStyle = "#d8cdb4"; px.fillRect(0, 0, 128, 128); px.strokeStyle = "#c4b796"; px.lineWidth = 2;
+    for (let i = 0; i <= 128; i += 32) { px.beginPath(); px.moveTo(i, 0); px.lineTo(i, 128); px.moveTo(0, i); px.lineTo(128, i); px.stroke(); }
+    const pt = new THREE.CanvasTexture(pc); pt.wrapS = pt.wrapT = THREE.RepeatWrapping; pt.repeat.set((OUT_A + 48) / 8, (OUT_B + 42) / 8);
+    const plaza = new THREE.Mesh(new THREE.PlaneGeometry((OUT_A + 48) * 2, (OUT_B + 42) * 2), new THREE.MeshLambertMaterial({ map: pt })); plaza.rotation.x = -Math.PI / 2; plaza.position.y = -.04; scene.add(plaza); }
   const AREA = { park: 0x5b9442, garden: 0x6aa04c, grass: 0x6aa04c, pitch: 0x3f8f3f, sports_centre: 0x8fa0a8, cemetery: 0x8c9a6b, farmland: 0xb8a965, orchard: 0x6f9a42, industrial: 0x9a948a, water: 0x5d8ea3 };
   const byKind = {};
   for (const [k, f] of map.areas) (byKind[k] = byKind[k] || []).push(pts(f));
@@ -566,9 +616,10 @@ function buildRealTown(map) {
   }
   // stadium surroundings: hedges and flower planters around the apron (reference props)
   { const hedge = [], pl = [], fl = [];
-    for (const sx of [-1, 1]) for (let x = -OUT_A; x <= OUT_A; x += 9) { hedge.push([x, .6, sx * (OUT_B + 9), 6, 1.2, 1.4]); }
-    for (const sz of [-1, 1]) for (let z = -OUT_B + 6; z <= OUT_B - 6; z += 9) { hedge.push([sz * (OUT_A + 9), .6, z, 1.4, 1.2, 6]); }
-    for (const [x, z] of [[OUT_A + 9, OUT_B + 9], [-OUT_A - 9, OUT_B + 9], [OUT_A + 9, -OUT_B - 9], [-OUT_A - 9, -OUT_B - 9]]) { pl.push([x, .4, z, 2.4, .8, 2.4]); fl.push([x, 1.1, z, 2, .9, 2]); }
+    const HX = OUT_A + 46, HZ = OUT_B + 40;
+    for (const sx of [-1, 1]) for (let x = -HX + 6; x <= HX - 6; x += 9) if (Math.abs(x) > 12) hedge.push([x, .6, sx * HZ, 6, 1.2, 1.4]);
+    for (const sz of [-1, 1]) for (let z = -HZ + 6; z <= HZ - 6; z += 9) if (Math.abs(z) > 12) hedge.push([sz * HX, .6, z, 1.4, 1.2, 6]);
+    for (const [x, z] of [[HX, HZ], [-HX, HZ], [HX, -HZ], [-HX, -HZ], [12, HZ], [-12, HZ], [12, -HZ], [-12, -HZ]]) { pl.push([x, .4, z, 2.4, .8, 2.4]); fl.push([x, 1.1, z, 2, .9, 2]); }
     instanced(CBOX, lamC(0x3f8f3a), hedge); instanced(CBOX, lamC(0xe9e3d6), pl); instanced(new THREE.IcosahedronGeometry(.5, 1), lamC(0xf48fb1), fl);
   }
   // buildings: houses = oriented boxes + tin gable roofs (instanced); everything else = extruded footprints
@@ -647,9 +698,7 @@ if (MAP) buildRealTown(MAP); else {                      // fallback: generated 
   const sign = (cx, cz) => { const post = new THREE.Mesh(CBOX, lamC(0x777777)); post.scale.set(.4, 5, .4); post.position.set(cx, 2.5, cz); scene.add(post);
     const board = new THREE.Mesh(CBOX, lamC(0x0D2557)); board.scale.set(6, 2.6, .3); board.position.set(cx, 5.6, cz); scene.add(board); };
   const ex = CX - 48, ez = CZ - 40;
-  [[ex + 8, 0, 44, 70], [-ex - 8, -30, 36, 34], [-ex - 8, 30, 36, 34], [-45, -ez - 8, 50, 28], [45, -ez - 8, 50, 28]].forEach(([cx, cz, w, d], i) => {
-    outline(cx, cz, w, d); sign(cx, cz); LOTS.push({ i, x: cx, z: cz });
-  });
+  // (the reserved lots are now the club's department headquarters)
   for (let i = -60; i <= 60; i += 5) lines.push([i, .02, ez + 4, .4, .05, 9], [i, .02, ez + 20, .4, .05, 9]);
   instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xffffff }), lines);
   // parked cars (mostly white, like real Uzbek streets)
@@ -968,6 +1017,52 @@ function layoutHomes(list) {
 }
 let BUILT = new Set();
 layoutHomes(STATE.homes);
+// ---------- CLUB DISTRICT: department headquarters around the stadium (the heart of the city) ----------
+const DEPT_BASE = [["fan", "📣", "Muxlislar jamoasi", 0xd94848], ["media", "🎬", "Media", 0x7a4fb8], ["scouting", "🔭", "Skauting", 0x3f9a4a], ["stadium", "🏟", "Stadion", 0x1F4FB8], ["academy", "🎓", "Akademiya", 0xf0a030]];
+const HQ_SPOT = { fan: [0, OUT_B + 27], stadium: [0, -(OUT_B + 27)], media: [OUT_A + 30, -27], scouting: [OUT_A + 30, 27], academy: [-(OUT_A + 30), 0] };
+const hqGroup = new THREE.Group(); scene.add(hqGroup);
+let HQ_OBJS = [], HQ_SIG = "";
+function deptInfo() {
+  const live = (STATE.club && STATE.club.departments) || [];
+  return DEPT_BASE.map(([id, emoji, name, color]) => { const d = live.find(x => x.id === id) || {}; return { id, emoji: d.emoji || emoji, name: d.name || name, color, level: d.level || 0, members: d.members || 0, active: d.active !== false }; });
+}
+function signTex(text, color) {
+  const c = document.createElement("canvas"); c.width = 512; c.height = 112; const x = c.getContext("2d");
+  x.fillStyle = "#0D2557"; x.fillRect(0, 0, 512, 112); x.fillStyle = "#" + color.toString(16).padStart(6, "0"); x.fillRect(0, 96, 512, 16);
+  x.fillStyle = "#fff"; x.font = "900 46px Montserrat, sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(text, 256, 50, 490);
+  return new THREE.CanvasTexture(c);
+}
+function buildHQ(d) {
+  const g = new THREE.Group(), acc = lamC(d.color);
+  const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
+  box(LM.path, 30, .3, 18, 0, .15, 0);                                            // forecourt
+  if (d.level === 0) {                                                            // construction site
+    for (const [x, z, w, dd] of [[0, -7, 26, .3], [0, 7, 26, .3], [-13, 0, .3, 14], [13, 0, .3, 14]]) box(lamC(0xf0a030), w, 1.6, dd, x, 1.1, z);
+    box(LM.soil, 9, 1.4, 6, -5, .9, -1); box(lamC(0x9c9c9c), 12, 3, 8, 4, 1.8, -1);
+    box(lamC(0xf0c419), .8, 22, .8, 9, 11, -4); box(lamC(0xf0c419), 18, .7, .7, 3, 22, -4); box(LM.rail, 1.6, 1.6, 1.6, 10.5, 21, -4);
+  } else {
+    const F = d.level === 1 ? 2 : 4, H = F * 3.4;
+    box(LM.white, 24, H, 11, 0, .3 + H / 2, -1);
+    for (let f = 0; f < F; f++) { box(acc, 24.2, .35, 11.2, 0, .3 + f * 3.4, -1);
+      for (let k = -10; k <= 10; k += 2.5) { box(LM.glass, 1.6, 1.9, .1, k, .3 + f * 3.4 + 1.8, 4.53); box(LM.glassLit, 1.2, 1.4, .12, k, .3 + f * 3.4 + 1.8, 4.55); } }
+    box(LM.glass, 5, 2.8, .3, 0, 1.7, 4.6); box(acc, 6.4, .4, 2.4, 0, 3.4, 5.5);   // entrance + canopy
+    box(LM.flat, 24.4, .5, 11.4, 0, .3 + H + .25, -1);
+    if (d.level >= 2) { box(LM.white, 8, 3.4, 8, -6, .3 + H + 2, -1); box(LM.rail, .2, 7, .2, 8, .3 + H + 3.5, -3); box(acc, 3.2, 2, .1, 9.6, .3 + H + 6, -3); }
+    for (const x of [-12.5, 12.5]) { const t = new THREE.Mesh(ICO, LM.leaf); t.scale.set(1.8, 2, 1.8); t.position.set(x, 3, 6.5); g.add(t); }
+  }
+  const sh = d.level === 0 ? 4.5 : (d.level === 1 ? 2 : 4) * 3.4 + 2.2;              // sign board on top / on the fence
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(14, 3), new THREE.MeshBasicMaterial({ map: signTex(d.emoji + " " + d.name, d.color) }));
+  sign.position.set(0, sh, d.level === 0 ? 7.2 : 4.7); g.add(sign);
+  const [x, z] = HQ_SPOT[d.id]; g.position.set(x, 0, z); g.rotation.y = Math.atan2(-x, -z);   // front faces the stadium
+  g.userData = { dept: d.id, h: sh + 2 };
+  return g;
+}
+function layoutHQ() {
+  const ds = deptInfo(), sig = ds.map(d => d.id + d.level + d.name).join();
+  if (sig === HQ_SIG) return; HQ_SIG = sig;
+  HQ_OBJS.forEach(o => hqGroup.remove(o)); HQ_OBJS = ds.map(d => { const o = buildHQ(d); o.userData.info = d; hqGroup.add(o); return o; });
+}
+layoutHQ();
 // =============== end CITY ===============
 
 // heroes on the pitch (billboard sprites)
@@ -1100,6 +1195,7 @@ function updateLabels(now) {
   if (mine) placeAt(mine.position.x, hy(mine), mine.position.z, "tag me home", mine.userData.nick, true);
   if (!near || MODE === "city") {
     for (const l of LOTS) placeAt(l.x, l.park ? 2 : 8, l.z, "tag lot", (l.park ? "" : T[L].soon) + T[L].lots[l.i]);
+    for (const o of HQ_OBJS) { const d = o.userData.info; placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", `${d.emoji} ${d.name} · ${d.level ? d.level + "-daraja" : "qurilmoqda"}`, true); }
     const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]).slice(0, 30);
     for (const [, o] of hs) if (o !== mine) placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick);
   }
@@ -1132,6 +1228,8 @@ canvas.addEventListener("pointerup", e => {
   ray.setFromCamera(mouse, camera);
   const fh = ray.intersectObject(bodies)[0] || ray.intersectObject(heads)[0] || ray.intersectObject(shorts)[0];
   if (fh && fiSeat[fh.instanceId]) { showFan(fiSeat[fh.instanceId]); return; }
+  const hq = ray.intersectObjects(HQ_OBJS, true)[0];
+  if (hq) { clubOpen("depts"); return; }
   const hit = ray.intersectObjects(heroObjs)[0];
   if (hit) { const hz = hit.object.userData; document.getElementById("ch").textContent = hz.name; document.getElementById("cp").textContent = hz.role[L]; document.getElementById("card").style.display = "block"; return; }
   const hh = ray.intersectObjects(homeObjs, true)[0];
@@ -1387,6 +1485,158 @@ function renderShop() {
 document.getElementById("bShop").onclick = needTg(async () => { await fetchMe(); renderShop(); open("sShop"); });
 fetchMe();
 
+// ================= SUPPORTER PORTAL (⚽ Klub) =================
+const PT = {
+  uz: { tabs: { card: "🪪 Karta", profile: "⭐ Profil", missions: "🎯 Missiyalar", depts: "🏢 Bo‘limlar", club: "🏆 Klub", admin: "🛠 Admin" },
+    sub: "Muxlislar portali", member: "A’ZOLIK KARTASI", since: "A’zo bo‘lgan", seat: "O‘rindiq", level: "Daraja", rank: "Reyting",
+    xp: "Fan XP", inf: "Klub ta’siri", coins: "Shaxsiy tanga", funds: "Klub fondi", toNext: n => `Keyingi darajaga ${n} XP`, top: "Eng yuqori daraja!",
+    seeSeat: "🏟 O‘rnimni ko‘rish", invite: "👥 Do‘stlarni taklif qiling", inviteP: "Do‘stingiz kirib, birinchi to‘liq smenasini ishlasa, sizga +50 XP.", share: "📤 Ulashish",
+    invited: (a, b) => `Taklif qilinganlar: ${a} · faol: ${b}`, ach: "Yutuqlar", contribs: "Hissalarim", hist: "XP tarixi", none: "Hozircha yo‘q",
+    st: { pending: "Kutilmoqda", approved: "Tasdiqlandi", rejected: "Rad etildi" }, daily: "Kunlik", weekly: "Haftalik", claim: "Olish", claimed: "✅ Olindi",
+    deptMine: "Sizning bo‘limingiz", join: "Qo‘shilish", members: n => `${n} a’zo`, lvl: n => `${n}-daraja`, week: n => `7 kunda ${n} hissa`,
+    contribute: "Hissa qo‘shish", kind: "Turini tanlang", text: "Nima qildingiz? (kamida 10 belgi)", link: "Havola (ixtiyoriy)", send: "Yuborish",
+    sent: "Yuborildi! Admin tasdiqlagach XP olasiz.", needDept: "Hissa qo‘shish uchun avval bo‘limga qo‘shiling.",
+    supporters: "Muxlislar", seats: "O‘rindiqlar", homes: "Uylar", milestones: "Klub maqsadlari", mSup: "Muxlislar soni", mFund: "Klub fondi",
+    activity: "Bo‘limlar faolligi", leaders: "Eng faol muxlislar", donate: "Klub fondiga xayriya", donateP: "Shaxsiy tangangizdan klubga. Har 10 🪙 = 1 XP (kuniga 50 XP gacha).",
+    donated: (a, x) => `Rahmat! −${a} 🪙, +${x} XP`, webOnly: "A’zo bo‘lish, o‘rindiq va missiyalar uchun @zaminfk_bot ga kiring.",
+    errors: { "already": "Allaqachon olingan", "not done": "Hali bajarilmagan", "wait": "Bo‘limni 7 kunda bir marta almashtirish mumkin", "pending limit": "3 ta hissa kutilmoqda — avval tasdiqlansin",
+      "daily limit": "Bugungi limit tugadi", "duplicate": "Bu hissa allaqachon yuborilgan", "too short": "Matn juda qisqa", "coins": "Tanga yetmaydi", "link": "Havola noto‘g‘ri" },
+    reasons: { referral: "Do‘st taklifi", donation: "Xayriya", contribution: "Hissa tasdiqlandi", mission: "Missiya" },
+    admPending: "Tasdiq kutayotgan hissalar", approve: "✅ Tasdiqlash", reject: "❌ Rad etish", admMissions: "Missiyalar", admDepts: "Bo‘limlar", save: "Saqlash", add: "Qo‘shish", active: "Faol" },
+  ru: { tabs: { card: "🪪 Карта", profile: "⭐ Профиль", missions: "🎯 Миссии", depts: "🏢 Отделы", club: "🏆 Клуб", admin: "🛠 Админ" }, sub: "Портал болельщиков",
+    member: "КАРТА БОЛЕЛЬЩИКА", since: "С нами с", seat: "Место", level: "Уровень", rank: "Рейтинг", xp: "Fan XP", inf: "Влияние", coins: "Монеты", funds: "Фонд клуба",
+    toNext: n => `До следующего уровня ${n} XP`, seeSeat: "🏟 Моё место", invite: "👥 Пригласите друзей", share: "📤 Поделиться", join: "Вступить", send: "Отправить", claim: "Забрать", claimed: "✅ Получено",
+    daily: "Ежедневные", weekly: "Еженедельные", supporters: "Болельщики", seats: "Места", homes: "Дома", donate: "Пожертвовать клубу" },
+  en: { tabs: { card: "🪪 Card", profile: "⭐ Profile", missions: "🎯 Missions", depts: "🏢 Departments", club: "🏆 Club", admin: "🛠 Admin" }, sub: "Supporter Portal",
+    member: "MEMBERSHIP CARD", since: "Member since", seat: "Seat", level: "Level", rank: "Rank", xp: "Fan XP", inf: "Influence", coins: "Coins", funds: "Club Funds",
+    toNext: n => `${n} XP to next level`, seeSeat: "🏟 See my seat", invite: "👥 Invite friends", share: "📤 Share", join: "Join", send: "Send", claim: "Claim", claimed: "✅ Claimed",
+    daily: "Daily", weekly: "Weekly", supporters: "Supporters", seats: "Seats", homes: "Homes", donate: "Donate to the club" },
+};
+const PP = k => (PT[L] && PT[L][k] !== undefined ? PT[L][k] : PT.uz[k]);
+const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const CLUB = { tab: "card", me: null, admin: null, kind: null };
+const cbody = document.getElementById("cbody");
+document.getElementById("cCrest").src = document.querySelector("#brand img").src;
+async function clubLoad() { if (!TG) return; try { CLUB.me = await post("/api/club/me", {}); if (CLUB.me.club) STATE.club = CLUB.me.club; layoutHQ(); } catch (e) {} }
+function clubOpen(tab) {
+  CLUB.tab = tab || (TG ? "card" : "club");
+  document.getElementById("club").classList.add("on"); clubRender();
+  if (TG) clubLoad().then(clubRender);
+}
+document.getElementById("cX").onclick = () => document.getElementById("club").classList.remove("on");
+document.getElementById("bClub").onclick = () => clubOpen();
+function clubTabs() {
+  const tabs = TG ? ["card", "profile", "missions", "depts", "club"].concat(CLUB.me && CLUB.me.admin ? ["admin"] : []) : ["club", "depts"];
+  document.getElementById("cSub").textContent = PP("sub");
+  const el = document.getElementById("ctabs"); el.innerHTML = "";
+  for (const t of tabs) { const b = document.createElement("button"); b.textContent = PP("tabs")[t]; b.className = t === CLUB.tab ? "on" : ""; b.onclick = () => { CLUB.tab = t; clubRender(); if (t === "admin") adminLoad(); }; el.appendChild(b); }
+}
+function clubRender() {
+  clubTabs();
+  const me = CLUB.me, m = me && me.member, club = (me && me.club) || STATE.club;
+  if (TG && !me && CLUB.tab !== "club") { cbody.innerHTML = `<p style="text-align:center;opacity:.7">…</p>`; return; }
+  const html = ({ card: cardHtml, profile: profileHtml, missions: missionsHtml, depts: deptsHtml, club: dashHtml, admin: adminHtml })[CLUB.tab](me, m, club);
+  cbody.innerHTML = html; clubBind();
+}
+const stadSeat = no => { const k = no - 1; return { row: Math.floor(k / STAND_W) + 1, no: CENTER_OUT[k % STAND_W] + 1 }; };
+function cardHtml(me, m) {
+  const t = m.tier, pct = t.next ? Math.round((m.xp - t.from) / (t.next - t.from) * 100) : 100, ss = stadSeat(m.seat_no), crest = document.querySelector("#brand img").src;
+  return `<div class="mcard"><div class="row1"><img src="${crest}"><div><b>ZAMIN FK</b><br><small style="color:#9DB8FF;font-weight:700">${PP("member")}</small></div><span class="tier" style="margin-left:auto">${t.emoji} ${t.name}</span></div>
+    <div class="nm">${esc(m.nick)}</div><div class="id">${m.id}</div>
+    <div class="meta"><div>${PP("since")}<b>${new Date(m.joined).toLocaleDateString("uz-UZ")}</b></div><div>${PP("seat")}<b>ZFK · ${ss.row}-qator · ${ss.no}</b></div><div>${PP("rank")}<b>#${m.rank}</b></div></div></div>
+  <div class="bar"><i style="width:${pct}%"></i></div><small style="color:#9DB8FF;font-weight:700">${t.next ? PP("toNext")(t.next - m.xp) : PP("top")}</small>
+  <div class="stats"><div class="stat"><small>${PP("xp")}</small><b>⭐ ${fmt(m.xp)}</b></div><div class="stat"><small>${PP("inf")}</small><b>🏛 ${fmt(m.influence)}</b></div>
+    <div class="stat"><small>${PP("coins")}</small><b>🪙 ${ME ? fmt(ME.coins) : "—"}</b></div><div class="stat"><small>${PP("funds")}</small><b>🏦 ${fmt(me.club ? me.club.funds : 0)}</b></div></div>
+  <button class="go" data-a="seat">${PP("seeSeat")}</button>
+  <div class="sec">${PP("invite")}</div><div class="item"><small>${PP("inviteP") || ""}</small><input readonly value="https://t.me/${esc(me.bot || "zaminfk_bot")}?start=ref_${m.ref_code}">
+    <div class="hd"><small>${PP("invited") ? PP("invited")(m.refs.invited, m.refs.active) : ""}</small><button class="btn" data-a="share">${PP("share")}</button></div></div>`;
+}
+function badgesOf(me, m) {
+  const approved = me.contributions.some(c => c.status === "approved"), donated = me.history.some(h => h.reason === "donation"), ref = m.refs.active > 0;
+  const B = [["🎫", "A’zo", true], ["🏢", "Bo‘lim a’zosi", !!m.dept], ["✍️", "Hissachi", approved], ["🤝", "Elchi", ref], ["💛", "Homiy", donated], ["🎯", "Missiyachi", me.history.some(h => h.reason.startsWith("mission"))]];
+  for (const [e, n, at] of me.tiers.slice(1)) B.push([e, n, m.xp >= at]);
+  return B;
+}
+function profileHtml(me, m) {
+  const reason = r => { const k = r.split(":")[0]; return (PP("reasons") || PT.uz.reasons)[k] || r; };
+  return `<div class="stats"><div class="stat"><small>${PP("level")}</small><b>${m.tier.emoji} ${m.tier.name}</b></div><div class="stat"><small>${PP("rank")}</small><b>#${m.rank}</b></div>
+    <div class="stat"><small>${PP("xp")}</small><b>⭐ ${fmt(m.xp)}</b></div><div class="stat"><small>${PP("inf")}</small><b>🏛 ${fmt(m.influence)}</b></div></div>
+  <div class="sec">${PP("ach")}</div><div class="badges">${badgesOf(me, m).map(([e, n, on]) => `<div class="badge${on ? "" : " off"}"><i>${e}</i>${n}</div>`).join("")}</div>
+  <div class="sec">${PP("contribs")}</div>${me.contributions.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip ${c.status === "approved" ? "ok" : c.status === "rejected" ? "no" : "wait"}">${PT.uz.st[c.status]}</span></div>
+    <small>${esc(c.body)}</small>${c.status === "approved" ? `<br><small>+${c.xp} XP · +${c.influence} ${PP("inf")}</small>` : ""}${c.note ? `<br><small>💬 ${esc(c.note)}</small>` : ""}</div>`).join("") || `<small>${PP("none")}</small>`}
+  <div class="sec">${PP("hist")}</div>${me.history.map(h => `<div class="item"><div class="hd"><b>${reason(h.reason)}</b><span class="chip ok">+${h.xp} XP${h.influence ? " · +" + h.influence : ""}</span></div><small>${new Date(h.at).toLocaleString("uz-UZ")}</small></div>`).join("") || `<small>${PP("none")}</small>`}`;
+}
+function missionsHtml(me) {
+  const row = x => `<div class="item"><div class="hd"><b>${esc(x.title)}</b><span class="chip">+${x.xp} XP</span></div><div class="bar"><i style="width:${x.progress / x.target * 100}%"></i></div>
+    <div class="hd"><small>${fmt(x.progress)} / ${fmt(x.target)}</small>${x.claimed ? `<span class="chip ok">${PP("claimed")}</span>` : `<button class="btn" data-a="claim" data-id="${x.id}" ${x.progress >= x.target ? "" : "disabled"}>${PP("claim")}</button>`}</div></div>`;
+  return `<div class="sec">${PP("daily")}</div>${me.missions.filter(x => x.period === "daily").map(row).join("")}<div class="sec">${PP("weekly")}</div>${me.missions.filter(x => x.period === "weekly").map(row).join("")}`;
+}
+function deptsHtml(me, m, club) {
+  const ds = (club && club.departments) || [], mine = m && m.dept;
+  let h = ds.filter(d => d.active).map(d => `<div class="item" style="border-left:4px solid #${(DEPT_BASE.find(x => x[0] === d.id) || [0, 0, 0, 0xffffff])[3].toString(16).padStart(6, "0")}">
+    <div class="hd"><b>${d.emoji} ${esc(d.name)}</b><span class="chip">${PT.uz.lvl(d.level)}</span></div><small>${esc(d.description)}</small>
+    <div class="bar"><i style="width:${d.nextAt ? Math.min(100, d.power / d.nextAt * 100) : 100}%"></i></div>
+    <div class="hd"><small>${PT.uz.members(d.members)} · ${PT.uz.week(d.week)}</small>${TG && m ? (mine === d.id ? `<span class="chip ok">${PT.uz.deptMine}</span>` : `<button class="btn" data-a="dept" data-id="${d.id}">${PP("join")}</button>`) : ""}</div></div>`).join("");
+  if (TG && m) {
+    const kinds = (me.kinds || {})[mine] || [];
+    h += `<div class="sec">✍️ ${PT.uz.contribute}</div>` + (mine ? `<div class="item"><small>${PT.uz.kind}</small><div class="kinds">${kinds.map(k => `<button data-a="kind" data-k="${esc(k)}" class="${CLUB.kind === k ? "on" : ""}">${esc(k)}</button>`).join("")}</div>
+      <textarea id="cText" rows="3" maxlength="500" placeholder="${PT.uz.text}"></textarea><input id="cLink" maxlength="200" placeholder="${PT.uz.link}"><button class="go" data-a="contrib">${PP("send")}</button></div>` : `<small>${PT.uz.needDept}</small>`);
+  }
+  return h;
+}
+function dashHtml(me, m, club) {
+  if (!club) return `<small>${PP("webOnly")}</small>`;
+  const track = (list, v) => list.map(x => `<div class="item"><div class="hd"><b>${x.done ? "✅" : "🎯"} ${esc(x.name)}</b><small>${fmt(Math.min(v, x.at))} / ${fmt(x.at)}</small></div><div class="bar"><i style="width:${Math.min(100, v / x.at * 100)}%"></i></div></div>`).join("");
+  const maxW = Math.max(1, ...club.departments.map(d => d.week));
+  return `<div class="stats"><div class="stat"><small>${PP("supporters")}</small><b>👥 ${fmt(club.supporters)}</b></div><div class="stat"><small>${PP("funds")}</small><b>🏦 ${fmt(club.funds)}</b></div>
+    <div class="stat"><small>${PP("seats")}</small><b>🏟 ${fmt(club.seats)}</b></div><div class="stat"><small>${PP("homes")}</small><b>🏠 ${fmt(club.homes)}</b></div></div>
+  ${TG ? "" : `<div class="item"><small>${PT.uz.webOnly}</small></div>`}
+  <div class="sec">${PT.uz.milestones}</div><small style="color:#9DB8FF;font-weight:700">${PT.uz.mSup}</small>${track(club.milestones.supporters, club.supporters)}
+  <small style="color:#9DB8FF;font-weight:700">${PT.uz.mFund}</small>${track(club.milestones.funds, club.funds)}
+  <div class="sec">${PT.uz.activity}</div>${club.departments.map(d => `<div class="item"><div class="hd"><b>${d.emoji} ${esc(d.name)}</b><small>${PT.uz.members(d.members)} · ${PT.uz.lvl(d.level)}</small></div><div class="bar"><i style="width:${d.week / maxW * 100}%"></i></div><small>${PT.uz.week(d.week)}</small></div>`).join("")}
+  <div class="sec">${PT.uz.leaders}</div>${club.top.map((t, i) => `<div class="item"><div class="hd"><b>${i + 1}. ${esc(t.nick)}</b><span class="chip">${t.tier.emoji} ${fmt(t.xp)} XP</span></div></div>`).join("") || `<small>${PT.uz.none}</small>`}
+  ${TG && m ? `<div class="sec">💛 ${PP("donate")}</div><div class="item"><small>${PT.uz.donateP}</small><div class="hd" style="margin-top:8px">${[10, 50, 100, 250].map(a => `<button class="btn" data-a="donate" data-n="${a}">${a} 🪙</button>`).join("")}</div></div>` : ""}`;
+}
+// ---------- admin ----------
+async function adminLoad() { try { const [list, ms] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {})]); CLUB.admin = { list, ms }; } catch (e) { CLUB.admin = null; } clubRender(); }
+function adminHtml(me, m, club) {
+  const a = CLUB.admin; if (!a) return `<small>…</small>`;
+  return `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
+      <small>${esc(c.nick)} · ZFK-${String(c.member_no).padStart(5, "0")}</small><p style="margin:6px 0;font-size:13px">${esc(c.body)}</p>${c.link ? `<small>🔗 <a style="color:#FFD23F" href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></small>` : ""}
+      <div class="adm"><input id="ax${c.id}" type="number" value="50" title="XP"><input id="ai${c.id}" type="number" value="20" title="Influence"><input id="af${c.id}" type="number" value="0" title="Funds"></div>
+      <input id="an${c.id}" placeholder="Izoh (ixtiyoriy)"><div class="hd"><button class="btn green" data-a="decide" data-id="${c.id}" data-ok="1">${PT.uz.approve}</button><button class="btn red" data-a="decide" data-id="${c.id}">${PT.uz.reject}</button></div></div>`).join("") || `<small>${PT.uz.none}</small>`}
+  <div class="sec">${PT.uz.admMissions}</div>${a.ms.missions.map(x => `<div class="item"><input id="mt${x.id}" value="${esc(x.title)}"><div class="adm"><select id="mp${x.id}"><option ${x.period === "daily" ? "selected" : ""}>daily</option><option ${x.period === "weekly" ? "selected" : ""}>weekly</option></select>
+      <select id="ma${x.id}">${a.ms.actions.map(k => `<option ${k === x.action ? "selected" : ""}>${k}</option>`).join("")}</select><input id="mg${x.id}" type="number" value="${x.target}" title="Target"></div>
+      <div class="hd"><input id="mx${x.id}" type="number" value="${x.xp}" title="XP" style="width:90px"><label><input id="mo${x.id}" type="checkbox" ${x.active ? "checked" : ""} style="width:auto"> ${PT.uz.active}</label><button class="btn" data-a="msave" data-id="${x.id}">${PT.uz.save}</button></div></div>`).join("")}
+  <div class="item"><input id="mtnew" placeholder="Yangi missiya nomi"><div class="adm"><select id="mpnew"><option>daily</option><option>weekly</option></select><select id="manew">${a.ms.actions.map(k => `<option>${k}</option>`).join("")}</select><input id="mgnew" type="number" value="1"></div>
+    <div class="hd"><input id="mxnew" type="number" value="20" style="width:90px"><button class="btn" data-a="msave" data-id="new">${PT.uz.add}</button></div></div>
+  <div class="sec">${PT.uz.admDepts}</div>${(club ? club.departments : []).map(d => `<div class="item"><input id="dn${d.id}" value="${esc(d.name)}"><textarea id="dd${d.id}" rows="2">${esc(d.description)}</textarea>
+    <div class="hd"><label><input id="do${d.id}" type="checkbox" ${d.active ? "checked" : ""} style="width:auto"> ${PT.uz.active}</label><button class="btn" data-a="dsave" data-id="${d.id}">${PT.uz.save}</button></div></div>`).join("")}`;
+}
+// ---------- actions ----------
+const cErr = e => say((PT.uz.errors)[e.message] || T[L].err);
+function clubBind() {
+  cbody.querySelectorAll("[data-a]").forEach(b => b.onclick = async () => {
+    const a = b.dataset.a, v = id => document.getElementById(id);
+    try {
+      if (a === "seat") { document.getElementById("club").classList.remove("on"); const no = CLUB.me.member.seat_no, st = seatByNo(no);
+        if (st && st.fan) goTo(st); else { try { sessionStorage.setItem("zfk_seat", no); } catch (e) {} location.reload(); } }
+      else if (a === "share") { const url = cbody.querySelector("input[readonly]").value, txt = "ZAMIN FK muxlislar shahriga qo‘shil! ⚽";
+        if (TG && TG.openTelegramLink) TG.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(txt)); else { navigator.clipboard && navigator.clipboard.writeText(url); say("📋 " + url); } }
+      else if (a === "claim") { const d = await post("/api/club/mission/claim", { id: +b.dataset.id }); haptic("ok"); say(`+${d.xp} XP ⭐`); await clubLoad(); }
+      else if (a === "dept") { await post("/api/club/dept", { dept: b.dataset.id }); haptic("ok"); await clubLoad(); }
+      else if (a === "kind") { CLUB.kind = b.dataset.k; cbody.querySelectorAll(".kinds button").forEach(x => x.classList.toggle("on", x === b)); return; }
+      else if (a === "contrib") { if (!CLUB.kind) { say(PT.uz.kind); return; } await post("/api/club/contribute", { kind: CLUB.kind, body: v("cText").value, link: v("cLink").value }); CLUB.kind = null; haptic("ok"); say(PT.uz.sent); await clubLoad(); }
+      else if (a === "donate") { const d = await post("/api/club/donate", { amount: +b.dataset.n }); haptic("ok"); say(PT.uz.donated(b.dataset.n, d.xp)); await fetchMe(); await clubLoad(); }
+      else if (a === "decide") { const id = b.dataset.id; await post("/api/admin/contribution/decide", { id: +id, approve: !!b.dataset.ok, xp: +v("ax" + id).value, influence: +v("ai" + id).value, funds: +v("af" + id).value, note: v("an" + id).value }); await adminLoad(); return; }
+      else if (a === "msave") { const id = b.dataset.id, k = s => v(s + id); await post("/api/admin/mission/save", { id: id === "new" ? undefined : +id, title: k("mt").value, period: k("mp").value, action: k("ma").value, target: +k("mg").value, xp: +k("mx").value, active: id === "new" ? true : k("mo").checked }); say("✅"); await adminLoad(); return; }
+      else if (a === "dsave") { const id = b.dataset.id; await post("/api/admin/dept/save", { id, name: v("dn" + id).value, description: v("dd" + id).value, active: v("do" + id).checked }); say("✅"); await clubLoad(); }
+      clubRender();
+    } catch (e) { cErr(e); }
+  });
+}
+if (TG) clubLoad();
+
 // ---------- language ----------
 const langsEl = document.getElementById("langs");
 [["uz", "O‘zbekcha"], ["ru", "Русский"], ["en", "English"]].forEach(([k, n]) => {
@@ -1440,7 +1690,8 @@ if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, c
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
-  let go = null; try { go = sessionStorage.getItem("zfk_goto"); sessionStorage.removeItem("zfk_goto"); } catch (e) {}
+  let go = null, gs = null; try { go = sessionStorage.getItem("zfk_goto"); sessionStorage.removeItem("zfk_goto"); gs = sessionStorage.getItem("zfk_seat"); sessionStorage.removeItem("zfk_seat"); } catch (e) {}
+  if (gs) { const st = seatByNo(+gs); if (st && st.fan) setTimeout(() => goTo(st), 700); }
   const st = go && byNick.get(norm(go));
   if (st) setTimeout(() => { goTo(st); say(T[L].seatOk(T[L].seat(st))); }, 700);
   else if (MODE === "city") { const m = HOMES.find(h => h.id === myId); if (m) setTimeout(() => goHome(m), 900); }
@@ -1448,7 +1699,7 @@ if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, c
   if (nh) { const m = HOMES.find(h => h.id === myId); if (m) setTimeout(() => say(T[L].homeOk + " " + m.nick + " 🎟"), 1200); }
 }
 // live city: new homes appear without reload; first load may have missed a sleeping backend
-setInterval(async () => { const s = await getState(15000); if (s) { const had = !!STATE.miniapp; STATE = s; const sig = l => l.map(h => h.id + ":" + h.level + ":" + h.color + ":" + h.car).join(); if (sig(s.homes) !== sig(HOMES)) { layoutHomes(s.homes); updateHomeUi(); } if (!had) updateCta(); } }, 30000);
+setInterval(async () => { const s = await getState(15000); if (s) { const had = !!STATE.miniapp; STATE = s; layoutHQ(); const sig = l => l.map(h => h.id + ":" + h.level + ":" + h.color + ":" + h.car).join(); if (sig(s.homes) !== sig(HOMES)) { layoutHomes(s.homes); updateHomeUi(); } if (!had) updateCta(); } }, 30000);
 </script>
 </body>
 </html>
