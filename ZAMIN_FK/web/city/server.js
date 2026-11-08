@@ -8,7 +8,7 @@ const path = require("path");
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const MINIAPP_URL = process.env.MINIAPP_URL || "";          // e.g. https://t.me/<bot>/<app> — shown to web visitors
 const PAGE = path.join(__dirname, "..", "stadium", "dist", "index.html");
-const STYLES = 4, COLORS = 6;
+const STYLES = 5, COLORS = 6;
 const ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
 const app = express();
 app.use(express.json({ limit: "32kb" }));
