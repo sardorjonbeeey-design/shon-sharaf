@@ -1,0 +1,162 @@
+{
+ "output": "ZFK_EP03_day3.mp4",
+ "lead_in": 0.25,
+ "gap": 0.3,
+ "tail": 1.8,
+ "lines": [
+  {
+   "id": "L1",
+   "file": "voice/01_hook.mp3",
+   "placeholder": 3.0
+  },
+  {
+   "id": "L2",
+   "file": "voice/02_result.mp3",
+   "placeholder": 6.0
+  },
+  {
+   "id": "L3",
+   "file": "voice/03_update.mp3",
+   "placeholder": 6.3
+  },
+  {
+   "id": "L4",
+   "file": "voice/04_cta.mp3",
+   "placeholder": 7.2
+  },
+  {
+   "id": "L5",
+   "file": "voice/05_question.mp3",
+   "placeholder": 4.8
+  },
+  {
+   "id": "L6",
+   "file": "voice/06_outro.mp3",
+   "placeholder": 4.4
+  }
+ ],
+ "shots": [
+  {
+   "from": "L1",
+   "image": "../02_Episode_02/assets/BG_stand_renovated.png",
+   "zoom": [
+    1.0,
+    1.12
+   ],
+   "focus": [
+    0.5,
+    0.45,
+    0.5,
+    0.4
+   ]
+  },
+  {
+   "from": "L2",
+   "image": "../01_Art_Direction/Sprites/doston.png",
+   "zoom": [
+    1.0,
+    1.1
+   ],
+   "focus": [
+    0.5,
+    0.5,
+    0.5,
+    0.45
+   ]
+  },
+  {
+   "from": "L3",
+   "image": "../02_Episode_01/assets/S05_stadium_wide.png",
+   "zoom": [
+    1.05,
+    1.0
+   ],
+   "focus": [
+    0.5,
+    0.4,
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "from": "L4",
+   "image": "../02_Episode_02/assets/BG_stand_renovated.png",
+   "zoom": [
+    1.0,
+    1.08
+   ],
+   "focus": [
+    0.5,
+    0.6,
+    0.5,
+    0.55
+   ]
+  },
+  {
+   "from": "L5",
+   "image": "../01_Art_Direction/Sprites/sherzod.png",
+   "zoom": [
+    1.0,
+    1.1
+   ],
+   "focus": [
+    0.5,
+    0.5,
+    0.5,
+    0.45
+   ]
+  },
+  {
+   "from": "L6",
+   "image": "../01_Art_Direction/Sprites/goat_side.png",
+   "zoom": [
+    1.0,
+    1.12
+   ],
+   "focus": [
+    0.5,
+    0.5,
+    0.5,
+    0.45
+   ]
+  }
+ ],
+ "overlays": [
+  {
+   "from": "L1",
+   "to": "L2",
+   "html": "<div class=\"sub\"><em>SIZ TANLADINGIZ:</em> DOSTON!</div>",
+   "srt": "SIZ TANLADINGIZ: DOSTON!"
+  },
+  {
+   "from": "L2",
+   "to": "L3",
+   "html": "<div class=\"sub\">Sherzod emas — <em>DOSTON</em>. Rahmat, har bir ovoz uchun.</div>",
+   "srt": "Sherzod emas — DOSTON. Rahmat, har bir ovoz uchun."
+  },
+  {
+   "from": "L3",
+   "to": "L4",
+   "html": "<div class=\"sub\">Klub fondi: <em>20 085 000</em> so‘m (virtual)</div>",
+   "srt": "Klub fondi: 20 085 000 so‘m (virtual)"
+  },
+  {
+   "from": "L4",
+   "to": "L5",
+   "html": "<div class=\"sub\">@zaminfk_bot — <em>jamoaga qo‘shiling</em> yoki shaharda ish toping</div>",
+   "srt": "@zaminfk_bot — jamoaga qo‘shiling yoki shaharda ish toping"
+  },
+  {
+   "from": "L5",
+   "to": "L6",
+   "html": "<div class=\"sub\">Qaysi klubga qarshi <em>o‘rtoqlik o‘yini</em> o‘tkazaylik?</div>",
+   "srt": "Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik?"
+  },
+  {
+   "from": "L6",
+   "to": "end",
+   "html": "<div class=\"sub\">Ertaga echkiga nima bo‘ldi? 🐐 <em>Klub nomini yozing!</em></div>",
+   "srt": "Ertaga echkiga nima bo‘ldi? Klub nomini yozing!"
+  }
+ ]
+}
