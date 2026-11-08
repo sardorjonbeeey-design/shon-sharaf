@@ -29,15 +29,15 @@ else:
     fans = json.load(open(args[0]))
 
 heroes = [
-    {"key": "rustam", "name": "Rustam aka", "img": data_uri(os.path.join(SPR, "rustam_whistle.png")), "x": -6, "z": 30, "h": 1.9,
+    {"key": "rustam", "name": "Rustam aka", "img": data_uri(os.path.join(SPR, "rustam_whistle.png")), "x": -6, "z": 30, "h": 3.2,
      "role": {"uz": "Bosh murabbiy. Har bir mashg‘ulot — kubok finali.", "ru": "Главный тренер. Каждая тренировка — финал кубка.", "en": "Head coach. Every training is a cup final."}},
-    {"key": "bekzod", "name": "Bekzod", "img": data_uri(os.path.join(SPR, "bekzod_celebrate.png")), "x": 8, "z": 6, "h": 1.85,
+    {"key": "bekzod", "name": "Bekzod", "img": data_uri(os.path.join(SPR, "bekzod_celebrate.png")), "x": 8, "z": 6, "h": 3.1,
      "role": {"uz": "Hujumchi. Gol urishdan oldin bayram qiladi.", "ru": "Нападающий. Празднует до гола.", "en": "Striker. Celebrates before he scores."}},
-    {"key": "jasur", "name": "Jasur", "img": data_uri(os.path.join(SPR, "jasur_oneglove.png")), "x": -49, "z": 0, "h": 1.95,
+    {"key": "jasur", "name": "Jasur", "img": data_uri(os.path.join(SPR, "jasur_oneglove.png")), "x": -49, "z": 0, "h": 3.3,
      "role": {"uz": "Darvozabon. Har doim bahonasi tayyor.", "ru": "Вратарь. Оправдание всегда наготове.", "en": "Goalkeeper. Always has an excuse ready."}},
-    {"key": "aziz", "name": "Aziz", "img": data_uri(os.path.join(SPR, "aziz_ball.png")), "x": -2, "z": -4, "h": 1.75,
+    {"key": "aziz", "name": "Aziz", "img": data_uri(os.path.join(SPR, "aziz_ball.png")), "x": -2, "z": -4, "h": 3.0,
      "role": {"uz": "Yarim himoyachi. Atrofda xaos — u jiddiy.", "ru": "Полузащитник. Вокруг хаос — он серьёзен.", "en": "Midfielder. Chaos all around — he stays serious."}},
-    {"key": "echki", "name": "Echki", "img": data_uri(os.path.join(SPR, "goat_side.png")), "x": 46, "z": -26, "h": 0.95,
+    {"key": "echki", "name": "Echki", "img": data_uri(os.path.join(SPR, "goat_side.png")), "x": 46, "z": -26, "h": 1.6,
      "role": {"uz": "Stadionning eng sodiq muxlisi. Ismini siz tanlaysiz!", "ru": "Самый верный болельщик стадиона. Имя выберете вы!", "en": "The stadium’s most loyal fan. You pick its name!"}},
 ]
 crest = data_uri(os.path.join(Z, "03_Approved_Assets", "ZFK_CREST_MASTER_V01_P_2048.png"), 96)
