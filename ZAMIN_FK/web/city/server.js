@@ -9,7 +9,6 @@ const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const MINIAPP_URL = process.env.MINIAPP_URL || "";          // e.g. https://t.me/<bot>/<app> — shown to web visitors
 const PAGE = path.join(__dirname, "..", "stadium", "dist", "index.html");
 const COLORS = 6, MAX_LEVEL = 7;
-const UPGRADE_HOURS = Number(process.env.UPGRADE_HOURS || 24);     // a house can go up one level per this many hours
 const ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
 const app = express();
 app.use(express.json({ limit: "256kb" }));
@@ -30,6 +29,7 @@ if (process.env.DATABASE_URL) {
     alter table homes add column if not exists upgraded_at timestamptz;
     alter table homes alter column style set default 0;
     alter table homes add column if not exists lot int;
+    alter table homes add column if not exists car int not null default 0;
     create unique index if not exists homes_lot_key on homes (lot) where lot is not null;
     create table if not exists seats (
       tg_id bigint primary key, nick text not null, tg_username text, instagram text unique,
@@ -42,7 +42,7 @@ if (process.env.DATABASE_URL) {
 const q = (sql, args) => db.query(sql, args).then(r => r.rows);
 async function listHomes() {
   if (!db) return mem.homes.slice().sort((a, b) => a.created_at - b.created_at);
-  return q("select tg_id, nick, style, color, level, lot, coalesce(upgraded_at, created_at) as up, created_at from homes order by created_at, tg_id");
+  return q("select tg_id, nick, style, color, level, lot, car, coalesce(upgraded_at, created_at) as up, created_at from homes order by created_at, tg_id");
 }
 async function listSeats() {
   if (!db) return mem.seats.slice();
@@ -83,7 +83,7 @@ app.get("/api/state", async (req, res) => {
     res.set("Cache-Control", "no-store");
     res.json({
       miniapp: MINIAPP_URL || (bot.info.username ? "https://t.me/" + bot.info.username : ""),
-      upgradeHours: UPGRADE_HOURS, maxLevel: MAX_LEVEL,
+      maxLevel: MAX_LEVEL,
       homes: homes.map(homeOut),
       seats: seats.map(s => ({ tg_id: String(s.tg_id), nick: s.nick.replace(/^@/, ""), tg_username: s.tg_username, instagram: s.instagram })),
     });
@@ -94,7 +94,7 @@ app.get("/api/homes", async (req, res) => {             // kept for older client
   catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
 });
 
-const homeOut = (r, i) => ({ id: String(r.tg_id), nick: r.nick, style: r.style || 0, color: r.color, level: r.level || 1, lot: r.lot == null ? null : r.lot,
+const homeOut = (r, i) => ({ id: String(r.tg_id), nick: r.nick, style: r.style || 0, color: r.color, level: r.level || 1, lot: r.lot == null ? null : r.lot, car: r.car || 0,
   up: new Date(r.up || r.created_at).toISOString(), n: i + 1 });
 async function ensureSeat(user) {                          // every house owner is also a fan in the stadium
   const nick = nickOf(user), tgu = user.username || null;
@@ -113,7 +113,7 @@ app.post("/api/home", async (req, res) => {
   try {
     if (!db) { const ex = mem.homes.find(h => String(h.tg_id) === String(user.id));
       if (lot !== null && mem.homes.some(h => h.lot === lot && h !== ex)) return res.status(409).json({ error: "taken" });
-      if (ex) Object.assign(ex, { nick, color, lot: ex.lot ?? lot }); else mem.homes.push({ tg_id: user.id, nick, style: 0, color, level: 1, lot, up: Date.now(), created_at: Date.now() }); }
+      if (ex) Object.assign(ex, { nick, color, lot: ex.lot ?? lot }); else mem.homes.push({ tg_id: user.id, nick, style: 0, color, level: 1, car: 0, lot, up: Date.now(), created_at: Date.now() }); }
     else {
       try {
         await q(`insert into homes (tg_id, nick, style, color, level, lot) values ($1,$2,0,$3,1,$4)
@@ -125,26 +125,8 @@ app.post("/api/home", async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
 });
 
-// Upgrade my house one level (1 -> 7), at most once per UPGRADE_HOURS.
-app.post("/api/home/upgrade", async (req, res) => {
-  const user = auth(req, res); if (!user) return;
-  try {
-    let row;
-    if (!db) {
-      row = mem.homes.find(h => String(h.tg_id) === String(user.id));
-      if (row && row.level < MAX_LEVEL && Date.now() - row.up >= UPGRADE_HOURS * 3600e3) { row.level++; row.up = Date.now(); return res.json({ ok: true, level: row.level }); }
-    } else {
-      const up = await q(`update homes set level = level + 1, upgraded_at = now(), updated_at = now()
-        where tg_id = $1 and level < $2 and coalesce(upgraded_at, created_at) <= now() - make_interval(secs => $3)
-        returning level`, [user.id, MAX_LEVEL, UPGRADE_HOURS * 3600]);
-      if (up.length) return res.json({ ok: true, level: up[0].level });
-      [row] = await q("select level, coalesce(upgraded_at, created_at) as up from homes where tg_id = $1", [user.id]);
-    }
-    if (!row) return res.status(404).json({ error: "no home" });
-    if (row.level >= MAX_LEVEL) return res.status(409).json({ error: "max" });
-    res.status(429).json({ error: "wait", next: new Date(new Date(row.up).getTime() + UPGRADE_HOURS * 3600e3).toISOString() });
-  } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
-});
+// Coins, jobs, house upgrades and cars live in economy.js (server-authoritative).
+require("./economy").init({ app, db, mem, auth, ensureSeat });
 
 // One stadium seat per Telegram user. An Instagram nick links the seat to that follower (first claim wins).
 app.post("/api/seat", async (req, res) => {
