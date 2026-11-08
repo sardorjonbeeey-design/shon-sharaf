@@ -267,7 +267,9 @@ async function getMap() {
   if (!MAP_FILE || new URLSearchParams(location.search).get("map") === "0") return null;
   try { const r = await fetch(MAP_FILE); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
+console.log("Fetching state and map...");
 const [STATE0, MAP] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap()]);
+console.log("State loaded:", STATE0 ? "OK" : "TIMEOUT", "Map:", MAP ? "loaded" : "none");
 let STATE = STATE0 || { seats: [], homes: [], miniapp: "" };
 const FAN_META = new Map();       // nick -> { tg: telegram username or null }
 // Club members sit in the Supporters' Stand (main-stand straight). Their seat number comes from the server and never moves.
@@ -2026,8 +2028,14 @@ const nEl = document.getElementById("n");
 const t0 = performance.now();
 function fmt(v) { return Math.round(v).toLocaleString("fr-FR").replace(/ | /g, " "); }
 
-function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize(); }
-addEventListener("resize", resize); resize();
+function resize() {
+  console.log("Resizing to", innerWidth, innerHeight);
+  renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize();
+}
+addEventListener("resize", resize);
+console.log("Calling initial resize...");
+resize();
+console.log("Initial resize done, animation loop starting...");
 let prev = performance.now();
 let dbg = false;
 function loop(now) {
