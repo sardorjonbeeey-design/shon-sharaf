@@ -312,7 +312,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
 
   // ---------- applications: city work (free roles) and club (player / staff) — all come to the admin ----------
   const POSITIONS = ["GK", "DEF", "MID", "FWD"];
-  const CITY_ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
+  const CITY_ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Avtobus haydovchisi", "Boshqa"];
   const CLUB_DEPTS = DEPTS.map(d => d[0]);
   const APP_KINDS = ["city", "player", "staff"];
   ready.then(() => db.query(`
