@@ -79,7 +79,7 @@ function init({ app, db, mem, auth, ensureSeat, ready }) {
       await c.query("begin");
       await c.query("insert into wallets (tg_id) values ($1) on conflict do nothing", [tgId]);
       const w = (await c.query("select coins, streak, to_char(last_bonus, 'YYYY-MM-DD') as last_bonus, earned from wallets where tg_id = $1 for update", [tgId])).rows[0];
-      const home = (await c.query("select tg_id, level, car from homes where tg_id = $1 for update", [tgId])).rows[0] || null;
+      const home = (await c.query("select tg_id, level, car, profession from homes where tg_id = $1 for update", [tgId])).rows[0] || null;
       const shiftRow = (await c.query("select id, job, seed, started_at, served, earned, last_serve_at from shifts where tg_id = $1 order by id desc limit 1 for update", [tgId])).rows[0] || null;
       const shift = shiftRow && { ...shiftRow, id: Number(shiftRow.id), started_at: new Date(shiftRow.started_at).getTime(), last_serve_at: shiftRow.last_serve_at && new Date(shiftRow.last_serve_at).getTime() };
       const cnt = (await c.query("select count(*)::int as n from shifts where tg_id = $1 and (started_at at time zone 'Asia/Tashkent')::date = $2::date", [tgId, day])).rows[0].n;
@@ -154,6 +154,7 @@ function init({ app, db, mem, auth, ensureSeat, ready }) {
   route("/api/job/start", (ctx, body) => {
     const job = JOBS[body.job]; if (!job) throw fail(400, "job");
     if (!ctx.home) throw fail(404, "no home");                       // residents only
+    if (!ctx.home.profession) throw fail(403, "profession");         // must have approved profession
     if (activeShift(ctx)) return view(ctx);
     if (ctx.shiftsToday >= job.shiftsPerDay) throw fail(429, "tired");
     ctx.newShift = { job: job.id, seed: crypto.randomInt(1, 2 ** 31 - 1), started_at: ctx.now, served: [], earned: 0, last_serve_at: null };

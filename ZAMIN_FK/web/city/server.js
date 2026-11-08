@@ -64,13 +64,15 @@ if (process.env.DATABASE_URL) {
     alter table homes alter column style set default 0;
     alter table homes add column if not exists lot int;
     alter table homes add column if not exists car int not null default 0;
+    alter table homes add column if not exists profession text;
     create unique index if not exists homes_lot_key on homes (lot) where lot is not null;
     create table if not exists seats (
       tg_id bigint primary key, nick text not null, tg_username text, instagram text unique,
       created_at timestamptz not null default now(), updated_at timestamptz not null default now());
     create table if not exists applications (
       id bigserial primary key, tg_id bigint not null, nick text not null, role text not null, note text,
-      created_at timestamptz not null default now());`)
+      status text not null default 'pending', created_at timestamptz not null default now(), decided_at timestamptz, decided_by bigint);
+    create index if not exists applications_status_idx on applications (status, created_at);`)
     .catch(e => console.error("db init", e.message));
   bot.initFeedback(db);
 }
@@ -186,6 +188,60 @@ app.post("/api/seat", async (req, res) => {
           instagram = coalesce(excluded.instagram, seats.instagram), updated_at = now()`, [user.id, nick, tgu, ig]);
     }
     res.json({ ok: true, nick: ig || nick.replace(/^@/, "") });
+  } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
+});
+
+// Profession system: 1 user = 1 profession. Users apply, admin approves/rejects.
+app.post("/api/profession/apply", async (req, res) => {
+  const user = auth(req, res); if (!user) return;
+  const role = String(req.body.role || "").trim();
+  if (!ROLES.includes(role)) return res.status(400).json({ error: "invalid role" });
+  const nick = nickOf(user);
+  try {
+    if (!db) return res.status(503).json({ error: "professions need database" });
+    const home = await q("select profession from homes where tg_id = $1", [user.id]);
+    if (!home.length) return res.status(404).json({ error: "no home" });
+    const current = home[0].profession;
+    if (current === role) return res.status(409).json({ error: "already" });
+    await q(`insert into applications (tg_id, nick, role, status) values ($1,$2,$3,'pending')
+      on conflict (tg_id, role) do nothing`, [user.id, nick, role]);
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
+});
+
+app.get("/api/profession", async (req, res) => {
+  const user = auth(req, res); if (!user) return;
+  try {
+    if (!db) return res.status(503).json({ error: "professions need database" });
+    const home = await q("select profession from homes where tg_id = $1", [user.id]);
+    const apps = await q("select id, role, status, created_at from applications where tg_id = $1 order by created_at desc", [user.id]);
+    res.json({
+      current: home.length ? home[0].profession : null,
+      applications: apps,
+      roles: ROLES
+    });
+  } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
+});
+
+// Admin: approve/reject profession applications
+const isAdmin = id => process.env.ADMIN_ID && String(process.env.ADMIN_ID).split(/[\s,]+/).includes(String(id));
+app.post("/api/admin/profession", async (req, res) => {
+  const user = auth(req, res); if (!user) return;
+  if (!isAdmin(user.id)) return res.status(403).json({ error: "admin only" });
+  const appId = Number(req.body.id), decision = String(req.body.decision || "").trim();
+  if (!Number.isInteger(appId) || appId < 1 || !["approve", "reject"].includes(decision)) return res.status(400).json({ error: "bad request" });
+  try {
+    if (!db) return res.status(503).json({ error: "admin needs database" });
+    const app = await q("select tg_id, role, status from applications where id = $1", [appId]);
+    if (!app.length) return res.status(404).json({ error: "not found" });
+    if (app[0].status !== "pending") return res.status(409).json({ error: "already decided" });
+    if (decision === "approve") {
+      await q("update homes set profession = $2 where tg_id = $1", [app[0].tg_id, app[0].role]);
+      await q("update applications set status = 'approved', decided_at = now(), decided_by = $2 where id = $1", [appId, user.id]);
+    } else {
+      await q("update applications set status = 'rejected', decided_at = now(), decided_by = $2 where id = $1", [appId, user.id]);
+    }
+    res.json({ ok: true });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
 });
 
