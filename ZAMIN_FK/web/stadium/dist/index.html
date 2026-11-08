@@ -1120,7 +1120,8 @@ const KENNEY_READY = (async () => {
   await Promise.all(names.map(n => new Promise(r => ld.load(KENNEY_PATH(n), g => { KENNEY[n] = g.scene; r(); }, undefined, () => r()))));
   if (typeof layoutHomes === "function" && HOMES) layoutHomes(HOMES);      // rebuild homes with the real car models
   swapStreetsToKenney();
-  spawnWalkers(); placeProps();
+  try { spawnWalkers(); } catch (e) { console.error("spawnWalkers failed:", e); }
+  try { await placeProps(); } catch (e) { console.error("placeProps failed:", e); }
 })();
 // street trees and traffic: real models replace the simple shapes (the simple ones are hidden, not deleted)
 function swapStreetsToKenney() {
@@ -1283,9 +1284,10 @@ async function loadSquad() {
     const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
     const list = await r.json(); SQUAD.forEach(s => scene.remove(s.g)); SQUAD.length = 0;
     list.forEach((p, i) => SQUAD.push(makeSquadPlayer(p, i)));
-  } catch (e) {}
+  } catch (e) { console.error("loadSquad fetch failed:", e); }
 }
-loadSquad(); setInterval(loadSquad, 60000);
+try { loadSquad(); } catch (e) { console.error("loadSquad init failed:", e); }
+try { setInterval(loadSquad, 60000); } catch (e) { console.error("loadSquad interval failed:", e); }
 function animateSquad(t) {
   for (const s of SQUAD) {
     const k = t * .6 + s.ph, run = s.p.kind === "player";
@@ -2032,14 +2034,14 @@ function loop(now) {
   }
   controls.update();
   sky.position.copy(camera.position);
-  animateTeam(now / 1000);
-  cityTick(dt); walkersTick(dt, now / 1000);
+  try { animateTeam(now / 1000); } catch (e) { console.error("animateTeam failed:", e); }
+  try { cityTick(dt); walkersTick(dt, now / 1000); } catch (e) { console.error("city/walkers tick failed:", e); }
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
-  DN.tick(now); DN.render();
-  updateLabels(now);
+  try { DN.tick(now); DN.render(); } catch (e) { console.error("DN tick/render failed:", e); }
+  try { updateLabels(now); } catch (e) { console.error("updateLabels failed:", e); }
   requestAnimationFrame(loop);
 }
-DN.init();
+try { DN.init(); } catch (e) { console.error("DN.init failed:", e); }
 requestAnimationFrame(loop);
 if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, layoutHomes, homes: () => HOMES, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 
