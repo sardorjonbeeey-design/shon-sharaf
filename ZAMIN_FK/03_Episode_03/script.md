@@ -15,7 +15,7 @@
 ## 2. OQIBAT (12–22 s) — yangilanish
 - **Kadr:** stadion ta’miri, yangi LED ekran, Doston darvoza oldida.
 - **Subtitr:** `Stadion ta’mirlandi · LED ekran ishlamoqda`
-- **Ovoz:** “Klub fondi: 22 500 000 so‘m. Virtual, lekin har bir layk bilan o‘sadi.”
+- **Ovoz:** “Klub fondi: 20 085 000 so‘m. Virtual, lekin har bir layk bilan o‘sadi.”
 
 ## 3. SHAHAR CTA (22–34 s) — yangi imkoniyat
 - **Kadr:** shahar 3D ko‘rinishi, telefon ekranida “⚽ Klub” tugmasi.
@@ -24,8 +24,8 @@
 
 ## 4. KEYINGI SAVOL (34–42 s)
 - **Kadr:** Bekzod, Jasur, Aziz — yonma-yon siluet, bo‘sh o‘rin.
-- **Subtitr:** `Do‘stona o‘yin: qaysi klubga taklif yuboramiz?`
-- **Ovoz:** “Qaysi klubga do‘stona o‘yin taklif qilaylik? Izohga klub nomini yozing.”
+- **Subtitr:** `Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik?`
+- **Ovoz:** “Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik? Izohga klub nomini yozing.”
 
 ## OUTRO HOOK (42–48 s) — eng muhim 6 soniya
 - **Kadr:** echki tribunada, yuzi kameraga qaraydi (qayta ko‘rishga arziydigan detal).
@@ -36,8 +36,8 @@
 ## Post matni (caption)
 ```
 3-kun. Doston jamoada! ⚽ Ovoz bergan har bir muxlisga rahmat.
-Klub fondi: 22 500 000 so‘m (virtual). Shahar ochildi — @zaminfk_bot ga kiring 👇
-Do‘stona o‘yin: qaysi klubga taklif yuboramiz? Izohga klub nomini yozing.
+Klub fondi: 20 085 000 so‘m (virtual). Shahar ochildi — @zaminfk_bot ga kiring 👇
+Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik? Izohga klub nomini yozing.
 G‘olib 10 soatdan keyin e’lon qilinadi. Klub jamoasiga qo‘shiling yoki shaharda ish toping: @zaminfk_bot (Fond va muxlislar — virtual o‘yin mexanikasi.)
 ```
 
@@ -46,7 +46,7 @@ G‘olib 10 soatdan keyin e’lon qilinadi. Klub jamoasiga qo‘shiling yoki sha
 
 ## Hooks tekshiruvi
 - [ ] 1-soniya kadri ovozsiz tushunarlimi? (SIZ TANLADINGIZ)
-- [ ] Savol bitta, javob bitta so‘z — klub nomi? (do‘stona o‘yin)
+- [ ] Savol bitta, javob bitta so‘z — klub nomi? (o‘rtoqlik o‘yini)
 - [ ] CTA bitta: @zaminfk_bot /start
 - [ ] Outro: keyingi kun uchun sabab bormi? (echki + ertangi natija)
 - [ ] Virtual mexanika belgilangan
