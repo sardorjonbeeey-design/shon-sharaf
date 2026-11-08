@@ -352,8 +352,16 @@ FANS.forEach((nick, i) => {
 
 // ---------- three.js scene ----------
 const canvas = document.getElementById("c");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });  // city scale: no z-fighting
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+console.log("Canvas:", canvas, "THREE:", typeof THREE);
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  console.log("WebGL renderer created");
+} catch (e) {
+  console.error("WebGL renderer failed:", e);
+  throw e;
+}
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b1838);
 const FOG = { stadium: [220, 700], city: [500, 1700] };
@@ -2021,7 +2029,9 @@ function fmt(v) { return Math.round(v).toLocaleString("fr-FR").replace(/ | /g, "
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize(); }
 addEventListener("resize", resize); resize();
 let prev = performance.now();
+let dbg = false;
 function loop(now) {
+  if (!dbg) { console.log("Loop frame 1, renderer:", renderer ? "OK" : "NULL", "size:", innerWidth, innerHeight); dbg = true; }
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
   if (fly) {
     fly.t = (now - fly.start) / 1000 / fly.dur; const p = fly.t >= 1 ? 1 : 1 - Math.pow(1 - fly.t, 3);
