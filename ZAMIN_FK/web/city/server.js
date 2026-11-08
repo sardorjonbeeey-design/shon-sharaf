@@ -151,14 +151,19 @@ app.post("/api/home", async (req, res) => {
   if (lot !== null && (!Number.isInteger(lot) || lot < 0 || lot > 1e6)) return res.status(400).json({ error: "lot" });
   const nick = nickOf(user);
   try {
+    const isNew = !db ? !mem.homes.some(h => String(h.tg_id) === String(user.id)) : false;
     if (!db) { const ex = mem.homes.find(h => String(h.tg_id) === String(user.id));
       if (lot !== null && mem.homes.some(h => h.lot === lot && h !== ex)) return res.status(409).json({ error: "taken" });
       if (ex) Object.assign(ex, { nick, color, style, lot: ex.lot ?? lot }); else mem.homes.push({ tg_id: user.id, nick, style, color, level: 1, car: 0, lot, up: Date.now(), created_at: Date.now() }); }
     else {
+      const before = await q("select tg_id from homes where tg_id = $1", [user.id]);
       try {
         await q(`insert into homes (tg_id, nick, style, color, level, lot) values ($1,$2,$5,$3,1,$4)
           on conflict (tg_id) do update set nick = excluded.nick, color = excluded.color, style = excluded.style, lot = coalesce(homes.lot, excluded.lot), updated_at = now()`, [user.id, nick, color, lot, style]);
       } catch (e) { if (e.code === "23505") return res.status(409).json({ error: "taken" }); throw e; }
+      if (!before.length) {
+        bot.logToAdminChannel("🏠 New House", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Style:</b> ${style}\n<b>Lot:</b> ${lot || 'Random'}`);
+      }
     }
     await ensureSeat(user);
     res.json({ ok: true, nick });
@@ -166,7 +171,7 @@ app.post("/api/home", async (req, res) => {
 });
 
 // Coins, jobs, house upgrades and cars live in economy.js (server-authoritative).
-require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READY });
+require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READY, logToAdminChannel: bot.logToAdminChannel, nickOf });
 // Supporter Portal: membership, permanent seats, Fan XP, departments, missions, referrals, admin (club.js)
 const CLUB = require("./club").init({ app, db, auth, bot, nickOf, ready: () => Promise.all([DB_READY, mem.econReady]) });
 
@@ -181,11 +186,15 @@ app.post("/api/seat", async (req, res) => {
       if (ig && mem.seats.some(s => s.instagram === ig && String(s.tg_id) !== String(user.id))) return res.status(409).json({ error: "taken" });
       memUpsert(mem.seats, { tg_id: user.id, nick, tg_username: tgu, instagram: ig });
     } else {
+      const before = await q("select tg_id from seats where tg_id = $1", [user.id]);
       const taken = ig ? await q("select tg_id from seats where instagram = $1 and tg_id <> $2", [ig, user.id]) : [];
       if (taken.length) return res.status(409).json({ error: "taken" });
       await q(`insert into seats (tg_id, nick, tg_username, instagram) values ($1,$2,$3,$4)
         on conflict (tg_id) do update set nick = excluded.nick, tg_username = excluded.tg_username,
           instagram = coalesce(excluded.instagram, seats.instagram), updated_at = now()`, [user.id, nick, tgu, ig]);
+      if (!before.length) {
+        bot.logToAdminChannel("🎟️ New Stadium Seat", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Username:</b> ${tgu ? '@' + esc(tgu) : 'N/A'}\n<b>Instagram:</b> ${ig ? '@' + esc(ig) : 'N/A'}`);
+      }
     }
     res.json({ ok: true, nick: ig || nick.replace(/^@/, "") });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
@@ -206,6 +215,8 @@ app.post("/api/profession/apply", async (req, res) => {
     const existing = await q("select id from applications where tg_id = $1 and role = $2 and status = 'pending'", [user.id, role]);
     if (existing.length) return res.status(409).json({ error: "pending" });
     await q("insert into applications (tg_id, nick, role, status) values ($1,$2,$3,'pending')", [user.id, nick, role]);
+    const currentProf = current ? `Currently: <b>${esc(current)}</b>` : 'No current profession';
+    bot.logToAdminChannel("📋 New Profession Application", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Applying for:</b> ${esc(role)}\n${currentProf}\n\n⏳ Waiting for approval`);
     res.json({ ok: true });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
 });
@@ -234,14 +245,17 @@ app.post("/api/admin/profession", async (req, res) => {
   if (!Number.isInteger(appId) || appId < 1 || !["approve", "reject"].includes(decision)) return res.status(400).json({ error: "bad request" });
   try {
     if (!db) return res.status(503).json({ error: "admin needs database" });
-    const app = await q("select tg_id, role, status from applications where id = $1", [appId]);
+    const app = await q("select tg_id, role, nick, status from applications where id = $1", [appId]);
     if (!app.length) return res.status(404).json({ error: "not found" });
     if (app[0].status !== "pending") return res.status(409).json({ error: "already decided" });
+    const adminNick = nickOf(user);
     if (decision === "approve") {
       await q("update homes set profession = $2 where tg_id = $1", [app[0].tg_id, app[0].role]);
       await q("update applications set status = 'approved', decided_at = now(), decided_by = $2 where id = $1", [appId, user.id]);
+      bot.logToAdminChannel("✅ Profession Approved", `<b>Admin:</b> ${esc(adminNick)}\n<b>User:</b> ${esc(app[0].nick)}\n<b>User ID:</b> <code>${app[0].tg_id}</code>\n<b>Role:</b> ${esc(app[0].role)}`);
     } else {
       await q("update applications set status = 'rejected', decided_at = now(), decided_by = $2 where id = $1", [appId, user.id]);
+      bot.logToAdminChannel("❌ Profession Rejected", `<b>Admin:</b> ${esc(adminNick)}\n<b>User:</b> ${esc(app[0].nick)}\n<b>User ID:</b> <code>${app[0].tg_id}</code>\n<b>Role:</b> ${esc(app[0].role)}`);
     }
     res.json({ ok: true });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }

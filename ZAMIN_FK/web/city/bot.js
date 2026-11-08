@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const TG_API = process.env.TG_API || "https://api.telegram.org";          // overridable for tests
 const ADMIN_ID = process.env.ADMIN_ID || "";                               // Admin user ID for feedback
+const ADMIN_CHANNEL = process.env.ADMIN_CHANNEL || "";                     // Admin channel for activity logging
 // The Mini App's current HTTPS address = this service (Render sets RENDER_EXTERNAL_URL). Not changed here.
 const WEBAPP_URL = process.env.WEBAPP_URL || process.env.RENDER_EXTERNAL_URL || "";
 const PUBLIC_URL = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || "";
@@ -77,6 +78,14 @@ async function api(method, body) {
   return d.result;
 }
 
+async function logToAdminChannel(title, details) {
+  if (!ADMIN_CHANNEL || !BOT_TOKEN) return;
+  try {
+    const msg = `<b>📊 ${title}</b>\n\n${details}`;
+    await api("sendMessage", { chat_id: ADMIN_CHANNEL, text: msg, parse_mode: "HTML" }).catch(e => console.error("admin channel log", e.message));
+  } catch (e) { console.error("log to admin channel", e.message); }
+}
+
 // Register the webhook on startup. A webhook pointing somewhere else is left alone unless BOT_WEBHOOK_FORCE=1,
 // so another integration using this bot is never silently cut off.
 async function setup() {
@@ -112,4 +121,4 @@ function mount(app) {
   app.get("/tg/status", (req, res) => res.json({ bot: !!BOT_TOKEN, username: info.username, webhook: info.webhook, webapp: WEBAPP_URL }));
 }
 
-module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api, initFeedback };
+module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api, initFeedback, logToAdminChannel };
