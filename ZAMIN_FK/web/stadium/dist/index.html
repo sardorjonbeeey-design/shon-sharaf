@@ -964,7 +964,18 @@ function mergeGroup(g) {
   buckets.forEach((b, mat) => { const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(b.p, 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(b.n, 3)); out.add(new THREE.Mesh(geo, mat)); });
   return out;
 }
-function makeHome(h) { return mergeGroup(buildHome(h)); }
+// level-1 houses use the starter house model (models/starter, Z-up, front towards -Y); built-in house until it loads or if it fails
+const STARTER = { scene: null };
+if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/starter/starter_house_l1.glb", g => { STARTER.scene = g.scene; if (typeof HOMES !== "undefined" && HOMES) layoutHomes(HOMES); }, undefined, e => console.warn("starter house", e));
+function starterHome(h) {
+  if ((h.level || 1) !== 1 || !STARTER.scene) return null;
+  const m = STARTER.scene.clone(true); m.rotation.x = -Math.PI / 2;
+  const up = new THREE.Group(); up.add(m);
+  const g = new THREE.Group(); g.add(fitModel(up, 12.4, 12));
+  if (h.car && KENNEY[CAR_MODEL[h.car]]) { const c = fitModel(KENNEY[CAR_MODEL[h.car]].clone(), 2.2, 1.9); c.position.set(3.2, 0, 3.6); c.rotation.y = Math.PI / 2; g.add(c); }
+  return g;
+}
+function makeHome(h) { return starterHome(h) || mergeGroup(buildHome(h)); }
 function buildHome(h) {
   const g = new THREE.Group(), L = Math.max(1, Math.min(7, h.level || 1)), acc = accM[h.color] || accM[0];
   const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
