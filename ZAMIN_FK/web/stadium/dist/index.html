@@ -190,7 +190,6 @@
 </div>
 <div id="rule" class="ui" data-t="rule"></div>
 <div id="toast" class="ui pill"></div>
-<div id="debug-log" style="position:fixed; top:0; left:0; right:0; background:rgba(0,0,0,.95); color:#0f0; font-family:monospace; font-size:11px; padding:10px; max-height:200px; overflow-y:auto; z-index:1000; display:none; line-height:1.4;"></div>
 <div id="card" class="ui pill"><button class="x" id="cx">×</button><h3 id="ch"></h3><p id="cp"></p></div>
 <div id="demo" class="ui" data-t="demo"></div>
 <div id="panel" class="ui pill"><button class="x" id="px">×</button><h3 data-t="fans"></h3><div id="plist"></div></div>
@@ -268,9 +267,7 @@ async function getMap() {
   if (!MAP_FILE || new URLSearchParams(location.search).get("map") === "0") return null;
   try { const r = await fetch(MAP_FILE); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
-dbg("Fetching state & map (mode: " + MODE + ")...");
 const [STATE0, MAP] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap()]);
-dbg("✓ State: " + (STATE0 ? "OK" : "TIMEOUT") + ", Map: " + (MAP ? "loaded" : "none"));
 let STATE = STATE0 || { seats: [], homes: [], miniapp: "" };
 const FAN_META = new Map();       // nick -> { tg: telegram username or null }
 // Club members sit in the Supporters' Stand (main-stand straight). Their seat number comes from the server and never moves.
@@ -353,39 +350,10 @@ FANS.forEach((nick, i) => {
   byNick.set(nick.toLowerCase().replace(/^@/, ""), st);
 });
 
-// ---------- debug logging ----------
-const debugLog = document.getElementById("debug-log");
-const dbgLines = [];
-function dbg(msg) { console.log(msg); dbgLines.push(msg); debugLog.textContent = dbgLines.join("\n"); debugLog.style.display = "block"; }
-
-// Catch uncaught errors
-window.onerror = (msg, url, line, col, err) => {
-  dbg("❌ ERROR: " + msg + " @" + line);
-  console.error("Uncaught error:", err);
-  return false;
-};
-
-dbg("🔧 Init starting...");
-dbg("Canvas: " + (!!document.getElementById("c")));
-dbg("THREE: " + (typeof THREE));
-
 // ---------- three.js scene ----------
 const canvas = document.getElementById("c");
-dbg("Creating renderer...");
-let renderer;
-try {
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
-  if (!renderer.getContext) throw new Error("No WebGL context");
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  dbg("✓ WebGL renderer OK");
-} catch (e) {
-  dbg("✗ WebGL FAILED: " + e.message);
-  const msg = document.createElement("div");
-  msg.innerHTML = "<h1 style='color:#f00; text-align:center; margin-top:100px; font-family:sans-serif;'>WebGL Not Supported</h1><p style='text-align:center; color:#ccc;'>" + e.message + "</p>";
-  document.body.appendChild(msg);
-  debugLog.textContent = "WebGL initialization failed: " + e.message;
-  throw e;
-}
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });  // city scale: no z-fighting
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b1838);
 const FOG = { stadium: [220, 700], city: [500, 1700] };
@@ -2050,24 +2018,10 @@ const nEl = document.getElementById("n");
 const t0 = performance.now();
 function fmt(v) { return Math.round(v).toLocaleString("fr-FR").replace(/ | /g, " "); }
 
-function resize() {
-  console.log("Resizing to", innerWidth, innerHeight);
-  renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize();
-}
-addEventListener("resize", resize);
-dbg("Calling initial resize " + innerWidth + "x" + innerHeight + "...");
-resize();
-dbg("✓ Ready!");
+function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize(); }
+addEventListener("resize", resize); resize();
 let prev = performance.now();
-let loopStarted = false;
 function loop(now) {
-  if (!loopStarted) {
-    dbg("🎬 Loop frame 1");
-    dbg("Canvas: " + canvas.width + "x" + canvas.height);
-    dbg("Camera pos: " + camera.position.x.toFixed(1) + "," + camera.position.y.toFixed(1) + "," + camera.position.z.toFixed(1));
-    dbg("Renderer: " + (renderer ? "OK" : "NULL"));
-    loopStarted = true;
-  }
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
   if (fly) {
     fly.t = (now - fly.start) / 1000 / fly.dur; const p = fly.t >= 1 ? 1 : 1 - Math.pow(1 - fly.t, 3);
@@ -2088,19 +2042,6 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 try { DN.init(); } catch (e) { console.error("DN.init failed:", e); }
-
-// TEST: Render a simple cube to verify WebGL works
-try {
-  const testGeo = new THREE.BoxGeometry(5, 5, 5);
-  const testMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  const testCube = new THREE.Mesh(testGeo, testMat);
-  testCube.position.set(0, 5, 0);
-  scene.add(testCube);
-  dbg("✓ Test cube added to scene");
-} catch (e) {
-  dbg("✗ Test cube failed: " + e.message);
-}
-
 requestAnimationFrame(loop);
 if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, layoutHomes, homes: () => HOMES, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 
