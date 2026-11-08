@@ -19,9 +19,11 @@
   #count small { display:block; color:var(--yel); font-weight:900; font-size:12px; letter-spacing:2px; }
   #count b { display:block; font-weight:900; font-size:30px; line-height:1.05; }
   #count i { display:block; font-style:normal; font-size:10px; letter-spacing:2px; color:#9DB8FF; }
-  #langs { top:74px; left:14px; display:flex; gap:6px; }
-  #langs button { font:inherit; font-weight:700; font-size:12px; color:#fff; background:rgba(13,37,87,.85); border:2px solid rgba(255,255,255,.2); border-radius:14px; padding:6px 10px; }
-  #langs button.on { background:var(--yel); color:var(--navy); border-color:var(--yel); }
+  #langs { top:74px; left:14px; display:flex; align-items:center; gap:6px; padding:5px; border-radius:16px; background:rgba(13,37,87,.85); border:2px solid rgba(255,255,255,.2); box-sizing:border-box; max-width:48px; overflow:hidden; transition:max-width .3s ease; }
+  #langs.open { max-width:160px; }
+  #langs button { flex:0 0 auto; width:34px; height:24px; padding:0; border:2px solid transparent; border-radius:6px; overflow:hidden; background:none; line-height:0; cursor:pointer; }
+  #langs button svg { width:100%; height:100%; display:block; }
+  #langs button.on { border-color:var(--yel); }
   #side { right:14px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:10px; }
   #side button { width:52px; height:52px; border-radius:16px; font:inherit; font-weight:900; font-size:24px; color:#fff; background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); }
   #find { left:12px; right:12px; bottom:14px; display:flex; gap:10px; }
@@ -1893,9 +1895,21 @@ if (TG) clubLoad();
 
 // ---------- language ----------
 const langsEl = document.getElementById("langs");
+const FLAGS = {          // small inline SVG flags (emoji flags don't show on every device)
+  uz: '<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#1eb53a"/><rect width="30" height="13.2" fill="#fff"/><rect width="30" height="6.4" fill="#0099b5"/><rect y="6.4" width="30" height=".6" fill="#ce1126"/><rect y="12.6" width="30" height=".6" fill="#ce1126"/><circle cx="5" cy="3.2" r="2.2" fill="#fff"/><circle cx="5.8" cy="3.2" r="2" fill="#0099b5"/><g fill="#fff"><circle cx="9.5" cy="2" r=".45"/><circle cx="11" cy="2" r=".45"/><circle cx="12.5" cy="2" r=".45"/><circle cx="9.5" cy="3.4" r=".45"/><circle cx="11" cy="3.4" r=".45"/><circle cx="12.5" cy="3.4" r=".45"/><circle cx="11" cy="4.8" r=".45"/><circle cx="12.5" cy="4.8" r=".45"/></g></svg>',
+  ru: '<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#d52b1e"/><rect width="30" height="13.33" fill="#0039a6"/><rect width="30" height="6.67" fill="#fff"/></svg>',
+  en: '<svg viewBox="0 0 60 40"><clipPath id="gbc"><rect width="60" height="40"/></clipPath><g clip-path="url(#gbc)"><rect width="60" height="40" fill="#012169"/><path d="M0,0 60,40M60,0 0,40" stroke="#fff" stroke-width="8"/><path d="M0,0 60,40M60,0 0,40" stroke="#c8102e" stroke-width="3"/><path d="M30,0V40M0,20H60" stroke="#fff" stroke-width="12"/><path d="M30,0V40M0,20H60" stroke="#c8102e" stroke-width="7"/></g></svg>',
+};
 [["uz", "O‘zbekcha"], ["ru", "Русский"], ["en", "English"]].forEach(([k, n]) => {
-  const b = document.createElement("button"); b.textContent = n; b.onclick = () => setLang(k); b.dataset.k = k; langsEl.appendChild(b);
+  const b = document.createElement("button"); b.innerHTML = FLAGS[k]; b.title = n; b.setAttribute("aria-label", n); b.dataset.k = k;
+  b.onclick = e => {                       // closed: tap the flag to slide the others out; open: tap a flag to pick it
+    e.stopPropagation();
+    if (!langsEl.classList.contains("open")) { langsEl.classList.add("open"); return; }
+    langsEl.classList.remove("open"); if (k !== L) setLang(k);
+  };
+  langsEl.appendChild(b);
 });
+document.addEventListener("pointerdown", e => { if (!langsEl.contains(e.target)) langsEl.classList.remove("open"); });
 function setLang(k) {
   L = k; try { localStorage.setItem("zfk_lang", k); } catch (e) {}
   document.querySelectorAll("[data-t]").forEach(el => el.textContent = T[L][el.dataset.t]);
@@ -1903,6 +1917,7 @@ function setLang(k) {
   document.getElementById("igNick").placeholder = T[L].igPh;
   document.getElementById("jobNote").placeholder = T[L].jobPh;
   langsEl.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.k === L));
+  const cur = langsEl.querySelector('button[data-k="' + L + '"]'); if (cur) langsEl.prepend(cur);   // current flag first (shown when closed)
   document.getElementById("demo").style.display = DEMO ? "block" : "none";
   buildPickers();
 }
