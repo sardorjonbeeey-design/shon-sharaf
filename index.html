@@ -4,30 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FK Shon-Sharaf Dashboard</title>
-    <script src="https://tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes pulse-grow {
-            0% { transform: scale(0.95); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .seat-anim {
-            animation: pulse-grow 0.5s ease-out forwards;
-        }
+        @keyframes seat-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes my-seat { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+        #scene .seat { animation: seat-in .4s ease-out both; }
+        #scene .mine { animation: my-seat 1.2s ease-in-out infinite; }
+        #scene .glow { filter: drop-shadow(0 0 3px #fde68a); }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-blue-600">
 
-    <!-- TOP HEADER -->
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur px-4 py-3 sticky top-0 z-50 flex justify-between items-center">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full border-2 border-blue-500 bg-gradient-to-br from-blue-600 to-white flex items-center justify-center font-black text-slate-900 text-lg shadow-lg">
-                FK
-            </div>
+            <div class="w-10 h-10 rounded-full border-2 border-blue-500 bg-gradient-to-br from-blue-600 to-white flex items-center justify-center font-black text-slate-900 text-lg shadow-lg">FK</div>
             <div>
                 <h1 class="font-bold text-base tracking-tight">FK SHON-SHARAF</h1>
                 <p class="text-xs text-slate-400 flex items-center gap-1">
-                    <span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                    4-Divizion • Professional Stats
+                    <span id="live-dot" class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span id="live-label">Yuklanmoqda…</span>
                 </p>
             </div>
         </div>
@@ -37,154 +32,347 @@
         </div>
     </header>
 
-    <main class="max-w-md mx-auto p-4 space-y-6 pb-24">
-        
-        <!-- VISUAL THEME AND PROGRESS STATUS -->
+    <main class="max-w-xl mx-auto p-4 space-y-6 pb-24">
+
+        <!-- TIER -->
         <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-2xl">
             <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-600/10 rounded-full blur-2xl"></div>
-            
             <div class="flex justify-between items-start mb-4">
                 <div>
                     <span class="text-xs font-bold uppercase tracking-wider text-blue-400 px-2 py-0.5 bg-blue-950 border border-blue-800/50 rounded-full">Klub Mavqeyi</span>
-                    <h2 id="club-tier" class="text-xl font-black mt-2 text-white">Chodirli Maydon</h2>
+                    <h2 id="club-tier" class="text-xl font-black mt-2 text-white">—</h2>
                 </div>
                 <div class="text-right">
                     <span class="text-xs text-slate-400 block">Stadion Sig'imi</span>
                     <span id="stadium-capacity" class="text-sm font-bold text-slate-200">0 / 0</span>
                 </div>
             </div>
-
-            <!-- Progress Bar to next tier upgrade -->
             <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div id="tier-progress" class="bg-gradient-to-r from-blue-500 to-white h-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                <div id="tier-progress" class="bg-gradient-to-r from-blue-500 to-white h-full transition-all duration-1000 ease-out" style="width:0%"></div>
             </div>
-            <p id="tier-desc" class="text-xs text-slate-400 mt-2 italic">Klub kambag'al ahvolda. O'rindiqlar yo'q, muxlislar tuproqda o'tiribdi.</p>
+            <p id="tier-desc" class="text-xs text-slate-400 mt-2 italic"></p>
+            <p id="tier-next" class="text-[11px] text-blue-300 mt-1"></p>
         </div>
 
-        <!-- COUNTER CARD -->
-        <div class="text-center py-6 bg-slate-900/40 border border-slate-800/80 rounded-2xl backdrop-blur-md shadow-xl">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Jami Rasmiy A'zolar</h3>
-            <div id="counter" class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 tracking-tighter transition-all duration-700">
-                0
+        <!-- COUNTERS -->
+        <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="col-span-3 py-5 bg-slate-900/40 border border-slate-800/80 rounded-2xl shadow-xl">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Jami Rasmiy A'zolar</h3>
+                <div id="counter" class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 tracking-tighter">0</div>
+                <p class="text-xs text-blue-400 font-medium mt-2">⚽ 1 obunachi = 1 o'rindiq va +10,000 UZS jamoa fondiga</p>
             </div>
-            <p class="text-xs text-blue-400 font-medium mt-2 flex items-center justify-center gap-1">
-                <span>⚽</span> 1 obunachi = 1 o'rindiq va +10,000 UZS jamoa fondiga
-            </p>
+            <div class="py-3 bg-slate-900/40 border border-slate-800 rounded-xl">
+                <div id="stat-named" class="text-lg font-black text-amber-300">0</div>
+                <div class="text-[10px] text-slate-400">Ismli o'rindiq</div>
+            </div>
+            <div class="py-3 bg-slate-900/40 border border-slate-800 rounded-xl">
+                <div id="stat-free" class="text-lg font-black text-slate-200">0</div>
+                <div class="text-[10px] text-slate-400">Bo'sh o'rindiq</div>
+            </div>
+            <div class="py-3 bg-slate-900/40 border border-slate-800 rounded-xl">
+                <div id="stat-queue" class="text-lg font-black text-rose-300">0</div>
+                <div class="text-[10px] text-slate-400">Tashqarida kutmoqda</div>
+            </div>
         </div>
 
-        <!-- STADIUM GRID -->
+        <!-- STADIUM + CITY -->
         <div class="space-y-3">
             <div class="flex justify-between items-center px-1">
-                <h3 class="text-sm font-bold tracking-wide text-slate-300 flex items-center gap-2">
-                    <span>🏟️</span> Stadion Vizual Korinishi
-                </h3>
-                <span class="text-xs text-slate-500 font-mono">Tribuna xaritasi</span>
+                <h3 class="text-sm font-bold tracking-wide text-slate-300">🏟️ Stadion va Shahar</h3>
+                <div class="flex gap-3 text-[10px] text-slate-400">
+                    <span class="flex items-center gap-1"><i class="w-2 h-2 bg-amber-300 inline-block rounded-sm"></i>Ismli</span>
+                    <span class="flex items-center gap-1"><i class="w-2 h-2 bg-blue-500 inline-block rounded-sm"></i>Band</span>
+                    <span class="flex items-center gap-1"><i class="w-2 h-2 bg-slate-600 inline-block rounded-sm"></i>Bo'sh</span>
+                </div>
             </div>
-            <div id="stadium-grid" class="grid grid-cols-10 gap-1.5 p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-inner min-h-[160px] content-start">
-                <!-- Dynamic seats inject here -->
+            <div class="relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-inner">
+                <svg id="scene" class="w-full h-auto block cursor-crosshair" role="img" aria-label="Stadion xaritasi"></svg>
+                <div id="seat-tip" class="hidden absolute pointer-events-none px-2 py-1 rounded-md bg-slate-950/95 border border-slate-700 text-[11px] whitespace-nowrap shadow-lg"></div>
             </div>
+            <p class="text-[10px] text-slate-500 px-1">O'rindiqqa bosing — kim o'tirganini ko'ring.</p>
         </div>
 
+        <!-- JOIN -->
+        <form id="join-form" class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <h3 class="text-sm font-bold text-slate-200">🎟️ O'z o'rindig'ingizni oling</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <input name="name" required minlength="2" maxlength="40" placeholder="Ismingiz" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                <input name="city" maxlength="40" placeholder="Shahar / mahalla" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+            </div>
+            <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg py-2 text-sm font-bold">Tribunaga qo'shilish</button>
+            <p id="join-msg" class="text-xs text-slate-400 min-h-[1rem]"></p>
+        </form>
+
+        <!-- FAN WALL -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
+                <h3 class="text-sm font-bold text-slate-200 mb-2">🆕 Yangi muxlislar</h3>
+                <ul id="fan-list" class="space-y-1.5 text-xs"></ul>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
+                <h3 class="text-sm font-bold text-slate-200 mb-2">📍 Muxlislar geografiyasi</h3>
+                <ul id="city-list" class="space-y-1.5 text-xs"></ul>
+            </div>
+        </div>
     </main>
 
-    <!-- FOOTER META -->
-    <footer class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-slate-950/80 backdrop-blur-md text-center text-[10px] text-slate-600 border-t border-slate-900">
-        FK Shon-Sharaf 4-Divizion Loyihasi • Har kuni avtomatik yangilanadi
+    <footer class="fixed bottom-0 left-0 right-0 max-w-xl mx-auto p-4 bg-slate-950/80 backdrop-blur-md text-center text-[10px] text-slate-600 border-t border-slate-900">
+        FK Shon-Sharaf 4-Divizion Loyihasi • Neon bazasidan jonli yangilanadi
     </footer>
 
-    <!-- LOGIC CONFIGURATION -->
-    <script>
-        // ==========================================
-        // FAQAT SHU YERDAGI RAQAMNI O'ZGARTIRING:
-        const CURRENT_FOLLOWERS = 184; 
-        // ==========================================
+    <script type="module">
+        import {
+            FUND_PER_FOLLOWER, STANDS, STAND_ORDER, SEAT, STEP, tierFor, seatOrder, seatKey,
+            seatXY, PITCH, PITCH_POS, BOWL, SCENE,
+        } from "./lib/stadium.js";
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const counterEl = document.getElementById("counter");
-            const fundsEl = document.getElementById("club-funds");
-            const gridEl = document.getElementById("stadium-grid");
-            const tierTitleEl = document.getElementById("club-tier");
-            const tierDescEl = document.getElementById("tier-desc");
-            const progressEl = document.getElementById("tier-progress");
-            const capacityEl = document.getElementById("stadium-capacity");
+        // Used only when the API / Neon is unreachable (e.g. opened as a static file).
+        const FALLBACK_FOLLOWERS = 184;
+        const POLL_MS = 30000;
+        const MY_SEAT_KEY = "shonsharaf.mySeat";
 
-            // Financial Calculations
-            const baseFundPerFollower = 10000; // Each follower brings 10k UZS
-            const totalFunds = CURRENT_FOLLOWERS * baseFundPerFollower;
-            
-            // Dynamic Tiers based on follower milestones
-            let tierName = "4-Divizion: Oddiy Maydon";
-            let tierDesc = "Klub kambag'al ahvolda. O'rindiqlar yo'q, muxlislar tik turibdi.";
-            let maxCapacity = 100;
-            let progressPercent = (CURRENT_FOLLOWERS / 100) * 100;
+        const $ = (id) => document.getElementById(id);
+        const NS = "http://www.w3.org/2000/svg";
+        const el = (tag, attrs = {}, parent) => {
+            const n = document.createElementNS(NS, tag);
+            for (const k in attrs) n.setAttribute(k, attrs[k]);
+            parent?.appendChild(n);
+            return n;
+        };
+        const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        const fmt = (n) => new Intl.NumberFormat("uz-UZ").format(n);
 
-            if (CURRENT_FOLLOWERS >= 100 && CURRENT_FOLLOWERS < 300) {
-                tierName = "4-Divizion: Yog'och Tribuna";
-                tierDesc = "Ilk mablag'lar evaziga yog'och o'rindiqlar o'rnatildi! Sharoit yaxshilanmoqda.";
-                maxCapacity = 300;
-                progressPercent = ((CURRENT_FOLLOWERS - 100) / 200) * 100;
-            } else if (CURRENT_FOLLOWERS >= 300 && CURRENT_FOLLOWERS < 700) {
-                tierName = "3-Divizion Sari: Plastik Stadion";
-                tierDesc = "Professional ko'k va oq rangli plastik o'rindiqlar! Jamoa o'sishda davom etmoqda.";
-                maxCapacity = 700;
-                progressPercent = ((CURRENT_FOLLOWERS - 300) / 400) * 100;
-            } else if (CURRENT_FOLLOWERS >= 700) {
-                tierName = "Professional Arena Upgrade";
-                tierDesc = "Zamonaviy yoritish tizimi va to'liq yopiq stadion loyihasi tasdiqlandi!";
-                maxCapacity = 2000;
-                progressPercent = Math.min((CURRENT_FOLLOWERS / 2000) * 100, 100);
+        let state = { followers: 0, fans: [], live: false };
+        let seatIndex = []; // [{x,y,seat,fan|null,occupied}]
+        let shownCounter = 0;
+
+        // ---------- data ----------
+        async function load() {
+            try {
+                const r = await fetch("/api/stadium", { cache: "no-store" });
+                if (!r.ok) throw new Error(r.status);
+                const d = await r.json();
+                state = { followers: d.followers, fans: d.fans || [], live: true };
+            } catch {
+                if (!state.live) state = { followers: FALLBACK_FOLLOWERS, fans: [], live: false };
             }
+            render();
+        }
 
-            // Update UI texts
-            tierTitleEl.innerText = tierName;
-            tierDescEl.innerText = tierDesc;
-            capacityEl.innerText = `${CURRENT_FOLLOWERS} / ${maxCapacity}`;
-            progressEl.style.width = `${progressPercent}%`;
+        // ---------- city / scene ----------
+        function rng(seed) {
+            return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        }
 
-            // Format Currency
-            fundsEl.innerText = new Intl.NumberFormat('uz-UZ', { style: 'currency', currency: 'UZS', maximumFractionDigits: 0 }).format(totalFunds);
+        function drawCity(svg, t, followers) {
+            const night = t >= 3;
+            el("rect", { x: 0, y: 0, width: SCENE.w, height: SCENE.h, fill: night ? "#14321f" : t === 0 ? "#3f5a2a" : "#2f5d34" }, svg);
 
-            // Animate Main Number Rolling Up
-            let startNum = 0;
-            const duration = 1200; 
-            const startTime = performance.now();
+            const R = rng(7);
+            const bx2 = BOWL.x + BOWL.w, by2 = BOWL.y + BOWL.h;
+            const free = (x, y, w, h) => x + w < BOWL.x - 14 || x > bx2 + 14 || y + h < BOWL.y - 14 || y > by2 + 14;
 
-            function updateCounter(now) {
-                const elapsed = now - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const currentDisplay = Math.floor(progress * CURRENT_FOLLOWERS);
-                counterEl.innerText = currentDisplay;
-
-                if (progress < 1) {
-                    requestAnimationFrame(updateCounter);
-                } else {
-                    counterEl.innerText = CURRENT_FOLLOWERS;
-                }
+            // Roads
+            if (t >= 1) {
+                el("rect", { x: 0, y: by2 + 22, width: SCENE.w, height: 16, fill: "#3b3f46" }, svg);
+                el("line", { x1: 0, y1: by2 + 30, x2: SCENE.w, y2: by2 + 30, stroke: "#e5e7eb", "stroke-width": 1, "stroke-dasharray": "8 6" }, svg);
+                // Parking lot with cars (grows with followers)
+                const px = BOWL.x + 40, py = by2 + 42, cars = Math.min(30, Math.floor(followers / 25));
+                el("rect", { x: px, y: py, width: 300, height: 22, fill: "#4b5563", rx: 2 }, svg);
+                const carColors = ["#ef4444", "#f8fafc", "#3b82f6", "#111827", "#eab308", "#9ca3af"];
+                for (let i = 0; i < cars; i++) el("rect", { x: px + 4 + i * 10, y: py + 4 + (i % 2) * 8, width: 7, height: 5, rx: 1, fill: carColors[i % carColors.length] }, svg);
             }
-            requestAnimationFrame(updateCounter);
-
-            // Dynamically Render Seats Based on current layout rules
-            gridEl.innerHTML = '';
-            const seatsToShow = Math.min(CURRENT_FOLLOWERS, 150); // Show max 150 blocks to keep UI clean on phones
-            
-            for (let i = 0; i < seatsToShow; i++) {
-                const seat = document.createElement('div');
-                seat.className = "aspect-square rounded-sm seat-anim shadow-sm border";
-                
-                // Color sequencing matching Blue & White theme dynamically
-                if (i % 3 === 0) {
-                    seat.classList.add("bg-blue-600", "border-blue-500");
-                } else if (i % 3 === 1) {
-                    seat.classList.add("bg-white", "border-slate-200");
-                } else {
-                    seat.classList.add("bg-blue-800", "border-blue-700");
-                }
-                
-                // Staggered layout effect animation delayed based on index
-                seat.style.animationDelay = `${i * 8}ms`;
-                gridEl.appendChild(seat);
+            if (t >= 2) {
+                el("rect", { x: bx2 + 26, y: 0, width: 14, height: SCENE.h, fill: "#3b3f46" }, svg);
+                el("line", { x1: bx2 + 33, y1: 0, x2: bx2 + 33, y2: SCENE.h, stroke: "#e5e7eb", "stroke-width": 1, "stroke-dasharray": "8 6" }, svg);
+                // Bus stop
+                el("rect", { x: bx2 + 42, y: BOWL.y + 60, width: 10, height: 18, fill: "#1d4ed8", rx: 1 }, svg);
+                el("rect", { x: bx2 + 18, y: BOWL.y + 64, width: 6, height: 16, fill: "#facc15", rx: 1 }, svg);
             }
+            // Dirt path for the poorest tier
+            if (t === 0) el("path", { d: `M0 ${by2 + 30} Q ${SCENE.w / 2} ${by2 + 10} ${SCENE.w} ${by2 + 34}`, stroke: "#8b6b43", "stroke-width": 8, fill: "none" }, svg);
+
+            // Buildings: count and height scale with tier
+            const nBuildings = [5, 12, 22, 34][t];
+            for (let i = 0, tries = 0; i < nBuildings && tries < 400; tries++) {
+                const w = 12 + R() * (t >= 2 ? 22 : 12), h = 10 + R() * (t >= 2 ? 22 : 10);
+                const x = R() * (SCENE.w - w), y = R() * (SCENE.h - h);
+                if (!free(x, y, w, h) || (t >= 1 && y + h > by2 + 18 && y < by2 + 68) || (t >= 2 && x + w > bx2 + 22 && x < bx2 + 56)) continue;
+                i++;
+                const tall = t >= 2 && R() > 0.5;
+                const roof = ["#b45309", "#9a3412", "#e2e8f0", "#64748b", "#94a3b8"][Math.floor(R() * 5)];
+                el("rect", { x: x + 1.5, y: y + 1.5, width: w, height: h, fill: "#0006" }, svg);
+                el("rect", { x, y, width: w, height: h, fill: tall ? "#cbd5e1" : roof, rx: 1 }, svg);
+                if (tall || night) for (let wy = y + 3; wy < y + h - 3; wy += 5)
+                    for (let wx = x + 3; wx < x + w - 3; wx += 5)
+                        el("rect", { x: wx, y: wy, width: 2, height: 2, fill: night && R() > 0.3 ? "#fde68a" : "#475569" }, svg);
+            }
+            // Trees
+            for (let i = 0, tries = 0; i < 40 && tries < 400; tries++) {
+                const x = R() * SCENE.w, y = R() * SCENE.h;
+                if (!free(x - 4, y - 4, 8, 8) || (t >= 1 && y > by2 + 16 && y < by2 + 70) || (t >= 2 && x > bx2 + 20 && x < bx2 + 58)) continue;
+                i++;
+                el("circle", { cx: x, cy: y, r: 3 + R() * 3, fill: R() > 0.5 ? "#166534" : "#15803d" }, svg);
+            }
+            // Street lights at night
+            if (night) for (let x = 10; x < SCENE.w; x += 40) el("circle", { cx: x, cy: by2 + 20, r: 2, fill: "#fde68a", class: "glow" }, svg);
+        }
+
+        function drawStadium(svg, t, tier) {
+            // Outer bowl / ground footprint
+            if (t >= 2) el("rect", { x: BOWL.x - 4, y: BOWL.y - 4, width: BOWL.w + 8, height: BOWL.h + 8, rx: 26, fill: "#334155" }, svg);
+            else el("rect", { x: PITCH_POS.x - 12, y: PITCH_POS.y - 12 - (t ? 4 : 2) * STEP, width: PITCH.w + 24, height: PITCH.h + 24 + (t ? 6 : 2) * STEP, rx: 6, fill: t === 0 ? "#78716c" : "#57534e" }, svg);
+            // Stand concrete for opened rows
+            const c = "#1e293b";
+            for (const s of STAND_ORDER) {
+                const rows = tier.rows[s];
+                if (!rows) continue;
+                const len = STANDS[s].seatsPerRow * STEP + 4, depth = rows * STEP + 2;
+                const p = PITCH_POS;
+                const box = {
+                    N: [p.x + (PITCH.w - len) / 2, p.y - depth - 1, len, depth],
+                    S: [p.x + (PITCH.w - len) / 2, p.y + PITCH.h, len, depth],
+                    W: [p.x - depth - 1, p.y + (PITCH.h - len) / 2, depth, len],
+                    E: [p.x + PITCH.w, p.y + (PITCH.h - len) / 2, depth, len],
+                }[s];
+                el("rect", { x: box[0], y: box[1], width: box[2], height: box[3], fill: c, rx: 2 }, svg);
+            }
+            // Pitch
+            const p = PITCH_POS, grass = t === 0 ? ["#6b7f3a", "#7a8a45"] : ["#15803d", "#16a34a"];
+            el("rect", { x: p.x, y: p.y, width: PITCH.w, height: PITCH.h, fill: grass[0] }, svg);
+            for (let i = 0; i < 10; i += 2) el("rect", { x: p.x + (PITCH.w / 10) * i, y: p.y, width: PITCH.w / 10, height: PITCH.h, fill: grass[1] }, svg);
+            const L = { stroke: "#f8fafc", "stroke-width": 1, fill: "none", opacity: t === 0 ? 0.5 : 0.9 };
+            const m = 6, fx = p.x + m, fy = p.y + m, fw = PITCH.w - 2 * m, fh = PITCH.h - 2 * m;
+            el("rect", { x: fx, y: fy, width: fw, height: fh, ...L }, svg);
+            el("line", { x1: fx + fw / 2, y1: fy, x2: fx + fw / 2, y2: fy + fh, ...L }, svg);
+            el("circle", { cx: fx + fw / 2, cy: fy + fh / 2, r: 18, ...L }, svg);
+            el("rect", { x: fx, y: fy + fh / 2 - 30, width: 36, height: 60, ...L }, svg);
+            el("rect", { x: fx + fw - 36, y: fy + fh / 2 - 30, width: 36, height: 60, ...L }, svg);
+            el("rect", { x: fx - 3, y: fy + fh / 2 - 7, width: 3, height: 14, fill: "#f8fafc" }, svg);
+            el("rect", { x: fx + fw, y: fy + fh / 2 - 7, width: 3, height: 14, fill: "#f8fafc" }, svg);
+
+            // Floodlights from tier 2
+            if (t >= 2) for (const [x, y] of [[BOWL.x, BOWL.y], [BOWL.x + BOWL.w, BOWL.y], [BOWL.x, BOWL.y + BOWL.h], [BOWL.x + BOWL.w, BOWL.y + BOWL.h]]) {
+                el("circle", { cx: x, cy: y, r: t >= 3 ? 26 : 16, fill: "#fef9c3", opacity: 0.12 }, svg);
+                el("rect", { x: x - 5, y: y - 3, width: 10, height: 6, fill: "#fde68a", rx: 1, class: "glow" }, svg);
+            }
+        }
+
+        function drawSeats(svg, tier) {
+            const order = seatOrder(tier);
+            const named = new Map(state.fans.map((f) => [seatKey(f), f]));
+            const occupied = Math.max(state.followers, state.fans.length);
+            let anon = Math.max(0, occupied - named.size);
+            const mine = localStorage.getItem(MY_SEAT_KEY);
+            const wood = tier.seat === "wood";
+            seatIndex = [];
+            const g = el("g", {}, svg);
+            order.forEach((s, i) => {
+                const k = seatKey(s), fan = named.get(k);
+                let fill = "#475569", taken = false;
+                if (fan) { fill = "#fcd34d"; taken = true; }
+                else if (anon > 0) { anon--; taken = true; fill = wood ? ["#b45309", "#92400e"][i % 2] : ["#2563eb", "#f8fafc", "#1e40af"][i % 3]; }
+                const { x, y } = seatXY(s);
+                el("rect", { x, y, width: SEAT, height: SEAT, rx: 0.8, fill, class: "seat" + (k === mine ? " mine" : ""),
+                    style: `animation-delay:${Math.min(i, 600) * 2}ms` }, g);
+                seatIndex.push({ x: x + SEAT / 2, y: y + SEAT / 2, seat: s, fan, taken });
+            });
+            return { capacity: order.length, occupiedInside: Math.min(occupied, order.length), overflow: Math.max(0, occupied - order.length) };
+        }
+
+        function render() {
+            const { idx, tier, capacity, progress, next } = tierFor(state.followers);
+            const svg = $("scene");
+            svg.replaceChildren();
+            svg.setAttribute("viewBox", `0 0 ${SCENE.w} ${SCENE.h}`);
+            drawCity(svg, idx, state.followers);
+            drawStadium(svg, idx, tier);
+            const res = drawSeats(svg, tier);
+
+            $("club-tier").textContent = tier.name;
+            $("tier-desc").textContent = tier.desc;
+            $("tier-next").textContent = next ? `Keyingi bosqich: ${next.name} — yana ${fmt(capacity - state.followers > 0 ? capacity - state.followers : 0)} obunachi` : "Eng yuqori bosqich!";
+            $("stadium-capacity").textContent = `${fmt(res.occupiedInside)} / ${fmt(capacity)}`;
+            $("tier-progress").style.width = `${progress * 100}%`;
+            $("club-funds").textContent = `${fmt(state.followers * FUND_PER_FOLLOWER)} UZS`;
+            $("stat-named").textContent = fmt(state.fans.length);
+            $("stat-free").textContent = fmt(capacity - res.occupiedInside);
+            $("stat-queue").textContent = fmt(res.overflow);
+            $("live-label").textContent = state.live ? "Jonli • Neon" : "Oflayn rejim";
+            $("live-dot").className = `inline-block w-2 h-2 rounded-full animate-pulse ${state.live ? "bg-emerald-500" : "bg-amber-500"}`;
+            $("join-form").querySelector("button").disabled = !state.live;
+            if (!state.live) $("join-msg").textContent = "Ro'yxatdan o'tish uchun server (Neon) ulanmagan.";
+
+            animateCounter(state.followers);
+            renderLists();
+        }
+
+        function animateCounter(target) {
+            const from = shownCounter, start = performance.now(), dur = 1200;
+            const step = (now) => {
+                const p = Math.min((now - start) / dur, 1), v = Math.round(from + (target - from) * (1 - (1 - p) ** 3));
+                $("counter").textContent = fmt(v);
+                if (p < 1) requestAnimationFrame(step); else shownCounter = target;
+            };
+            requestAnimationFrame(step);
+        }
+
+        function renderLists() {
+            const seatLabel = (f) => `${STANDS[f.section].label}, ${f.row + 1}-qator, ${f.number + 1}-o'rin`;
+            $("fan-list").innerHTML = state.fans.slice(0, 8).map((f) =>
+                `<li class="flex justify-between gap-2"><span class="text-amber-200 truncate">${esc(f.name)}</span><span class="text-slate-500 shrink-0">${esc(seatLabel(f))}</span></li>`
+            ).join("") || `<li class="text-slate-500">Hali hech kim yo'q — birinchi bo'ling!</li>`;
+
+            const counts = {};
+            for (const f of state.fans) { const c = (f.city || "Noma'lum").trim(); counts[c] = (counts[c] || 0) + 1; }
+            const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+            const max = top[0]?.[1] || 1;
+            $("city-list").innerHTML = top.map(([c, n]) =>
+                `<li><div class="flex justify-between"><span>${esc(c)}</span><span class="text-slate-400">${n}</span></div>
+                 <div class="h-1 bg-slate-800 rounded"><div class="h-1 bg-blue-500 rounded" style="width:${(n / max) * 100}%"></div></div></li>`
+            ).join("") || `<li class="text-slate-500">Ma'lumot yo'q</li>`;
+        }
+
+        // ---------- seat tooltip ----------
+        $("scene").addEventListener("click", (e) => {
+            const svg = e.currentTarget, pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+            let best = null, bd = 49;
+            for (const s of seatIndex) { const d = (s.x - pt.x) ** 2 + (s.y - pt.y) ** 2; if (d < bd) { bd = d; best = s; } }
+            const tip = $("seat-tip");
+            if (!best) return tip.classList.add("hidden");
+            const where = `${STANDS[best.seat.section].label} · ${best.seat.row + 1}-qator · ${best.seat.number + 1}-o'rin`;
+            tip.innerHTML = best.fan
+                ? `<b class="text-amber-300">${esc(best.fan.name)}</b>${best.fan.city ? ` <span class="text-slate-400">(${esc(best.fan.city)})</span>` : ""}<br><span class="text-slate-400">${where}</span>`
+                : `${best.taken ? "Obunachi" : "Bo'sh o'rindiq"}<br><span class="text-slate-400">${where}</span>`;
+            const box = svg.parentElement.getBoundingClientRect();
+            tip.style.left = `${Math.min(e.clientX - box.left + 8, box.width - 190)}px`;
+            tip.style.top = `${e.clientY - box.top + 8}px`;
+            tip.classList.remove("hidden");
         });
+
+        // ---------- join ----------
+        $("join-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.currentTarget, btn = form.querySelector("button"), msg = $("join-msg");
+            btn.disabled = true; msg.textContent = "Yuborilmoqda…"; msg.className = "text-xs text-slate-400 min-h-[1rem]";
+            try {
+                const r = await fetch("/api/fans", { method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: form.name.value, city: form.city.value }) });
+                const d = await r.json().catch(() => ({}));
+                if (!r.ok) throw new Error(d.error || "Xatolik");
+                localStorage.setItem(MY_SEAT_KEY, seatKey(d.fan));
+                msg.textContent = `✅ ${d.fan.name}, sizning o'rningiz: ${STANDS[d.fan.section].label}, ${d.fan.row + 1}-qator, ${d.fan.number + 1}-o'rin`;
+                msg.className = "text-xs text-emerald-400 min-h-[1rem]";
+                form.reset();
+                await load();
+            } catch (err) {
+                msg.textContent = `❌ ${err.message}`; msg.className = "text-xs text-rose-400 min-h-[1rem]";
+            } finally { btn.disabled = !state.live; }
+        });
+
+        load();
+        setInterval(load, POLL_MS);
     </script>
 </body>
 </html>
