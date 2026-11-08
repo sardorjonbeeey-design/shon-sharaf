@@ -697,8 +697,7 @@ function buildRealTown(map) {
       for (const t of THREE.ShapeUtils.triangulateShape(v, [])) for (const k of up(v, t)) push(v[k].x, H, v[k].y, 0, 0, 1);
       if (kind === "mosque") domes.push([mx, H, mz]);
     }
-    if (pos.length) { const bm = new THREE.Mesh(merged(pos, nrm, col), new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); bm.name = "otherBuildings"; scene.add(bm); }
-    instanced(new THREE.SphereGeometry(.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), lamC(0x2f7fc1), domes.map(([x, y, z]) => [x, y, z, 9, 7, 9]));
+    // other OSM buildings (flats, schools, public) are no longer drawn: plain blocks that meant nothing on the map
   }
   // "+" on every free lot (one instanced mesh); hidden where a fan has built
   plots = houses.map(h => ({ ...h, ry: Math.PI / 2 - h.ang, d: Math.hypot(h.x, h.z) })).sort((a, b) => a.d - b.d);
@@ -970,6 +969,7 @@ if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/starter/starter_house_
 function starterHome(h) {
   if ((h.level || 1) !== 1 || !STARTER.scene) return null;
   const m = STARTER.scene.clone(true); m.rotation.x = -Math.PI / 2;
+  m.traverse(o => { if (o.isMesh && o.material && /window glass/i.test(o.material.name || "")) o.material = LM.lit; });   // windows glow at night like the other houses
   const up = new THREE.Group(); up.add(m);
   const g = new THREE.Group(); g.add(fitModel(up, 12.4, 12));
   if (h.car && KENNEY[CAR_MODEL[h.car]]) { const c = fitModel(KENNEY[CAR_MODEL[h.car]].clone(), 2.2, 1.9); c.position.set(3.2, 0, 3.6); c.rotation.y = Math.PI / 2; g.add(c); }
