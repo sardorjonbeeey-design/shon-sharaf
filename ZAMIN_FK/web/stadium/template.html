@@ -196,6 +196,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script type="module">
 // One project, two entrances:
 //   Instagram / web link  -> camera opens on the stadium (city visible around it)
@@ -350,15 +356,16 @@ scene.background = new THREE.Color(0x0b1838);
 const FOG = { stadium: [220, 700], city: [500, 1700] };
 scene.fog = new THREE.Fog(0x8d96b8, ...FOG[MODE]);   // evening haze
 const camera = new THREE.PerspectiveCamera(50, 1, 0.5, 5000);
-scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x203018, 0.9));
+const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x203018, 0.9); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffe2b8, 0.9); sun.position.set(-80, 120, 60); scene.add(sun);
 
 // sky gradient dome
 {
   const g = new THREE.SphereGeometry(3000, 24, 12);
   const m = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: { cA: { value: new THREE.Color(0xf7a46b) }, cB: { value: new THREE.Color(0x33427f) }, cC: { value: new THREE.Color(0x0a1638) } },
     vertexShader: "varying float h; void main(){ h = normalize(position).y; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }",
-    fragmentShader: "varying float h; void main(){ vec3 a=vec3(.98,.62,.42), b=vec3(.20,.26,.52), c=vec3(.04,.09,.22); vec3 col = h<.08 ? mix(a,b,clamp(h/.08,0.,1.)) : mix(b,c,clamp((h-.08)/.5,0.,1.)); gl_FragColor=vec4(col,1.); }" });
+    fragmentShader: "uniform vec3 cA, cB, cC; varying float h; void main(){ vec3 col = h<.08 ? mix(cA,cB,clamp(h/.08,0.,1.)) : mix(cB,cC,clamp((h-.08)/.5,0.,1.)); gl_FragColor=vec4(col,1.); }" });
   var sky = new THREE.Mesh(g, m); scene.add(sky);
 }
 // ground + pitch texture
@@ -1190,6 +1197,62 @@ function animateTeam(t) {
   if (goat) moveTo(goat, 44 + Math.cos(t * 0.15) * 6, -26 + Math.sin(t * 0.15) * 4, 0);
 }
 
+// ---------- day / night by Uzbekistan time (UTC+5); ?time=night|day|<hour> to preview ----------
+const DN = (() => {
+  const q = new URLSearchParams(location.search).get("time");
+  const hourNow = () => { if (q === "night") return 22.5; if (q === "day") return 13; if (q !== null && q !== "" && !isNaN(+q)) return +q;
+    const d = new Date(); return (d.getUTCHours() + 5) % 24 + d.getUTCMinutes() / 60; };
+  const SUNRISE = 6.9, SUNSET = 17.0;                    // Tashkent, late autumn
+  const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const C = c => new THREE.Color(c);
+  const SKY = { day: [C(0xcfe6ff), C(0x7fb6f0), C(0x3b7fd6)], dusk: [C(0xf7a46b), C(0x5b5a9a), C(0x1a2252)], night: [C(0x1b2550), C(0x0b1430), C(0x02050f)] };
+  const FOGC = { day: C(0xbfd2e6), dusk: C(0x8d86a8), night: C(0x0b1430) };
+  const GLOW = new Set([0xffcf6b, 0xffd98a, 0xfff1c4, 0xffd36b, 0xfff6d0, 0xfff6dc]);
+  const DAYGLASS = C(0x8aa4bd), glow = [], seen = new Set();
+  let composer = null, bloom = null, lastCollect = 0, state = null;
+  const pitchLight = new THREE.PointLight(0xfff4dc, 0, 190, 1.4); pitchLight.position.set(0, 55, 0); scene.add(pitchLight);   // floodlights at night
+  function collect() {
+    scene.traverse(o => { if (!o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(mt => {
+      if (mt && mt.isMeshBasicMaterial && !mt.map && !seen.has(mt) && GLOW.has(mt.color.getHex())) { seen.add(mt); glow.push({ mt, night: mt.color.clone() }); } }); });
+  }
+  function setupBloom() {
+    if (composer || !THREE.EffectComposer || !THREE.UnrealBloomPass) return;
+    try {
+      composer = new THREE.EffectComposer(renderer);
+      composer.addPass(new THREE.RenderPass(scene, camera));
+      bloom = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.9, 0.55, 0.72);
+      composer.addPass(bloom);
+      composer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); composer.setSize(innerWidth, innerHeight);
+    } catch (e) { composer = null; }
+  }
+  function mix3(a, b, t) { return a.clone().lerp(b, t); }
+  function update(force) {
+    const h = hourNow();
+    const day = sm(SUNRISE - .6, SUNRISE + .6, h) * (1 - sm(SUNSET - .6, SUNSET + .6, h));
+    const dusk = Math.max(0, 1 - Math.min(Math.abs(h - SUNRISE), Math.abs(h - SUNSET)) / 1.1);
+    const key = (day * 50 | 0) + ":" + (dusk * 50 | 0);
+    if (!force && key === state) return; state = key;
+    const base = i => mix3(SKY.night[i], SKY.day[i], day).lerp(SKY.dusk[i], dusk * .75);
+    sky.material.uniforms.cA.value.copy(base(0)); sky.material.uniforms.cB.value.copy(base(1)); sky.material.uniforms.cC.value.copy(base(2));
+    const fogc = mix3(FOGC.night, FOGC.day, day).lerp(FOGC.dusk, dusk * .6);
+    scene.fog.color.copy(fogc); scene.background = fogc.clone();
+    hemi.intensity = .3 + .45 * day; hemi.color.copy(mix3(C(0x6f86c9), C(0xdfeaff), day));
+    hemi.groundColor.copy(mix3(C(0x101820), C(0x3a5a2a), day));
+    sun.intensity = .12 + .62 * day; pitchLight.intensity = (1 - day) * 1.6; sun.color.copy(mix3(C(0x9fb4ff), C(0xfff0d8), day).lerp(C(0xffa060), dusk * .7));
+    const ang = ((h - SUNRISE) / (SUNSET - SUNRISE)) * Math.PI;            // sun arc east -> west; moonlight from above at night
+    sun.position.set(Math.cos(ang) * -300, day > .05 ? Math.max(40, Math.sin(ang) * 400) : 260, 120);
+    for (const g of glow) g.mt.color.copy(mix3(g.night, DAYGLASS, day * .85));
+    if (bloom) { bloom.strength = .12 + (1 - day) * 1.05; bloom.threshold = .55 + day * .35; }
+    document.documentElement.dataset.night = day < .5 ? "1" : "0";
+  }
+  return {
+    tick(now) { if (now - lastCollect > 4000) { lastCollect = now; const n = glow.length; collect(); if (glow.length !== n) state = null; } update(false); },
+    init() { setupBloom(); collect(); update(true); },
+    render() { if (composer) composer.render(); else renderer.render(scene, camera); },
+    resize() { if (composer) composer.setSize(innerWidth, innerHeight); },
+  };
+})();
+
 // ---------- camera / controls ----------
 const controls = new THREE.OrbitControls(camera, canvas);
 controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.495; controls.minDistance = 2; controls.maxDistance = 1100;
@@ -1817,7 +1880,7 @@ function setLang(k) {
   buildPickers();
 }
 setLang(L);
-if (MAP) { const pl = document.getElementById("place"); pl.textContent = "📍 " + MAP.name + " · © OpenStreetMap"; pl.classList.add("on"); }
+if (MAP) { const pl = document.getElementById("place"); pl.textContent = "📍 " + MAP.name + (MAP.rot ? " · © OpenStreetMap" : ""); pl.classList.add("on"); }
 setMode(MODE, false);
 updateCta();
 
@@ -1826,7 +1889,7 @@ const nEl = document.getElementById("n");
 const t0 = performance.now();
 function fmt(v) { return Math.round(v).toLocaleString("fr-FR").replace(/ | /g, " "); }
 
-function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize(); }
 addEventListener("resize", resize); resize();
 let prev = performance.now();
 function loop(now) {
@@ -1845,10 +1908,11 @@ function loop(now) {
   animateTeam(now / 1000);
   cityTick(dt);
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
-  renderer.render(scene, camera);
+  DN.tick(now); DN.render();
   updateLabels(now);
   requestAnimationFrame(loop);
 }
+DN.init();
 requestAnimationFrame(loop);
 if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 

@@ -50,7 +50,7 @@ screen = [
 # City backend (Telegram Mini App + Neon). The page reads live seats/homes from it.
 API_ORIGIN = os.environ.get("ZFK_API", "https://zaminfk-city.onrender.com")
 # Real town (OpenStreetMap) shipped next to the page: dist/map/<file>
-MAP = os.environ.get("ZFK_MAP", "kattaqorgon.json")
+MAP = os.environ.get("ZFK_MAP", "zamin_eixample.json")
 if MAP:
     import shutil
     os.makedirs(os.path.join(HERE, "dist", "map"), exist_ok=True)
