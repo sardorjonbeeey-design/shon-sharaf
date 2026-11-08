@@ -2082,6 +2082,19 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 try { DN.init(); } catch (e) { console.error("DN.init failed:", e); }
+
+// TEST: Render a simple cube to verify WebGL works
+try {
+  const testGeo = new THREE.BoxGeometry(5, 5, 5);
+  const testMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+  const testCube = new THREE.Mesh(testGeo, testMat);
+  testCube.position.set(0, 5, 0);
+  scene.add(testCube);
+  dbg("✓ Test cube added to scene");
+} catch (e) {
+  dbg("✗ Test cube failed: " + e.message);
+}
+
 requestAnimationFrame(loop);
 if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, layoutHomes, homes: () => HOMES, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 
