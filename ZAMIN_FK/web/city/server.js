@@ -11,13 +11,35 @@ const MINIAPP_URL = process.env.MINIAPP_URL || "";          // e.g. https://t.me
 const PAGE = path.join(__dirname, "..", "stadium", "dist", "index.html");
 const DIST = path.dirname(PAGE);
 
-// Verify frontend files exist
+// Verify frontend files exist and are valid
 const pageExists = fs.existsSync(PAGE);
-if (!pageExists) console.warn("⚠️  Frontend not found at", PAGE, "- check if dist/ is built and deployed");
+let pageSize = 0, pageHasThree = false, pageHasCanvas = false;
+if (pageExists) {
+  const content = fs.readFileSync(PAGE, 'utf8');
+  pageSize = content.length;
+  pageHasThree = content.includes('three.min.js');
+  pageHasCanvas = content.includes('id="c"');
+}
+if (!pageExists) console.warn("⚠️  Frontend not found at", PAGE);
+else console.log(`✓ Frontend ${pageSize} bytes, THREE.js:${pageHasThree}, canvas:${pageHasCanvas}`);
 const COLORS = 6, MAX_LEVEL = 7;
 const ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
 const app = express();
 app.use(express.json({ limit: "256kb" }));
+
+// Request logging for debugging frontend issues
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    const status = res.statusCode;
+    if (req.path === '/' || req.path === '/index.html' || status >= 400) {
+      console.log(`${status} ${req.method} ${req.path} (${ms}ms)`);
+    }
+  });
+  next();
+});
+
 const bot = require("./bot");
 bot.mount(app);                                            // Telegram webhook: /start -> welcome + Mini App button
 
@@ -178,15 +200,37 @@ app.get(["/", "/index.html"], (req, res) => {
   if (!pageExists) return res.status(500).send("<h1>Frontend not built</h1><p>dist/index.html missing. Run: cd web/stadium && python3 build.py fans_instagram.json</p>");
   res.sendFile(PAGE, (err) => err && console.error("sendFile error:", err.message));
 });
-app.use("/models", express.static(path.join(DIST, "models"), { maxAge: "1d" }));
-app.use("/vendor", express.static(path.join(DIST, "vendor"), { maxAge: "1d" }));
-app.use("/map", express.static(path.join(DIST, "map"), { maxAge: "1d" }));   // real-town OpenStreetMap data
+// Static assets with error tracking
+const serveStatic = (route, dir, maxAge = "1d") => {
+  app.use(route, (req, res, next) => {
+    const file = path.join(dir, req.path);
+    if (!fs.existsSync(file) && !fs.existsSync(file + '/')) {
+      console.warn(`404 ${route}${req.path} - file not in`, dir);
+    }
+    next();
+  }, express.static(dir, { maxAge }));
+};
+serveStatic("/models", path.join(DIST, "models"));
+serveStatic("/vendor", path.join(DIST, "vendor"));
+serveStatic("/map", path.join(DIST, "map"));
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log("🌍 ZAMIN FK City on", port);
-  console.log("  DB:", db ? "Postgres ✓" : "Memory");
-  console.log("  Bot:", BOT_TOKEN ? "Configured ✓" : "❌ NO BOT_TOKEN");
-  console.log("  Frontend:", pageExists ? "Ready ✓" : "❌ Missing - run build.py");
-  console.log("  URL: https://zaminfk-city.onrender.com/debug");
+  console.log("\n" + "=".repeat(60));
+  console.log("🌍 ZAMIN FK City Server Ready");
+  console.log("=".repeat(60));
+  console.log(`📡 Port: ${port}`);
+  console.log(`📂 Root: ${process.cwd()}`);
+  console.log(`📄 Frontend: ${PAGE}`);
+  console.log(`   Size: ${pageSize} bytes`);
+  console.log(`   THREE.js: ${pageHasThree ? "✓" : "❌"}`);
+  console.log(`   Canvas: ${pageHasCanvas ? "✓" : "❌"}`);
+  console.log(`💾 Database: ${db ? "Postgres ✓" : "Memory"}`);
+  console.log(`🤖 Bot: ${BOT_TOKEN ? "Configured ✓" : "❌ NO BOT_TOKEN"}`);
+  console.log(`📁 Assets:`);
+  console.log(`   /models: ${fs.existsSync(path.join(DIST, "models")) ? "✓" : "❌"}`);
+  console.log(`   /vendor: ${fs.existsSync(path.join(DIST, "vendor")) ? "✓" : "❌"}`);
+  console.log(`   /map: ${fs.existsSync(path.join(DIST, "map")) ? "✓" : "❌"}`);
+  console.log(`🔍 Debug: https://zaminfk-city.onrender.com/debug`);
+  console.log("=".repeat(60) + "\n");
   bot.setup().catch(e => console.error("bot setup", e.message));
 });
