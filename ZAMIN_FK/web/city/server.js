@@ -203,8 +203,9 @@ app.post("/api/profession/apply", async (req, res) => {
     if (!home.length) return res.status(404).json({ error: "no home" });
     const current = home[0].profession;
     if (current === role) return res.status(409).json({ error: "already" });
-    await q(`insert into applications (tg_id, nick, role, status) values ($1,$2,$3,'pending')
-      on conflict (tg_id, role) do nothing`, [user.id, nick, role]);
+    const existing = await q("select id from applications where tg_id = $1 and role = $2 and status = 'pending'", [user.id, role]);
+    if (existing.length) return res.status(409).json({ error: "pending" });
+    await q("insert into applications (tg_id, nick, role, status) values ($1,$2,$3,'pending')", [user.id, nick, role]);
     res.json({ ok: true });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
 });
