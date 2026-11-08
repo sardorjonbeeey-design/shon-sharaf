@@ -80,7 +80,10 @@ scenes = [
  ]},
  # GOAT: brand face + Paxtakor friendly
  {"from": s(4), "to": s(5), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.06], "blur": 8}, "items": [
-   spr("goat_chew", 540, 1800, 1000, s(4, 0.05), enter="up", idle="chew", z=12),
+   spr("doston", 300, 1010, 300, s(4, 0.0), enter="up", idle="hop", z=3),
+   spr("sherzod", 760, 1010, 300, s(4, 0.1), enter="up", idle="hop", z=3),
+   lab('<div class="chip" style="font-size:28px">⚽ MASHG‘ULOT</div>', 540, 1000, s(4, 0.15), enter="pop", z=4),
+   spr("goat_chew", 540, 1800, 1000, s(4, 0.05), enter="up", idle="talk", z=12),
    lab(chip("MEN — BREND YUZI! 🐐", True), 540, 380, s(4, 0.2), enter="stamp", z=25),
    lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">O‘RTOQLIK O‘YINI</small><div style="font-size:90px;font-weight:900;line-height:1.05">PAXTAKOR</div><div style="font-size:36px">🔥 Muxlislar tanladi</div>'),
        540, 620, frac(4, 0.35), enter="drop", enterDur=0.5, idle="sway", z=25),
