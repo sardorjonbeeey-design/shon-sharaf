@@ -4,10 +4,16 @@
 const express = require("express");
 const crypto = require("crypto");
 const path = require("path");
+const fs = require("fs");
 
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 const MINIAPP_URL = process.env.MINIAPP_URL || "";          // e.g. https://t.me/<bot>/<app> — shown to web visitors
 const PAGE = path.join(__dirname, "..", "stadium", "dist", "index.html");
+const DIST = path.dirname(PAGE);
+
+// Verify frontend files exist
+const pageExists = fs.existsSync(PAGE);
+if (!pageExists) console.warn("⚠️  Frontend not found at", PAGE, "- check if dist/ is built and deployed");
 const COLORS = 6, MAX_LEVEL = 7;
 const ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
 const app = express();
@@ -161,13 +167,26 @@ app.post("/api/seat", async (req, res) => {
 });
 
 app.get("/healthz", (req, res) => res.send("ok"));
-app.get(["/", "/index.html"], (req, res) => { res.set("Cache-Control", "no-cache"); res.sendFile(PAGE); });
-const DIST = path.dirname(PAGE);                              // Kenney 3D models + GLTF loader
+app.get("/debug", (req, res) => res.json({
+  frontend: { file: PAGE, exists: pageExists, dist: DIST },
+  models: fs.existsSync(path.join(DIST, "models")),
+  vendor: fs.existsSync(path.join(DIST, "vendor")),
+  map: fs.existsSync(path.join(DIST, "map"))
+}));
+app.get(["/", "/index.html"], (req, res) => {
+  res.set("Cache-Control", "no-cache");
+  if (!pageExists) return res.status(500).send("<h1>Frontend not built</h1><p>dist/index.html missing. Run: cd web/stadium && python3 build.py fans_instagram.json</p>");
+  res.sendFile(PAGE, (err) => err && console.error("sendFile error:", err.message));
+});
 app.use("/models", express.static(path.join(DIST, "models"), { maxAge: "1d" }));
 app.use("/vendor", express.static(path.join(DIST, "vendor"), { maxAge: "1d" }));
-app.use("/map", express.static(path.join(path.dirname(PAGE), "map"), { maxAge: "1d" }));   // real-town OpenStreetMap data
+app.use("/map", express.static(path.join(DIST, "map"), { maxAge: "1d" }));   // real-town OpenStreetMap data
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log("zamin fk on", port, db ? "postgres" : "memory", BOT_TOKEN ? "bot ok" : "NO BOT_TOKEN");
+  console.log("🌍 ZAMIN FK City on", port);
+  console.log("  DB:", db ? "Postgres ✓" : "Memory");
+  console.log("  Bot:", BOT_TOKEN ? "Configured ✓" : "❌ NO BOT_TOKEN");
+  console.log("  Frontend:", pageExists ? "Ready ✓" : "❌ Missing - run build.py");
+  console.log("  URL: https://zaminfk-city.onrender.com/debug");
   bot.setup().catch(e => console.error("bot setup", e.message));
 });
