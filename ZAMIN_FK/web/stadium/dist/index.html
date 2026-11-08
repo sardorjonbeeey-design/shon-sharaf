@@ -68,6 +68,10 @@
   .sw.on { border-color:var(--yel); }
   .sheet input, .sheet textarea { width:100%; font:inherit; font-weight:700; font-size:15px; color:#fff; background:rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.25); border-radius:14px; padding:12px; outline:none; margin-bottom:12px; resize:none; }
   .sheet input::placeholder, .sheet textarea::placeholder { color:#9DB8FF; }
+  .go + .go { margin-top:10px; }
+  .go.alt2 { background:#3fb950; color:#fff; } .go.alt2:disabled { background:#55617a; color:#cfdcff; }
+  .go.alt3 { background:var(--blue); color:#fff; }
+  #lvls { display:flex; gap:4px; margin:0 0 14px; } #lvls i { flex:1; height:10px; border-radius:5px; background:rgba(255,255,255,.15); } #lvls i.on { background:var(--yel); }
   .go { width:100%; font:inherit; font-weight:900; font-size:18px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:14px; }
   .tag.home::before { content:"🏠"; margin-right:4px; }
   .tag.lot { background:rgba(13,37,87,.85); color:#cfdcff; font-size:11px; }
@@ -88,7 +92,9 @@
 <div id="actions" class="ui"><button id="bSeat" data-t="bSeat"></button><button id="bHome" data-t="bHome"></button><button id="bJob" class="alt" data-t="bJob"></button></div>
 <div id="sSeat" class="ui pill sheet"><button class="x">×</button><h3 data-t="seatH"></h3><p data-t="seatP"></p>
   <input id="igNick" maxlength="31" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="go" id="seatGo" data-t="seatGo"></button></div>
-<div id="sHome" class="ui pill sheet"><button class="x">×</button><h3 data-t="homeH"></h3><div class="row" id="styles"></div><div class="row" id="colors"></div><button class="go" id="homeGo" data-t="homeGo"></button></div>
+<div id="sHome" class="ui pill sheet"><button class="x">×</button><h3 id="homeTitle"></h3><p id="homeInfo"></p>
+  <div id="lvls"></div><div class="row" id="colors"></div>
+  <button class="go" id="homeGo"></button><button class="go alt2" id="homeUp"></button><button class="go alt3" id="homeVisit" data-t="visit"></button></div>
 <div id="sJob" class="ui pill sheet"><button class="x">×</button><h3 data-t="jobH"></h3><p data-t="jobP"></p><div class="row" id="roles"></div>
   <textarea id="jobNote" rows="3" maxlength="400"></textarea><button class="go" id="jobGo" data-t="jobGo"></button></div>
 <div id="rule" class="ui" data-t="rule"></div>
@@ -120,23 +126,29 @@ const API_ORIGIN = "https://zaminfk-city.onrender.com";       // city backend (N
 const API = (location.origin === API_ORIGIN || /^(localhost|127\.)/.test(location.hostname)) ? "" : API_ORIGIN;
 const T = {
   uz:{title:"ZAMIN FK", fans:"MUXLISLAR", pop:"AHOLI", rule:"1 obunachi = 1 o‘rindiq", find:"Topish", ph:"Nik bo‘yicha qidirish", demo:"Namuna ro‘yxat", nf:"Bu nik hali stadionda ham, shaharda ham yo‘q. Obuna bo‘ling — o‘rningiz tayyor bo‘ladi!", seat:(s)=>`Sektor ${s.sec} · Qator ${s.row} · O‘rin ${s.no}`,
-      cta:"🏙 Zamin FK shahrini ochish", bSeat:"🎟 O‘rindiq", bHome:"🏠 Uy qurish", bJob:"💼 Ish",
+      cta:"🏙 Zamin FK shahrini ochish", bSeat:"🎟 O‘rindiq", bHome:"🏠 Uyimni olish", bHomeMine:"🏠 Mening uyim", bJob:"💼 Ish",
       seatH:"Stadionda o‘rningiz", seatP:"Telegram orqali o‘rindiq oling. Instagram nikingizni yozsangiz, o‘sha o‘rin sizniki bo‘ladi.", seatGo:"O‘rindiq olish", igPh:"Instagram nik (ixtiyoriy)",
-      homeH:"Uyingizni tanlang", homeGo:"Qurish", jobH:"Shaharda ishlash", jobP:"Zamin FK shahrini birga quramiz. Yo‘nalishni tanlang va o‘zingiz haqingizda yozing.", jobGo:"Ariza yuborish", jobPh:"Tajribangiz, portfolio havolasi…",
+      homeH:"Uyingizni oling", homeGo:"Uyimni olish", homeP:"Shaharda bepul 1 qavatli uy olasiz va stadionda nomingiz bilan o‘rindiq paydo bo‘ladi. Har kuni uyingizni bir darajaga yaxshilang!", homeSave:"Rangni saqlash", lotSel:"📍 Tanlangan joyga quriladi.", lotAuto:"📍 Xaritadagi “+” belgisini bosib joy tanlang yoki stadionga eng yaqin bo‘sh joy olinadi.", lotFree:"Bo‘sh joy — bu yerda uy qurish mumkin.", lotWeb:"Bu bo‘sh joy! Uy qurish uchun @zaminfk_bot ga kiring.", lotTaken:"Bu joy band bo‘lib qoldi, boshqasini tanlang.",
+      lv:["","Kichik uy","Ikki qavatli uy","Uch qavatli uy","To‘rt qavatli uy","Besh qavatli bino","Olti qavatli bino","Osmono‘par 🚁"], lvOf:(a,b)=>`Daraja ${a}/${b}`,
+      up:(n)=>`⬆️ Yaxshilash: ${n}`, upWait:(t)=>`⏳ Keyingi yaxshilash: ${t}`, upMax:"🏆 Eng yuqori daraja!", upOk:(n)=>`Tabriklaymiz! Uyingiz endi: ${n} 🎉`, visit:"📍 Uyimga borish", hr:"soat", mn:"daq", jobH:"Shaharda ishlash", jobP:"Zamin FK shahrini birga quramiz. Yo‘nalishni tanlang va o‘zingiz haqingizda yozing.", jobGo:"Ariza yuborish", jobPh:"Tajribangiz, portfolio havolasi…",
       roles:["Quruvchi (3D)","Dizayner","Video montaj","SMM","Dasturchi","Boshqa"], styles:["Kottej","Katta kottej","Shisha bino","Pog‘onali bino","O‘zbek hovli"], plaza:"☕ Choyxona",
       needTg:"Buning uchun ilovani Telegram orqali oching.", seatOk:(s)=>`O‘rningiz tayyor! ${s}`, homeOk:"Uyingiz tayyor! 🏠", jobOk:"Ariza qabul qilindi! Siz bilan bog‘lanamiz.", err:"Saqlab bo‘lmadi, qayta urinib ko‘ring.", homeOf:(n,i)=>`${n} — ${i}-uy`, soon:"Kelajakda: ",
       lots:["Mashg‘ulot maydoni","Hovuz","Xodimlar binosi","Media markaz","Klub ofisi","🅿 Avtoturargoh"], stad:"ZAMIN FK STADIONI"},
   ru:{title:"ZAMIN FK", fans:"БОЛЕЛЬЩИКИ", pop:"ЖИТЕЛИ", rule:"1 подписчик = 1 место", find:"Найти", ph:"Поиск по нику", demo:"Демо-список", nf:"Этого ника пока нет ни на стадионе, ни в городе. Подпишитесь — место будет готово!", seat:(s)=>`Сектор ${s.sec} · Ряд ${s.row} · Место ${s.no}`,
-      cta:"🏙 Открыть город Zamin FK", bSeat:"🎟 Место", bHome:"🏠 Дом", bJob:"💼 Работа",
+      cta:"🏙 Открыть город Zamin FK", bSeat:"🎟 Место", bHome:"🏠 Получить дом", bHomeMine:"🏠 Мой дом", bJob:"💼 Работа",
       seatH:"Ваше место на стадионе", seatP:"Получите место через Telegram. Укажите ник в Instagram — это место станет вашим.", seatGo:"Получить место", igPh:"Ник в Instagram (необязательно)",
-      homeH:"Выберите дом", homeGo:"Построить", jobH:"Работа в городе", jobP:"Строим город Zamin FK вместе. Выберите направление и расскажите о себе.", jobGo:"Отправить заявку", jobPh:"Опыт, ссылка на портфолио…",
+      homeH:"Получите дом", homeGo:"Получить дом", homeP:"Бесплатный одноэтажный дом в городе и место с вашим именем на стадионе. Улучшайте дом на один уровень каждый день!", homeSave:"Сохранить цвет", lotSel:"📍 Дом будет построен на выбранном месте.", lotAuto:"📍 Нажмите «+» на карте, чтобы выбрать место, или получите ближайшее к стадиону.", lotFree:"Свободное место — здесь можно построить дом.", lotWeb:"Свободное место! Чтобы построить дом, откройте @zaminfk_bot.", lotTaken:"Это место уже заняли, выберите другое.",
+      lv:["","Маленький дом","Двухэтажный дом","Трёхэтажный дом","Четырёхэтажный дом","Пятиэтажка","Шестиэтажка","Небоскрёб 🚁"], lvOf:(a,b)=>`Уровень ${a}/${b}`,
+      up:(n)=>`⬆️ Улучшить: ${n}`, upWait:(t)=>`⏳ Следующее улучшение: ${t}`, upMax:"🏆 Максимальный уровень!", upOk:(n)=>`Поздравляем! Теперь у вас: ${n} 🎉`, visit:"📍 К моему дому", hr:"ч", mn:"мин", jobH:"Работа в городе", jobP:"Строим город Zamin FK вместе. Выберите направление и расскажите о себе.", jobGo:"Отправить заявку", jobPh:"Опыт, ссылка на портфолио…",
       roles:["Строитель (3D)","Дизайнер","Видеомонтаж","SMM","Программист","Другое"], styles:["Коттедж","Большой коттедж","Стеклянная башня","Ступенчатая башня","Узбекский двор"], plaza:"☕ Чайхана",
       needTg:"Для этого откройте приложение через Telegram.", seatOk:(s)=>`Ваше место готово! ${s}`, homeOk:"Ваш дом готов! 🏠", jobOk:"Заявка принята! Мы свяжемся с вами.", err:"Не удалось сохранить, попробуйте ещё раз.", homeOf:(n,i)=>`${n} — дом №${i}`, soon:"Скоро: ",
       lots:["Тренировочное поле","Бассейн","Корпус персонала","Медиацентр","Офис клуба","🅿 Парковка"], stad:"СТАДИОН ZAMIN FK"},
   en:{title:"ZAMIN FK", fans:"FANS", pop:"RESIDENTS", rule:"1 follower = 1 seat", find:"Find", ph:"Search by nick", demo:"Demo list", nf:"This nick isn’t in the stadium or the city yet. Follow us — your seat will be ready!", seat:(s)=>`Sector ${s.sec} · Row ${s.row} · Seat ${s.no}`,
-      cta:"🏙 Open Zamin FK city", bSeat:"🎟 Seat", bHome:"🏠 Home", bJob:"💼 Work",
+      cta:"🏙 Open Zamin FK city", bSeat:"🎟 Seat", bHome:"🏠 Get my home", bHomeMine:"🏠 My home", bJob:"💼 Work",
       seatH:"Your seat in the stadium", seatP:"Claim a seat via Telegram. Add your Instagram nick and that seat becomes yours.", seatGo:"Take my seat", igPh:"Instagram nick (optional)",
-      homeH:"Choose your home", homeGo:"Build", jobH:"Work in the city", jobP:"Let’s build Zamin FK city together. Pick a field and tell us about yourself.", jobGo:"Send application", jobPh:"Experience, portfolio link…",
+      homeH:"Get your home", homeGo:"Get my home", homeP:"A free one-floor home in the city and a seat with your name in the stadium. Upgrade it one level every day!", homeSave:"Save colour", lotSel:"📍 It will be built on the lot you picked.", lotAuto:"📍 Tap a “+” on the map to pick a lot, or get the free one nearest the stadium.", lotFree:"Free lot — a home can be built here.", lotWeb:"Free lot! Open @zaminfk_bot to build your home.", lotTaken:"Someone just took this lot, pick another.",
+      lv:["","Small house","Two-floor house","Three-floor house","Four-floor house","Five-floor block","Six-floor block","Skyscraper 🚁"], lvOf:(a,b)=>`Level ${a}/${b}`,
+      up:(n)=>`⬆️ Upgrade: ${n}`, upWait:(t)=>`⏳ Next upgrade in ${t}`, upMax:"🏆 Top level!", upOk:(n)=>`Congratulations! Your home is now: ${n} 🎉`, visit:"📍 Go to my home", hr:"h", mn:"min", jobH:"Work in the city", jobP:"Let’s build Zamin FK city together. Pick a field and tell us about yourself.", jobGo:"Send application", jobPh:"Experience, portfolio link…",
       roles:["Builder (3D)","Designer","Video editor","SMM","Developer","Other"], styles:["Cottage","Big cottage","Glass tower","Stepped tower","Uzbek courtyard"], plaza:"☕ Teahouse",
       needTg:"Open the app in Telegram for this.", seatOk:(s)=>`Your seat is ready! ${s}`, homeOk:"Your home is ready! 🏠", jobOk:"Application received! We’ll contact you.", err:"Couldn’t save, please try again.", homeOf:(n,i)=>`${n} — home #${i}`, soon:"Coming: ",
       lots:["Training pitch","Pool","Staff building","Media centre","Club office","🅿 Parking"], stad:"ZAMIN FK STADIUM"},
@@ -414,7 +426,11 @@ const lamC = c => new THREE.MeshLambertMaterial({ color: c });
 const OUT_R = seats[seats.length - 1].ring + 1;
 const OUT_A = PW / 2 + 9 + OUT_R * ROW_D, OUT_B = PH / 2 + 9 + OUT_R * ROW_D;   // stadium footprint half-sizes
 const CX = Math.max(PW / 2 + 110, OUT_A + 70), CZ = Math.max(PH / 2 + 110, OUT_B + 70); // complex half-sizes
-let LOTS = [], plots = [], WORLD = 560, PLAZA = null, hideBuiltLand = () => {};
+let LOTS = [], plots = [], WORLD = 560, PLAZA = null, hideBuiltLand = () => {}, LOT_PLUS = null;
+const PLUS_GEO = (() => {                                 // flat "+" sign for free lots
+  const a = new THREE.BoxGeometry(3.2, .14, .8).toNonIndexed(), b = new THREE.BoxGeometry(.8, .14, 3.2).toNonIndexed(), g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute([...a.attributes.position.array, ...b.attributes.position.array], 3));
+  g.setAttribute("normal", new THREE.Float32BufferAttribute([...a.attributes.normal.array, ...b.attributes.normal.array], 3)); return g; })();
 const carPaths = [];                                    // polylines cars drive along
 const CBOX = new THREE.BoxGeometry(1, 1, 1);
 // instancing helpers
@@ -482,7 +498,7 @@ function buildRealTown(map) {
   strips(walks, -.034, 0xbdb5a6); strips(asph, -.03, 0x3b3e43); strips(peds, -.032, 0xcfc6b4);
   strips(map.water.map(([w, f]) => [w, pts(f)]), -.028, 0x5d8ea3);
   // main streets: centre dashes, poplar rows, street lights
-  { const dash = [], pop = [], trunk = [], pole = [], head = [];
+  { const dash = [], pop = [], trunk = [], pole = [], head = [], round = [], rtrunk = [], bench = [], legs = [], bin = [];
     for (const [c, ps] of roadsXY) {
       if (c > 3) continue;
       for (let i = 0; i < ps.length - 1; i++) {
@@ -492,15 +508,30 @@ function buildRealTown(map) {
           const x = x1 + ux * s, z = z1 + uz * s;
           dash.push([x, -.02, z, .25, .02, 3, ry]);
           for (const sd of [-1, 1]) { const px = x - uz * off * sd, pz = z + ux * off * sd; if (CLR(px, pz)) continue;
-            const h = 10 + rr() * 6; pop.push([px, h / 2 + 1.4, pz, 1.7, h, 1.7]); trunk.push([px, 1, pz, .3, 2, .3]); }
-          if ((s | 0) % 36 < 9) { const px = x + uz * (off - 1.5), pz = z - ux * (off - 1.5); pole.push([px, 3.5, pz, .25, 7, .25]); head.push([px, 7, pz, .6, .3, .6]); }
+            if (rr() < .55) { const h = 10 + rr() * 6; pop.push([px, h / 2 + 1.4, pz, 1.7, h, 1.7]); trunk.push([px, 1, pz, .3, 2, .3]); }
+            else { const k = 1.6 + rr() * .9; round.push([px, 2.4 + k, pz, k * 1.5, k * 1.35, k * 1.5, rr() * 6]); rtrunk.push([px, 1.3, pz, .35, 2.6, .35]); } }
+          if ((s | 0) % 36 < 9) { const px = x + uz * (off - 1.5), pz = z - ux * (off - 1.5); pole.push([px, 2.6, pz, .22, 5.2, .22]); head.push([px, 5.5, pz, .7, .9, .7]); }
+          if ((s | 0) % 54 >= 18 && (s | 0) % 54 < 27) { const bx = x - uz * (off - 1.2), bz = z + ux * (off - 1.2);
+            if (!CLR(bx, bz)) { bench.push([bx, .75, bz, 2.2, .18, .7, ry + Math.PI / 2], [bx - uz * .3, 1.15, bz + ux * .3, 2.2, .5, .1, ry + Math.PI / 2]);
+              legs.push([bx, .35, bz, 1.9, .7, .5, ry + Math.PI / 2]); bin.push([bx + ux * 2, .55, bz + uz * 2, .55, 1.1, .55]); } }
         }
       }
     }
     instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xe8e8e8 }), dash);
     instanced(new THREE.ConeGeometry(.5, 1, 7), lamC(0xffffff), pop, pop.map(() => choose([0x3e6b2c, 0x46772f, 0x37602a, 0x52813a])));
     instanced(new THREE.CylinderGeometry(.5, .5, 1, 5), lamC(0x6b5236), trunk);
-    instanced(CBOX, lamC(0x6f747b), pole); instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xfff1c4 }), head);
+    instanced(CBOX, lamC(0x2b3038), pole); instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xffd36b }), head);
+    instanced(CBOX, lamC(0x2b3038), head.map(t => [t[0], t[1] + .55, t[2], .9, .2, .9]));
+    instanced(new THREE.IcosahedronGeometry(.5, 1), lamC(0xffffff), round, round.map(() => choose([0x4caf50, 0x66bb3a, 0x43a047, 0x5aa83c])));
+    instanced(new THREE.CylinderGeometry(.5, .5, 1, 6), lamC(0x7a5233), rtrunk);
+    instanced(CBOX, lamC(0xa0663a), bench); instanced(CBOX, lamC(0x2b3038), legs); instanced(CBOX, lamC(0x3a4250), bin);
+  }
+  // stadium surroundings: hedges and flower planters around the apron (reference props)
+  { const hedge = [], pl = [], fl = [];
+    for (const sx of [-1, 1]) for (let x = -OUT_A; x <= OUT_A; x += 9) { hedge.push([x, .6, sx * (OUT_B + 9), 6, 1.2, 1.4]); }
+    for (const sz of [-1, 1]) for (let z = -OUT_B + 6; z <= OUT_B - 6; z += 9) { hedge.push([sz * (OUT_A + 9), .6, z, 1.4, 1.2, 6]); }
+    for (const [x, z] of [[OUT_A + 9, OUT_B + 9], [-OUT_A - 9, OUT_B + 9], [OUT_A + 9, -OUT_B - 9], [-OUT_A - 9, -OUT_B - 9]]) { pl.push([x, .4, z, 2.4, .8, 2.4]); fl.push([x, 1.1, z, 2, .9, 2]); }
+    instanced(CBOX, lamC(0x3f8f3a), hedge); instanced(CBOX, lamC(0xe9e3d6), pl); instanced(new THREE.IcosahedronGeometry(.5, 1), lamC(0xf48fb1), fl);
   }
   // buildings: houses = oriented boxes + tin gable roofs (instanced); everything else = extruded footprints
   const rect = ring => {                                                  // PCA-oriented rectangle
@@ -513,47 +544,23 @@ function buildRealTown(map) {
     return { x: cx + ux * lm - uz * wm, z: cz + uz * lm + ux * wm, len: l1 - l0, wid: w1 - w0, ang };
   };
   const houses = [], other = [];
-  for (const [kind, lv, f] of map.buildings) {
-    const ring = pts(f); if (ring.some(([x, z]) => CLR(x, z))) continue;
-    if (kind === "house" && lv <= 2) houses.push({ ...rect(ring), lv }); else other.push([kind, lv, ring]);
-  }
-  // houses in the same style as the fan homes: white walls on a stone plinth, coloured gable roof,
-  // framed windows with coloured awnings, front door with a porch, chimney. All instanced (thousands of houses).
-  const WALL = [0xf4f1ea, 0xefe8da, 0xf6f3ec, 0xe9dfc9, 0xeee6d6], ROOF = [0xa8743a, 0x34507f, 0x93413a, 0x45703f, 0x5b4f78, 0x407874, 0x767a80, 0x868a90, 0x8c4d33, 0x93413a];
-  const HALFG = new THREE.CylinderGeometry(.5, .5, 1, 10, 1, false, 0, Math.PI); HALFG.rotateZ(Math.PI / 2);
-  const P = { plinth: [], wall: [], roof: [], frame: [], glass: [], awn: [], door: [], porch: [], chim: [], cap: [] }, PC = { wall: [], roof: [], awn: [] };
-  const local = (h, lx, ly, lz, sx, sy, sz, dr = 0) => {                 // house-local -> world item
-    const c = Math.cos(h.ry), sn = Math.sin(h.ry);
-    return [h.x + lx * c + lz * sn, ly, h.z - lx * sn + lz * c, sx, sy, sz, h.ry + dr];
-  };
-  for (const h of houses) {
-    h.ry = Math.PI / 2 - h.ang; h.H = h.lv === 2 || rr() < .14 ? 6.2 : 3.4;
-    const { wid: W, len: Ln, H } = h, rh = Math.min(W * .3, 2.2), roofC = choose(ROOF), refs = h.refs = [];
-    const add = (k, it, col) => { refs.push([k, P[k].length]); P[k].push(it); if (PC[k]) PC[k].push(col); };
-    add("plinth", local(h, 0, .3, 0, W + .3, .6, Ln + .3));
-    add("wall", local(h, 0, .6 + (H - .6) / 2, 0, W, H - .6, Ln), choose(WALL));
-    add("roof", local(h, 0, H, 0, W + 1, rh, Ln + 1), roofC);
-    const nW = Ln > 10 ? 3 : Ln > 5.5 ? 2 : 1;
-    for (const side of [1, -1]) for (let k = 0; k < nW; k++) {
-      const lz = nW === 1 ? (side > 0 ? Ln * .25 : 0) : (k / (nW - 1) - .5) * Ln * .62, lx = side * (W / 2 + .03);
-      if (side > 0 && Math.abs(lz) < 1.2 && nW !== 2) continue;            // door goes in the middle of the front
-      for (const y of H > 5 ? [1.9, 4.7] : [1.9]) {
-        add("frame", local(h, lx, y, lz, .12, 1.75, 1.55)); add("glass", local(h, lx + side * .03, y, lz, .12, 1.45, 1.25));
-        if (y < 3) add("awn", local(h, lx + side * .3, y + 1.1, lz, 1.9, .5, .7, side > 0 ? Math.PI / 2 : -Math.PI / 2), roofC);
+  map.buildings.forEach(([kind, lv, f], id) => {               // id = index in the map file: stable lot number
+    const ring = pts(f); if (ring.some(([x, z]) => CLR(x, z))) return;
+    if (kind === "house" && lv <= 2) houses.push({ ...rect(ring), lv, ring, id }); else other.push([kind, lv, ring]);
+  });
+  // empty lots: every real house is only its exact footprint drawn on the ground, with a "+" where a fan can build
+  { const lp = [], ln = [], fp = [], fn = [];
+    for (const h of houses) {
+      const r = h.ring, v = r.map(([x, z]) => new THREE.Vector2(x, z));
+      for (const t of THREE.ShapeUtils.triangulateShape(v, [])) for (const k of up(v, t)) { fp.push(v[k].x, -.026, v[k].y); fn.push(0, 1, 0); }
+      for (let i = 0; i < r.length; i++) {                     // outline ribbon
+        const [x1, z1] = r[i], [x2, z2] = r[(i + 1) % r.length], L = Math.hypot(x2 - x1, z2 - z1) || 1, nx = -(z2 - z1) / L * .2, nz = (x2 - x1) / L * .2;
+        for (const [x, z] of [[x1 + nx, z1 + nz], [x2 + nx, z2 + nz], [x2 - nx, z2 - nz], [x1 + nx, z1 + nz], [x2 - nx, z2 - nz], [x1 - nx, z1 - nz]]) { lp.push(x, -.018, z); ln.push(0, 1, 0); }
       }
     }
-    const dz = nW === 2 ? 0 : 0;
-    add("door", local(h, W / 2 + .06, 1.45, dz, .15, 2.3, 1.2));
-    add("porch", local(h, W / 2 + .9, 2.85, dz, 1.8, .25, 2.6));
-    add("chim", local(h, -W * .18, H + rh * .55, Ln * .22, .8, 1.8, .8)); add("cap", local(h, -W * .18, H + rh * .55 + .95, Ln * .22, 1, .25, 1));
+    scene.add(new THREE.Mesh(merged(fp, fn), new THREE.MeshLambertMaterial({ color: 0xcdbf9c, side: THREE.DoubleSide })));
+    scene.add(new THREE.Mesh(merged(lp, ln), new THREE.MeshBasicMaterial({ color: 0xfff6dc, side: THREE.DoubleSide })));
   }
-  const M3 = {
-    plinth: instanced(CBOX, lamC(0x8c8a84), P.plinth), wall: instanced(CBOX, lamC(0xffffff), P.wall, PC.wall),
-    roof: instanced(PRISM, lamC(0xffffff), P.roof, PC.roof), frame: instanced(CBOX, lamC(0xffffff), P.frame),
-    glass: instanced(CBOX, lamC(0x9fd0ef), P.glass), awn: instanced(HALFG, lamC(0xffffff), P.awn, PC.awn),
-    door: instanced(CBOX, lamC(0x9c3b22), P.door), porch: instanced(CBOX, lamC(0xffffff), P.porch),
-    chim: instanced(CBOX, lamC(0xe9e6df), P.chim), cap: instanced(CBOX, lamC(0x555555), P.cap),
-  };
   { const pos = [], nrm = [], col = [], domes = [];
     const KC = { flat: 0xd6d0c2, school: 0xe8cfa6, mosque: 0xeee6d2, public: 0xd8d2c4, house: 0xdccdb0 }, cc = new THREE.Color();
     for (const [kind, lv, ring] of other) {
@@ -574,14 +581,14 @@ function buildRealTown(map) {
     if (pos.length) { const bm = new THREE.Mesh(merged(pos, nrm, col), new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); bm.name = "otherBuildings"; scene.add(bm); }
     instanced(new THREE.SphereGeometry(.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), lamC(0x2f7fc1), domes.map(([x, y, z]) => [x, y, z, 9, 7, 9]));
   }
-  // fans move into real houses: nearest to the stadium first
-  plots = houses.map(h => ({ ...h, d: Math.hypot(h.x, h.z) })).sort((a, b) => a.d - b.d);
-  const hidden = [], HID = new THREE.Matrix4().makeScale(0, 0, 0);
-  const setRef = ([k, i], show) => { if (show) { const t = P[k][i]; iQ.setFromAxisAngle(iY, t[6]); iM.compose(iP.set(t[0], t[1], t[2]), iQ, iS.set(t[3], t[4], t[5])); M3[k].setMatrixAt(i, iM); } else M3[k].setMatrixAt(i, HID); };
-  hideBuiltLand = n => {
-    hidden.splice(0).forEach(h => h.refs.forEach(r => setRef(r, true)));
-    plots.slice(0, n).forEach(p => { const h = houses.find(q => q.x === p.x && q.z === p.z); if (!h) return; h.refs.forEach(r => setRef(r, false)); hidden.push(h); });
-    for (const k in M3) M3[k].instanceMatrix.needsUpdate = true;
+  // "+" on every free lot (one instanced mesh); hidden where a fan has built
+  plots = houses.map(h => ({ ...h, ry: Math.PI / 2 - h.ang, d: Math.hypot(h.x, h.z) })).sort((a, b) => a.d - b.d);
+  LOT_PLUS = instanced(PLUS_GEO, new THREE.MeshBasicMaterial({ color: 0xFFD23F }), plots.map(p => { const k = Math.max(.6, Math.min(1.4, Math.min(p.len, p.wid) / 7)); return [p.x, .12, p.z, k, 1, k, p.ry]; }));
+  plots.forEach((p, i) => p.pi = i);
+  hideBuiltLand = ids => {
+    plots.forEach(p => { const k = ids.has(p.id) ? 0 : Math.max(.6, Math.min(1.4, Math.min(p.len, p.wid) / 7));
+      iQ.setFromAxisAngle(iY, p.ry); iM.compose(iP.set(p.x, .12, p.z), iQ, iS.set(k, 1, k)); LOT_PLUS.setMatrixAt(p.pi, iM); });
+    LOT_PLUS.instanceMatrix.needsUpdate = true;
   };
   // traffic on real streets, labels from real names
   for (const [c, ps] of roadsXY) if (c <= 4 && ps.length > 1) carPaths.push(ps);
@@ -625,7 +632,7 @@ for (let gx = -GRID; gx <= GRID; gx++) for (let gz = -GRID; gz <= GRID; gz++) {
   if (Math.hypot(x - PLAZA.x, z - PLAZA.z) < PLAZA.r + 8) continue;
   plots.push({ x, z, d: Math.hypot(x, z * 1.2) });
 }
-plots.sort((a, b) => a.d - b.d);
+plots.sort((a, b) => a.d - b.d); plots.forEach((p, i) => p.id = i);
 
 // ---------- streets: asphalt, sidewalks, aryk canal, poplar rows, street lights, zebra crossings ----------
 {
@@ -690,7 +697,7 @@ let orchardTrunk, orchardCrown, fieldMesh, nearCount = 0;
   for (let i = far.length - 1; i >= 0; i--) { const p = far[i]; fields.push([p.x, -.04, p.z, 13.2, .02, 13.2]); fc.push(choose([0xc9b25a, 0x7fa24a, 0x8a6a48, 0x5f9a3c, 0xa3b45a, 0x6e8f3e])); }
   fieldMesh = instanced(CBOX, lamC(0xffffff), fields, fc);
 }
-hideBuiltLand = function (n) {
+hideBuiltLand = function (ids, n) {
   const nb = Math.min(n, nearCount), fb = Math.max(0, n - nearCount);
   orchardCrown.count = orchardTrunk.count = (nearCount - nb) * 3;
   fieldMesh.count = Math.max(0, plots.length - nearCount - fb);
@@ -804,78 +811,116 @@ const HM = { wall: lamC(0xf4f1ea), plinth: lamC(0x8c8a84), grass: lamC(0x9cc23f)
              paxsa: lamC(0xdcc9a2), yard: lamC(0xc2ab84), wood: lamC(0x7a5233), clay: lamC(0xb5703f), vine: lamC(0x5d8f34), roof: lamC(0xe8e2d4), carpet: lamC(0xa3242c) };
 const SHADOW = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .22, depthWrite: false });
 const accM = COLORS.map(lamC);
-function makeHome(h) {
-  const g = new THREE.Group(), acc = accM[h.color] || accM[0];
-  const add = (geo, m, sx, sy, sz, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); g.add(o); return o; };
-  const win = (x, y, z, w = 1.4, hgt = 1.6, awn = true) => {
-    add(BOX, HM.frame, w + .3, hgt + .3, .12, x, y, z); add(BOX, HM.glass, w, hgt, .16, x, y, z);
-    if (awn) add(HALF, acc, w + .4, .5, .7, x, y + hgt / 2 + .35, z + .3);
+// ---------- fan houses: 7 levels (reference set: small house -> two-floor -> apartments -> glass tower) ----------
+const LEVEL_H = [0, 6.4, 9.6, 11.5, 14.6, 18.2, 21.5, 50];        // roof height per level (labels, camera)
+const LM = {
+  cream: lamC(0xf3ead9), beige: lamC(0xe8d3ae), white: lamC(0xf6f3ee), tan: lamC(0xdcb98a), grey: lamC(0x6b7280), wood: lamC(0xa0582c),
+  flat: lamC(0x5a5f6b), trim: lamC(0xe9e3d6), plinth: lamC(0xd9d4c8), grass: lamC(0x7cb342), path: lamC(0xcfc8b8), door: lamC(0x7a4a2a),
+  frame: lamC(0x6b4a2e), lit: new THREE.MeshBasicMaterial({ color: 0xffcf6b }), rail: lamC(0x2f3540), glass: lamC(0x2f5da8),
+  glassLit: new THREE.MeshBasicMaterial({ color: 0xffd98a }), trunk: lamC(0x7a5233), leaf: lamC(0x4caf50), leaf2: lamC(0x66bb3a), bush: lamC(0x43a047),
+  flower: lamC(0xf48fb1), chim: lamC(0xe6e0d4), heli: lamC(0x3b4250), heliMark: new THREE.MeshBasicMaterial({ color: 0xf2f2f2 }), soil: lamC(0x8d6e4f),
+};
+const HIP = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1); HIP.rotateY(Math.PI / 4); HIP.translate(0, .5, 0);
+const ICO = new THREE.IcosahedronGeometry(1, 1), SPH = new THREE.SphereGeometry(1, 10, 8), CYL = new THREE.CylinderGeometry(1, 1, 1, 8);
+// a house is built from ~100 boxes; merge them into one mesh per material so each house costs a few draw calls
+function mergeGroup(g) {
+  const buckets = new Map();
+  g.children.forEach(m => {
+    m.updateMatrix(); let geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); geo.applyMatrix4(m.matrix);
+    if (!buckets.has(m.material)) buckets.set(m.material, { p: [], n: [] });
+    const b = buckets.get(m.material); b.p.push(...geo.attributes.position.array); b.n.push(...geo.attributes.normal.array); geo.dispose();
+  });
+  const out = new THREE.Group();
+  buckets.forEach((b, mat) => { const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(b.p, 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(b.n, 3)); out.add(new THREE.Mesh(geo, mat)); });
+  return out;
+}
+function makeHome(h) { return mergeGroup(buildHome(h)); }
+function buildHome(h) {
+  const g = new THREE.Group(), L = Math.max(1, Math.min(7, h.level || 1)), acc = accM[h.color] || accM[0];
+  const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
+  const mesh = (geo, m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
+  // windows on the front (+z) or right side (+x) face of a block centred at (cx, cz) with half sizes (hw, hd)
+  const win = (face, cx, cz, hw, hd, u, y, w = 1.3, hh = 1.5) => {
+    if (face === "z") { box(LM.frame, w + .25, hh + .25, .1, cx + u, y, cz + hd + .02); box(LM.lit, w, hh, .12, cx + u, y, cz + hd + .04); }
+    else { box(LM.frame, .1, hh + .25, w + .25, cx + hw + .02, y, cz + u); box(LM.lit, .12, hh, w, cx + hw + .04, y, cz + u); }
   };
-  add(BOX, SHADOW, 15, .01, 15, .6, .01, .6);
-  if (h.style === 4) {                                  // Uzbek hovli: walled courtyard, flat-roof house, ayvon, grape trellis, tandir, tapchan
-    const S = 12.5;
-    add(BOX, HM.yard, S, .2, S, 0, .1, 0);
-    add(BOX, HM.paxsa, S, 2.6, .5, 0, 1.3, -S / 2);                               // back wall
-    for (const sx of [-1, 1]) add(BOX, HM.paxsa, .5, 2.6, S, sx * S / 2, 1.3, 0);  // side walls
-    for (const sx of [-1, 1]) add(BOX, HM.paxsa, (S - 4) / 2, 2.6, .5, sx * (S + 4) / 4, 1.3, S / 2);   // front wall around the gate
-    add(BOX, acc, 3.6, 2.9, .3, 0, 1.45, S / 2); add(BOX, HM.cap, 4.2, .3, .9, 0, 3.05, S / 2);       // darvoza (gate) in your colour
-    for (const sx of [-.9, .9]) add(BOX, HM.frame, .08, 2.2, .35, sx, 1.45, S / 2 + .02);
-    add(BOX, HM.wall, 10, 3.6, 4.2, 0, 1.8, -3.6);                               // main house
-    add(BOX, HM.wall, 3.6, 3.6, 5, -4.2, 1.8, 1);                                 // side wing (L-shape)
-    add(BOX, HM.roof, 11, .35, 7.6, 0, 3.75, -2.6); add(BOX, HM.roof, 4.2, .35, 5.4, -4.2, 3.75, 1.2);
-    for (const cx of [-1.6, 1.4, 4.4]) add(COL, HM.wood, .35, 3.4, .35, cx, 1.7, -.6);   // ayvon columns
-    add(BOX, acc, 7.4, .25, .3, 1.4, 3.45, -.6);
-    for (const wx of [-2.5, 2.5]) { add(BOX, acc, 1.6, 2, .1, wx, 1.9, -1.47); add(BOX, HM.glass, 1.3, 1.7, .12, wx, 1.9, -1.46); }
-    // grape trellis (ishkom) over the courtyard
-    for (const [x, z] of [[1, 1.4], [4.8, 1.4], [1, 5], [4.8, 5]]) add(BOX, HM.wood, .2, 2.8, .2, x, 1.4, z);
-    add(BOX, HM.vine, 4.6, .25, 4.4, 2.9, 2.9, 3.2);
-    add(new THREE.CylinderGeometry(.55, .75, 1.1, 10), HM.clay, 1, 1, 1, -4.6, .65, 4.6);        // tandir
-    add(BOX, HM.wood, 2.6, .55, 2, -1.6, .45, 4.2); add(BOX, HM.carpet, 2.3, .1, 1.7, -1.6, .78, 4.2);   // tapchan
-    add(new THREE.CylinderGeometry(.18, .25, 2.4, 5), HM.wood, 1, 1, 1, 4.6, 1.2, -4.8); add(new THREE.IcosahedronGeometry(1.7, 0), lamC(0x6b9a3c), 1, .9, 1, 4.6, 3.4, -4.8);
-  } else if (h.style <= 1) {
-    const big = h.style === 1, W = big ? 10 : 8, D = big ? 8 : 7, H = big ? 6.5 : 4.2;
-    add(BOX, HM.grass, W + 4, .3, D + 5, 0, .15, .6); add(BOX, HM.path, 2.4, .32, 2.6, 0, .17, D / 2 + 1.6);
-    add(BOX, HM.plinth, W + .2, .7, D + .2, 0, .65, 0); add(BOX, HM.wall, W, H, D, 0, 1 + H / 2, 0);
-    add(PRISM0, acc, W + 1.2, 3.4, D + 1.2, 0, 1 + H, 0, 0, Math.PI / 2);
-    add(BOX, HM.chimney, .9, 2.2, .9, W * .25, 1 + H + 2.2, -D * .15); add(BOX, HM.cap, 1.1, .3, 1.1, W * .25, 1 + H + 3.4, -D * .15);
-    add(BOX, HM.wall, 2, 1.6, 2, -W * .1, 1 + H + 1.1, D * .25); add(PRISM0, acc, 2.6, 1.2, 2.4, -W * .1, 1 + H + 1.9, D * .25);
-    add(BOX, HM.glass, .9, .9, .1, -W * .1, 1 + H + 1.1, D * .25 + 1.02);
-    add(BOX, HM.door, 1.3, 2.4, .15, 0, 2.2, D / 2 + .05);
-    for (const cx of [-1.4, 1.4]) add(BOX, HM.frame, .5, 2.8, .5, cx, 2.4, D / 2 + 1.1);
-    add(BOX, HM.frame, 3.6, .35, 1.8, 0, 3.95, D / 2 + .9);
-    add(BOX, HM.plinth, 3.2, .3, 1, 0, .85, D / 2 + 1.6); add(BOX, HM.plinth, 3.2, .3, .8, 0, .55, D / 2 + 2.3);
-    win(-W * .32, 2.6, D / 2 + .02); win(W * .32, 2.6, D / 2 + .02);
-    if (big) { win(-W * .32, 5.6, D / 2 + .02, 1.4, 1.4, false); win(W * .32, 5.6, D / 2 + .02, 1.4, 1.4, false); }
-  } else if (h.style === 2) {
-    add(BOX, HM.path, 11, .3, 11, 0, .15, 0); add(BOX, HM.towerGlass, 7, 34, 7, 0, 17.3, 0);
-    for (let y = 4; y < 34; y += 5) add(BOX, acc, 7.3, .5, 7.3, 0, y, 0);
-    add(BOX, HM.towerBody, 7.6, 1.2, 7.6, 0, 34.9, 0); add(BOX, HM.cap, 3, 2, 3, 0, 36.4, 0); add(BOX, HM.door, 2, 2.6, .2, 0, 1.6, 3.6);
-  } else {
-    add(BOX, HM.path, 11, .3, 11, 0, .15, 0);
-    add(BOX, HM.towerBody, 9, 12, 9, 0, 6.3, 0); add(BOX, acc, 9.3, .6, 9.3, 0, 12.3, 0);
-    add(BOX, HM.towerGlass, 7, 11, 7, 0, 17.9, 0); add(BOX, acc, 7.3, .6, 7.3, 0, 23.4, 0);
-    add(BOX, HM.towerBody, 5, 9, 5, 0, 28.2, 0); add(BOX, HM.towerGlass, 3, 3, 3, 0, 34.2, 0);
-    for (let y = 2.5; y < 12; y += 2.4) add(BOX, HM.glass, 7.5, 1, .2, 0, y, 4.55);
-    add(BOX, HM.door, 2, 2.6, .2, 0, 1.6, 4.6);
+  const balcony = (x, y, z, w, d = 1.3) => {
+    box(LM.trim, w, .2, d, x, y, z + d / 2);
+    box(LM.rail, w, .9, .06, x, y + .55, z + d); for (const s of [-1, 1]) box(LM.rail, .06, .9, d, x + s * w / 2, y + .55, z + d / 2);
+    for (let k = -w / 2 + .3; k < w / 2; k += .45) box(LM.rail, .04, .9, .04, x + k, y + .55, z + d);
+    mesh(SPH, LM.bush, .35, .3, .35, x + w / 2 - .4, y + .4, z + .5);
+  };
+  const tree = (x, z, s = 1) => { mesh(CYL, LM.trunk, .18 * s, 1.6 * s, .18 * s, x, .8 * s + .3, z); mesh(ICO, s > 1 ? LM.leaf : LM.leaf2, 1.25 * s, 1.4 * s, 1.25 * s, x, 2.6 * s + .3, z); };
+  const bush = (x, z, s = .55, fl) => { mesh(SPH, LM.bush, s, s * .8, s, x, .35 + s * .5, z); if (fl) for (let k = 0; k < 3; k++) mesh(SPH, LM.flower, .1, .1, .1, x + (k - 1) * s * .5, .35 + s * 1.15, z + s * .3); };
+  // base: stone plinth + lawn + path + steps
+  box(SHADOW, 15, .01, 15, .6, .01, .6);
+  box(LM.plinth, 12.4, .3, 12.4, 0, .15, 0); box(LM.grass, 11.8, .1, 11.8, 0, .35, 0); box(LM.path, 1.8, .12, 3.2, -.9, .37, 4.4);
+  const G = .4;                                            // ground level on the lawn
+  const walls = (m, w, hgt, d, x = 0, z = -.6) => box(m, w, hgt, d, x, G + hgt / 2, z);
+  const flatRoof = (w, d, y, x = 0, z = -.6) => { box(LM.flat, w + .3, .35, d + .3, x, y + .17, z); box(LM.trim, w + .5, .2, d + .5, x, y, z);
+    box(LM.chim, 1.6, .9, 1.4, x + w * .2, y + .8, z - d * .15); box(LM.flat, 1.8, .15, 1.6, x + w * .2, y + 1.3, z - d * .15); };
+  const door = (x, z) => { box(LM.door, 1.1, 2.1, .12, x, G + 1.05, z); box(LM.trim, 1.5, .15, .6, x, G + 2.25, z + .25); box(LM.path, 1.8, .25, .7, x, G + .05, z + .5); };
+  if (L <= 2) {
+    const W = L === 1 ? 7 : 6.6, D = L === 1 ? 6 : 6, F = L === 1 ? 1 : 2, H = F * 3;
+    walls(L === 1 ? LM.white : LM.cream, W, H, D);
+    for (let f = 0; f < F; f++) { const y = G + 1.7 + f * 3;
+      if (f === 0) { win("z", 0, -.6, W / 2, D / 2, 1.6, y); door(-.9, -.6 + D / 2 + .06); } else { win("z", 0, -.6, W / 2, D / 2, 1.6, y); }
+      win("x", 0, -.6, W / 2, D / 2, -1.2, y); win("x", 0, -.6, W / 2, D / 2, 1.2, y); }
+    if (L === 2) { box(LM.trim, W + .2, .25, D + .2, 0, G + 3, -.6); balcony(-1.2, G + 3.1, -.6 + D / 2, 2.8); }
+    mesh(HIP, acc, W + 1.3, 2.6, D + 1.3, 0, G + H, -.6);
+    box(LM.chim, .8, 1.6, .8, W * .25, G + H + 1.6, -.6 - D * .15); box(LM.flat, 1, .2, 1, W * .25, G + H + 2.45, -.6 - D * .15);
+    tree(-4.6, -3.8, 1.1); tree(4.7, 3.6, .9); bush(-4.4, 2.6); bush(4.6, -1, .6, true); bush(2.6, 4.6, .45); bush(-3, 4.8, .45, true);
+  } else if (L <= 6) {
+    const F = [0, 0, 0, 3, 4, 5, 6][L], W = L >= 5 ? 8 : 7.6, D = 6.8, H = F * 3;
+    const main = L === 6 ? LM.white : L === 4 ? LM.beige : LM.cream;
+    walls(main, W, H, D);
+    if (L === 4) walls(LM.tan, 2.4, H, D - .4, W / 2 - 1.1, -.4);          // warm side wing
+    if (L === 5) walls(LM.wood, 1.8, H - .2, .3, W * .18, -.6 + D / 2 + .1); // wooden facade strip
+    if (L === 6) { walls(LM.grey, 2.4, H + .4, D + .2, -W / 2 + 1.1, -.6); walls(LM.wood, 1.6, H - .3, .3, W * .2, -.6 + D / 2 + .1); }
+    for (let f = 0; f < F; f++) { const y = G + 1.6 + f * 3;
+      for (const u of [-2.6, 1.2, 2.9]) if (!(f === 0 && u === -2.6)) win("z", 0, -.6, W / 2, D / 2, u, y, 1.1, 1.4);
+      for (const u of [-1.8, 1.8]) win("x", 0, -.6, W / 2, D / 2, u, y, 1.1, 1.4);
+      if (f > 0) { box(LM.trim, W + .15, .18, D + .15, 0, G + f * 3, -.6); balcony(L === 6 ? W * .2 : -1.6, G + f * 3 + .05, -.6 + D / 2, L === 6 ? 2 : 2.6); }
+    }
+    door(-2.6, -.6 + D / 2 + .06);
+    flatRoof(W, D, G + H);
+    tree(-4.9, -3.6, 1.2); tree(4.9, -3.2, 1.05); tree(-4.9, 3.6, .9); bush(4.4, 3.4, .6, true); bush(3, 4.9, .45); bush(-3.6, 4.9, .5);
+  } else {                                                  // glass tower with helipad
+    const W = 7.4, D = 7.4, H = 46;
+    walls(LM.glass, W, H, D, 0, -.6);
+    for (let y = G + 2.6; y < G + H - 1; y += 3) for (const [face, u] of [["z", -2.2], ["z", 0], ["z", 2.2], ["x", -2.2], ["x", 0], ["x", 2.2]])
+      if (rr() < .45) (face === "z" ? box(LM.glassLit, 1.6, 1.1, .1, u, y, -.6 + D / 2 + .04) : box(LM.glassLit, .1, 1.1, 1.6, W / 2 + .04, y, -.6 + u));
+    for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(LM.white, .8, H + .6, .8, x * W / 2, G + H / 2, -.6 + z * D / 2);
+    for (const s of [-1, 1]) { box(LM.white, .6, H, D + .4, s * W * .18, G + H / 2, -.6); }
+    box(LM.white, W + .8, 4, D + .8, 0, G + 2, -.6); box(LM.glassLit, 3, 2.6, .1, 0, G + 1.6, -.6 + D / 2 + .45);
+    box(LM.heli, W + .6, .5, D + .6, 0, G + H + .25, -.6); mesh(CYL, LM.heliMark, 2.6, .05, 2.6, 0, G + H + .52, -.6); mesh(CYL, LM.heli, 2.2, .06, 2.2, 0, G + H + .55, -.6);
+    box(LM.heliMark, .25, .07, 1.6, -.5, G + H + .6, -.6); box(LM.heliMark, .25, .07, 1.6, .5, G + H + .6, -.6); box(LM.heliMark, 1, .07, .25, 0, G + H + .6, -.6);
+    mesh(CYL, LM.heli, .25, 7, .25, W * .3, G + H + 3.5, -.6 - D * .3); mesh(CYL, LM.heli, .5, 1.2, .5, W * .3, G + H + .9, -.6 - D * .3);
+    for (const [x, z] of [[-5, 4.6], [5, 4.6], [-5, -5], [5, -5]]) { box(LM.trim, 1.8, .7, 1.2, x, G + .35, z); mesh(SPH, LM.bush, .7, .5, .45, x, G + .9, z); }
+    tree(-5, .5, 1.1); tree(5, .5, 1.1);
   }
   return g;
 }
 function layoutHomes(list) {
   HOMES = list || [];
   homeObjs.forEach(o => homeGroup.remove(o)); homeObjs = [];
-  HOMES.forEach((h, i) => {
-    const p = plots[i]; if (!p) return;
+  const byId = new Map(plots.map(p => [p.id, p])), used = new Set(HOMES.filter(h => h.lot != null && byId.has(h.lot)).map(h => h.lot));
+  let k = 0;
+  HOMES.forEach(h => {
+    let p = h.lot != null ? byId.get(h.lot) : null;
+    if (!p) { while (k < plots.length && used.has(plots[k].id)) k++; p = plots[k]; if (!p) return; used.add(p.id); }
     const o = makeHome(h); o.position.set(p.x, 0, p.z);
-    if (p.len) {                                          // real house: align to its footprint, gate side towards the stadium
+    if (p.len) {                                          // real lot: align to its footprint, front towards the stadium
       const want = Math.atan2(-p.x, -p.z); let best = p.ry, bd = 9;
-      for (let k = 0; k < 4; k++) { const r = p.ry + k * Math.PI / 2, d = Math.abs(Math.atan2(Math.sin(r - want), Math.cos(r - want))); if (d < bd) { bd = d; best = r; } }
+      for (let q = 0; q < 4; q++) { const r = p.ry + q * Math.PI / 2, d = Math.abs(Math.atan2(Math.sin(r - want), Math.cos(r - want))); if (d < bd) { bd = d; best = r; } }
       o.rotation.y = best; o.scale.setScalar(Math.max(.6, Math.min(1.25, Math.min(p.len, p.wid) / 11)));
-    } else o.rotation.y = Math.atan2(-p.x, -p.z);           // gate faces the stadium
+    } else o.rotation.y = Math.atan2(-p.x, -p.z);
     o.userData = h; h.p = p; homeGroup.add(o); homeObjs.push(o);
   });
-  hideBuiltLand(HOMES.length);
+  BUILT = used; hideBuiltLand(used, HOMES.length);
   document.getElementById("nh").textContent = HOMES.length;
 }
+let BUILT = new Set();
 layoutHomes(STATE.homes);
 // =============== end CITY ===============
 
@@ -1005,11 +1050,12 @@ function updateLabels(now) {
     for (const [, l] of ml) placeAt(l[1], l[3] === "road" ? 1 : 12, l[2], "tag lot", (l[3] === "road" ? "🛣 " : l[3] === "mosque" ? "🕌 " : l[3] === "school" ? "🏫 " : l[3] === "park" ? "🌳 " : "") + l[0]);
   }
   const mine = myId && homeObjs.find(o => o.userData.id === myId);
-  if (mine) placeAt(mine.position.x, 14, mine.position.z, "tag me home", mine.userData.nick, true);
+  const hy = o => LEVEL_H[o.userData.level || 1] * o.scale.y + 3;
+  if (mine) placeAt(mine.position.x, hy(mine), mine.position.z, "tag me home", mine.userData.nick, true);
   if (!near || MODE === "city") {
     for (const l of LOTS) placeAt(l.x, l.park ? 2 : 8, l.z, "tag lot", (l.park ? "" : T[L].soon) + T[L].lots[l.i]);
     const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]).slice(0, 30);
-    for (const [, o] of hs) if (o !== mine) placeAt(o.position.x, 12, o.position.z, "tag home", o.userData.nick);
+    for (const [, o] of hs) if (o !== mine) placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick);
   }
   for (let k = used; k < pool.length; k++) pool[k].style.display = "none";
 }
@@ -1017,7 +1063,8 @@ function updateLabels(now) {
 // ---------- find: stadium seat first, then city home ----------
 const toast = document.getElementById("toast");
 function say(t) { toast.textContent = t; toast.style.display = "block"; clearTimeout(say.t); say.t = setTimeout(() => toast.style.display = "none", 4200); }
-function goHome(h) { const p = h.p; if (!p) return; const dir = new THREE.Vector3(p.x, 0, p.z).normalize(); const tall = h.style >= 2; flyTo(new THREE.Vector3(p.x - dir.x * (tall ? 60 : 30), tall ? 42 : 24, p.z - dir.z * (tall ? 60 : 30)), new THREE.Vector3(p.x, tall ? 14 : 3, p.z), 2); }
+function goHome(h) { const p = h.p; if (!p) return; const dir = new THREE.Vector3(p.x, 0, p.z).normalize(), H = LEVEL_H[h.level || 1] * (homeObjs.find(o => o.userData === h) || { scale: { y: 1 } }).scale.y, d = 22 + H * 1.1;
+  flyTo(new THREE.Vector3(p.x - dir.x * d, 10 + H * .8, p.z - dir.z * d), new THREE.Vector3(p.x, H * .45, p.z), 2); }
 document.getElementById("find").onsubmit = e => {
   e.preventDefault();
   const q = norm(document.getElementById("q").value);
@@ -1043,8 +1090,26 @@ canvas.addEventListener("pointerup", e => {
   if (hit) { const hz = hit.object.userData; document.getElementById("ch").textContent = hz.name; document.getElementById("cp").textContent = hz.role[L]; document.getElementById("card").style.display = "block"; return; }
   const hh = ray.intersectObjects(homeObjs, true)[0];
   if (hh) { let o = hh.object; while (o.parent && !homeObjs.includes(o)) o = o.parent; const h = o.userData;
-    document.getElementById("ch").textContent = "🏠 " + h.nick; document.getElementById("cp").textContent = T[L].homeOf(h.nick, h.n); document.getElementById("card").style.display = "block"; }
+    document.getElementById("ch").textContent = "🏠 " + h.nick; document.getElementById("cp").textContent = T[L].homeOf(h.nick, h.n); document.getElementById("card").style.display = "block"; return; }
+  // empty lot: tap inside its outline
+  if (MODE === "city" && plots.length && plots[0].ring) {
+    const g = new THREE.Vector3(); if (!ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), g)) return;
+    const inside = (r, x, z) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const [xi, zi] = r[i], [xj, zj] = r[j];
+      if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; };
+    const lot = plots.find(p => Math.abs(p.x - g.x) < 25 && Math.abs(p.z - g.z) < 25 && inside(p.ring, g.x, g.z));
+    if (lot && !BUILT.has(lot.id)) selectLot(lot);
+  }
 });
+// ---------- choosing a lot ----------
+let SEL_LOT = null;
+const selMark = new THREE.Mesh(new THREE.RingGeometry(3.2, 4, 32), new THREE.MeshBasicMaterial({ color: 0xFFD23F, side: THREE.DoubleSide, transparent: true, opacity: .9 }));
+selMark.rotation.x = -Math.PI / 2; selMark.visible = false; scene.add(selMark);
+function selectLot(lot) {
+  SEL_LOT = lot; selMark.position.set(lot.x, .2, lot.z); selMark.scale.setScalar(Math.max(.7, Math.min(1.6, Math.max(lot.len, lot.wid) / 7))); selMark.visible = true;
+  if (!TG) { say(T[L].lotWeb); return; }
+  if (myHome()) { say(T[L].lotFree); return; }
+  updateHomeUi(); open("sHome");
+}
 const IG_SET = new Set(IG_FANS.map(norm));
 function showFan(st) {
   me = st;
@@ -1092,24 +1157,57 @@ document.getElementById("seatGo").onclick = async () => {
     location.reload();                                   // stadium is rebuilt with the new seat, then the camera flies to it
   } catch (e) { say(T[L].err); }
 };
-let pick = { style: 4, color: 1 };
-const stylesEl = document.getElementById("styles"), colorsEl = document.getElementById("colors"), rolesEl = document.getElementById("roles");
-function mark() { [...stylesEl.children].forEach((b, i) => b.classList.toggle("on", i === pick.style)); [...colorsEl.children].forEach((b, i) => b.classList.toggle("on", i === pick.color)); }
+let pick = { color: 2 };
+const colorsEl = document.getElementById("colors"), rolesEl = document.getElementById("roles");
+function mark() { [...colorsEl.children].forEach((b, i) => b.classList.toggle("on", i === pick.color)); }
 function buildPickers() {
-  stylesEl.innerHTML = ""; T[L].styles.forEach((n, i) => { const b = document.createElement("button"); b.className = "opt"; b.textContent = n; b.onclick = () => { pick.style = i; mark(); }; stylesEl.appendChild(b); });
   colorsEl.innerHTML = ""; COLORS.forEach((c, i) => { const b = document.createElement("button"); b.className = "sw"; b.style.background = "#" + c.toString(16).padStart(6, "0"); b.onclick = () => { pick.color = i; mark(); }; colorsEl.appendChild(b); });
   rolesEl.innerHTML = ""; T[L].roles.forEach((n, i) => { const b = document.createElement("button"); b.className = "opt"; b.textContent = n; b.dataset.i = i; b.onclick = () => { [...rolesEl.children].forEach(x => x.classList.toggle("on", x === b)); }; rolesEl.appendChild(b); });
-  mark();
+  mark(); updateHomeUi();
 }
-document.getElementById("bHome").onclick = needTg(() => { const m = HOMES.find(h => h.id === myId); if (m) { pick = { style: m.style, color: m.color }; mark(); } open("sHome"); });
+const MAXL = 7;
+const myHome = () => HOMES.find(h => h.id === myId);
+function nextUpgradeIn(m) { const ms = new Date(m.up).getTime() + (STATE.upgradeHours || 24) * 3600e3 - Date.now(); return ms; }
+function fmtWait(ms) { const m = Math.ceil(ms / 60000), h = Math.floor(m / 60); return h ? `${h} ${T[L].hr} ${m % 60} ${T[L].mn}` : `${m} ${T[L].mn}`; }
+function updateHomeUi() {
+  const m = myHome(), bh = document.getElementById("bHome");
+  bh.textContent = m ? T[L].bHomeMine : T[L].bHome;
+  document.getElementById("homeTitle").textContent = m ? T[L].lv[m.level] : T[L].homeH;
+  document.getElementById("homeInfo").textContent = m ? T[L].lvOf(m.level, MAXL) + " · " + m.nick : (SEL_LOT && !BUILT.has(SEL_LOT.id) ? T[L].lotSel + " " : T[L].lotAuto + " ") + T[L].homeP;
+  document.getElementById("lvls").innerHTML = m ? Array.from({ length: MAXL }, (_, i) => `<i class="${i < m.level ? "on" : ""}"></i>`).join("") : "";
+  document.getElementById("homeGo").textContent = m ? T[L].homeSave : T[L].homeGo;
+  const up = document.getElementById("homeUp"), vis = document.getElementById("homeVisit");
+  up.style.display = vis.style.display = m ? "block" : "none";
+  if (m) {
+    const wait = nextUpgradeIn(m);
+    up.disabled = m.level >= MAXL || wait > 0;
+    up.textContent = m.level >= MAXL ? T[L].upMax : wait > 0 ? T[L].upWait(fmtWait(wait)) : T[L].up(T[L].lv[m.level + 1]);
+  }
+}
+setInterval(() => { if (document.getElementById("sHome").style.display === "block") updateHomeUi(); }, 30000);
+async function refreshHomes() { const s = await getState(8000); if (s) { STATE = s; layoutHomes(s.homes); } updateHomeUi(); }
+document.getElementById("bHome").onclick = needTg(() => { const m = myHome(); if (m) pick.color = m.color; mark(); updateHomeUi(); open("sHome"); });
 document.getElementById("homeGo").onclick = async () => {
+  const had = !!myHome();
   try {
-    await post("/api/home", pick);
+    const lot = had ? undefined : (SEL_LOT && !BUILT.has(SEL_LOT.id) ? SEL_LOT : plots.find(p => !BUILT.has(p.id)));
+    await post("/api/home", { color: pick.color, lot: lot ? lot.id : undefined });
+    if (!had) {                                             // new resident: the stadium also gets their seat -> reload to rebuild it
+      try { sessionStorage.setItem("zfk_newhome", "1"); } catch (e) {}
+      location.reload(); return;
+    }
     document.getElementById("sHome").style.display = "none";
-    const s = await getState(8000); if (s) { STATE = s; layoutHomes(s.homes); }
-    const m = HOMES.find(h => h.id === myId); if (m) { if (MODE !== "city") setMode("city", false); goHome(m); say(T[L].homeOk + " " + m.nick); }
-  } catch (e) { say(T[L].err); }
+    await refreshHomes(); const m = myHome(); if (m) { goHome(m); say(T[L].homeOk + " " + m.nick); }
+  } catch (e) { say(String(e.message) === "taken" ? T[L].lotTaken : T[L].err); }
 };
+document.getElementById("homeUp").onclick = async () => {
+  try {
+    const d = await post("/api/home/upgrade", {});
+    await refreshHomes(); const m = myHome();
+    if (m) { if (MODE !== "city") setMode("city", false); goHome(m); say(T[L].upOk(T[L].lv[d.level])); }
+  } catch (e) { await refreshHomes(); say(T[L].err); }
+};
+document.getElementById("homeVisit").onclick = () => { const m = myHome(); if (!m) return; document.getElementById("sHome").style.display = "none"; if (MODE !== "city") setMode("city", false); goHome(m); };
 document.getElementById("bJob").onclick = needTg(() => open("sJob"));
 document.getElementById("jobGo").onclick = async () => {
   const on = rolesEl.querySelector(".on");
@@ -1167,7 +1265,7 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo };
+if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, selectLot, plots: () => plots, built: () => BUILT };
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
@@ -1175,9 +1273,11 @@ if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, c
   const st = go && byNick.get(norm(go));
   if (st) setTimeout(() => { goTo(st); say(T[L].seatOk(T[L].seat(st))); }, 700);
   else if (MODE === "city") { const m = HOMES.find(h => h.id === myId); if (m) setTimeout(() => goHome(m), 900); }
+  let nh = null; try { nh = sessionStorage.getItem("zfk_newhome"); sessionStorage.removeItem("zfk_newhome"); } catch (e) {}
+  if (nh) { const m = HOMES.find(h => h.id === myId); if (m) setTimeout(() => say(T[L].homeOk + " " + m.nick + " 🎟"), 1200); }
 }
 // live city: new homes appear without reload; first load may have missed a sleeping backend
-setInterval(async () => { const s = await getState(15000); if (s) { const had = !!STATE.miniapp; STATE = s; if (s.homes.length !== HOMES.length) layoutHomes(s.homes); if (!had) updateCta(); } }, 30000);
+setInterval(async () => { const s = await getState(15000); if (s) { const had = !!STATE.miniapp; STATE = s; const sig = l => l.map(h => h.id + ":" + h.level + ":" + h.color).join(); if (sig(s.homes) !== sig(HOMES)) { layoutHomes(s.homes); updateHomeUi(); } if (!had) updateCta(); } }, 30000);
 </script>
 </body>
 </html>
