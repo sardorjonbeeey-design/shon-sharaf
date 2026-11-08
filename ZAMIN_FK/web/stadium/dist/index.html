@@ -80,10 +80,11 @@
   #work.on { display:flex; }
   .wtop { display:flex; justify-content:space-between; align-items:center; background:rgba(13,37,87,.92); border-radius:16px; padding:10px 14px; }
   .wtop b { font-size:17px; display:block; } .wtop small { color:var(--yel); font-weight:700; font-size:12px; }
-  .wstat { display:flex; gap:14px; font-weight:900; font-size:18px; }
+  .wstat { display:flex; gap:14px; font-weight:900; font-size:18px; white-space:nowrap; }
   #wHint { text-align:center; font-weight:700; font-size:13px; margin:10px 0 4px; color:#ffe7c2; min-height:18px; }
-  #queue { display:flex; gap:8px; align-items:flex-end; min-height:190px; padding:8px 2px; overflow:hidden; }
+  #queue { display:flex; gap:14px; align-items:flex-end; min-height:200px; padding:16px 14px 8px; overflow:hidden; }
   .cust { width:84px; flex:none; text-align:center; transition:transform .3s; }
+  .cust { transform-origin:50% 100%; }
   .cust .bub { background:#fff; color:var(--navy); border-radius:12px; padding:6px 4px; font-weight:900; font-size:12px; margin-bottom:6px; position:relative; }
   .cust .bub .e { display:block; font-size:24px; }
   .cust .face { font-size:46px; line-height:1; }
