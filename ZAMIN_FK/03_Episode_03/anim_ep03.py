@@ -76,7 +76,7 @@ scenes = [
    lab(chip("+107 × 15 000 = 1 605 000 so‘m", True), 540, 1080, frac(3, 0.7), enter="stamp", idle="pulse"),
    spr("bekzod_celebrate", 800, 1750, 680, frac(3, 0.1), enter="up", idle="hop", z=9),
    spr("sherzod", 260, 1780, 760, frac(3, 0.6), enter="slideL", idle="sway", z=10),
-   lab(chip("SHERZOD — JAMOAGA QO‘SHILDI ✅", True), 540, 1080 + 0, frac(3, 0.62), enter="stamp", z=26),
+   lab(chip("SHERZOD — JAMOAGA QO‘SHILDI ✅", True), 540, 1260, frac(3, 0.62), enter="stamp", z=26),
  ]},
  # GOAT: brand face + Paxtakor friendly
  {"from": s(4), "to": s(5), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.06], "blur": 8}, "items": [
@@ -89,8 +89,8 @@ scenes = [
  {"from": s(5), "to": e(5), "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.0, 1.05], "blur": 10}, "items": [
    lab(card_g('<small style="font-size:30px;letter-spacing:4px;color:#9DB8FF">TOSHKENTGA BORAMIZ</small><div style="font-size:80px;font-weight:900;line-height:1.1">AVTOBUS<br>HAYDOVCHISI 🚌</div>'),
        540, 560, s(5, 0.05), enter="stamp", z=25),
-   lab(chip("IZOHGA: MEN HAYDOVCHIMAN", True), 540, 1080, frac(5, 0.35), enter="drop", enterDur=0.5, idle="pulse", z=25),
-   lab(chip("ENG KO‘P LAYK = HAYDOVCHI"), 540, 1200, frac(5, 0.6), enter="stamp", z=25),
+   lab(chip("IZOHGA: MEN HAYDOVCHIMAN", True), 540, 820, frac(5, 0.35), enter="drop", enterDur=0.5, idle="pulse", z=25),
+   lab(chip("ENG KO‘P LAYK = HAYDOVCHI"), 540, 950, frac(5, 0.6), enter="stamp", z=25),
  ]},
  # OUTRO: goat finishes the promise
  {"from": e(5), "to": TOTAL + 1, "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.1, 1.3], "focus": [0.5, 0.5, 0.5, 0.42]}, "items": [
