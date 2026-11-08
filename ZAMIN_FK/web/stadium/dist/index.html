@@ -953,12 +953,15 @@ const ICO = new THREE.IcosahedronGeometry(1, 1), SPH = new THREE.SphereGeometry(
 // a house is built from ~100 boxes; merge them into one mesh per material so each house costs a few draw calls
 function mergeGroup(g) {
   const buckets = new Map();
+  const keep = [];
   g.children.forEach(m => {
+    if (!m.isMesh || !m.geometry) { keep.push(m); return; }      // car models etc. stay as they are
     m.updateMatrix(); let geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); geo.applyMatrix4(m.matrix);
     if (!buckets.has(m.material)) buckets.set(m.material, { p: [], n: [] });
     const b = buckets.get(m.material); b.p.push(...geo.attributes.position.array); b.n.push(...geo.attributes.normal.array); geo.dispose();
   });
   const out = new THREE.Group();
+  keep.forEach(o => out.add(o));
   buckets.forEach((b, mat) => { const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(b.p, 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(b.n, 3)); out.add(new THREE.Mesh(geo, mat)); });
   return out;
 }
@@ -1941,7 +1944,7 @@ function loop(now) {
 }
 DN.init();
 requestAnimationFrame(loop);
-if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
+if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, layoutHomes, homes: () => HOMES, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
