@@ -43,7 +43,7 @@ function customer(job, seed, k) {
 }
 const tashkentDay = (t = Date.now()) => new Date(t + 5 * 3600e3).toISOString().slice(0, 10);
 
-function init({ app, db, mem, auth, ensureSeat, ready }) {
+function init({ app, db, mem, auth, ensureSeat, ready, log = () => {}, who = u => String(u.id) }) {
   mem.wallets = mem.wallets || new Map(); mem.shifts = mem.shifts || []; mem.ledger = mem.ledger || [];
   const econReady = !db ? Promise.resolve() : ready().then(() => db.query(`
     create table if not exists wallets (tg_id bigint primary key, coins int not null default 0, streak int not null default 0,
@@ -117,7 +117,12 @@ function init({ app, db, mem, auth, ensureSeat, ready }) {
   }
   const route = (path, fn) => app.post(path, async (req, res) => {
     const user = auth(req, res); if (!user) return;
-    try { res.json(await withUser(String(user.id), ctx => fn(ctx, req.body || {}, user))); }
+    let events = [];
+    try {
+      const out = await withUser(String(user.id), ctx => { events = ctx.events = []; return fn(ctx, req.body || {}, user); });
+      res.json(out);
+      for (const [title, fields] of events) log(title, { "Kim": who(user), ...fields });      // only after the change is committed
+    }
     catch (e) { if (e.status) return res.status(e.status).json({ error: e.message, ...(e.extra || {}) }); console.error(e); res.status(500).json({ error: "server" }); }
   });
 
@@ -137,6 +142,7 @@ function init({ app, db, mem, auth, ensureSeat, ready }) {
     const cost = UPGRADE_COST[ctx.home.level + 1];
     if (ctx.w.coins < cost) throw fail(402, "coins", { need: cost });
     pay(ctx, -cost, "upgrade:" + (ctx.home.level + 1)); ctx.home.level++;
+    ctx.events.push(["⬆️ Uy yangilandi", { "Daraja": `${ctx.home.level - 1} → ${ctx.home.level}`, "Narx": cost + " 🪙", "Qoldi": ctx.w.coins + " 🪙" }]);
     return { ...view(ctx), level: ctx.home.level };
   });
 
@@ -148,6 +154,7 @@ function init({ app, db, mem, auth, ensureSeat, ready }) {
     if ((ctx.home.car || 0) === car.id) throw fail(409, "owned");
     if (ctx.w.coins < car.price) throw fail(402, "coins", { need: car.price });
     pay(ctx, -car.price, "car:" + car.id); ctx.home.car = car.id;
+    ctx.events.push(["🚗 Mashina sotib olindi", { "Mashina": car.name || "#" + car.id, "Narx": car.price + " 🪙", "Qoldi": ctx.w.coins + " 🪙" }]);
     return view(ctx);
   });
 

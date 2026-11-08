@@ -73,6 +73,7 @@ if (process.env.DATABASE_URL) {
       created_at timestamptz not null default now());`)
     .catch(e => console.error("db init", e.message));
 }
+bot.initFeedback(db);
 const q = (sql, args) => db.query(sql, args).then(r => r.rows);
 async function listHomes() {
   if (!db) return mem.homes.slice().sort((a, b) => a.created_at - b.created_at);
@@ -153,8 +154,10 @@ app.post("/api/home", async (req, res) => {
       if (ex) Object.assign(ex, { nick, color, style, lot: ex.lot ?? lot }); else mem.homes.push({ tg_id: user.id, nick, style, color, level: 1, car: 0, lot, up: Date.now(), created_at: Date.now() }); }
     else {
       try {
-        await q(`insert into homes (tg_id, nick, style, color, level, lot) values ($1,$2,$5,$3,1,$4)
-          on conflict (tg_id) do update set nick = excluded.nick, color = excluded.color, style = excluded.style, lot = coalesce(homes.lot, excluded.lot), updated_at = now()`, [user.id, nick, color, lot, style]);
+        const r = await q(`insert into homes (tg_id, nick, style, color, level, lot) values ($1,$2,$5,$3,1,$4)
+          on conflict (tg_id) do update set nick = excluded.nick, color = excluded.color, style = excluded.style, lot = coalesce(homes.lot, excluded.lot), updated_at = now()
+          returning (xmax = 0) as inserted, lot`, [user.id, nick, color, lot, style]);
+        if (r[0] && r[0].inserted) bot.log("🏠 Yangi uy", { "Egasi": bot.who(user), "Uchastka": r[0].lot ?? "—", "Uslub": style, "Rang": color });
       } catch (e) { if (e.code === "23505") return res.status(409).json({ error: "taken" }); throw e; }
     }
     await ensureSeat(user);
@@ -163,7 +166,7 @@ app.post("/api/home", async (req, res) => {
 });
 
 // Coins, jobs, house upgrades and cars live in economy.js (server-authoritative).
-require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READY });
+require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READY, log: bot.log, who: bot.who });
 // Supporter Portal: membership, permanent seats, Fan XP, departments, missions, referrals, admin (club.js)
 const CLUB = require("./club").init({ app, db, auth, bot, nickOf, ready: () => Promise.all([DB_READY, mem.econReady]) });
 
@@ -180,9 +183,12 @@ app.post("/api/seat", async (req, res) => {
     } else {
       const taken = ig ? await q("select tg_id from seats where instagram = $1 and tg_id <> $2", [ig, user.id]) : [];
       if (taken.length) return res.status(409).json({ error: "taken" });
+      const prev = (await q("select instagram from seats where tg_id = $1", [user.id]))[0];
       await q(`insert into seats (tg_id, nick, tg_username, instagram) values ($1,$2,$3,$4)
         on conflict (tg_id) do update set nick = excluded.nick, tg_username = excluded.tg_username,
           instagram = coalesce(excluded.instagram, seats.instagram), updated_at = now()`, [user.id, nick, tgu, ig]);
+      if (!prev) bot.log("🎟 Yangi o‘rindiq", { "Muxlis": bot.who(user), "Instagram": ig ? "@" + ig : "" });
+      else if (ig && prev.instagram !== ig) bot.log("📸 Instagram bog‘landi", { "Muxlis": bot.who(user), "Instagram": "@" + ig });
     }
     res.json({ ok: true, nick: ig || nick.replace(/^@/, "") });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
