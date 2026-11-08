@@ -2,8 +2,6 @@
 // Everything is decided on the server: the client only shows what the server allows, so nobody can earn faster.
 const crypto = require("crypto");
 
-const esc = s => String(s || "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-
 // ---------- catalogue (prices in coins) ----------
 // A full day of work (3 shifts) pays ~400 🪙; the 7th level takes about two months of daily play.
 const UPGRADE_COST = [0, 0, 300, 700, 1500, 3000, 6000, 12000];      // cost to reach level i
@@ -45,7 +43,7 @@ function customer(job, seed, k) {
 }
 const tashkentDay = (t = Date.now()) => new Date(t + 5 * 3600e3).toISOString().slice(0, 10);
 
-function init({ app, db, mem, auth, ensureSeat, ready, logToAdminChannel, nickOf }) {
+function init({ app, db, mem, auth, ensureSeat, ready }) {
   mem.wallets = mem.wallets || new Map(); mem.shifts = mem.shifts || []; mem.ledger = mem.ledger || [];
   const econReady = !db ? Promise.resolve() : ready().then(() => db.query(`
     create table if not exists wallets (tg_id bigint primary key, coins int not null default 0, streak int not null default 0,
@@ -81,7 +79,7 @@ function init({ app, db, mem, auth, ensureSeat, ready, logToAdminChannel, nickOf
       await c.query("begin");
       await c.query("insert into wallets (tg_id) values ($1) on conflict do nothing", [tgId]);
       const w = (await c.query("select coins, streak, to_char(last_bonus, 'YYYY-MM-DD') as last_bonus, earned from wallets where tg_id = $1 for update", [tgId])).rows[0];
-      const home = (await c.query("select tg_id, level, car, profession from homes where tg_id = $1 for update", [tgId])).rows[0] || null;
+      const home = (await c.query("select tg_id, level, car from homes where tg_id = $1 for update", [tgId])).rows[0] || null;
       const shiftRow = (await c.query("select id, job, seed, started_at, served, earned, last_serve_at from shifts where tg_id = $1 order by id desc limit 1 for update", [tgId])).rows[0] || null;
       const shift = shiftRow && { ...shiftRow, id: Number(shiftRow.id), started_at: new Date(shiftRow.started_at).getTime(), last_serve_at: shiftRow.last_serve_at && new Date(shiftRow.last_serve_at).getTime() };
       const cnt = (await c.query("select count(*)::int as n from shifts where tg_id = $1 and (started_at at time zone 'Asia/Tashkent')::date = $2::date", [tgId, day])).rows[0].n;
@@ -125,33 +123,24 @@ function init({ app, db, mem, auth, ensureSeat, ready, logToAdminChannel, nickOf
 
   route("/api/me", ctx => view(ctx));
 
-  route("/api/bonus", async (ctx, body, user) => {
+  route("/api/bonus", ctx => {
     if (ctx.w.last_bonus === ctx.day) throw fail(409, "already");
     ctx.w.streak = ctx.w.last_bonus === yesterday(ctx.day) ? ctx.w.streak + 1 : 1;
     ctx.w.last_bonus = ctx.day;
     const amount = BONUS(ctx.w.streak); pay(ctx, amount, "bonus");
-    if (logToAdminChannel && nickOf && ctx.w.streak > 3) {
-      const nick = nickOf(user);
-      await logToAdminChannel("🎁 Daily Bonus Claimed", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Streak:</b> ${ctx.w.streak} days\n<b>Bonus:</b> 🪙 ${amount}`);
-    }
     return { ...view(ctx), got: amount };
   });
 
-  route("/api/home/upgrade", async (ctx, body, user) => {
+  route("/api/home/upgrade", ctx => {
     if (!ctx.home) throw fail(404, "no home");
     if (ctx.home.level >= MAX_LEVEL) throw fail(409, "max");
     const cost = UPGRADE_COST[ctx.home.level + 1];
     if (ctx.w.coins < cost) throw fail(402, "coins", { need: cost });
-    const oldLevel = ctx.home.level;
     pay(ctx, -cost, "upgrade:" + (ctx.home.level + 1)); ctx.home.level++;
-    if (logToAdminChannel && nickOf) {
-      const nick = nickOf(user);
-      await logToAdminChannel("🏠 House Upgraded", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Level:</b> ${oldLevel} → ${ctx.home.level}\n<b>Cost:</b> 🪙 ${cost}`);
-    }
     return { ...view(ctx), level: ctx.home.level };
   });
 
-  route("/api/buy", async (ctx, body, user) => {
+  route("/api/buy", (ctx, body) => {
     if (body.item !== "car") throw fail(400, "item");
     const car = CARS[Number(body.id)];
     if (!car) throw fail(400, "car");
@@ -159,25 +148,16 @@ function init({ app, db, mem, auth, ensureSeat, ready, logToAdminChannel, nickOf
     if ((ctx.home.car || 0) === car.id) throw fail(409, "owned");
     if (ctx.w.coins < car.price) throw fail(402, "coins", { need: car.price });
     pay(ctx, -car.price, "car:" + car.id); ctx.home.car = car.id;
-    if (logToAdminChannel && nickOf) {
-      const nick = nickOf(user);
-      await logToAdminChannel("🚗 Car Purchased", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Car:</b> ${esc(car.name)}\n<b>Cost:</b> 🪙 ${car.price}`);
-    }
     return view(ctx);
   });
 
-  route("/api/job/start", async (ctx, body, user) => {
+  route("/api/job/start", (ctx, body) => {
     const job = JOBS[body.job]; if (!job) throw fail(400, "job");
     if (!ctx.home) throw fail(404, "no home");                       // residents only
-    if (!ctx.home.profession) throw fail(403, "profession");         // must have approved profession
     if (activeShift(ctx)) return view(ctx);
     if (ctx.shiftsToday >= job.shiftsPerDay) throw fail(429, "tired");
     ctx.newShift = { job: job.id, seed: crypto.randomInt(1, 2 ** 31 - 1), started_at: ctx.now, served: [], earned: 0, last_serve_at: null };
     ctx.shift = ctx.newShift; ctx.shiftsToday++;
-    if (logToAdminChannel && nickOf) {
-      const nick = nickOf(user);
-      await logToAdminChannel("💼 Job Shift Started", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Job:</b> ${esc(job.name)}\n<b>Place:</b> ${esc(job.place)}`);
-    }
     return view(ctx);
   });
 

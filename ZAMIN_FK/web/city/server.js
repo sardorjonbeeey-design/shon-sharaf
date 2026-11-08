@@ -64,17 +64,14 @@ if (process.env.DATABASE_URL) {
     alter table homes alter column style set default 0;
     alter table homes add column if not exists lot int;
     alter table homes add column if not exists car int not null default 0;
-    alter table homes add column if not exists profession text;
     create unique index if not exists homes_lot_key on homes (lot) where lot is not null;
     create table if not exists seats (
       tg_id bigint primary key, nick text not null, tg_username text, instagram text unique,
       created_at timestamptz not null default now(), updated_at timestamptz not null default now());
     create table if not exists applications (
       id bigserial primary key, tg_id bigint not null, nick text not null, role text not null, note text,
-      status text not null default 'pending', created_at timestamptz not null default now(), decided_at timestamptz, decided_by bigint);
-    create index if not exists applications_status_idx on applications (status, created_at);`)
+      created_at timestamptz not null default now());`)
     .catch(e => console.error("db init", e.message));
-  bot.initFeedback(db);
 }
 const q = (sql, args) => db.query(sql, args).then(r => r.rows);
 async function listHomes() {
@@ -151,19 +148,14 @@ app.post("/api/home", async (req, res) => {
   if (lot !== null && (!Number.isInteger(lot) || lot < 0 || lot > 1e6)) return res.status(400).json({ error: "lot" });
   const nick = nickOf(user);
   try {
-    const isNew = !db ? !mem.homes.some(h => String(h.tg_id) === String(user.id)) : false;
     if (!db) { const ex = mem.homes.find(h => String(h.tg_id) === String(user.id));
       if (lot !== null && mem.homes.some(h => h.lot === lot && h !== ex)) return res.status(409).json({ error: "taken" });
       if (ex) Object.assign(ex, { nick, color, style, lot: ex.lot ?? lot }); else mem.homes.push({ tg_id: user.id, nick, style, color, level: 1, car: 0, lot, up: Date.now(), created_at: Date.now() }); }
     else {
-      const before = await q("select tg_id from homes where tg_id = $1", [user.id]);
       try {
         await q(`insert into homes (tg_id, nick, style, color, level, lot) values ($1,$2,$5,$3,1,$4)
           on conflict (tg_id) do update set nick = excluded.nick, color = excluded.color, style = excluded.style, lot = coalesce(homes.lot, excluded.lot), updated_at = now()`, [user.id, nick, color, lot, style]);
       } catch (e) { if (e.code === "23505") return res.status(409).json({ error: "taken" }); throw e; }
-      if (!before.length) {
-        bot.logToAdminChannel("🏠 New House", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Style:</b> ${style}\n<b>Lot:</b> ${lot || 'Random'}`);
-      }
     }
     await ensureSeat(user);
     res.json({ ok: true, nick });
@@ -171,7 +163,7 @@ app.post("/api/home", async (req, res) => {
 });
 
 // Coins, jobs, house upgrades and cars live in economy.js (server-authoritative).
-require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READY, logToAdminChannel: bot.logToAdminChannel, nickOf });
+require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READY });
 // Supporter Portal: membership, permanent seats, Fan XP, departments, missions, referrals, admin (club.js)
 const CLUB = require("./club").init({ app, db, auth, bot, nickOf, ready: () => Promise.all([DB_READY, mem.econReady]) });
 
@@ -186,78 +178,13 @@ app.post("/api/seat", async (req, res) => {
       if (ig && mem.seats.some(s => s.instagram === ig && String(s.tg_id) !== String(user.id))) return res.status(409).json({ error: "taken" });
       memUpsert(mem.seats, { tg_id: user.id, nick, tg_username: tgu, instagram: ig });
     } else {
-      const before = await q("select tg_id from seats where tg_id = $1", [user.id]);
       const taken = ig ? await q("select tg_id from seats where instagram = $1 and tg_id <> $2", [ig, user.id]) : [];
       if (taken.length) return res.status(409).json({ error: "taken" });
       await q(`insert into seats (tg_id, nick, tg_username, instagram) values ($1,$2,$3,$4)
         on conflict (tg_id) do update set nick = excluded.nick, tg_username = excluded.tg_username,
           instagram = coalesce(excluded.instagram, seats.instagram), updated_at = now()`, [user.id, nick, tgu, ig]);
-      if (!before.length) {
-        bot.logToAdminChannel("🎟️ New Stadium Seat", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Username:</b> ${tgu ? '@' + esc(tgu) : 'N/A'}\n<b>Instagram:</b> ${ig ? '@' + esc(ig) : 'N/A'}`);
-      }
     }
     res.json({ ok: true, nick: ig || nick.replace(/^@/, "") });
-  } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
-});
-
-// Profession system: 1 user = 1 profession. Users apply, admin approves/rejects.
-app.post("/api/profession/apply", async (req, res) => {
-  const user = auth(req, res); if (!user) return;
-  const role = String(req.body.role || "").trim();
-  if (!ROLES.includes(role)) return res.status(400).json({ error: "invalid role" });
-  const nick = nickOf(user);
-  try {
-    if (!db) return res.status(503).json({ error: "professions need database" });
-    const home = await q("select profession from homes where tg_id = $1", [user.id]);
-    if (!home.length) return res.status(404).json({ error: "no home" });
-    const current = home[0].profession;
-    if (current === role) return res.status(409).json({ error: "already" });
-    const existing = await q("select id from applications where tg_id = $1 and role = $2 and status = 'pending'", [user.id, role]);
-    if (existing.length) return res.status(409).json({ error: "pending" });
-    await q("insert into applications (tg_id, nick, role, status) values ($1,$2,$3,'pending')", [user.id, nick, role]);
-    const currentProf = current ? `Currently: <b>${esc(current)}</b>` : 'No current profession';
-    bot.logToAdminChannel("📋 New Profession Application", `<b>User:</b> ${esc(nick)}\n<b>ID:</b> <code>${user.id}</code>\n<b>Applying for:</b> ${esc(role)}\n${currentProf}\n\n⏳ Waiting for approval`);
-    res.json({ ok: true });
-  } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
-});
-
-app.get("/api/profession", async (req, res) => {
-  const user = auth(req, res); if (!user) return;
-  try {
-    if (!db) return res.status(503).json({ error: "professions need database" });
-    const home = await q("select profession from homes where tg_id = $1", [user.id]);
-    const apps = await q("select id, role, status, created_at from applications where tg_id = $1 order by created_at desc", [user.id]);
-    res.json({
-      current: home.length ? home[0].profession : null,
-      applications: apps,
-      roles: ROLES
-    });
-  } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
-});
-
-// Admin: approve/reject profession applications
-const ADMINS = new Set(String(process.env.ADMIN_IDS || "").split(/[\s,]+/).filter(Boolean));
-const isAdmin = id => ADMINS.has(String(id));
-app.post("/api/admin/profession", async (req, res) => {
-  const user = auth(req, res); if (!user) return;
-  if (!isAdmin(user.id)) return res.status(403).json({ error: "admin only" });
-  const appId = Number(req.body.id), decision = String(req.body.decision || "").trim();
-  if (!Number.isInteger(appId) || appId < 1 || !["approve", "reject"].includes(decision)) return res.status(400).json({ error: "bad request" });
-  try {
-    if (!db) return res.status(503).json({ error: "admin needs database" });
-    const app = await q("select tg_id, role, nick, status from applications where id = $1", [appId]);
-    if (!app.length) return res.status(404).json({ error: "not found" });
-    if (app[0].status !== "pending") return res.status(409).json({ error: "already decided" });
-    const adminNick = nickOf(user);
-    if (decision === "approve") {
-      await q("update homes set profession = $2 where tg_id = $1", [app[0].tg_id, app[0].role]);
-      await q("update applications set status = 'approved', decided_at = now(), decided_by = $2 where id = $1", [appId, user.id]);
-      bot.logToAdminChannel("✅ Profession Approved", `<b>Admin:</b> ${esc(adminNick)}\n<b>User:</b> ${esc(app[0].nick)}\n<b>User ID:</b> <code>${app[0].tg_id}</code>\n<b>Role:</b> ${esc(app[0].role)}`);
-    } else {
-      await q("update applications set status = 'rejected', decided_at = now(), decided_by = $2 where id = $1", [appId, user.id]);
-      bot.logToAdminChannel("❌ Profession Rejected", `<b>Admin:</b> ${esc(adminNick)}\n<b>User:</b> ${esc(app[0].nick)}\n<b>User ID:</b> <code>${app[0].tg_id}</code>\n<b>Role:</b> ${esc(app[0].role)}`);
-    }
-    res.json({ ok: true });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
 });
 

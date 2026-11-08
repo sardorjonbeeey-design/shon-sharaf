@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Zamin FK — stadion va shahar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0D2557; --blue:#1F4FB8; --yel:#FFD23F; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#0a1730; font-family: Montserrat, sans-serif; color:#fff; }
+  #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  .ui { position:fixed; z-index:5; }
+  .pill { background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  #brand { top:14px; left:14px; display:flex; align-items:center; gap:10px; padding:10px 16px; font-weight:900; font-size:17px; }
+  #brand img { height:34px; }
+  #count { top:14px; right:14px; padding:8px 16px; text-align:center; }
+  #count small { display:block; color:var(--yel); font-weight:900; font-size:12px; letter-spacing:2px; }
+  #count b { display:block; font-weight:900; font-size:30px; line-height:1.05; }
+  #count i { display:block; font-style:normal; font-size:10px; color:#9DB8FF; }
+  #side { right:14px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:10px; }
+  #side button { width:52px; height:52px; border-radius:16px; font:inherit; font-weight:900; font-size:24px; color:#fff; background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); cursor:pointer; }
+  #side button:hover { border-color:var(--yel); }
+  #langs { top:74px; left:14px; display:flex; gap:6px; }
+  #langs button { font:inherit; font-weight:700; font-size:12px; color:#fff; background:rgba(13,37,87,.85); border:2px solid rgba(255,255,255,.2); border-radius:14px; padding:6px 10px; cursor:pointer; }
+  #langs button.on { background:var(--yel); color:var(--navy); border-color:var(--yel); }
+  #find { left:12px; right:12px; bottom:14px; display:flex; gap:10px; }
+  #find input { flex:1; font:inherit; font-weight:700; font-size:17px; color:#fff; background:rgba(13,37,87,.95); border:2px solid rgba(255,255,255,.25); border-radius:18px; padding:16px 18px; outline:none; }
+  #find input::placeholder { color:#9DB8FF; }
+  #find button { font:inherit; font-weight:900; font-size:18px; color:var(--navy); background:var(--yel); border:0; border-radius:18px; padding:0 22px; cursor:pointer; }
+  #card { left:50%; bottom:130px; z-index:6; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; background:var(--navy); border-radius:20px; border:2px solid rgba(255,255,255,.25); }
+  #card h3 { margin:0 0 8px; color:var(--yel); font-size:18px; }
+  #card p { margin:0; font-size:13px; line-height:1.4; color:#cfdcff; }
+  #card .x { position:absolute; right:12px; top:8px; background:none; border:0; color:#fff; font-size:20px; cursor:pointer; }
+  #panel { left:12px; right:78px; top:120px; bottom:90px; padding:14px; display:none; background:var(--navy); border-radius:20px; border:2px solid rgba(255,255,255,.25); overflow-y:auto; }
+  #panel h3 { margin:0 0 12px; color:var(--yel); font-size:16px; }
+  #panel button { display:block; width:100%; text-align:left; font:inherit; font-weight:700; font-size:14px; color:#fff; background:rgba(255,255,255,.08); border:0; border-radius:12px; padding:10px; margin:6px 0; cursor:pointer; }
+  #panel button:hover { background:rgba(255,255,255,.15); }
+  #actions { left:12px; right:12px; bottom:86px; display:none; gap:8px; }
+  #actions button { flex:1; font:inherit; font-weight:900; font-size:13px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:12px; cursor:pointer; }
+  #actions button.alt { color:#fff; background:var(--blue); }
+  body.city #actions { display:flex; }
+  body.city #find { display:none; }
+  #labels { position:fixed; inset:0; pointer-events:none; z-index:3; }
+  .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.95); color:var(--navy); font-weight:900; font-size:11px; padding:4px 8px; border-radius:8px; white-space:nowrap; box-shadow:0 3px 10px rgba(0,0,0,.3); }
+  #error { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#300; color:#f00; padding:20px; border-radius:10px; text-align:center; display:none; z-index:100; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="brand" class="ui pill"><img id="crest" alt=""></div>
+<div id="count" class="ui pill"><small>VIRTUAL</small><b id="fans">0</b><i>muxlis</i></div>
+<div id="langs" class="ui"><button class="on" data-lang="uz">УЗ</button><button data-lang="ru">РУ</button><button data-lang="en">EN</button></div>
+<div id="side" class="ui">
+  <button id="btn-squad">👥</button>
+  <button id="btn-city">🏘️</button>
+  <button id="btn-plus">➕</button>
+  <button id="btn-minus">➖</button>
+  <button id="btn-home">🏠</button>
+</div>
+<div id="labels"></div>
+<div id="find" class="ui"><input type="text" placeholder="Search fan..."><button>🔍</button></div>
+<div id="actions" class="ui"><button id="btn-squad-act">Squad</button><button id="btn-jobs" class="alt">Jobs</button><button id="btn-club" class="alt">Club</button></div>
+<div id="card" class="ui pill"><button class="x">✕</button><h3 id="card-title"></h3><p id="card-text"></p></div>
+<div id="panel" class="ui pill"><button class="x">✕</button><h3 id="panel-title"></h3><div id="plist"></div></div>
+<div id="error" class="pill ui"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const API = __API__;
+const FANS_LIST = __FANS__;
+const HEROES = __HEROES__;
+const DEMO = __DEMO__;
+const CREST_DATA = __CREST__;
+const VIP = __VIP__;
+const SCREEN = __SCREEN__;
+const MAP_FILE = __MAP__;
+
+let lang = "uz";
+const t = {
+  uz: { squad: "Squad", jobs: "Ishlar", club: "Klub", city: "Shahar", homes: "Uylar" },
+  ru: { squad: "Команда", jobs: "Работа", club: "Клуб", city: "Город", homes: "Дома" },
+  en: { squad: "Squad", jobs: "Jobs", club: "Club", city: "City", homes: "Homes" }
+};
+
+const errorEl = document.getElementById("error");
+function showError(msg) {
+  console.error(msg);
+  errorEl.textContent = msg;
+  errorEl.style.display = "block";
+}
+
+window.addEventListener("error", e => showError("Error: " + e.message));
+
+const canvas = document.getElementById("c");
+let scene, camera, renderer;
+
+try {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0b1838);
+  scene.fog = new THREE.Fog(0x8d96b8, 200, 800);
+
+  camera = new THREE.PerspectiveCamera(50, 1, 0.5, 5000);
+  camera.position.set(80, 60, 100);
+  camera.lookAt(0, 0, 0);
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+
+  const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x203018, 0.9);
+  scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xffe2b8, 1);
+  sun.position.set(-80, 120, 60);
+  sun.castShadow = true;
+  sun.shadow.mapSize.width = 2048;
+  sun.shadow.mapSize.height = 2048;
+  scene.add(sun);
+
+  const groundGeo = new THREE.PlaneGeometry(600, 400);
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x3a5a2a });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const pitchGeo = new THREE.PlaneGeometry(110, 70);
+  const pitchMat = new THREE.MeshLambertMaterial({ color: 0x2d7a2d });
+  const pitch = new THREE.Mesh(pitchGeo, pitchMat);
+  pitch.position.y = 0.1;
+  pitch.receiveShadow = true;
+  scene.add(pitch);
+
+  const standMat = new THREE.MeshLambertMaterial({ color: 0x1a3a7a });
+  for (let side of [-1, 1]) {
+    const standGeo = new THREE.BoxGeometry(120, 30, 10);
+    const stand = new THREE.Mesh(standGeo, standMat);
+    stand.position.set(side * 60, 15, 0);
+    stand.castShadow = true;
+    stand.receiveShadow = true;
+    scene.add(stand);
+  }
+
+  HEROES.forEach(hero => {
+    const spriteGeo = new THREE.BoxGeometry(0.5, hero.h, 0.1);
+    const spriteMat = new THREE.MeshLambertMaterial({ color: 0x4a7a9f });
+    const sprite = new THREE.Mesh(spriteGeo, spriteMat);
+    sprite.position.set(hero.x, hero.h / 2, hero.z);
+    sprite.castShadow = true;
+    scene.add(sprite);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  }
+
+  function onWindowResize() {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  }
+  window.addEventListener("resize", onWindowResize);
+  onWindowResize();
+
+  animate();
+  console.log("✓ City initialized");
+
+} catch (e) {
+  showError("Three.js error: " + e.message);
+}
+
+document.getElementById("crest").src = CREST_DATA;
+document.getElementById("fans").textContent = FANS_LIST.length;
+
+document.getElementById("btn-squad").onclick = () => document.getElementById("panel").style.display = "block";
+document.getElementById("btn-city").onclick = () => document.body.classList.toggle("city");
+document.querySelectorAll("#panel .x, #card .x").forEach(btn => btn.onclick = function() { this.closest(".pill").style.display = "none"; });
+
+fetch(API + "/api/state", { cache: "no-store" }).catch(() => {});
+</script>
+</body>
+</html>
