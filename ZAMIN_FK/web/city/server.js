@@ -136,5 +136,6 @@ app.post("/api/apply", async (req, res) => {
 
 app.get("/healthz", (req, res) => res.send("ok"));
 app.get(["/", "/index.html"], (req, res) => { res.set("Cache-Control", "no-cache"); res.sendFile(PAGE); });
+app.use("/map", express.static(path.join(path.dirname(PAGE), "map"), { maxAge: "1d" }));   // real-town OpenStreetMap data
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log("zamin fk on", port, db ? "postgres" : "memory", BOT_TOKEN ? "bot ok" : "NO BOT_TOKEN"));
