@@ -1167,7 +1167,7 @@ function buildPickers() {
 }
 const MAXL = 7;
 const myHome = () => HOMES.find(h => h.id === myId);
-function nextUpgradeIn(m) { const ms = new Date(m.up).getTime() + (STATE.upgradeHours || 24) * 3600e3 - Date.now(); return ms; }
+function nextUpgradeIn(m) { const ms = new Date(m.up).getTime() + (STATE.upgradeHours ?? 24) * 3600e3 - Date.now(); return ms; }
 function fmtWait(ms) { const m = Math.ceil(ms / 60000), h = Math.floor(m / 60); return h ? `${h} ${T[L].hr} ${m % 60} ${T[L].mn}` : `${m} ${T[L].mn}`; }
 function updateHomeUi() {
   const m = myHome(), bh = document.getElementById("bHome");
