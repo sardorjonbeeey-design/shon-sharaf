@@ -10,7 +10,7 @@
   :root { --navy:#0D2557; --blue:#1F4FB8; --yel:#FFD23F; }
   * { box-sizing: border-box; }
   html, body { margin:0; height:100%; overflow:hidden; background:#0a1730; font-family: Montserrat, sans-serif; color:#fff; }
-  #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; z-index:0; }
   .ui { position:fixed; z-index:5; }
   .pill { background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
   #brand { top:14px; left:14px; display:flex; align-items:center; gap:10px; padding:10px 16px; font-weight:900; font-size:17px; letter-spacing:.5px; }
@@ -2050,7 +2050,6 @@ function loop(now) {
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
   try { DN.tick(now); DN.render(); } catch (e) { console.error("DN tick/render failed:", e); }
   try { updateLabels(now); } catch (e) { console.error("updateLabels failed:", e); }
-  try { renderer.render(scene, camera); } catch (e) { console.error("renderer.render failed:", e); }
   requestAnimationFrame(loop);
 }
 try { DN.init(); } catch (e) { console.error("DN.init failed:", e); }
