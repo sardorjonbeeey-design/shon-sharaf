@@ -1,0 +1,193 @@
+// Bot screens: /karta (player card or VIP member card) and /admin (applications, feedback, stats) with inline buttons.
+// Data comes from the same Postgres as the mini app. Everything runs after the webhook has answered (async).
+const cards = require("./cards");
+
+const MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"];
+const POS = { GK: "Darvozabon", DEF: "Himoyachi", MID: "Yarim himoyachi", FWD: "Hujumchi" };
+const ovrOf = xp => Math.min(99, 50 + Math.floor(Math.sqrt(Math.max(0, xp))));
+
+function init({ db, bot, club }) {
+  const { api, esc, who, WEBAPP_URL, BOT_TOKEN, TG_API } = bot;
+  const q = (sql, a) => db.query(sql, a).then(r => r.rows);
+  const one = async (sql, a) => (await q(sql, a))[0];
+  const isAdmin = id => club.isAdmin && club.isAdmin(id);
+  const appBtn = WEBAPP_URL.startsWith("https://") ? [{ text: "📱 Ilovani ochish", web_app: { url: WEBAPP_URL } }] : [];
+
+  // multipart upload (sendPhoto / editMessageMedia) — Node 18+ has FormData and Blob built in
+  async function apiFile(method, fields, fileField, buf) {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(fields)) if (v !== undefined && v !== null) fd.append(k, typeof v === "object" ? JSON.stringify(v) : String(v));
+    fd.append(fileField, new Blob([buf], { type: "image/png" }), "card.png");
+    const r = await fetch(`${TG_API}/bot${BOT_TOKEN}/${method}`, { method: "POST", body: fd });
+    const d = await r.json().catch(() => ({}));
+    if (!d.ok) throw new Error(`${method}: ${d.description || r.status}`);
+    return d.result;
+  }
+
+  // Telegram profile photo -> data URI (cached 6 h; the bot token never leaves the server)
+  const photoCache = new Map();
+  async function profilePhoto(userId) {
+    const c = photoCache.get(userId);
+    if (c && Date.now() - c.at < 6 * 3600e3) return c.data;
+    let data = null;
+    try {
+      const ph = await api("getUserProfilePhotos", { user_id: userId, limit: 1 });
+      const sizes = ph.photos && ph.photos[0];
+      if (sizes && sizes.length) {
+        const s = sizes.reduce((b, x) => Math.abs(x.width - 640) < Math.abs(b.width - 640) ? x : b);
+        const f = await api("getFile", { file_id: s.file_id });
+        const r = await fetch(`${TG_API}/file/bot${BOT_TOKEN}/${f.file_path}`);
+        if (r.ok) data = "data:image/jpeg;base64," + Buffer.from(await r.arrayBuffer()).toString("base64");
+      }
+    } catch (e) { console.error("profile photo", e.message); }
+    photoCache.set(userId, { at: Date.now(), data });
+    return data;
+  }
+
+  // ---------- card data ----------
+  async function cardFor(user) {
+    await club.ensureMember(user);                               // same as opening the app: member number + permanent seat
+    const id = String(user.id);
+    const m = await one(`select m.*, coalesce(w.coins, 0)::int as coins from members m left join wallets w on w.tg_id = m.tg_id where m.tg_id = $1`, [id]);
+    const p = await one(`select * from applications where tg_id = $1 and kind = 'player' and status in ('new','accepted')
+      order by (status = 'accepted') desc, id desc limit 1`, [id]);
+    const tgName = [user.first_name, user.last_name].filter(Boolean).join(" ") || m.nick.replace(/^@/, "");
+    const photo = await profilePhoto(user.id);
+    const sid = club.supporterId(m.member_no);
+    if (p) {
+      const xp = m.xp || 0;
+      const wk = await one(`select coalesce(sum(xp), 0)::int as v from xp_log where tg_id = $1 and at > now() - interval '7 days'`, [id]);
+      const days = await one(`select count(distinct (at at time zone 'Asia/Tashkent')::date)::int as v from
+        (select at from xp_log where tg_id = $1 union all select at from ledger where tg_id = $1) x`, [id]);
+      const rank = await one(`select count(distinct a.tg_id)::int + 1 as v from applications a join members mm on mm.tg_id = a.tg_id
+        where a.kind = 'player' and a.status in ('new','accepted') and mm.xp > $1`, [xp]);
+      const t = club.tierOf(xp);
+      return { kind: "player", png: cards.playerPng({
+        name: p.name || tgName, pos: p.position || "—", ovr: ovrOf(xp), ovrDelta: ovrOf(xp) - ovrOf(xp - wk.v), stage: p.status,
+        rank: rank.v, weekXp: wk.v, totalXp: xp, days: days.v, id: sid, photo,
+        goal: t.next ? t.next - t.from : 1, goalHave: t.next ? xp - t.from : 1,
+        goalText: t.next ? `Keyingi daraja (${club.TIERS[t.i + 1][1]}): ${t.next - xp} XP` : "Eng yuqori daraja!" }),
+        caption: `⚽ <b>${esc(p.name || tgName)}</b> — futbolchi kartangiz\n${p.status === "accepted" ? "✅ Asosiy tarkibda" : "⏳ Sinovda — ariza ko‘rib chiqilmoqda"} · ${POS[p.position] || ""}\n\nXP ilovada ishlash, missiyalar va hissalar orqali yig‘iladi.` };
+    }
+    const dept = m.dept && (club.DEPTS.find(d => d[0] === m.dept) || [])[2];
+    const role = m.profession || dept || "Muxlis";
+    const j = new Date(m.joined_at);
+    return { kind: "vip", png: cards.vipPng({
+      name: tgName, username: user.username ? "@" + user.username : "", role: `${role} · ${club.tierOf(m.xp || 0).name}`,
+      balance: m.coins, id: sid, since: `A’zo: ${j.getDate()}-${MONTHS[j.getMonth()]} ${j.getFullYear()}`, photo }),
+      caption: `🪪 <b>${esc(tgName)}</b> — Zamin FK a’zolik kartangiz\n🪙 Balans: <b>${m.coins}</b> tanga` };
+  }
+  const cardKb = { inline_keyboard: [[{ text: "🔄 Yangilash", callback_data: "card:re" }, ...appBtn]] };
+
+  async function sendCard(chatId, user) {
+    if (!cards.ok()) return api("sendMessage", { chat_id: chatId, text: "Karta hozircha mavjud emas." });
+    const c = await cardFor(user);
+    return apiFile("sendPhoto", { chat_id: chatId, caption: c.caption, parse_mode: "HTML", reply_markup: cardKb }, "photo", c.png);
+  }
+  async function refreshCard(cb) {
+    const c = await cardFor(cb.from);
+    await apiFile("editMessageMedia", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, reply_markup: cardKb,
+      media: { type: "photo", media: "attach://card", caption: c.caption, parse_mode: "HTML" } }, "card", c.png)
+      .catch(e => { if (!/not modified/.test(e.message)) throw e; });
+  }
+
+  // ---------- admin ----------
+  const adminMenu = async () => {
+    const n = await one(`select (select count(*)::int from applications where status = 'new') as apps,
+      (select count(*)::int from feedback where status = 'new') as fb`).catch(() => ({ apps: 0, fb: 0 }));
+    return { text: "🛠 <b>Admin panel</b>\nKerakli bo‘limni tanlang:", parse_mode: "HTML", reply_markup: { inline_keyboard: [
+      [{ text: `📋 Yangi arizalar (${n.apps})`, callback_data: "adm:apps" }],
+      [{ text: `📬 Feedback (${n.fb})`, callback_data: "adm:fb" }],
+      [{ text: "📊 Statistika", callback_data: "adm:stats" }], ...(appBtn.length ? [appBtn] : [])] } };
+  };
+  const KIND = { city: "🏙 Shahar ishi", player: "⚽ Futbolchi", staff: "🧑‍💼 Klub xodimi" };
+  const appText = a => [`📋 <b>Ariza #${a.id}</b> — ${KIND[a.kind] || a.kind}`,
+    `<b>Kim:</b> ${esc(a.nick)} (<code>${a.tg_id}</code>)`, a.name && `<b>Ism:</b> ${esc(a.name)}`, a.age && `<b>Yosh:</b> ${a.age}`,
+    a.position && `<b>Pozitsiya:</b> ${esc(POS[a.position] || a.position)}`, a.height && `<b>Bo‘y:</b> ${a.height}`,
+    a.kind === "city" && a.role && `<b>Kasb:</b> ${esc(a.role)}`, a.dept && `<b>Bo‘lim:</b> ${esc(a.dept)}`,
+    a.link && `<b>Havola:</b> ${esc(a.link)}`, a.note && `<b>Izoh:</b> ${esc(a.note)}`,
+    `<i>${new Date(a.created_at).toISOString().slice(0, 16).replace("T", " ")}</i>`].filter(Boolean).join("\n");
+
+  async function onAdmin(cb, data) {
+    const chat = cb.message.chat.id;
+    if (data === "adm:menu") return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, ...(await adminMenu()) });
+    if (data === "adm:apps") {
+      const rows = await q("select * from applications where status = 'new' order by created_at limit 5");
+      if (!rows.length) return api("sendMessage", { chat_id: chat, text: "✅ Yangi ariza yo‘q." });
+      for (const a of rows) await api("sendMessage", { chat_id: chat, text: appText(a), parse_mode: "HTML", disable_web_page_preview: true,
+        reply_markup: { inline_keyboard: [[{ text: "✅ Qabul qilish", callback_data: "ap:accept:" + a.id }, { text: "❌ Rad etish", callback_data: "ap:reject:" + a.id }]] } });
+      const left = await one("select count(*)::int as n from applications where status = 'new'");
+      if (left.n > rows.length) await api("sendMessage", { chat_id: chat, text: `Yana ${left.n - rows.length} ta ariza bor — ko‘rib chiqqach, qayta bosing.`,
+        reply_markup: { inline_keyboard: [[{ text: "📋 Keyingi arizalar", callback_data: "adm:apps" }]] } });
+      return;
+    }
+    if (data.startsWith("ap:")) {
+      const [, action, id] = data.split(":");
+      try { await club.decideApp(cb.from, { id: Number(id), action }); }
+      catch (e) { return api("answerCallbackQuery", { callback_query_id: cb.id, text: e.message === "already decided" ? "Bu ariza allaqachon ko‘rib chiqilgan" : "Xato: " + e.message, show_alert: true }); }
+      const mark = action === "accept" ? "✅ <b>Qabul qilindi</b>" : "❌ <b>Rad etildi</b>";
+      return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, parse_mode: "HTML", disable_web_page_preview: true,
+        text: `${esc(cb.message.text || "")}\n\n${mark} — ${esc(who(cb.from))}` });
+    }
+    if (data === "adm:fb") {
+      const rows = await q("select * from feedback where status = 'new' order by id desc limit 10");
+      if (!rows.length) return api("sendMessage", { chat_id: chat, text: "✅ Yangi feedback yo‘q." });
+      for (const f of rows.reverse()) await api("sendMessage", { chat_id: chat, parse_mode: "HTML",
+        text: `📬 <b>Feedback #${f.id}</b>\n<b>Kimdan:</b> ${esc(f.username || "")} (<code>${f.tg_id}</code>)\n\n${esc(f.message)}`,
+        reply_markup: { inline_keyboard: [[{ text: "✔️ Ko‘rildi", callback_data: "fb:done:" + f.id }]] } });
+      return;
+    }
+    if (data.startsWith("fb:done:")) {
+      await q("update feedback set status = 'done' where id = $1", [Number(data.split(":")[2]) | 0]);
+      return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, text: `${cb.message.text || ""}\n\n✔️ Ko‘rildi` });
+    }
+    if (data === "adm:stats") {
+      const s = await one(`select (select count(*)::int from members) as members,
+        (select count(*)::int from members where joined_at > now() - interval '1 day') as m1,
+        (select count(*)::int from members where joined_at > now() - interval '7 days') as m7,
+        (select count(*)::int from homes) as homes, (select count(*)::int from seats where seat_no is not null) as seats,
+        (select count(*)::int from applications where status = 'new') as apps_new,
+        (select count(*)::int from applications where kind = 'player' and status = 'accepted') as players,
+        (select count(*)::int from feedback where status = 'new') as fb, (select funds::int from club where id = 1) as funds,
+        (select coalesce(sum(coins), 0)::int from wallets) as coins`);
+      return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: [`📊 <b>Statistika</b>`, ``,
+        `👥 A’zolar: <b>${s.members}</b> (bugun +${s.m1}, hafta +${s.m7})`, `🏠 Uylar: <b>${s.homes}</b>`, `🎟 O‘rindiqlar: <b>${s.seats}</b>`,
+        `⚽ Tarkibdagi futbolchilar: <b>${s.players}</b>`, `📋 Yangi arizalar: <b>${s.apps_new}</b>`, `📬 Yangi feedback: <b>${s.fb}</b>`,
+        `💰 Klub fondi: <b>${s.funds}</b> 🪙`, `🪙 Muxlislardagi tangalar: <b>${s.coins}</b>`].join("\n"),
+        reply_markup: { inline_keyboard: [[{ text: "⬅️ Menyu", callback_data: "adm:menu" }]] } });
+    }
+  }
+
+  // Returns an async job for updates this module handles, or null (then the normal bot reply runs).
+  function match(update) {
+    const msg = update && update.message, cb = update && update.callback_query;
+    if (msg && msg.from && msg.chat && msg.chat.type === "private") {
+      const t = String(msg.text || "").trim();
+      if (/^\/(karta|card)(@\w+)?$/i.test(t)) return () => sendCard(msg.chat.id, msg.from);
+      if (/^\/admin(@\w+)?$/i.test(t)) return async () => {
+        if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
+        return api("sendMessage", { chat_id: msg.chat.id, ...(await adminMenu()) });
+      };
+    }
+    if (cb && cb.from && cb.message) {
+      const data = String(cb.data || "");
+      return async () => {
+        let answered = false;
+        try {
+          if (data === "card:re" || data === "card:new") {
+            await api("answerCallbackQuery", { callback_query_id: cb.id, text: data === "card:re" ? "Yangilanmoqda…" : "" }); answered = true;
+            return data === "card:re" ? await refreshCard(cb) : await sendCard(cb.message.chat.id, cb.from);
+          }
+          if (/^(adm|ap|fb):/.test(data)) {
+            if (!isAdmin(cb.from.id)) { answered = true; return api("answerCallbackQuery", { callback_query_id: cb.id, text: "Faqat adminlar uchun", show_alert: true }); }
+            if (!data.startsWith("ap:")) { await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true; }
+            return await onAdmin(cb, data);
+          }
+        } finally { if (!answered) api("answerCallbackQuery", { callback_query_id: cb.id }).catch(() => {}); }
+      };
+    }
+    return null;
+  }
+  return { match, sendCard };
+}
+module.exports = { init, ovrOf };

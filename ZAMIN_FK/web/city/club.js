@@ -52,7 +52,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   const isAdmin = id => ADMINS.has(String(id));
   if (!db) {                                  // memory mode (local only): portal disabled, everything else keeps working
     app.use(["/api/club", "/api/admin"], (req, res) => res.status(503).json({ error: "club needs database" }));
-    return { ensureMember: async () => null, summary: async () => null, registerReferral: async () => {} };
+    return { ensureMember: async () => null, summary: async () => null, registerReferral: async () => {}, isAdmin, tierOf, DEPTS, supporterId };
   }
   const ready = base().then(() => db.query(`
     create table if not exists members (tg_id bigint primary key, member_no serial unique, nick text not null, tg_username text,
@@ -402,7 +402,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   }, true);
 
   // accept / reject / assign to a department (staff, or a player's department role)
-  route("/api/admin/application/decide", async (user, body) => tx(async c => {
+  const decideApp = (user, body) => tx(async c => {        // used by the mini app admin panel and the bot admin buttons
     const id = Number(body.id) | 0, action = String(body.action || "");
     if (!["accept", "reject", "assign"].includes(action)) throw fail(400, "action");
     const a = await one(c, "select * from applications where id = $1 for update", [id]);
@@ -439,7 +439,8 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       setTimeout(() => bot.api("sendMessage", { chat_id: String(a.tg_id), text, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)), 0);
     }
     return { ok: true, status };
-  }), true);
+  });
+  route("/api/admin/application/decide", decideApp, true);
 
   // feedback sent to the bot (/feedback)
   route("/api/admin/feedback", async (user, body) => {
@@ -459,7 +460,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   });
 
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
-  return { ensureMember, summary, registerReferral };
+  return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId };
 }
 
 module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay };
