@@ -1838,11 +1838,20 @@ function dashHtml(me, m, club) {
 }
 // ---------- admin ----------
 CLUB.appF = { kind: "", status: "new", pos: "", dept: "" };
+CLUB.av = "inbox"; CLUB.uf = { q: "", filter: "all", sort: "", off: 0 }; CLUB.ud = null;
 async function adminLoad() {
-  try { const [list, ms, apps] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {}), post("/api/admin/applications", { kind: CLUB.appF.kind, status: CLUB.appF.status, position: CLUB.appF.pos, dept: CLUB.appF.dept })]); CLUB.admin = { list, ms, apps }; }
-  catch (e) { CLUB.admin = null; }
+  try {
+    const A = CLUB.admin || (CLUB.admin = {});
+    if (CLUB.av === "users") {
+      if (CLUB.ud) A.detail = await post("/api/admin/user", { id: CLUB.ud });
+      else A.users = await post("/api/admin/users", { q: CLUB.uf.q, filter: CLUB.uf.filter, sort: CLUB.uf.sort, offset: CLUB.uf.off });
+    } else if (CLUB.av === "missions") A.mst = await post("/api/admin/missions/status", {});
+    else { const [list, ms, apps] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {}), post("/api/admin/applications", { kind: CLUB.appF.kind, status: CLUB.appF.status, position: CLUB.appF.pos, dept: CLUB.appF.dept })]); A.list = list; A.ms = ms; A.apps = apps; }
+  } catch (e) { CLUB.admin = null; }
   clubRender();
 }
+const ago = t => { if (!t) return "—"; const m = Math.max(0, (Date.now() - new Date(t)) / 60000); return m < 2 ? "hozir" : m < 60 ? Math.round(m) + " daq oldin" : m < 1440 ? Math.round(m / 60) + " soat oldin" : Math.round(m / 1440) + " kun oldin"; };
+const dot = t => { const m = t ? (Date.now() - new Date(t)) / 60000 : 1e9; return m < 1440 ? "🟢" : m < 10080 ? "🟡" : "🔴"; };
 const KIND_NAME = { city: "🏙 Shahar", player: "⚽ Futbolchi", staff: "🧑‍💼 Jamoa" }, STATUS_NAME = { new: "🆕 Yangi", accepted: "✅ Qabul", rejected: "❌ Rad" };
 function appsHtml(apps) {
   const F = CLUB.appF, cnt = (k, st) => (apps.counts.find(c => c.kind === k && (!st || c.status === st)) || { n: 0 }).n;
@@ -1863,9 +1872,48 @@ function appsHtml(apps) {
   return h;
 }
 
+function usersHtml() {
+  const a = CLUB.admin, F = CLUB.uf;
+  if (CLUB.ud) {
+    const d = a.detail; if (!d || String(d.member.tg_id) !== String(CLUB.ud)) return `<small>…</small>`;
+    const u = d.member;
+    return `<div class="item"><button class="btn" data-a="uback">← Orqaga</button></div>
+    <div class="item"><div class="hd"><b>${dot(u.last_at)} ${esc(u.nick)}</b><span class="chip">${u.tier.emoji} ${esc(u.tier.name)}</span></div>
+      <small>${u.id}${u.username ? " · @" + esc(u.username) : ""} · TG ${u.tg_id}</small><br>
+      <small>Oxirgi faollik: <b>${ago(u.last_at)}</b> · Qo‘shilgan: ${String(u.joined).slice(0, 10)}</small>
+      <div class="apfilt" style="margin-top:8px"><span class="chip">🪙 ${fmt(u.coins)}</span><span class="chip">⭐ ${fmt(u.xp)} XP · #${u.rank}</span><span class="chip">🏠 ${u.home ? u.home + "-daraja" : "uy yo‘q"}${u.car ? " · 🚗" : ""}</span><span class="chip">🎟 ${u.seat_no ? "№" + u.seat_no : "—"}</span><span class="chip">🔥 seriya ${u.streak}</span><span class="chip">💼 ${d.shifts.n} smena · ${fmt(d.shifts.earned)} 🪙</span></div></div>
+    <div class="sec">🎁 Mukofot / yangilash</div>
+    <div class="item"><div class="adm"><input id="gc" type="number" placeholder="🪙 tanga (±)"><input id="gx" type="number" placeholder="⭐ XP (±)"><select id="gl"><option value="">🏠 uy: o‘zgarmasin</option>${[1, 2, 3, 4, 5, 6, 7].map(n => `<option value="${n}">🏠 ${n}-daraja</option>`).join("")}</select></div>
+      <input id="gn" placeholder="Izoh (foydalanuvchiga yuboriladi, ixtiyoriy)"><div class="hd"><button class="btn green" data-a="grant" data-id="${u.tg_id}">✅ Berish</button></div>
+      <small>Foydalanuvchi botda xabar oladi. Hammasi jurnalga yoziladi.</small></div>
+    <div class="sec">🎯 Bajargan missiyalar</div>${d.claims.map(c => `<div class="item"><div class="hd"><b>${esc(c.title || "—")}</b><small>+${c.xp} XP · ${ago(c.at)}</small></div></div>`).join("") || `<small>${PT.uz.none}</small>`}
+    <div class="sec">🪙 Oxirgi harakatlar</div>${d.ledger.map(l => `<div class="item"><div class="hd"><b>${l.delta > 0 ? "+" : ""}${l.delta} 🪙</b><small>${esc(l.reason)} · ${ago(l.at)}</small></div></div>`).join("") || `<small>${PT.uz.none}</small>`}
+    ${d.apps.length ? `<div class="sec">📥 Arizalar</div>${d.apps.map(x => `<div class="item"><small>${KIND_NAME[x.kind] || x.kind} · ${STATUS_NAME[x.status] || x.status} · ${ago(x.created_at)}</small></div>`).join("")}` : ""}`;
+  }
+  const U = a.users; if (!U) return `<small>…</small>`;
+  const st = U.stats, chip = (k, v, l) => `<button data-a="uf" data-k="${k}" data-v="${v}" class="${F[k] === v ? "on" : ""}">${l}</button>`;
+  return `<div class="apfilt"><span class="chip">👥 ${st.total}</span><span class="chip">🟢 24 soat: ${st.d1}</span><span class="chip">🟡 7 kun: ${st.d7}</span><span class="chip">🔴 faol emas: ${st.idle}</span><span class="chip">🆕 yangi: ${st.new1}</span><span class="chip">🎯 bugun missiya: ${st.doneToday}</span><span class="chip">🪙 jami: ${fmt(st.coins)}</span></div>
+    <div class="hd"><input id="uq" placeholder="🔍 ism, @username, ID" value="${esc(F.q)}"><button class="btn" data-a="usearch">OK</button></div>
+    <div class="apfilt">${chip("filter", "all", "Hammasi")}${chip("filter", "today", "🟢 24 soat")}${chip("filter", "active", "🟡 7 kun")}${chip("filter", "inactive", "🔴 Faol emas")}${chip("filter", "nohome", "🏠 uysiz")}</div>
+    <div class="apfilt">${chip("sort", "", "Oxirgi faollik")}${chip("sort", "coins", "🪙 Tanga")}${chip("sort", "xp", "⭐ XP")}${chip("sort", "level", "🏠 Uy")}${chip("sort", "new", "🆕 Yangi")}</div>
+    ${U.rows.map(r => `<div class="item" data-a="uopen" data-id="${r.tg_id}" style="cursor:pointer"><div class="hd"><b>${dot(r.last_at)} ${esc(r.nick)}</b><small>${ago(r.last_at)}</small></div>
+      <small>${r.tg_username ? "@" + esc(r.tg_username) + " · " : ""}🪙 ${fmt(r.coins)} · ⭐ ${fmt(r.xp)} · 🏠 ${r.home || "—"}${r.today ? " · 🎯 " + r.today : ""}</small></div>`).join("") || `<small>${PT.uz.none}</small>`}
+    <div class="hd">${F.off > 0 ? `<button class="btn" data-a="upage" data-d="-1">←</button>` : ""}${U.more ? `<button class="btn" data-a="upage" data-d="1">→</button>` : ""}</div>`;
+}
+function missionStatusHtml() {
+  const M = CLUB.admin.mst; if (!M) return `<small>…</small>`;
+  return `<div class="sec">🎯 Missiyalar: kim bajardi (jami ${M.total} foydalanuvchi)</div>` + M.missions.map(x => `<div class="item"><div class="hd"><b>${esc(x.title)}</b><span class="chip">${x.period === "daily" ? "kunlik" : "haftalik"} · +${x.xp} XP</span></div>
+    <small>Bugun: <b>${x.today}</b> / ${M.total} · 7 kun: <b>${x.week}</b></small>
+    ${x.recent.length ? `<div class="apfilt" style="margin-top:6px">${x.recent.slice(0, 12).map(r => `<button data-a="uopen2" data-id="${r.tg_id}">${esc(r.nick)} <span class="appc">${ago(r.at)}</span></button>`).join("")}</div>` : `<br><small>Hali hech kim.</small>`}</div>`).join("");
+}
+const adminNav = () => `<div class="apfilt">${[["inbox", "📥 Kelganlar"], ["users", "👥 Foydalanuvchilar"], ["missions", "🎯 Missiyalar holati"]].map(([k, l]) => `<button data-a="av" data-v="${k}" class="${CLUB.av === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+
 function adminHtml(me, m, club) {
   const a = CLUB.admin; if (!a) return `<small>…</small>`;
-  return appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
+  if (CLUB.av === "users") return adminNav() + usersHtml();
+  if (CLUB.av === "missions") return adminNav() + missionStatusHtml();
+  if (!a.apps) return adminNav() + `<small>…</small>`;
+  return adminNav() + appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
       <small>${esc(c.nick)} · ZFK-${String(c.member_no).padStart(5, "0")}</small><p style="margin:6px 0;font-size:13px">${esc(c.body)}</p>${c.link ? `<small>🔗 <a style="color:#FFD23F" href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></small>` : ""}
       <div class="adm"><input id="ax${c.id}" type="number" value="50" title="XP"><input id="ai${c.id}" type="number" value="20" title="Influence"><input id="af${c.id}" type="number" value="0" title="Funds"></div>
       <input id="an${c.id}" placeholder="Izoh (ixtiyoriy)"><div class="hd"><button class="btn green" data-a="decide" data-id="${c.id}" data-ok="1">${PT.uz.approve}</button><button class="btn red" data-a="decide" data-id="${c.id}">${PT.uz.reject}</button></div></div>`).join("") || `<small>${PT.uz.none}</small>`}
@@ -1894,6 +1942,13 @@ function clubBind() {
       else if (a === "donate") { const d = await post("/api/club/donate", { amount: +b.dataset.n }); haptic("ok"); say(PT.uz.donated(b.dataset.n, d.xp)); await fetchMe(); await clubLoad(); }
       else if (a === "decide") { const id = b.dataset.id; await post("/api/admin/contribution/decide", { id: +id, approve: !!b.dataset.ok, xp: +v("ax" + id).value, influence: +v("ai" + id).value, funds: +v("af" + id).value, note: v("an" + id).value }); await adminLoad(); return; }
       else if (a === "msave") { const id = b.dataset.id, k = s => v(s + id); await post("/api/admin/mission/save", { id: id === "new" ? undefined : +id, title: k("mt").value, period: k("mp").value, action: k("ma").value, target: +k("mg").value, xp: +k("mx").value, active: id === "new" ? true : k("mo").checked }); say("✅"); await adminLoad(); return; }
+      else if (a === "av") { CLUB.av = b.dataset.v; CLUB.ud = null; await adminLoad(); return; }
+      else if (a === "uf") { CLUB.uf[b.dataset.k] = b.dataset.v; CLUB.uf.off = 0; await adminLoad(); return; }
+      else if (a === "usearch") { CLUB.uf.q = v("uq").value; CLUB.uf.off = 0; await adminLoad(); return; }
+      else if (a === "upage") { CLUB.uf.off = Math.max(0, CLUB.uf.off + 30 * +b.dataset.d); await adminLoad(); return; }
+      else if (a === "uopen" || a === "uopen2") { CLUB.av = "users"; CLUB.ud = b.dataset.id; await adminLoad(); return; }
+      else if (a === "uback") { CLUB.ud = null; await adminLoad(); return; }
+      else if (a === "grant") { const r = await post("/api/admin/grant", { id: b.dataset.id, coins: v("gc").value, xp: v("gx").value, level: v("gl").value, note: v("gn").value }); haptic("ok"); say("✅ " + r.lines.join(" · ")); await adminLoad(); return; }
       else if (a === "apf") { CLUB.appF[b.dataset.k] = b.dataset.v; await adminLoad(); return; }
       else if (a === "appdec") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: b.dataset.ok ? "accept" : "reject" }); say("✅"); await adminLoad(); return; }
       else if (a === "appassign") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: "assign", dept: v("asd" + b.dataset.id).value }); say("✅ 🏢"); await adminLoad(); return; }

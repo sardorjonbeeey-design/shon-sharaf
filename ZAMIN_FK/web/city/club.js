@@ -442,6 +442,89 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   });
   route("/api/admin/application/decide", decideApp, true);
 
+  // ---------- admin: users, activity, mission completions, manual grants ----------
+  const DAY0 = "(date_trunc('day', now() at time zone 'Asia/Tashkent') at time zone 'Asia/Tashkent')";
+  const LAST = `greatest(m.joined_at, w.updated_at, h.updated_at,
+    (select max(at) from xp_log where tg_id = m.tg_id), (select max(at) from ledger where tg_id = m.tg_id), (select max(at) from mission_claims where tg_id = m.tg_id))`;
+  const USERS_FROM = `from members m left join wallets w on w.tg_id = m.tg_id left join homes h on h.tg_id = m.tg_id`;
+  const bad = (msg, status = 400) => Object.assign(new Error(msg), { status });
+  route("/api/admin/users", async (user, b) => {
+    await ready;
+    const q = String(b.q || "").trim().slice(0, 40), f = String(b.filter || "all"), off = Math.max(0, Number(b.offset) | 0);
+    const args = [], where = [];
+    if (q) { args.push("%" + q.toLowerCase().replace(/^@/, "") + "%"); where.push(`(lower(m.nick) like $${args.length} or lower(coalesce(m.tg_username,'')) like $${args.length} or m.tg_id::text like $${args.length} or ('zfk-' || lpad(m.member_no::text, 5, '0')) like $${args.length})`); }
+    if (f === "active") where.push(`${LAST} > now() - interval '7 days'`);
+    if (f === "today") where.push(`${LAST} > now() - interval '24 hours'`);
+    if (f === "inactive") where.push(`${LAST} <= now() - interval '7 days'`);
+    if (f === "nohome") where.push("h.tg_id is null");
+    const order = { coins: "coalesce(w.coins,0) desc", xp: "m.xp desc", new: "m.joined_at desc", level: "coalesce(h.level,0) desc" }[b.sort] || `${LAST} desc nulls last`;
+    const rows = (await db.query(`select m.tg_id, m.member_no, m.nick, m.tg_username, m.xp, m.joined_at, coalesce(w.coins,0)::int as coins, h.level as home, ${LAST} as last_at,
+      (select count(*)::int from mission_claims mc where mc.tg_id = m.tg_id and mc.at >= ${DAY0}) as today
+      ${USERS_FROM} ${where.length ? "where " + where.join(" and ") : ""} order by ${order} limit 30 offset ${off}`, args)).rows;
+    const stats = (await db.query(`select count(*)::int as total,
+      count(*) filter (where ${LAST} > now() - interval '24 hours')::int as d1,
+      count(*) filter (where ${LAST} > now() - interval '7 days')::int as d7,
+      count(*) filter (where ${LAST} <= now() - interval '7 days')::int as idle,
+      count(*) filter (where m.joined_at > now() - interval '24 hours')::int as new1,
+      coalesce(sum(w.coins),0)::bigint as coins ${USERS_FROM}`)).rows[0];
+    const doneToday = (await db.query(`select count(distinct tg_id)::int as n from mission_claims where at >= ${DAY0}`)).rows[0].n;
+    return { rows, stats: { ...stats, doneToday }, more: rows.length === 30 };
+  }, true);
+
+  route("/api/admin/user", async (user, b) => {
+    await ready; const id = String(Number(b.id) || 0);
+    const m = (await db.query(`select m.*, w.coins, w.streak, w.earned, h.level as home, h.car, ${LAST} as last_at ${USERS_FROM} where m.tg_id = $1`, [id])).rows[0];
+    if (!m) throw bad("not found", 404);
+    const rank = (await db.query("select count(*)::int + 1 as r from members where xp > $1", [m.xp])).rows[0].r;
+    const claims = (await db.query("select mc.at, mc.xp, ms.title from mission_claims mc left join missions ms on ms.id = mc.mission_id where mc.tg_id = $1 order by mc.at desc limit 15", [id])).rows;
+    const ledger = (await db.query("select delta, reason, at from ledger where tg_id = $1 order by id desc limit 12", [id])).rows;
+    const shifts = (await db.query("select count(*)::int as n, coalesce(sum(earned),0)::int as earned from shifts where tg_id = $1", [id])).rows[0];
+    const apps = (await db.query("select kind, role, status, created_at from applications where tg_id = $1 order by id desc limit 5", [id]).catch(() => ({ rows: [] }))).rows;
+    return { member: { id: supporterId(m.member_no), tg_id: m.tg_id, nick: m.nick, username: m.tg_username, joined: m.joined_at, xp: m.xp, influence: m.influence, tier: tierOf(m.xp), rank, dept: m.dept, seat_no: m.seat_no,
+      coins: m.coins || 0, streak: m.streak || 0, earned: m.earned || 0, home: m.home || 0, car: m.car || 0, last_at: m.last_at }, claims, ledger, shifts, apps };
+  }, true);
+
+  // who finished which mission (today / last 7 days)
+  route("/api/admin/missions/status", async () => {
+    await ready;
+    const rows = (await db.query(`select ms.id, ms.title, ms.period, ms.xp,
+      count(mc.tg_id) filter (where mc.at >= ${DAY0})::int as today, count(mc.tg_id) filter (where mc.at >= now() - interval '7 days')::int as week,
+      coalesce(json_agg(json_build_object('nick', m.nick, 'tg_id', m.tg_id, 'at', mc.at) order by mc.at desc) filter (where mc.at >= now() - interval '2 days'), '[]') as recent
+      from missions ms left join mission_claims mc on mc.mission_id = ms.id left join members m on m.tg_id = mc.tg_id where ms.active group by ms.id order by ms.period, ms.sort, ms.id`)).rows;
+    return { missions: rows, total: (await db.query("select count(*)::int as n from members")).rows[0].n };
+  }, true);
+
+  // manual grant: coins (+/-), home level, Fan XP — logged, and the user is told in the bot
+  route("/api/admin/grant", async (user, b) => {
+    await ready; const id = String(Number(b.id) || 0);
+    const coins = Math.trunc(Number(b.coins) || 0), xp = Math.trunc(Number(b.xp) || 0), level = b.level === "" || b.level == null ? null : Math.trunc(Number(b.level));
+    if (Math.abs(coins) > 100000 || Math.abs(xp) > 100000) throw bad("too big");
+    if (level != null && (level < 1 || level > 7)) throw bad("level 1-7");
+    if (!coins && !xp && level == null) throw bad("nothing to grant");
+    const out = await tx(async c => {
+      const m = await one(c, "select tg_id, nick from members where tg_id = $1 for update", [id]);
+      if (!m) throw bad("not found", 404);
+      const res = { nick: m.nick, lines: [] };
+      if (coins) {
+        const w = await one(c, "insert into wallets (tg_id, coins) values ($1, greatest($2::int, 0)) on conflict (tg_id) do update set coins = greatest(wallets.coins + $2::int, 0), updated_at = now() returning coins", [id, coins]);
+        await c.query("insert into ledger (tg_id, delta, reason) values ($1,$2,$3)", [id, coins, "admin:" + user.id]);
+        res.coins = w.coins; res.lines.push(`${coins > 0 ? "+" : ""}${coins} 🪙`);
+      }
+      if (xp) { await c.query("update members set xp = greatest(xp + $2, 0) where tg_id = $1", [id, xp]); await c.query("insert into xp_log (tg_id, xp, reason) values ($1,$2,$3)", [id, xp, "admin:" + user.id]); res.lines.push(`${xp > 0 ? "+" : ""}${xp} Fan XP ⭐`); }
+      if (level != null) {
+        const h = await one(c, "update homes set level = $2, updated_at = now(), upgraded_at = now() where tg_id = $1 returning level", [id, level]);
+        if (!h) throw bad("user has no house", 409);
+        res.level = h.level; res.lines.push(`🏠 uy ${level}-daraja`);
+      }
+      return res;
+    });
+    cache = null;
+    const note = b.note ? "\n\n" + bot.esc(String(b.note).slice(0, 200)) : "";
+    bot.api("sendMessage", { chat_id: id, text: "🎁 <b>ZAMIN FK sizga sovg‘a yubordi!</b>\n" + out.lines.join("\n") + note, parse_mode: "HTML" }).catch(() => {});
+    try { bot.log && bot.log("🎁 Admin grant", { Admin: String(user.id), Kimga: out.nick + " (" + id + ")", Berildi: out.lines.join(", ") }); } catch (e) {}
+    return { ok: true, ...out };
+  }, true);
+
   // feedback sent to the bot (/feedback)
   route("/api/admin/feedback", async (user, body) => {
     await ready;
