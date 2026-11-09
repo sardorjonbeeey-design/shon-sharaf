@@ -69,7 +69,7 @@ function playerSvg(d) {
 }
 
 function vipSvg(d) {
-  const W = 1280, H = 800, R = 56, name = fit(d.name, 16), role = fit(d.role, 32);
+  const W = 1280, H = 800, R = 56, name = fit(d.name, 20), role = fit(d.role, 32);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16213f"/><stop offset=".5" stop-color="#0b1330"/><stop offset="1" stop-color="#05091a"/></linearGradient>
@@ -95,7 +95,7 @@ function vipSvg(d) {
   <circle cx="230" cy="300" r="128" fill="url(#gold)"/><circle cx="230" cy="300" r="120" fill="#0d2557"/>
   ${d.photo ? `<image href="${d.photo}" x="112" y="182" width="236" height="236" preserveAspectRatio="xMidYMid slice" clip-path="url(#ph)"/>`
     : `<text x="230" y="340" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="120" fill="url(#gold)">${initial(d.name)}</text>`}
-  <text x="400" y="290" font-family="Montserrat" font-weight="900" font-size="${name.length > 12 ? 52 : 64}" fill="#fff">${esc(name)}</text>
+  <text x="400" y="290" font-family="Montserrat" font-weight="900" font-size="${name.length > 15 ? 46 : name.length > 12 ? 54 : 64}" fill="#fff">${esc(name)}</text>
   <text x="402" y="336" font-family="Montserrat" font-weight="700" font-size="26" fill="#9DB8FF">${esc(d.username || "")}</text>
   <rect x="400" y="362" width="${role.length * 15.5 + 58}" height="50" rx="25" fill="#ffffff" fill-opacity=".08" stroke="#FFD23F" stroke-opacity=".6" stroke-width="2"/>
   <text x="428" y="396" font-family="Montserrat" font-weight="800" font-size="25" letter-spacing="1" fill="#FFD23F">${esc(role)}</text>
@@ -103,9 +103,11 @@ function vipSvg(d) {
   <text x="96" y="532" font-family="Montserrat" font-weight="700" font-size="22" letter-spacing="5" fill="#9DB8FF">BALANS</text>
   <circle cx="122" cy="608" r="26" fill="url(#gold)"/><circle cx="122" cy="608" r="18" fill="none" stroke="#B8860B" stroke-width="3"/>
   <text x="166" y="632" font-family="Montserrat" font-weight="900" font-size="78" fill="#fff">${fmt(d.balance)}<tspan dx="18" font-weight="800" font-size="30" fill="#FFD23F">tanga</tspan></text>
-  <text x="1184" y="560" text-anchor="end" font-family="Montserrat" font-weight="700" font-size="20" letter-spacing="5" fill="#9DB8FF">A’ZO RAQAMI</text>
-  <text x="1184" y="604" text-anchor="end" font-family="Montserrat" font-weight="800" font-size="36" letter-spacing="4" fill="#fff">${esc(d.id)}</text>
-  <text x="1184" y="650" text-anchor="end" font-family="Montserrat" font-weight="700" font-size="20" letter-spacing="3" fill="#5E7BD6">${esc(d.since)}</text>
+  ${d.rank ? `<text x="1184" y="532" text-anchor="end" font-family="Montserrat" font-weight="700" font-size="22" letter-spacing="5" fill="#9DB8FF">REYTING</text>
+  <text x="1184" y="632" text-anchor="end" font-family="Montserrat" font-weight="900" font-size="84" fill="url(#gold)">#${esc(d.rank)}</text>
+  <text x="1184" y="672" text-anchor="end" font-family="Montserrat" font-weight="700" font-size="20" letter-spacing="2" fill="#5E7BD6">${fmt(d.of)} a’zo ichida</text>` : ""}
+  <text x="1184" y="192" text-anchor="end" font-family="Montserrat" font-weight="800" font-size="24" letter-spacing="3" fill="#fff">${esc(d.id)}</text>
+  <text x="1184" y="222" text-anchor="end" font-family="Montserrat" font-weight="700" font-size="17" letter-spacing="2" fill="#5E7BD6">${esc(d.since)}</text>
 </svg>`;
 }
 
