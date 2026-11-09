@@ -6,7 +6,7 @@ const MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avg
 const POS = { GK: "Darvozabon", DEF: "Himoyachi", MID: "Yarim himoyachi", FWD: "Hujumchi" };
 const ovrOf = xp => Math.min(99, 50 + Math.floor(Math.sqrt(Math.max(0, xp))));
 
-function init({ db, bot, club }) {
+function init({ db, bot, club, led }) {
   const { api, esc, who, WEBAPP_URL, BOT_TOKEN, TG_API } = bot;
   const q = (sql, a) => db.query(sql, a).then(r => r.rows);
   const one = async (sql, a) => (await q(sql, a))[0];
@@ -154,7 +154,7 @@ function init({ db, bot, club }) {
       [{ text: `📋 Yangi arizalar (${n.apps})`, callback_data: "adm:apps" }],
       [{ text: `📬 Feedback (${n.fb})`, callback_data: "adm:fb" }],
       [{ text: "📊 Statistika", callback_data: "adm:stats" }],
-      [{ text: "📣 Yangiliklar yuborish", callback_data: "adm:bc" }], ...(appBtn.length ? [appBtn] : [])] } };
+      [{ text: "📣 Yangiliklar yuborish", callback_data: "adm:bc" }], ...(led ? [[{ text: "📺 LED reklama", callback_data: "adm:led" }]] : []), ...(appBtn.length ? [appBtn] : [])] } };
   };
   const KIND = { city: "🏙 Shahar ishi", player: "⚽ Futbolchi", staff: "🧑‍💼 Klub xodimi" };
   const appText = a => [`📋 <b>Ariza #${a.id}</b> — ${KIND[a.kind] || a.kind}`,
@@ -166,6 +166,7 @@ function init({ db, bot, club }) {
 
   async function onAdmin(cb, data) {
     const chat = cb.message.chat.id;
+    if (data === "adm:led") return ledMenu(chat);
     if (data === "adm:bc") return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: "📣 <b>Foydalanuvchilarga xabar</b>\n\nTayyor namunani yuborish uchun tugmani bosing. O‘zingizning matningiz uchun: <code>/xabar</code> va keyin matn.", reply_markup: { inline_keyboard: [[{ text: "📨 Tayyor namunani yuborish", callback_data: "bc:sample" }]] } });
     if (data === "adm:menu") return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, ...(await adminMenu()) });
     if (data === "adm:apps") {
@@ -215,6 +216,60 @@ function init({ db, bot, club }) {
     }
   }
 
+
+  // ---------- LED ads on the pitch-side boards (admin only) ----------
+  const LED_HELP = "📺 <b>LED reklama</b> — stadion maydoni atrofidagi ekranlar.\n\n"
+    + "✍️ Matnli reklama:\n<code>/reklama Matn | #fon | #rang</code>\nMasalan: <code>/reklama Coca-Cola | #e41e26 | #ffffff</code>\n\n"
+    + "🖼 Rasmli reklama: rasmni <b>/reklama</b> izohi bilan yuboring (eng yaxshisi 4:1, masalan 1024×256).\n\n"
+    + "Reklama bo‘lmasa, ekranlarda ZAMIN FK xabarlari ko‘rinadi.";
+  async function ledMenu(chat) {
+    const ads = await led.list();
+    const rows = ads.map(a => [{ text: `🗑 ${a.kind === "image" ? "🖼 Rasm #" + a.id : a.text}`.slice(0, 60), callback_data: "led:del:" + a.id }]);
+    if (ads.length) rows.push([{ text: "♻️ Hammasini o‘chirish", callback_data: "led:clear" }]);
+    rows.push([{ text: "⬅️ Menyu", callback_data: "adm:menu" }]);
+    return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: `${LED_HELP}\n\nHozir: ${ads.length}/${led.MAX_ADS} ta reklama. O‘chirish uchun bosing:`, reply_markup: { inline_keyboard: rows } });
+  }
+  const ledErr = e => e.message === "full" ? `Ko‘pi bilan ${led.MAX_ADS} ta reklama. Avval bittasini o‘chiring: /reklamalar` : e.message === "empty" ? "Matn bo‘sh. Masalan: /reklama Coca-Cola | #e41e26 | #ffffff" : "Xato: " + e.message;
+  async function ledPhoto(msg) {
+    const p = msg.photo.reduce((b, x) => Math.abs(x.width - 1280) < Math.abs(b.width - 1280) ? x : b);
+    const f = await api("getFile", { file_id: p.file_id });
+    const r = await fetch(`${TG_API}/file/bot${BOT_TOKEN}/${f.file_path}`);
+    if (!r.ok) throw new Error("download " + r.status);
+    return led.addImage(msg.from.id, Buffer.from(await r.arrayBuffer()), "image/jpeg");
+  }
+  async function onLed(cb, data) {
+    const chat = cb.message.chat.id;
+    if (data === "led:clear") { await led.clear(); return api("sendMessage", { chat_id: chat, text: "♻️ Barcha reklamalar o‘chirildi. Ekranlarda ZAMIN FK xabarlari." }); }
+    const id = data.split(":")[2];
+    await led.remove(id);
+    return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, parse_mode: "HTML", text: `🗑 Reklama #${esc(id)} o‘chirildi.`, reply_markup: { inline_keyboard: [[{ text: "📺 Reklamalar", callback_data: "adm:led" }]] } });
+  }
+
+
+  // FIFA card of an accepted player, for taps on the pitch (public: only accepted players, cached 10 min)
+  const pubCards = new Map();
+  async function playerCardPng(appId) {
+    const k = Number(appId) | 0, c = pubCards.get(k);
+    if (c && Date.now() - c.at < 10 * 60e3) return c.png;
+    const p = await one(`select * from applications where id = $1 and kind = 'player' and status = 'accepted'`, [k]);
+    if (!p) return null;
+    const m = await one(`select * from members where tg_id = $1`, [String(p.tg_id)]);
+    const xp = (m && m.xp) || 0, id = String(p.tg_id);
+    const wk = await one(`select coalesce(sum(xp), 0)::int as v from xp_log where tg_id = $1 and at > now() - interval '7 days'`, [id]);
+    const days = await one(`select count(distinct (at at time zone 'Asia/Tashkent')::date)::int as v from
+      (select at from xp_log where tg_id = $1 union all select at from ledger where tg_id = $1) x`, [id]);
+    const rank = await one(`select count(distinct a.tg_id)::int + 1 as v from applications a join members mm on mm.tg_id = a.tg_id
+      where a.kind = 'player' and a.status in ('new','accepted') and mm.xp > $1`, [xp]);
+    const t = club.tierOf(xp);
+    const png = await cards.playerPng({
+      name: p.name || (m ? m.nick.replace(/^@/, "") : p.nick), pos: p.position || "—", ovr: ovrOf(xp), ovrDelta: ovrOf(xp) - ovrOf(xp - wk.v), stage: p.status,
+      rank: rank.v, weekXp: wk.v, totalXp: xp, days: days.v, id: m ? club.supporterId(m.member_no) : "", photo: await profilePhoto(p.tg_id),
+      goal: t.next ? t.next - t.from : 1, goalHave: t.next ? xp - t.from : 1,
+      goalText: t.next ? `Keyingi daraja (${club.TIERS[t.i + 1][1]}): ${t.next - xp} XP` : "Eng yuqori daraja!" });
+    pubCards.set(k, { at: Date.now(), png });
+    return png;
+  }
+
   // Returns an async job for updates this module handles, or null (then the normal bot reply runs).
   function match(update) {
     const msg = update && update.message, cb = update && update.callback_query;
@@ -225,6 +280,22 @@ function init({ db, bot, club }) {
       if (/^\/xabar(@\w+)?\s+[\s\S]{10,}$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
         return bcPreview(msg.chat.id, msg.from.id, t.replace(/^\/xabar(@\w+)?\s+/i, "").slice(0, 1500));
+      };
+      if (led && msg.photo && /^\/?reklama\b/i.test(String(msg.caption || "").trim())) return async () => {
+        if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
+        try { const id = await ledPhoto(msg); return api("sendMessage", { chat_id: msg.chat.id, text: `✅ Rasmli reklama #${id} qo‘shildi. Stadion ekranlarida 1–5 daqiqada ko‘rinadi. /reklamalar` }); }
+        catch (e) { return api("sendMessage", { chat_id: msg.chat.id, text: ledErr(e) }); }
+      };
+      if (led && /^\/reklamalar(@\w+)?$/i.test(t)) return async () => {
+        if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
+        return ledMenu(msg.chat.id);
+      };
+      if (led && /^\/reklama(@\w+)?(\s|$)/i.test(t)) return async () => {
+        if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
+        const line = t.replace(/^\/reklama(@\w+)?\s*/i, "");
+        if (!line) return api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: LED_HELP });
+        try { const id = await led.addText(msg.from.id, line); return api("sendMessage", { chat_id: msg.chat.id, text: `✅ Reklama #${id} qo‘shildi. Stadion ekranlarida 1–5 daqiqada ko‘rinadi. /reklamalar` }); }
+        catch (e) { return api("sendMessage", { chat_id: msg.chat.id, text: ledErr(e) }); }
       };
       if (/^\/admin(@\w+)?$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
@@ -249,6 +320,11 @@ function init({ db, bot, club }) {
             await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true;
             return await onBroadcast(cb, data);
           }
+          if (led && /^led:/.test(data)) {
+            if (!isAdmin(cb.from.id)) { answered = true; return api("answerCallbackQuery", { callback_query_id: cb.id, text: "Faqat adminlar uchun", show_alert: true }); }
+            await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true;
+            return await onLed(cb, data);
+          }
           if (/^(adm|ap|fb):/.test(data)) {
             if (!isAdmin(cb.from.id)) { answered = true; return api("answerCallbackQuery", { callback_query_id: cb.id, text: "Faqat adminlar uchun", show_alert: true }); }
             if (!data.startsWith("ap:")) { await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true; }
@@ -259,6 +335,6 @@ function init({ db, bot, club }) {
     }
     return null;
   }
-  return { match, sendCard };
+  return { match, sendCard, playerCardPng };
 }
 module.exports = { init, ovrOf };

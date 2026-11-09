@@ -448,6 +448,58 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     (select max(at) from xp_log where tg_id = m.tg_id), (select max(at) from ledger where tg_id = m.tg_id), (select max(at) from mission_claims where tg_id = m.tg_id))`;
   const USERS_FROM = `from members m left join wallets w on w.tg_id = m.tg_id left join homes h on h.tg_id = m.tg_id`;
   const bad = (msg, status = 400) => Object.assign(new Error(msg), { status });
+  // everyone who applied, by profession (players with position), newest last within a group
+  route("/api/admin/professions", async () => {
+    await ready;
+    return (await db.query(`select a.id, a.kind, a.status, coalesce(nullif(a.name,''), m.nick, a.nick) as name, coalesce(m.nick, a.nick) as nick, m.tg_username,
+        a.age, a.position, a.height, a.dept, a.role, m.member_no, a.tg_id, a.created_at
+      from applications a left join members m on m.tg_id = a.tg_id where a.status <> 'rejected' order by a.kind, a.position nulls last, (a.status = 'accepted') desc, a.created_at`)).rows;
+  }, true);
+
+  // admin sets a role directly (no application needed), edits it, or removes it.
+  // body: { tg_id, kind: player|staff|city, action: set|remove, position, name, dept, role }
+  route("/api/admin/role", async (user, b) => tx(async c => {
+    const tg = String(Number(b.tg_id) || 0), kind = String(b.kind || ""), action = b.action === "remove" ? "remove" : "set";
+    if (!APP_KINDS.includes(kind)) throw fail(400, "kind");
+    const m = await one(c, "select tg_id, nick from members where tg_id = $1", [tg]);
+    if (!m) throw fail(404, "user");
+    const cur = await one(c, "select * from applications where tg_id = $1 and kind = $2 and status = 'accepted' order by decided_at desc nulls last, id desc limit 1 for update", [tg, kind]);
+    if (action === "remove") {
+      if (!cur) throw fail(404, "role");
+      await c.query("update applications set status = 'removed', decided_at = now(), decided_by = $3 where tg_id = $1 and kind = $2 and status = 'accepted'", [tg, kind, String(user.id)]);
+      if (kind === "city") await c.query("update members set profession = null, profession_at = now() where tg_id = $1", [tg]);
+      cache = null;
+      c.after.push(() => bot.log("🚫 Rol olib tashlandi", { "Admin": bot.who(user), "Kim": `${m.nick} (${tg})`, "Turi": kind }));
+      return { ok: true };
+    }
+    const position = kind === "player" ? (POSITIONS.includes(b.position) ? b.position : (cur && cur.position) || "MID") : null;
+    const dept = CLUB_DEPTS.includes(b.dept) ? b.dept : (cur && cur.dept) || null;
+    const name = String(b.name || "").trim().slice(0, 40) || (cur && cur.name) || m.nick.replace(/^@/, "");
+    const role = kind === "city" ? String(b.role || (cur && cur.role) || "").trim().slice(0, 40) : kind === "player" ? "Futbolchi" : "Xodim";
+    if (kind === "city" && !role) throw fail(400, "role");
+    let id;
+    if (cur) {
+      await c.query("update applications set position = $2, dept = $3, name = $4, role = $5 where id = $1", [cur.id, position, dept, name, role]);
+      id = cur.id;
+    } else {
+      id = (await one(c, `insert into applications (tg_id, nick, role, note, kind, name, position, dept, status, decided_at, decided_by)
+        values ($1, $2, $3, 'admin', $4, $5, $6, $7, 'accepted', now(), $8) returning id`, [tg, m.nick, role, kind, name, position, dept, String(user.id)])).id;
+    }
+    if (kind === "city") {
+      await c.query("update applications set status = 'replaced' where tg_id = $1 and kind = 'city' and status = 'accepted' and id <> $2", [tg, id]);
+      await c.query("update members set profession = $2, profession_at = now() where tg_id = $1", [tg, role]);
+    }
+    if (dept && kind !== "city") await c.query("update members set dept = $2, dept_at = now() where tg_id = $1", [tg, dept]);
+    cache = null;
+    c.after.push(() => bot.log(cur ? "✏️ Rol o‘zgartirildi" : "⭐ Rol berildi", { "Admin": bot.who(user), "Kim": `${m.nick} (${tg})`, "Turi": kind, "Ism": name, "Pozitsiya": position || "", "Bo‘lim": dept || "", "Kasb": kind === "city" ? role : "" }));
+    if (!cur) {
+      const what = kind === "player" ? "futbolchi" : kind === "staff" ? "klub xodimi" : role;
+      const text = `✅ <b>Tabriklaymiz!</b> Zamin FK ga ${what} sifatida qabul qilindingiz.` + (kind === "player" ? "\n⚽ Endi siz jamoa tarkibidasiz — stadionda mashg‘ulotda ko‘rinasiz!" : "");
+      c.after.push(() => bot.api("sendMessage", { chat_id: tg, text, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)));
+    }
+    return { ok: true, id };
+  }), true);
+
   route("/api/admin/users", async (user, b) => {
     await ready;
     const q = String(b.q || "").trim().slice(0, 40), f = String(b.filter || "all"), off = Math.max(0, Number(b.offset) | 0);
@@ -480,8 +532,9 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     const ledger = (await db.query("select delta, reason, at from ledger where tg_id = $1 order by id desc limit 12", [id])).rows;
     const shifts = (await db.query("select count(*)::int as n, coalesce(sum(earned),0)::int as earned from shifts where tg_id = $1", [id])).rows[0];
     const apps = (await db.query("select kind, role, status, created_at from applications where tg_id = $1 order by id desc limit 5", [id]).catch(() => ({ rows: [] }))).rows;
+    const roles = (await db.query("select distinct on (kind) id, kind, name, position, dept, role from applications where tg_id = $1 and status = 'accepted' order by kind, decided_at desc nulls last, id desc", [id]).catch(() => ({ rows: [] }))).rows;
     return { member: { id: supporterId(m.member_no), tg_id: m.tg_id, nick: m.nick, username: m.tg_username, joined: m.joined_at, xp: m.xp, influence: m.influence, tier: tierOf(m.xp), rank, dept: m.dept, seat_no: m.seat_no,
-      coins: m.coins || 0, streak: m.streak || 0, earned: m.earned || 0, home: m.home || 0, car: m.car || 0, last_at: m.last_at }, claims, ledger, shifts, apps };
+      coins: m.coins || 0, streak: m.streak || 0, earned: m.earned || 0, home: m.home || 0, car: m.car || 0, last_at: m.last_at }, claims, ledger, shifts, apps, roles, depts: DEPTS.map(d => ({ id: d[0], name: d[2] })) };
   }, true);
 
   // who finished which mission (today / last 7 days)

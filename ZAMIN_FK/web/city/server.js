@@ -170,7 +170,18 @@ require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READ
 // Supporter Portal: membership, permanent seats, Fan XP, departments, missions, referrals, admin (club.js)
 const CLUB = require("./club").init({ app, db, auth, bot, nickOf, ready: () => Promise.all([DB_READY, mem.econReady]) });
 // Bot screens: /karta (player / VIP card image), /admin (applications, feedback, stats) — Postgres only
-if (db) bot.setAsyncHandler(require("./botui").init({ db, bot, club: CLUB }).match);
+const LED = db ? require("./led").init({ app, db }) : null;
+const UI = db ? require("./botui").init({ db, bot, club: CLUB, led: LED }) : null;
+if (UI) bot.setAsyncHandler(UI.match);
+// FIFA card of an accepted player (tap on the pitch); the static stadium site reads it too
+app.get("/api/card/:id", async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  try {
+    const png = UI && await UI.playerCardPng(req.params.id);
+    if (!png) return res.sendStatus(404);
+    res.set("Content-Type", "image/png").set("Cache-Control", "public, max-age=600").send(png);
+  } catch (e) { console.error("card", e.message); res.sendStatus(500); }
+});
 
 // One stadium seat per Telegram user. An Instagram nick links the seat to that follower (first claim wins).
 app.post("/api/seat", async (req, res) => {
