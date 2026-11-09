@@ -1,0 +1,24 @@
+1
+00:00:00,250 --> 00:00:03,554
+SIZ TANLADINGIZ: DOSTON!
+
+2
+00:00:03,554 --> 00:00:09,888
+Sherzod emas — DOSTON. Rahmat, har bir ovoz uchun.
+
+3
+00:00:09,888 --> 00:00:16,458
+Klub fondi: 20 085 000 so‘m (virtual)
+
+4
+00:00:16,458 --> 00:00:23,994
+@zaminfk_bot — jamoaga qo‘shiling yoki shaharda ish toping
+
+5
+00:00:23,994 --> 00:00:29,048
+Qaysi klubga qarshi o‘rtoqlik o‘yini o‘tkazaylik?
+
+6
+00:00:29,048 --> 00:00:35,289
+Ertaga echkiga nima bo‘ldi? Klub nomini yozing!
+
