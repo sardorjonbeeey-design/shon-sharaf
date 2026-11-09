@@ -69,15 +69,29 @@ function init({ db, bot, club }) {
         goalText: t.next ? `Keyingi daraja (${club.TIERS[t.i + 1][1]}): ${t.next - xp} XP` : "Eng yuqori daraja!" }),
         caption: `⚽ <b>${esc(p.name || tgName)}</b> — futbolchi kartangiz\n${p.status === "accepted" ? "✅ Asosiy tarkibda" : "⏳ Sinovda — ariza ko‘rib chiqilmoqda"} · ${POS[p.position] || ""}\n\nXP ilovada ishlash, missiyalar va hissalar orqali yig‘iladi.` };
     }
+    const rk = await one(`select (select count(*)::int from members where xp > $1 or (xp = $1 and member_no < $2)) + 1 as rank,
+      (select count(*)::int from members) as total`, [m.xp || 0, m.member_no]);
     const dept = m.dept && (club.DEPTS.find(d => d[0] === m.dept) || [])[2];
     const role = m.profession || dept || "Muxlis";
     const j = new Date(m.joined_at);
     return { kind: "vip", png: cards.vipPng({
       name: tgName, username: user.username ? "@" + user.username : "", role: `${role} · ${club.tierOf(m.xp || 0).name}`,
-      balance: m.coins, id: sid, since: `A’zo: ${j.getDate()}-${MONTHS[j.getMonth()]} ${j.getFullYear()}`, photo }),
-      caption: `🪪 <b>${esc(tgName)}</b> — Zamin FK a’zolik kartangiz\n🪙 Balans: <b>${m.coins}</b> tanga` };
+      balance: m.coins, rank: rk.rank, of: rk.total, id: sid, since: `A’zo: ${j.getDate()}-${MONTHS[j.getMonth()]} ${j.getFullYear()}`, photo }),
+      caption: `🪪 <b>${esc(tgName)}</b> — Zamin FK a’zolik kartangiz\n🪙 Balans: <b>${m.coins}</b> tanga\n🏆 Reyting: <b>#${rk.rank}</b> / ${rk.total} (XP bo‘yicha)` };
   }
-  const cardKb = { inline_keyboard: [[{ text: "🔄 Yangilash", callback_data: "card:re" }, ...appBtn]] };
+  const cardKb = { inline_keyboard: [[{ text: "🔄 Yangilash", callback_data: "card:re" }, { text: "🏆 Reyting", callback_data: "top" }], ...(appBtn.length ? [appBtn] : [])] };
+
+  // leaderboard: top 10 members by XP + my place
+  const MEDAL = ["🥇", "🥈", "🥉"];
+  async function topText(user) {
+    const top = await q("select tg_id, nick, xp from members order by xp desc, member_no asc limit 10");
+    const me = await one(`select m.xp, (select count(*)::int from members x where x.xp > m.xp or (x.xp = m.xp and x.member_no < m.member_no)) + 1 as rank,
+      (select count(*)::int from members) as total from members m where m.tg_id = $1`, [String(user.id)]);
+    const lines = top.map((t, i) => `${MEDAL[i] || (i + 1) + "."} ${String(t.tg_id) === String(user.id) ? "<b>" + esc(t.nick) + " (siz)</b>" : esc(t.nick)} — ${t.xp} XP`);
+    return `🏆 <b>Zamin FK reytingi</b> (XP bo‘yicha)\n\n${lines.join("\n") || "Hali hech kim yo‘q"}` +
+      (me ? `\n\n📍 Sizning o‘rningiz: <b>#${me.rank}</b> / ${me.total} · ${me.xp} XP` : "") +
+      `\n\nXP: ilovada ishlash, missiyalar, hissalar va do‘st taklif qilish orqali.`;
+  }
 
   async function sendCard(chatId, user) {
     if (!cards.ok()) return api("sendMessage", { chat_id: chatId, text: "Karta hozircha mavjud emas." });
@@ -164,6 +178,7 @@ function init({ db, bot, club }) {
     if (msg && msg.from && msg.chat && msg.chat.type === "private") {
       const t = String(msg.text || "").trim();
       if (/^\/(karta|card)(@\w+)?$/i.test(t)) return () => sendCard(msg.chat.id, msg.from);
+      if (/^\/(reyting|top)(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: await topText(msg.from) });
       if (/^\/admin(@\w+)?$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
         return api("sendMessage", { chat_id: msg.chat.id, ...(await adminMenu()) });
@@ -177,6 +192,10 @@ function init({ db, bot, club }) {
           if (data === "card:re" || data === "card:new") {
             await api("answerCallbackQuery", { callback_query_id: cb.id, text: data === "card:re" ? "Yangilanmoqda…" : "" }); answered = true;
             return data === "card:re" ? await refreshCard(cb) : await sendCard(cb.message.chat.id, cb.from);
+          }
+          if (data === "top") {
+            await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true;
+            return await api("sendMessage", { chat_id: cb.message.chat.id, parse_mode: "HTML", text: await topText(cb.from) });
           }
           if (/^(adm|ap|fb):/.test(data)) {
             if (!isAdmin(cb.from.id)) { answered = true; return api("answerCallbackQuery", { callback_query_id: cb.id, text: "Faqat adminlar uchun", show_alert: true }); }
