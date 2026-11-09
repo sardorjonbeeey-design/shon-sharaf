@@ -539,15 +539,15 @@ const MAIN = (() => {
 })();
 // ---------- LED boards around the pitch: scrolling club messages ----------
 const LED = (() => {
-  const cv = document.createElement("canvas"); cv.width = 2048; cv.height = 64; const x = cv.getContext("2d");
+  const cv = document.createElement("canvas"); cv.width = 2048; cv.height = 128; const x = cv.getContext("2d");
   const segs = [["#1F4FB8", "#fff", "ZAMIN FK"], ["#0D2557", "#FFD23F", "1 OBUNACHI = 1 O‘RINDIQ"], ["#FFD23F", "#0D2557", "QORATEPA"], ["#0D2557", "#fff", "⚽ ZAMIN FK SHAHRI"]];
-  segs.forEach(([bg, fg, t], i) => { x.fillStyle = bg; x.fillRect(i * 512, 0, 512, 64); x.fillStyle = fg; x.font = "900 34px Montserrat, sans-serif"; x.textAlign = "center"; x.fillText(t, i * 512 + 256, 45); });
+  segs.forEach(([bg, fg, t], i) => { x.fillStyle = bg; x.fillRect(i * 512, 0, 512, 128); x.fillStyle = fg; x.font = "900 " + (t.length > 14 ? 40 : 60) + "px Montserrat, sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(t, i * 512 + 256, 66); });
   const tex = new THREE.CanvasTexture(cv); tex.wrapS = THREE.RepeatWrapping;
   const mat = new THREE.MeshBasicMaterial({ map: tex }), back = new THREE.MeshLambertMaterial({ color: 0x111822 });
   const board = (len, px, pz, ry) => {
-    const geo = new THREE.PlaneGeometry(len, 0.9), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * len / 32);
-    const f = new THREE.Mesh(geo, mat); f.position.set(px, 0.55, pz); f.rotation.y = ry; scene.add(f);
-    const b = new THREE.Mesh(new THREE.BoxGeometry(len, 1, 0.25), back); b.position.set(px, 0.5, pz); b.rotation.y = ry; b.translateZ(-0.14); scene.add(b);
+    const geo = new THREE.PlaneGeometry(len, 2), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * len / 32);
+    const f = new THREE.Mesh(geo, mat); f.position.set(px, 1.15, pz); f.rotation.y = ry; scene.add(f);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(len, 2.2, 0.3), back); b.position.set(px, 1.1, pz); b.rotation.y = ry; b.translateZ(-0.17); scene.add(b);
   };
   const zl = PH / 2 + 3.5, xl = PW / 2 + 4.5;
   board(PW - 4, 0, -zl, 0); board(PW - 4, 0, zl, Math.PI);
