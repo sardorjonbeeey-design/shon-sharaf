@@ -3,7 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18" },
-  "dependencies": { "express": "^4.19.2", "pg": "^8.11.5" }
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  }
 }

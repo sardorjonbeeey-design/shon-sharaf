@@ -169,6 +169,8 @@ app.post("/api/home", async (req, res) => {
 require("./economy").init({ app, db, mem, auth, ensureSeat, ready: () => DB_READY, log: bot.log, who: bot.who });
 // Supporter Portal: membership, permanent seats, Fan XP, departments, missions, referrals, admin (club.js)
 const CLUB = require("./club").init({ app, db, auth, bot, nickOf, ready: () => Promise.all([DB_READY, mem.econReady]) });
+// Bot screens: /karta (player / VIP card image), /admin (applications, feedback, stats) — Postgres only
+if (db) bot.setAsyncHandler(require("./botui").init({ db, bot, club: CLUB }).match);
 
 // One stadium seat per Telegram user. An Instagram nick links the seat to that follower (first claim wins).
 app.post("/api/seat", async (req, res) => {

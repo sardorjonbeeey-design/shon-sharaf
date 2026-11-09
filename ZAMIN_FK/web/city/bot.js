@@ -16,7 +16,7 @@ const HOOK_PATH = "/tg/webhook";
 const SECRET = BOT_TOKEN ? crypto.createHash("sha256").update("zfk-webhook:" + BOT_TOKEN).digest("hex").slice(0, 48) : "";
 const info = { username: "", webhook: "off" };
 
-const esc = s => String(s || "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 const BUTTON = "⚽ Shaharni ochish";
 function welcome(user) {
   const name = esc(user && (user.first_name || user.username) || "do‘stim");
@@ -26,6 +26,7 @@ function welcome(user) {
     `🎟 Stadionda o‘z o‘rindig‘ingizni olasiz\n` +
     `🏠 Shaharda o‘z uyingizni qurasiz\n` +
     `💼 Shaharni birga qurish uchun ishga ariza topshirasiz\n` +
+    `🪪 Kartangiz: /karta\n` +
     `📝 Taklif yoki muammo bo‘lsa: /feedback\n\n` +
     `Boshlash uchun pastdagi tugmani bosing 👇`;
 }
@@ -92,7 +93,7 @@ function replyFor(update) {
   }
   if (!msg || !msg.chat || !isStart(msg.text)) return null;
   const reply = { method: "sendMessage", chat_id: msg.chat.id, text: welcome(msg.from), parse_mode: "HTML" };
-  if (WEBAPP_URL.startsWith("https://")) reply.reply_markup = { inline_keyboard: [[{ text: BUTTON, web_app: { url: WEBAPP_URL } }]] };
+  reply.reply_markup = { inline_keyboard: [...(WEBAPP_URL.startsWith("https://") ? [[{ text: BUTTON, web_app: { url: WEBAPP_URL } }]] : []), [{ text: "🪪 Mening kartam", callback_data: "card:new" }]] };
   return reply;
 }
 
@@ -116,18 +117,25 @@ async function setup() {
       if (wh.url && wh.url !== url && process.env.BOT_WEBHOOK_FORCE !== "1") {
         info.webhook = "foreign"; console.warn(`bot: webhook already points to another URL (${wh.url.replace(/bot\d+:[\w-]+/, "bot***")}); set BOT_WEBHOOK_FORCE=1 to take it over`); return;
       }
-      await api("setWebhook", { url, secret_token: SECRET, allowed_updates: ["message"], max_connections: 20 });
+      await api("setWebhook", { url, secret_token: SECRET, allowed_updates: ["message", "callback_query"], max_connections: 20 });
+      await api("setMyCommands", { commands: [{ command: "start", description: "Boshlash" }, { command: "karta", description: "Mening kartam" }, { command: "feedback", description: "Taklif yoki muammo" }] }).catch(e => console.error("commands", e.message));
+      for (const chat of ADMIN_DM) api("setMyCommands", { scope: { type: "chat", chat_id: chat }, commands: [{ command: "start", description: "Boshlash" }, { command: "karta", description: "Mening kartam" },
+        { command: "admin", description: "Admin panel" }, { command: "feedback", description: "Taklif yoki muammo" }] }).catch(e => console.error("admin commands", e.message));
       info.webhook = "ok"; console.log(`bot: @${info.username} webhook ok -> ${url}`); return;
     } catch (e) { console.error("bot setup", e.message); await new Promise(r => setTimeout(r, 2000 * 2 ** i)); }
   }
   info.webhook = "error";
 }
 
-let startHook = null;
+let startHook = null, asyncHandler = null;
+const setAsyncHandler = fn => { asyncHandler = fn; };     // botui.js: /karta, /admin and inline buttons
 const setStartHook = fn => { startHook = fn; };
 function mount(app) {
   app.post(HOOK_PATH, async (req, res) => {
     if (!SECRET || req.get("X-Telegram-Bot-Api-Secret-Token") !== SECRET) return res.sendStatus(401);
+    let job = null;
+    try { job = asyncHandler && asyncHandler(req.body); } catch (e) { console.error("bot ui", e.message); }
+    if (job) { res.sendStatus(200); Promise.resolve().then(job).catch(e => console.error("bot ui", e.message)); return; }
     let reply = null;
     try { reply = replyFor(req.body); } catch (e) { console.error("bot update", e.message); }
     const msg = req.body && req.body.message, payload = reply && msg && String(msg.text || "").trim().split(/\s+/)[1];
@@ -138,4 +146,4 @@ function mount(app) {
   app.get("/tg/status", (req, res) => res.json({ bot: !!BOT_TOKEN, username: info.username, webhook: info.webhook, webapp: WEBAPP_URL, adminChannel: !!ADMIN_CHANNEL, adminDm: ADMIN_DM.length }));
 }
 
-module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api, initFeedback, log, who, esc };
+module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, setAsyncHandler, api, initFeedback, log, who, esc, WEBAPP_URL, BOT_TOKEN, TG_API };
