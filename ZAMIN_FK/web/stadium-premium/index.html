@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ZAMIN FK Stadium — 3D Viewer</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07111d;color:#edf5ff}
+#view{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}
+.panel{position:fixed;z-index:2;left:18px;top:18px;width:min(340px,calc(100vw - 36px));padding:16px;border:1px solid #ffffff22;border-radius:18px;background:linear-gradient(145deg,#0b1b2deF,#07111de8);backdrop-filter:blur(18px);box-shadow:0 18px 55px #0008}
+.eyebrow{font-size:10px;letter-spacing:.2em;color:#72d6ff;font-weight:800}.title{font-size:20px;font-weight:800;margin:6px 0 3px}.sub{font-size:12px;color:#9fb3c8;margin-bottom:14px;line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.btn{border:1px solid #ffffff26;background:#15283b;color:#eaf5ff;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:700;cursor:pointer}.btn:hover{background:#21415d}.btn.primary{background:#087eaa;border-color:#16b8e9}.btn.active{outline:2px solid #50cfff}.hint{font-size:11px;color:#8fa7bd;line-height:1.5;margin-top:10px}.status{font-size:11px;color:#a9c6dc;margin-top:8px;min-height:16px}
+#help{position:fixed;right:18px;bottom:18px;max-width:290px;padding:12px 14px;border-radius:13px;background:#07111ddc;border:1px solid #ffffff22;color:#c6d7e6;font-size:11px;line-height:1.55;backdrop-filter:blur(12px)}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:#07111d;z-index:5;color:#dceeff;font-weight:700;letter-spacing:.04em}#loading small{display:block;color:#8fa7bd;font-weight:400;text-align:center;margin-top:8px}
+@media(max-width:600px){.panel{left:10px;top:10px;padding:12px}.title{font-size:17px}#help{left:10px;right:10px;bottom:10px;max-width:none}}
+</style>
+</head>
+<body>
+<div id="view"></div>
+<div id="loading">LOADING ZAMIN FK STADIUM<small>Preparing the 3D scene…</small></div>
+<section class="panel">
+  <div class="eyebrow">ZAMIN FK · CITY PROJECT</div>
+  <div class="title">Stadium 3D Experience</div>
+  <div class="sub">Explore the stadium, switch viewpoints, or record a smooth cinematic fly-through.</div>
+  <div class="row">
+    <button class="btn active" id="orbit">Orbit</button><button class="btn" id="walk">Walk view</button>
+  </div>
+  <div class="row">
+    <button class="btn" data-shot="overview">Aerial</button><button class="btn" data-shot="front">Front</button><button class="btn" data-shot="pitch">Pitch</button><button class="btn" data-shot="inside">Inside</button>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="fly">▶ Cinematic fly-through</button><button class="btn" id="stop">Stop</button>
+  </div>
+  <div class="row"><button class="btn" id="fullscreen">⛶ Fullscreen</button><button class="btn" id="reset">Reset camera</button></div>
+  <div class="status" id="status">Loading model…</div>
+  <div class="hint">Orbit: drag to rotate · scroll to zoom · right-drag to pan.<br>Walk: click “Walk view”, then click the scene. Use WASD to move, mouse to look, Esc to exit.</div>
+</section>
+<div id="help">Tip: use <b>Cinematic fly-through</b> for a video-style camera tour. For production use, serve this folder over a local web server.</div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const host=document.querySelector('#view'), status=document.querySelector('#status'), loading=document.querySelector('#loading');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x07111d); scene.fog=new THREE.Fog(0x07111d,80,260);
+const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,1000); camera.position.set(48,34,58);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15; host.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xa8d9ff,0x142033,2.0));
+const key=new THREE.DirectionalLight(0xffedcf,2.4); key.position.set(35,65,25); scene.add(key);
+const fill=new THREE.DirectionalLight(0x3d9fff,1.1); fill.position.set(-45,22,-35); scene.add(fill);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(600,600),new THREE.MeshStandardMaterial({color:0x0b1a24,roughness:.94})); ground.rotation.x=-Math.PI/2; ground.position.y=-.08; scene.add(ground);
+const grid=new THREE.GridHelper(300,100,0x24465b,0x173044); grid.position.y=-.04; scene.add(grid);
+const orbit=new OrbitControls(camera,renderer.domElement); orbit.enableDamping=true; orbit.dampingFactor=.06; orbit.minDistance=5; orbit.maxDistance=180; orbit.target.set(0,5,0);
+const walker=new PointerLockControls(camera,renderer.domElement); let mode='orbit', model=null, box=new THREE.Box3(), center=new THREE.Vector3(), size=new THREE.Vector3(), radius=35, flying=false, flyStart=0, flyDuration=18000;
+const keys={}; addEventListener('keydown',e=>keys[e.code]=true); addEventListener('keyup',e=>keys[e.code]=false);
+function setMode(m){mode=m; flying=false; orbit.enabled=m==='orbit'; if(m==='walk'){status.textContent='Walk mode: click the 3D scene to look around.';} else {walker.unlock();status.textContent='Orbit mode enabled.';} document.querySelector('#orbit').classList.toggle('active',m==='orbit');document.querySelector('#walk').classList.toggle('active',m==='walk');}
+document.querySelector('#orbit').onclick=()=>setMode('orbit'); document.querySelector('#walk').onclick=()=>setMode('walk');
+renderer.domElement.addEventListener('click',()=>{if(mode==='walk'&&!walker.isLocked)walker.lock();});
+walker.addEventListener('lock',()=>status.textContent='Walk mode active · WASD to move · Esc to exit.'); walker.addEventListener('unlock',()=>{if(mode==='walk')status.textContent='Walk mode paused. Click the scene to resume.';});
+function frame(pos,target){camera.position.copy(pos);camera.lookAt(target);orbit.target.copy(target);orbit.update();}
+function shot(name){flying=false;setMode('orbit');const c=center, r=radius; if(name==='overview')frame(c.clone().add(new THREE.Vector3(r*1.55,r*1.25,r*1.65)),c);
+if(name==='front')frame(c.clone().add(new THREE.Vector3(0,r*.48,r*1.85)),c.clone().add(new THREE.Vector3(0,2,0)));
+if(name==='pitch')frame(c.clone().add(new THREE.Vector3(r*.18,r*.45,r*.65)),c.clone().add(new THREE.Vector3(0,1,0)));
+if(name==='inside')frame(c.clone().add(new THREE.Vector3(r*.12,r*.2,r*.12)),c.clone().add(new THREE.Vector3(0,2,-r*.4)));
+}
+document.querySelectorAll('[data-shot]').forEach(b=>b.onclick=()=>shot(b.dataset.shot));
+document.querySelector('#reset').onclick=()=>shot('overview');
+document.querySelector('#stop').onclick=()=>{flying=false;status.textContent='Camera movement stopped.'};
+document.querySelector('#fly').onclick=()=>{setMode('orbit');flying=true;flyStart=performance.now();status.textContent='Cinematic fly-through playing…';};
+document.querySelector('#fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();};
+new GLTFLoader().load('./zamin_fk_stadium.glb',g=>{model=g.scene;scene.add(model);box.setFromObject(model);box.getCenter(center);box.getSize(size);radius=Math.max(size.x,size.y,size.z)*.85; if(!isFinite(radius)||radius<5)radius=35;
+// Center model at the origin for predictable camera controls.
+model.position.sub(center); box.setFromObject(model); box.getCenter(center); box.getSize(size);
+shot('overview'); loading.style.display='none'; status.textContent='Model loaded · '+Math.round(size.x)+' × '+Math.round(size.y)+' × '+Math.round(size.z)+' scene units.';
+},xhr=>{if(xhr.total)status.textContent='Loading model… '+Math.round(xhr.loaded/xhr.total*100)+'%';},err=>{loading.innerHTML='MODEL LOAD FAILED<small>Keep index.html and zamin_fk_stadium.glb in the same folder.</small>';status.textContent='Could not load GLB. Run through a local web server.';console.error(err);});
+function animate(now){requestAnimationFrame(animate);const dt=Math.min(.05,clock.getDelta()); if(mode==='walk'&&walker.isLocked){const speed=18*dt;if(keys.KeyW)walker.moveForward(speed);if(keys.KeyS)walker.moveForward(-speed);if(keys.KeyA)walker.moveRight(-speed);if(keys.KeyD)walker.moveRight(speed);if(keys.Space)camera.position.y+=speed;if(keys.ShiftLeft)camera.position.y-=speed;}
+if(flying&&model){const t=Math.min(1,(now-flyStart)/flyDuration),a=t*Math.PI*2;const p=center.clone().add(new THREE.Vector3(Math.cos(a)*radius*1.45,radius*(.55+.42*Math.sin(t*Math.PI*2)),Math.sin(a)*radius*1.45));camera.position.lerp(p,.035);const target=center.clone().add(new THREE.Vector3(0,Math.sin(t*Math.PI*4)*2,0));camera.lookAt(target);orbit.target.lerp(target,.04);if(t>=1){flying=false;status.textContent='Cinematic fly-through complete.';}}
+if(mode==='orbit')orbit.update();renderer.render(scene,camera);}
+const clock=new THREE.Clock();requestAnimationFrame(animate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+</script>
+</body></html>
