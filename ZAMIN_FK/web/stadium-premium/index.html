@@ -18,7 +18,7 @@
 </head>
 <body>
 <div id="view"></div>
-<div id="loading">LOADING ZAMIN FK STADIUM<small>Preparing the 3D scene…</small></div>
+<div id="loading">LOADING ZAMIN FK STADIUM<small>Preparing the 3D scene… v3</small></div>
 <section class="panel">
   <div class="eyebrow">ZAMIN FK · CITY PROJECT</div>
   <div class="title">Stadium 3D Experience</div>
@@ -95,7 +95,7 @@ const angle=i/fans.length*Math.PI*2;const dist=40+rnd()*20;const x=Math.cos(angl
 createFan(x,z,fans[i],i);
 }
 status.textContent='Model loaded · '+Math.round(size.x)+' × '+Math.round(size.y)+' × '+Math.round(size.z)+' scene units · '+fans.length+' fans';
-},err=>{loading.innerHTML='MODEL LOAD FAILED<small>Keep index.html and zamin_fk_stadium.glb in the same folder.</small>';status.textContent='Could not load GLB. Run through a local web server.';console.error(err);});
+},err=>{loading.innerHTML='MODEL LOAD FAILED (v3-embedded)<small>'+String(err&&err.message||err)+'</small>';status.textContent='Could not load GLB. Run through a local web server.';console.error(err);});
 function animate(now){requestAnimationFrame(animate);const dt=Math.min(.05,clock.getDelta()); if(mode==='walk'&&walker.isLocked){const speed=18*dt;if(keys.KeyW)walker.moveForward(speed);if(keys.KeyS)walker.moveForward(-speed);if(keys.KeyA)walker.moveRight(-speed);if(keys.KeyD)walker.moveRight(speed);if(keys.Space)camera.position.y+=speed;if(keys.ShiftLeft)camera.position.y-=speed;}
 if(flying&&model){const t=Math.min(1,(now-flyStart)/flyDuration),a=t*Math.PI*2;const p=center.clone().add(new THREE.Vector3(Math.cos(a)*radius*1.45,radius*(.55+.42*Math.sin(t*Math.PI*2)),Math.sin(a)*radius*1.45));camera.position.lerp(p,.035);const target=center.clone().add(new THREE.Vector3(0,Math.sin(t*Math.PI*4)*2,0));camera.lookAt(target);orbit.target.lerp(target,.04);if(t>=1){flying=false;status.textContent='Cinematic fly-through complete.';}}
 updateFans(now);
