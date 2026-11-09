@@ -1,0 +1,146 @@
+ZAMIN FK - WHAT IS ALREADY BUILT FOR MAKING VIDEOS (full explanation)
+All video files live on GitHub branch: claude/sleepy-carson-2v4ect, folder ZAMIN_FK/
+Compiled: 2026-11-09
+
+======================================================================
+1. THE PIPELINE IN ONE PICTURE
+======================================================================
+ Vote result + numbers (you)  ->  LEDGER.md (fund, fans, likes)
+        |
+        v
+ Script (Uzbek, 5-6 beats, 35-45 s)         -> 0N_Episode_0N/script.md
+        |
+        v
+ Narration voice per beat (ElevenLabs)      -> voice/01_hook.mp3 ... 06_outro.mp3
+        |
+        v
+ Animation file (scenes, sprites, cards,    -> anim_ep0N.py
+ counters, captions timed to the voice)
+        |
+        v
+ Render: browser draws every frame (1080x1920, 30 fps) -> ffmpeg -> silent MP4
+        |
+        v
+ Mix voice (+ optional whistle / crowd), loudness -14 LUFS -> exports/ZFK_EP0N_dayN.mp4 + .srt
+        |
+        v
+ You watch on phone -> approve -> post to Instagram + TikTok -> write cutoff time
+
+======================================================================
+2. CHARACTERS (ready-made cut-out sprites, transparent PNG)
+======================================================================
+ Folder: 01_Art_Direction/Sprites/   (raw/ = original with background)
+ - rustam_whistle.png, rustam_idle.png  .... Rustam aka, strict coach (blue tracksuit, whistle)
+ - bekzod_celebrate.png, bekzod_smug.png .. Bekzod, striker who celebrates too early
+ - jasur_oneglove.png ...................... Jasur, goalkeeper with one glove
+ - aziz_ball.png ........................... Aziz, calm midfielder with the ball
+ - doston.png / doston_full.png ............ Doston, defender (waist-up / full body)
+ - sherzod.png / sherzod_full.png .......... Sherzod, defender (waist-up / full body)
+ - goat_chew.png, goat_side.png ............ The stadium goat (front chewing / side)
+ - fans/fan2..fan8.png ..................... Generic fans for stands
+ (doston_full / sherzod_full were made 2026-11-09 and are on the live branch)
+ Character master sheet: 03_Approved_Assets/ZFK_RUSTAM_MASTER_V01.png
+ Drafts: 04_Revision_Assets/ (cast sheet, goat, office, stadium, locations, dressing room)
+ Prompt pack used to create them: 01_Art_Direction/ZFK_PROMPT_PACK_V01.md
+
+======================================================================
+3. BACKGROUNDS (scenes)
+======================================================================
+ 02_Episode_01/assets/
+ - BG_stand_empty.png ......... empty old stand
+ - BG_pitch_empty.png ......... empty pitch
+ - BG_dressing_empty.png ...... dressing room
+ - S01_stand_goat.png ......... stand with goat
+ - S02_dressing_team.png ...... team in dressing room
+ - S02_office_fund.png ........ club office / laptop (for fund numbers)
+ - S03_aziz_goat.png, S03_bekzod_celebrates.png, S03_rustam_whistle.png (full scene stills)
+ - S05_stadium_wide.png ....... wide stadium shot
+ 02_Episode_02/assets/
+ - BG_stand_renovated.png ..... NEW renovated stand with LED screen (used from Day 2 on)
+ - comment1-4.jpg, comment_legends.jpg ... screenshots of real comments
+
+======================================================================
+4. BRAND
+======================================================================
+ - Crest (locked): 03_Approved_Assets/ZFK_CREST_MASTER_V01_P.svg / _P_2048.png
+   (+ M1, M2, S variants; spec: 01_Art_Direction/Club_Crest/ZFK_CREST_SPEC_V01.md)
+ - Colours: navy #0D2557, blue #1F4FB8, yellow #FFD23F, white, light blue #9DB8FF.
+ - Font: heavy bold (Montserrat-style), captions word-by-word with yellow highlights.
+
+======================================================================
+5. THE ANIMATION ENGINE (our own, free, no paid video service)
+======================================================================
+ Folder: tools/anim/
+ - engine.html + engine.js: draws one frame at time t in a browser page 1080x1920.
+ - render.js: steps time frame by frame (30 fps), screenshots each frame, pipes to ffmpeg.
+ What it can do (used in every episode):
+ - Backgrounds with slow zoom / pan / focus point / blur.
+ - Sprites (characters) with entry moves: pop, fade, up, slideL, slideR, drop, peekR, stamp
+   and idle moves: bob, hop, sway, shake, chew (goat), talk (goat speaking), pulse.
+ - Labels = any HTML: title text, yellow "chips", cards (fund card, player cards with stats,
+   VS match card), LED screen content, comment screenshots, "+ OBUNA BO'LING" button.
+ - Number counters that roll up (fans, likes, fund).
+ - Word-by-word captions synced to the voice, key words highlighted.
+ Older simpler builder (stills + overlays only): tools/build_episode.py + render_overlays.js.
+ Helper: tools/key_sprite.py = removes magenta/green background -> clean transparent sprite.
+
+======================================================================
+6. VOICE AND SOUND
+======================================================================
+ - Narrator: ElevenLabs voice "SARHAD-SIZ Narrator" (id rwtcHtZgYU6HN2zLNBlf), Uzbek.
+   Backup when ElevenLabs is down: Poyo "elevenlabs-v4-tts".
+ - One MP3 per beat: voice/01_hook.mp3, 02_..., the video timing follows these lengths.
+ - SFX available: 03_Episode_03/sfx/whistle.wav, crowd_bed.wav (not used in final mixes;
+   decision was "narration only").
+ - Final audio: mono, AAC, loudness normalised to -14 LUFS (good for Instagram/TikTok).
+
+======================================================================
+7. EPISODE FILES (one folder per day)
+======================================================================
+ Each folder has: script.md (or blueprint), anim_ep0N.py (the whole video as code),
+ voice/, assets/, exports/ (final MP4, SRT subtitles, story images).
+ - 02_Episode_01: Day 1 (58.8 s) + preview version + blueprint.
+ - 02_Episode_02: Day 2 (45.2 s) + story images (defender vote, top fan).
+ - 03_Episode_03: Day 3 final "goat speaks" (35.1 s) + v1 script/voices.
+ - 04_Episode_04: script only (Paxtakor + bus driver) - its content went into Day 3 final.
+
+======================================================================
+8. RULES / DOCUMENTS USED FOR EVERY VIDEO
+======================================================================
+ - 00_ENGAGEMENT_PRINCIPLES.md: first second works without sound; one question with a one-word
+   answer; say the deadline; one rewatchable detail (goat); always say "virtual";
+   keep text out of the right 150 px and bottom 350 px.
+ - DAILY_RUNBOOK.md: the daily cycle (you send numbers -> I update ledger -> script -> art ->
+   voice -> edit -> you approve and post).
+ - LEDGER.md: all numbers per day (fans, likes, fund, winning comment).
+ - HANDOFF_NEXT_CHAT.md: canon summary for a new chat.
+
+======================================================================
+9. HOW A NEW VIDEO IS MADE (step by step)
+======================================================================
+ 1. You send: winning comment + likes, Instagram + TikTok followers, total likes, post links.
+ 2. I update LEDGER.md (fund = previous + new likes x 15 000).
+ 3. I write script.md: HOOK (result) -> NEWS -> NUMBERS -> NEW PROBLEM -> ONE QUESTION -> OUTRO.
+ 4. I generate the voice lines (ElevenLabs), one file per beat.
+ 5. If a new character/place is needed: generate with Poyo (gpt-image-2.6-fixed, ~1.7 credits
+    each), green/magenta background -> key_sprite.py -> transparent sprite.
+ 6. I copy the last anim_ep0N.py and change scenes, chips, cards, counters, captions.
+ 7. Quick check: render a few still frames (--frames 1,5,12) and look at them.
+ 8. Full render (~2-4 minutes) -> exports/ZFK_EP0N_dayN.mp4 + .srt + caption text.
+ 9. You review on the phone, then post. Also 1-2 story images if needed.
+
+======================================================================
+10. COSTS
+======================================================================
+ - Rendering, animation, captions, mixing: free (runs in this environment).
+ - Voice: ElevenLabs credits (or Poyo TTS) per line.
+ - New images: Poyo ~1.7 credits per picture (only when a new character/scene is needed).
+
+======================================================================
+11. WHAT IS NOT BUILT YET
+======================================================================
+ - Automatic posting to Instagram/TikTok (you post manually).
+ - Reading comments/likes automatically (you send the numbers).
+ - A president character image (president is voice only).
+ - Background music bed in final mixes (SFX exist but are switched off).
+ - Day 4/5 videos after "goat speaks" (bus driver result, Paxtakor match).
