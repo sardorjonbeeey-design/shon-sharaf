@@ -114,8 +114,15 @@ function init({ db, bot, club }) {
   const BC_SAMPLE = "🎉 ZAMIN FK shahrida yangiliklar!\n🏠 Uyingizni 7 darajagacha yaxshilang\n🪙 Kofexonada ishlab tanga toping, kunlik bonus oling\n🛒 Bozordan mashina sotib oling\n⚽ Klub portali: a’zolik kartasi, Fan XP, bo‘limlar, missiyalar\n💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza bering — avtobus haydovchisi ham kerak!\n\nPastdagi tugma orqali oching 👇";
   const bcRecipients = async () => (await q(`select distinct tg_id from (select tg_id from members union select tg_id from homes union select tg_id from seats union select tg_id from wallets) x`)).map(r => String(r.tg_id));
   const bcSend = (chat, text) => api("sendMessage", { chat_id: chat, text: esc(text), parse_mode: "HTML", ...(appBtn.length ? { reply_markup: { inline_keyboard: [appBtn] } } : {}) });
+  async function bcPreview(chat, adminId, text) {
+    pendingBc.set(String(adminId), text);
+    const n = (await bcRecipients()).length;
+    return api("sendMessage", { chat_id: chat, text: `📣 Xabar ko‘rinishi:\n\n${esc(text)}\n\nQabul qiluvchilar: ${n} ta`, parse_mode: "HTML",
+      reply_markup: { inline_keyboard: [[{ text: "🧪 Menga test", callback_data: "bc:test" }, { text: "✅ Hammasiga yuborish", callback_data: "bc:all" }], [{ text: "❌ Bekor", callback_data: "bc:no" }]] } });
+  }
   async function onBroadcast(cb, data) {
     const chat = cb.message.chat.id, text = pendingBc.get(String(cb.from.id));
+    if (data === "bc:sample") return bcPreview(chat, cb.from.id, BC_SAMPLE);
     if (data === "bc:no") { pendingBc.delete(String(cb.from.id)); return api("sendMessage", { chat_id: chat, text: "❌ Bekor qilindi." }); }
     if (!text) return api("sendMessage", { chat_id: chat, text: "Matn topilmadi. /xabar matn bilan qaytadan boshlang." });
     if (data === "bc:test") { await bcSend(chat, text); return api("sendMessage", { chat_id: chat, text: "🧪 Test yuborildi (faqat sizga)." }); }
@@ -159,7 +166,7 @@ function init({ db, bot, club }) {
 
   async function onAdmin(cb, data) {
     const chat = cb.message.chat.id;
-    if (data === "adm:bc") return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: "📣 <b>Foydalanuvchilarga xabar</b>\n\nXabarni yuborish uchun <code>/xabar</code> buyrug‘idan keyin matnni yozing. Men avval ko‘rinishini ko‘rsataman, so‘ng test yoki hammasiga yuborish tugmasi chiqadi.\n\nNamuna (nusxa oling):\n\n<code>/xabar " + esc(BC_SAMPLE) + "</code>" });
+    if (data === "adm:bc") return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: "📣 <b>Foydalanuvchilarga xabar</b>\n\nTayyor namunani yuborish uchun tugmani bosing. O‘zingizning matningiz uchun: <code>/xabar</code> va keyin matn.", reply_markup: { inline_keyboard: [[{ text: "📨 Tayyor namunani yuborish", callback_data: "bc:sample" }]] } });
     if (data === "adm:menu") return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, ...(await adminMenu()) });
     if (data === "adm:apps") {
       const rows = await q("select * from applications where status = 'new' order by created_at limit 5");
@@ -217,10 +224,7 @@ function init({ db, bot, club }) {
       if (/^\/(reyting|top)(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: await topText(msg.from) });
       if (/^\/xabar(@\w+)?\s+[\s\S]{10,}$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
-        const text = t.replace(/^\/xabar(@\w+)?\s+/i, "").slice(0, 1500); pendingBc.set(String(msg.from.id), text);
-        const n = (await bcRecipients()).length;
-        return api("sendMessage", { chat_id: msg.chat.id, text: `📣 Xabar ko‘rinishi:\n\n${esc(text)}\n\nQabul qiluvchilar: ${n} ta`, parse_mode: "HTML",
-          reply_markup: { inline_keyboard: [[{ text: "🧪 Menga test", callback_data: "bc:test" }, { text: "✅ Hammasiga yuborish", callback_data: "bc:all" }], [{ text: "❌ Bekor", callback_data: "bc:no" }]] } });
+        return bcPreview(msg.chat.id, msg.from.id, t.replace(/^\/xabar(@\w+)?\s+/i, "").slice(0, 1500));
       };
       if (/^\/admin(@\w+)?$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
