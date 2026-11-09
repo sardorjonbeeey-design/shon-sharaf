@@ -23,9 +23,12 @@ function welcome(user) {
   return `Assalomu alaykum, <b>${name}</b>! 👋\n\n` +
     `<b>ZAMIN FK</b> shahriga xush kelibsiz! ⚽🏟\n\n` +
     `Bu yerda siz:\n` +
-    `🎟 Stadionda o‘z o‘rindig‘ingizni olasiz\n` +
-    `🏠 Shaharda o‘z uyingizni qurasiz\n` +
-    `💼 Shaharni birga qurish uchun ishga ariza topshirasiz\n` +
+    `🏠 Shaharda o‘z uyingizni olasiz va 7 darajagacha yaxshilaysiz\n` +
+    `🪙 Kofexonada ishlab tanga topasiz, kunlik bonus olasiz\n` +
+    `🛒 Bozordan mashina sotib olasiz\n` +
+    `⚽ Klub portalida a’zolik kartasi, Fan XP, bo‘limlar va missiyalar\n` +
+    `🎟 Stadionda o‘z o‘rindig‘ingiz bor\n` +
+    `💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza berasiz — avtobus haydovchisi ham kerak!\n` +
     `🪪 Kartangiz: /karta\n` +
     `📝 Taklif yoki muammo bo‘lsa: /feedback\n\n` +
     `Boshlash uchun pastdagi tugmani bosing 👇`;

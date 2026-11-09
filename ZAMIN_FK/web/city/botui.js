@@ -105,6 +105,40 @@ function init({ db, bot, club }) {
       .catch(e => { if (!/not modified/.test(e.message)) throw e; });
   }
 
+  // ---------- broadcast: tell existing users about new features (admin only, preview -> test -> confirm, each text once) ----------
+  db.query(`create table if not exists broadcasts (id serial primary key, text_hash text unique not null, text text not null,
+    total int not null, sent int not null default 0, failed int not null default 0, by_admin bigint, created_at timestamptz not null default now(), done boolean not null default false)`)
+    .catch(e => console.error("broadcast init", e.message));
+  const pendingBc = new Map(), sleep = ms => new Promise(r => setTimeout(r, ms));
+  let liveBc = null;
+  const BC_SAMPLE = "🎉 ZAMIN FK shahrida yangiliklar!\n🏠 Uyingizni 7 darajagacha yaxshilang\n🪙 Kofexonada ishlab tanga toping, kunlik bonus oling\n🛒 Bozordan mashina sotib oling\n⚽ Klub portali: a’zolik kartasi, Fan XP, bo‘limlar, missiyalar\n💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza bering — avtobus haydovchisi ham kerak!\n\nPastdagi tugma orqali oching 👇";
+  const bcRecipients = async () => (await q(`select distinct tg_id from (select tg_id from members union select tg_id from homes union select tg_id from seats union select tg_id from wallets) x`)).map(r => String(r.tg_id));
+  const bcSend = (chat, text) => api("sendMessage", { chat_id: chat, text: esc(text), parse_mode: "HTML", ...(appBtn.length ? { reply_markup: { inline_keyboard: [appBtn] } } : {}) });
+  async function onBroadcast(cb, data) {
+    const chat = cb.message.chat.id, text = pendingBc.get(String(cb.from.id));
+    if (data === "bc:no") { pendingBc.delete(String(cb.from.id)); return api("sendMessage", { chat_id: chat, text: "❌ Bekor qilindi." }); }
+    if (!text) return api("sendMessage", { chat_id: chat, text: "Matn topilmadi. /xabar matn bilan qaytadan boshlang." });
+    if (data === "bc:test") { await bcSend(chat, text); return api("sendMessage", { chat_id: chat, text: "🧪 Test yuborildi (faqat sizga)." }); }
+    if (data === "bc:all") {
+      if (liveBc && !liveBc.done) return api("sendMessage", { chat_id: chat, text: "⏳ Oldingi xabar hali yuborilmoqda." });
+      const ids = await bcRecipients(), hash = require("crypto").createHash("sha256").update(text).digest("hex");
+      const ins = await q("insert into broadcasts (text_hash, text, total, by_admin) values ($1,$2,$3,$4) on conflict do nothing returning id", [hash, text, ids.length, String(cb.from.id)]);
+      if (!ins.length) return api("sendMessage", { chat_id: chat, text: "⚠️ Bu matn avval yuborilgan. Matnni o‘zgartiring." });
+      pendingBc.delete(String(cb.from.id));
+      const bid = ins[0].id; liveBc = { id: bid, total: ids.length, sent: 0, failed: 0, done: false };
+      await api("sendMessage", { chat_id: chat, text: `📤 Yuborish boshlandi: ${ids.length} ta foydalanuvchi.` });
+      (async () => {
+        for (const id of ids) {
+          try { await bcSend(id, text); liveBc.sent++; } catch (e) { liveBc.failed++; if (/Too Many Requests/i.test(e.message)) await sleep(3000); }
+          await sleep(60);                                          // ~16 messages/second, under Telegram's limit
+        }
+        liveBc.done = true;
+        await q("update broadcasts set sent = $2, failed = $3, done = true where id = $1", [bid, liveBc.sent, liveBc.failed]).catch(() => {});
+        await api("sendMessage", { chat_id: chat, text: `✅ Tugadi. Yetkazildi: ${liveBc.sent}, yetib bormadi (botni bloklaganlar va h.k.): ${liveBc.failed}.` }).catch(() => {});
+      })();
+    }
+  }
+
   // ---------- admin ----------
   const adminMenu = async () => {
     const n = await one(`select (select count(*)::int from applications where status = 'new') as apps,
@@ -112,7 +146,8 @@ function init({ db, bot, club }) {
     return { text: "🛠 <b>Admin panel</b>\nKerakli bo‘limni tanlang:", parse_mode: "HTML", reply_markup: { inline_keyboard: [
       [{ text: `📋 Yangi arizalar (${n.apps})`, callback_data: "adm:apps" }],
       [{ text: `📬 Feedback (${n.fb})`, callback_data: "adm:fb" }],
-      [{ text: "📊 Statistika", callback_data: "adm:stats" }], ...(appBtn.length ? [appBtn] : [])] } };
+      [{ text: "📊 Statistika", callback_data: "adm:stats" }],
+      [{ text: "📣 Yangiliklar yuborish", callback_data: "adm:bc" }], ...(appBtn.length ? [appBtn] : [])] } };
   };
   const KIND = { city: "🏙 Shahar ishi", player: "⚽ Futbolchi", staff: "🧑‍💼 Klub xodimi" };
   const appText = a => [`📋 <b>Ariza #${a.id}</b> — ${KIND[a.kind] || a.kind}`,
@@ -124,6 +159,7 @@ function init({ db, bot, club }) {
 
   async function onAdmin(cb, data) {
     const chat = cb.message.chat.id;
+    if (data === "adm:bc") return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: "📣 <b>Foydalanuvchilarga xabar</b>\n\nXabarni yuborish uchun <code>/xabar</code> buyrug‘idan keyin matnni yozing. Men avval ko‘rinishini ko‘rsataman, so‘ng test yoki hammasiga yuborish tugmasi chiqadi.\n\nNamuna (nusxa oling):\n\n<code>/xabar " + esc(BC_SAMPLE) + "</code>" });
     if (data === "adm:menu") return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, ...(await adminMenu()) });
     if (data === "adm:apps") {
       const rows = await q("select * from applications where status = 'new' order by created_at limit 5");
@@ -179,6 +215,13 @@ function init({ db, bot, club }) {
       const t = String(msg.text || "").trim();
       if (/^\/(karta|card)(@\w+)?$/i.test(t)) return () => sendCard(msg.chat.id, msg.from);
       if (/^\/(reyting|top)(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: await topText(msg.from) });
+      if (/^\/xabar(@\w+)?\s+[\s\S]{10,}$/i.test(t)) return async () => {
+        if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
+        const text = t.replace(/^\/xabar(@\w+)?\s+/i, "").slice(0, 1500); pendingBc.set(String(msg.from.id), text);
+        const n = (await bcRecipients()).length;
+        return api("sendMessage", { chat_id: msg.chat.id, text: `📣 Xabar ko‘rinishi:\n\n${esc(text)}\n\nQabul qiluvchilar: ${n} ta`, parse_mode: "HTML",
+          reply_markup: { inline_keyboard: [[{ text: "🧪 Menga test", callback_data: "bc:test" }, { text: "✅ Hammasiga yuborish", callback_data: "bc:all" }], [{ text: "❌ Bekor", callback_data: "bc:no" }]] } });
+      };
       if (/^\/admin(@\w+)?$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
         return api("sendMessage", { chat_id: msg.chat.id, ...(await adminMenu()) });
@@ -196,6 +239,11 @@ function init({ db, bot, club }) {
           if (data === "top") {
             await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true;
             return await api("sendMessage", { chat_id: cb.message.chat.id, parse_mode: "HTML", text: await topText(cb.from) });
+          }
+          if (/^bc:/.test(data)) {
+            if (!isAdmin(cb.from.id)) { answered = true; return api("answerCallbackQuery", { callback_query_id: cb.id, text: "Faqat adminlar uchun", show_alert: true }); }
+            await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true;
+            return await onBroadcast(cb, data);
           }
           if (/^(adm|ap|fb):/.test(data)) {
             if (!isAdmin(cb.from.id)) { answered = true; return api("answerCallbackQuery", { callback_query_id: cb.id, text: "Faqat adminlar uchun", show_alert: true }); }
