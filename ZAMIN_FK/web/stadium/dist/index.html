@@ -197,6 +197,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
@@ -1999,6 +2000,122 @@ function fmt(v) { return Math.round(v).toLocaleString("fr-FR").replace(/ | /g, "
 
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize(); }
 addEventListener("resize", resize); resize();
+// ---------- Polyfork people: seated fans and kitted players (models CC BY 4.0, polyfork.dev) ----------
+// The toy fans and hero sprites stay in the scene (invisible) so taps and cards keep working; if Polyfork fails, nothing changes.
+const PF_CDN = "https://polyfork.dev/cdn/";
+const PF_PEOPLE = ["poker-pro-da0258", "skate-filmer-b9d393", "vert-skater-972639", "skier-e7ad44", "passenger-ac425a", "park-ranger-c1697e", "cueca-musician-d71a2e", "crossing-keeper-e13207", "diner-waitress-60f6a1", "player-in-a-cardigan-b558c9",
+  "suburban-resident-a9db9c", "player-in-flannel-d0bae4", "teen-player-37865e", "organillero-67b687", "chinchinero-2cc296", "hanga-roa-fisherman-e56812", "gas-station-attendant-38bd86", "delivery-courier-327e30", "street-skater-4ee28b", "lounge-bartender-9d425a"];
+const PF_MAX_FANS = 250, PF_PLAYER_SCALE = 1.6;
+const PF = { anims: [], movers: [], ready: false, kit: null, gk: null, coach: null };
+const pfClips = new Map();
+function pfClip(name) {
+  const url = PF_CDN + "anim-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".json";
+  if (!pfClips.has(url)) pfClips.set(url, fetch(url).then(r => { if (!r.ok) throw new Error("clip " + name); return r.json(); }));
+  return pfClips.get(url);
+}
+async function pfAnimate(obj, names, inPlace = true) {
+  const bones = {}; obj.traverse(o => { if (o.isBone && !bones[o.name]) bones[o.name] = o; });
+  const hips = bones.Hips, rest = hips.position.clone(), ratio = (rest.y || 0.95) / 0.95;
+  const raws = await Promise.all(names.map(pfClip)), mixer = new THREE.AnimationMixer(obj), actions = {};
+  names.forEach((n, i) => {
+    const raw = raws[i], tracks = [];
+    for (const [b, v] of Object.entries(raw.tracks)) if (bones[b] && v.length) tracks.push(new THREE.QuaternionKeyframeTrack(bones[b].uuid + ".quaternion", raw.times.slice(), Float32Array.from(v)));
+    const pos = new Float32Array(raw.hips.length);
+    for (let k = 0; k < pos.length; k += 3) { pos[k] = rest.x + (inPlace ? 0 : raw.hips[k] * ratio); pos[k + 1] = rest.y + raw.hips[k + 1] * ratio; pos[k + 2] = rest.z + (inPlace ? 0 : raw.hips[k + 2] * ratio); }
+    tracks.push(new THREE.VectorKeyframeTrack(hips.uuid + ".position", raw.times.slice(), pos));
+    actions[n] = mixer.clipAction(new THREE.AnimationClip(n, -1, tracks));
+  });
+  let cur = null;
+  const play = (n, ts = 1) => { const a = actions[n]; if (!a) return; a.timeScale = ts; if (a === cur) return; a.reset().play(); if (cur) cur.crossFadeTo(a, 0.2, false); cur = a; };
+  const loco = s => { s /= ratio; if (s < 0.15 || !actions.Walk) play(actions.Idle ? "Idle" : names[0]); else if (s < 2.8 || !actions.Run) play("Walk", Math.min(1.9, Math.max(0.55, s / 1.45))); else play("Run", Math.min(1.6, Math.max(0.7, s / 3.9))); };
+  play(names[0]); PF.anims.push(mixer);
+  return { mixer, play, loco };
+}
+// recolour vertex colours: rules [fromHex, toHex | (y) => hex|null]
+function pfPaint(root, rules) {
+  const lin = x => new THREE.Color(x).convertSRGBToLinear();
+  const R = rules.map(([f, t]) => [lin(f), t]), c = new THREE.Color();
+  root.traverse(o => {
+    const g = o.isMesh && o.geometry, col = g && g.attributes.color, pos = g && g.attributes.position; if (!col) return;
+    const arr = col.array, sc = !col.normalized ? 1 : arr instanceof Uint8Array ? 255 : arr instanceof Uint16Array ? 65535 : 1;
+    for (let i = 0; i < col.count; i++) {
+      c.setRGB(col.getX(i) / sc, col.getY(i) / sc, col.getZ(i) / sc);
+      for (const [f, t] of R) {
+        if (Math.abs(c.r - f.r) + Math.abs(c.g - f.g) + Math.abs(c.b - f.b) > 0.02) continue;
+        const hex = typeof t === "function" ? t(pos.getY(i)) : t; if (hex == null) break;
+        const to = lin(hex); col.setXYZ(i, to.r * sc, to.g * sc, to.b * sc); break;
+      }
+    }
+    if (col.isInterleavedBufferAttribute) col.data.needsUpdate = true; else col.needsUpdate = true;
+  });
+  return root;
+}
+const PF_KIT = [["#6aa3bc", "#1f4fb8"], ["#434c61", y => y < 0.13 ? "#1d2024" : "#ffffff"], ["#8f8d83", "#ffffff"]];
+const PF_GK = [["#9e2a32", "#2e8b3e"], ["#3f3f42", "#1f6b2e"], ["#45454a", "#1f6b2e"], ["#8f8d83", "#2e8b3e"], ["#a8a8a8", "#ffffff"], ["#b24a22", "#1d2024"], ["#9c5a2e", "#1d2024"], ["#e3b595", "#c8a282"]];
+const PF_COACH = [["#434c61", y => y < 0.13 ? "#1d2024" : "#1f4fb8"], ["#6aa3bc", y => y < 0.45 ? "#1f4fb8" : "#ffffff"], ["#64798e", "#ffffff"]];
+function pfShirt(root, num, name) {
+  const cv = document.createElement("canvas"); cv.width = cv.height = 256; const g = cv.getContext("2d");
+  g.fillStyle = "#fff"; g.textAlign = "center";
+  if (name) { g.font = "bold 40px sans-serif"; g.fillText(name.toUpperCase().slice(0, 10), 128, 56); }
+  if (num) { g.font = "bold 170px sans-serif"; g.fillText(String(num), 128, 226); }
+  const tex = new THREE.CanvasTexture(cv); tex.encoding = THREE.sRGBEncoding;
+  const crestEl = document.querySelector("#brand img"), crest = crestEl && new THREE.TextureLoader().load(crestEl.src);
+  let spine = null; root.traverse(o => { if (o.isBone && o.name === "Spine2") spine = o; });
+  root.updateMatrixWorld(true);
+  const patch = (map, w, x, y, z, back) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w), new THREE.MeshBasicMaterial({ map, transparent: true, depthWrite: false }));
+    m.position.set(x, y, z); if (back) m.rotation.y = Math.PI; (spine || root).attach(m); };
+  patch(tex, 0.3, 0, 1.22, -0.16, true);
+  if (crest) patch(crest, 0.09, 0.07, 1.3, 0.15, false);
+}
+function pfLoad(id, q = "") { return new Promise((res, rej) => new THREE.GLTFLoader().load(PF_CDN + id + q, g => res(g.scene), undefined, rej)); }
+// a model that follows an existing (invisible) object; speed drives Idle/Walk/Run
+function pfFollow(src, model, anim, scale) {
+  model.scale.setScalar(scale); scene.add(model);
+  PF.movers.push({ src, model, anim, last: new THREE.Vector3().copy(src.position), head: 0 });
+}
+async function pfStart() {
+  const people = (await Promise.all(PF_PEOPLE.map(id => pfLoad(id + ".glb").catch(() => null)))).filter(Boolean);
+  if (!people.length) throw new Error("no Polyfork people");
+  [PF.kit, PF.gk, PF.coach] = await Promise.all([
+    pfLoad("outfield-player-2b742a-remix.glb", '?p={"matchday":1}').then(m => pfPaint(m, PF_KIT)),
+    pfLoad("goalkeeper-10017a-remix.glb", '?p={"figure":"masculine"}').then(m => pfPaint(m, PF_GK)),
+    pfLoad("outfield-player-2b742a.glb").then(m => pfPaint(m, PF_COACH))]);
+  // fans: seated on their own seat, feet on the row in front
+  const fanSeats = fiSeat.filter(Boolean);
+  if (fanSeats.length <= PF_MAX_FANS) {
+    await Promise.all(fanSeats.map(async (st, i) => {
+      const o = THREE.SkeletonUtils.clone(people[Math.abs(hash(st.fan)) % people.length]);
+      o.position.set(st.x - st.nx * 0.35, st.y - 0.36, st.z - st.nz * 0.35); o.rotation.y = Math.atan2(-st.nx, -st.nz); scene.add(o);
+      const a = await pfAnimate(o, [i % 3 ? "Sitting" : "Sitting talking"], false); a.mixer.setTime(Math.random() * 5);
+    }));
+    FAN_MESHES.forEach(m => m.visible = false);
+  }
+  // heroes: the models follow the existing training paths; sprites stay for taps
+  const heroKit = { bekzod: [9, "Bekzod"], aziz: [8, "Aziz"], jasur: [1, "Jasur"] };
+  for (const o of heroObjs) {
+    const k = o.userData.key;
+    if (k === "echki") continue;
+    const m = THREE.SkeletonUtils.clone(k === "jasur" ? PF.gk : k === "rustam" ? PF.coach : PF.kit);
+    if (heroKit[k]) pfShirt(m, ...heroKit[k]);
+    o.material.opacity = 0; o.material.depthWrite = false;
+    pfFollow(o, m, await pfAnimate(m, ["Idle", "Walk", "Run"]), PF_PLAYER_SCALE);
+  }
+  PF.ready = true;
+}
+const _pfv = new THREE.Vector3();
+function pfTick(dt) {
+  for (const mx of PF.anims) mx.update(dt);
+  if (!dt) return;
+  for (const m of PF.movers) {
+    _pfv.copy(m.src.position).sub(m.last); _pfv.y = 0; m.last.copy(m.src.position);
+    const sp = _pfv.length() / dt;
+    if (sp > 0.05) m.head = Math.atan2(_pfv.x, _pfv.z);
+    m.model.position.set(m.src.position.x, 0, m.src.position.z); m.model.rotation.y = m.head;
+    m.anim.loco(sp / PF_PLAYER_SCALE);
+  }
+}
+pfStart().catch(e => console.error("Polyfork people failed (toy fans kept):", e));
+
 let prev = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
@@ -2014,6 +2131,7 @@ function loop(now) {
   controls.update();
   sky.position.copy(camera.position);
   animateTeam(now / 1000);
+  try { pfTick(dt); } catch (e) { console.error("pfTick failed:", e); }
   cityTick(dt); walkersTick(dt, now / 1000);
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
   DN.tick(now); DN.render();
