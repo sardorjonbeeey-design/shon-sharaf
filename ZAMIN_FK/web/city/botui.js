@@ -111,7 +111,7 @@ function init({ db, bot, club }) {
     .catch(e => console.error("broadcast init", e.message));
   const pendingBc = new Map(), sleep = ms => new Promise(r => setTimeout(r, ms));
   let liveBc = null;
-  const BC_SAMPLE = "🎉 ZAMIN FK shahrida yangiliklar!\n\nNima qilish mumkin va qanday:\n\n🏠 Uy — «Shaharni ochish» → bo‘sh joydagi «+» ni bosing → uyingiz paydo bo‘ladi. Keyin tanga to‘plab 7 darajagacha yaxshilang.\n🪙 Tanga — shaharda «Kofexona»ga kirib smenada ishlang va har kuni bonusni oling.\n🛒 Mashina — «Bozor» bo‘limida tangaga mashina sotib oling.\n⚽ Klub portali — «Klub» tugmasi: a’zolik kartangiz, Fan XP, missiyalar va bo‘limlar shu yerda.\n💼 Ariza — «Klub» → «Ariza»: futbolchi, xodim yoki shahar ishi uchun forma to‘ldiring.\n🏟 Joyingiz — stadiondagi o‘rindiq ismingiz bilan avtomatik qo‘shiladi.\n\nBoshlash uchun pastdagi tugmani bosing 👇";
+  const BC_SAMPLE = "🔥 ZAMIN FK: yangi yangilanishlar!\n\n🪪 /karta — endi shaxsiy VIP kartangiz rasm ko‘rinishida, o‘rningiz va reytingingiz bilan.\n🏆 /reyting — eng faol muxlislar ro‘yxati. O‘z o‘rningizni ko‘ring!\n🛡 Stadionda yangi himoyachilar: Doston va Sherzod.\n🌙 Kechasi uylarning derazalari yonadi.\n🌐 Til tugmasi yangilandi — bayroqni suring.\n📬 /feedback — taklif va fikrlaringizni yozing.\n\nKo‘rish uchun pastdagi tugmani bosing 👇";
   const bcRecipients = async () => (await q(`select distinct tg_id from (select tg_id from members union select tg_id from homes union select tg_id from seats union select tg_id from wallets) x`)).map(r => String(r.tg_id));
   const bcSend = (chat, text) => api("sendMessage", { chat_id: chat, text: esc(text), parse_mode: "HTML", ...(appBtn.length ? { reply_markup: { inline_keyboard: [appBtn] } } : {}) });
   async function bcPreview(chat, adminId, text) {
