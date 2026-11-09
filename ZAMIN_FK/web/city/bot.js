@@ -28,7 +28,7 @@ function welcome(user) {
     `🛒 Bozordan mashina sotib olasiz\n` +
     `⚽ Klub portalida a’zolik kartasi, Fan XP, bo‘limlar va missiyalar\n` +
     `🎟 Stadionda o‘z o‘rindig‘ingiz bor\n` +
-    `💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza berasiz — avtobus haydovchisi ham kerak!\n` +
+    `💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza berasiz!\n` +
     `🪪 Kartangiz: /karta\n` +
     `📝 Taklif yoki muammo bo‘lsa: /feedback\n\n` +
     `Boshlash uchun pastdagi tugmani bosing 👇`;
