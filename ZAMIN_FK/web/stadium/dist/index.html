@@ -1932,6 +1932,12 @@ async function adminLoad() {
   catch (e) { CLUB.admin = null; }
   clubRender();
 }
+const BC_DEFAULT = "🎉 ZAMIN FK shahrida yangiliklar!\n🏠 Uyingizni 7 darajagacha yaxshilang\n🪙 Kofexonada ishlab tanga toping, kunlik bonus oling\n🛒 Bozordan mashina sotib oling\n⚽ Klub portali: a’zolik kartasi, Fan XP, bo‘limlar, missiyalar\n💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza bering — avtobus haydovchisi ham kerak!\n\nPastdagi tugma orqali oching 👇";
+function bcHtml() {
+  return `<div class="sec">📣 Foydalanuvchilarga xabar</div><div class="item"><textarea id="bcText" rows="9">${esc(CLUB.bcText || BC_DEFAULT)}</textarea>
+    <div class="hd"><small id="bcInfo">${CLUB.bcInfo || ""}</small></div>
+    <div class="adm" style="grid-template-columns:1fr 1fr 1fr"><button class="btn blue" data-a="bcCount">Soni</button><button class="btn" data-a="bcTest">Menga test</button><button class="btn red" data-a="bcAll">Hammasiga</button></div></div>`;
+}
 const KIND_NAME = { city: "🏙 Shahar", player: "⚽ Futbolchi", staff: "🧑‍💼 Jamoa" }, STATUS_NAME = { new: "🆕 Yangi", accepted: "✅ Qabul", rejected: "❌ Rad" };
 function appsHtml(apps) {
   const F = CLUB.appF, cnt = (k, st) => (apps.counts.find(c => c.kind === k && (!st || c.status === st)) || { n: 0 }).n;
@@ -1954,7 +1960,7 @@ function appsHtml(apps) {
 
 function adminHtml(me, m, club) {
   const a = CLUB.admin; if (!a) return `<small>…</small>`;
-  return appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
+  return bcHtml() + appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
       <small>${esc(c.nick)} · ZFK-${String(c.member_no).padStart(5, "0")}</small><p style="margin:6px 0;font-size:13px">${esc(c.body)}</p>${c.link ? `<small>🔗 <a style="color:#FFD23F" href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></small>` : ""}
       <div class="adm"><input id="ax${c.id}" type="number" value="50" title="XP"><input id="ai${c.id}" type="number" value="20" title="Influence"><input id="af${c.id}" type="number" value="0" title="Funds"></div>
       <input id="an${c.id}" placeholder="Izoh (ixtiyoriy)"><div class="hd"><button class="btn green" data-a="decide" data-id="${c.id}" data-ok="1">${PT.uz.approve}</button><button class="btn red" data-a="decide" data-id="${c.id}">${PT.uz.reject}</button></div></div>`).join("") || `<small>${PT.uz.none}</small>`}
@@ -1983,6 +1989,14 @@ function clubBind() {
       else if (a === "donate") { const d = await post("/api/club/donate", { amount: +b.dataset.n }); haptic("ok"); say(PT.uz.donated(b.dataset.n, d.xp)); await fetchMe(); await clubLoad(); }
       else if (a === "decide") { const id = b.dataset.id; await post("/api/admin/contribution/decide", { id: +id, approve: !!b.dataset.ok, xp: +v("ax" + id).value, influence: +v("ai" + id).value, funds: +v("af" + id).value, note: v("an" + id).value }); await adminLoad(); return; }
       else if (a === "msave") { const id = b.dataset.id, k = s => v(s + id); await post("/api/admin/mission/save", { id: id === "new" ? undefined : +id, title: k("mt").value, period: k("mp").value, action: k("ma").value, target: +k("mg").value, xp: +k("mx").value, active: id === "new" ? true : k("mo").checked }); say("✅"); await adminLoad(); return; }
+      else if (a === "bcCount" || a === "bcTest" || a === "bcAll") {
+        const text = v("bcText").value; CLUB.bcText = text;
+        if (a === "bcCount") { const d = await post("/api/admin/broadcast", { text, mode: "count" }); CLUB.bcInfo = d.recipients + " ta foydalanuvchi"; }
+        else if (a === "bcTest") { await post("/api/admin/broadcast", { text, mode: "test" }); CLUB.bcInfo = "Test sizga yuborildi ✅"; }
+        else { const c = await post("/api/admin/broadcast", { text, mode: "count" });
+          if (!confirm(c.recipients + " ta foydalanuvchiga yuborilsinmi? Qaytarib bo‘lmaydi.")) return;
+          const d = await post("/api/admin/broadcast", { text, mode: "all", confirm: true }); CLUB.bcInfo = "Yuborilmoqda: " + d.total + " ta"; }
+        clubRender(); return; }
       else if (a === "apf") { CLUB.appF[b.dataset.k] = b.dataset.v; await adminLoad(); return; }
       else if (a === "appdec") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: b.dataset.ok ? "accept" : "reject" }); say("✅"); await adminLoad(); return; }
       else if (a === "appassign") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: "assign", dept: v("asd" + b.dataset.id).value }); say("✅ 🏢"); await adminLoad(); return; }

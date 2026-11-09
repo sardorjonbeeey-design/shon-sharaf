@@ -21,9 +21,12 @@ function welcome(user) {
   return `Assalomu alaykum, <b>${name}</b>! 👋\n\n` +
     `<b>ZAMIN FK</b> shahriga xush kelibsiz! ⚽🏟\n\n` +
     `Bu yerda siz:\n` +
-    `🎟 Stadionda o’z o’rindig’ingizni olasiz\n` +
-    `🏠 Shaharda o’z uyingizni qurasiz\n` +
-    `💼 Shaharni birga qurish uchun ishga ariza topshirasiz\n\n` +
+    `🏠 Shaharda o‘z uyingizni olasiz va 7 darajagacha yaxshilaysiz\n` +
+    `🪙 Kofexonada ishlab tanga topasiz, kunlik bonus olasiz\n` +
+    `🛒 Bozordan mashina sotib olasiz\n` +
+    `⚽ Klub portalida a’zolik kartasi, Fan XP, bo‘limlar va missiyalar sizni kutadi\n` +
+    `🎟 Stadionda o‘z o‘rindig‘ingiz bor\n` +
+    `💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza topshirasiz — avtobus haydovchisi ham kerak!\n\n` +
     `Boshlash uchun pastdagi tugmani bosing 👇`;
 }
 const isStart = text => /^\/start(@\w+)?(\s|$)/i.test(String(text || "").trim());
@@ -121,4 +124,11 @@ function mount(app) {
   app.get("/tg/status", (req, res) => res.json({ bot: !!BOT_TOKEN, username: info.username, webhook: info.webhook, webapp: WEBAPP_URL }));
 }
 
-module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api, initFeedback, logToAdminChannel };
+// Send one message (with the Mini App button) — used by the admin broadcast
+async function send(chatId, text, withButton = true) {
+  const body = { chat_id: chatId, text: esc(text), parse_mode: "HTML" };
+  if (withButton && WEBAPP_URL.startsWith("https://")) body.reply_markup = { inline_keyboard: [[{ text: BUTTON, web_app: { url: WEBAPP_URL } }]] };
+  return api("sendMessage", body);
+}
+
+module.exports = { mount, setup, replyFor, info, SECRET, HOOK_PATH, BUTTON, setStartHook, api, initFeedback, logToAdminChannel , send };

@@ -419,6 +419,37 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
   });
 
+  // ---------- broadcast: tell existing users about new features (admin only; test first; each text can be sent once) ----------
+  ready.then(() => db.query(`create table if not exists broadcasts (id serial primary key, text_hash text unique not null, text text not null,
+      total int not null, sent int not null default 0, failed int not null default 0, by_admin bigint, created_at timestamptz not null default now(), done boolean not null default false)`)).catch(e => console.error("broadcast init", e.message));
+  let live = null;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  route("/api/admin/broadcast", async (user, b) => {
+    await ready;
+    const text = String(b.text || "").trim().slice(0, 1500);
+    if (text.length < 10) throw fail(400, "text");
+    const ids = (await db.query(`select distinct tg_id from (select tg_id from members union select tg_id from homes union select tg_id from seats union select tg_id from wallets) x`)).rows.map(r => String(r.tg_id));
+    if (b.mode === "count") return { recipients: ids.length };
+    if (b.mode === "test") { await bot.send(user.id, text, true); return { sent: 1 }; }
+    if (b.mode !== "all" || b.confirm !== true) throw fail(400, "confirm");
+    if (live && !live.done) throw fail(409, "already sending");
+    const hash = crypto.createHash("sha256").update(text).digest("hex");
+    const ins = await db.query("insert into broadcasts (text_hash, text, total, by_admin) values ($1,$2,$3,$4) on conflict do nothing returning id", [hash, text, ids.length, String(user.id)]);
+    if (!ins.rowCount) throw fail(409, "this text was already sent");
+    const bid = ins.rows[0].id; live = { id: bid, total: ids.length, sent: 0, failed: 0, done: false };
+    (async () => {
+      for (const id of ids) {
+        try { await bot.send(id, text, true); live.sent++; }
+        catch (e) { live.failed++; if (/Too Many Requests/i.test(e.message)) await sleep(3000); }
+        await sleep(60);                                         // ~16 messages/second, under Telegram's limit
+      }
+      live.done = true;
+      await db.query("update broadcasts set sent = $2, failed = $3, done = true where id = $1", [bid, live.sent, live.failed]).catch(() => {});
+    })();
+    return { started: true, total: ids.length };
+  }, true);
+  route("/api/admin/broadcast/status", async () => live || { idle: true }, true);
+
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
   return { ensureMember, summary, registerReferral };
 }
