@@ -57,6 +57,8 @@ const ground=new THREE.Mesh(new THREE.PlaneGeometry(600,600),new THREE.MeshStand
 const grid=new THREE.GridHelper(300,100,0x24465b,0x173044); grid.position.y=-.04; scene.add(grid);
 const orbit=new OrbitControls(camera,renderer.domElement); orbit.enableDamping=true; orbit.dampingFactor=.06; orbit.minDistance=5; orbit.maxDistance=180; orbit.target.set(0,5,0);
 const walker=new PointerLockControls(camera,renderer.domElement); let mode='orbit', model=null, box=new THREE.Box3(), center=new THREE.Vector3(), size=new THREE.Vector3(), radius=35, flying=false, flyStart=0, flyDuration=18000;
+const fans=["evscruzy","qurbonaliyew_013","jorayev.of","muhriddin.xolmanov","safarkhulov_202","uzb_ttttttttttt","erkin_19_85","sadoqat8698","sardortoshpulatov44","od.il8850","nurkamol1818","mustafoyev_060.720","abbos_xontorayev","temur19930125","berdiyvasliddin","abdushukurovaiulduzkhon","_____diyorbek____2911","aboba_kir77","baxo.dirjon0990","az1co_5999","alisher.normurodov","valijon2555","sanginboyev_19","nozimboydavlatov","akbar_45627","muborakshodmonova","sultonali479","hakimjon.amirxon.usmon","alieva.gulan","eshburievfarkhot","akylajosmonova","hayot_vv","mamajonovadonoxon","roziyeyravshanraufovich","iyogmirov","sha.bnam9224","mirzoikrom178","makhmudjonov_77777","kamran64434","muhabbat.gulomova.3","latofatsaidmurodova433","azizamiraliyev45","fozil.ov99","legends00000001","rajabboyev_04_01_13","qurbanova_salomat","ma.hliyo8819","yigitali._.7","husanjonisroilov99","burxonov__d","zenox1238o","ergashev.berdiyar","farishtamjannatim","fiyalka_1606","xolmerzayevumid","jumamurotovmuyassar","jemuratovikram10","jorayevroziboy25","_abdullo_o.5_","xuday6erganov.01","z14_bella_","khulkar35","sayyora.haydarova1989","xlll_vvv","gulnora_asrorovna","eldor015._","alligator.8374086","_bazarova_zulfiya_","werikal_diyorbek","abdulaziz88775","sh.karamatov","mahbubanizamutdinova700","rasuljon.com1","munira29833","qobilovasrorjon","shaxa_2014_03","ul.fat923","rozakoldasovna","nur_2014141","praim_rafa","muhammadusuf634","solaymanaboalou","mavlonov._tohir","sayyorakodirova2","jumayevmexriddin79","mamadova.komila","abubakir33551","kana.t4400","hakimaquvatovna","nasiba19872026","usarov1325","muhtabarlutfullayeva61","eshpolatovumarjon561","zver_taj_09","ibragimova72351","abdulla_official_0001","meliboyev1707","aslanov._.1","dilshod_bek.uz","kalbay63","saydalievbehzod4","isomova_sabina","babir_58","nurmatov1ch.434","sa.ro5213","iabdu89","1.sarvar_015","kewl.imjay45","otabekraxmonov2603","muhammadsodiq75989","mini_yamal_2017","m_10_2016","dalerrr_19","isomidinov_n","abdulvoxidovhabibulloh","nazarovaozoda65","__abdllv","asatillo_khasanov_","mukhammad20911","mahmudjonov_07_22","elbe.k0716","zavqi3333","madad93236","jalolahmedov64","amirov701_","bekk30d__10","zuuhl7uzxshjos","x__baxti","rasulov__h_"];
+let fanMeshes=[], fanData=[];
 const keys={}; addEventListener('keydown',e=>keys[e.code]=true); addEventListener('keyup',e=>keys[e.code]=false);
 function setMode(m){mode=m; flying=false; orbit.enabled=m==='orbit'; if(m==='walk'){status.textContent='Walk mode: click the 3D scene to look around.';} else {walker.unlock();status.textContent='Orbit mode enabled.';} document.querySelector('#orbit').classList.toggle('active',m==='orbit');document.querySelector('#walk').classList.toggle('active',m==='walk');}
 document.querySelector('#orbit').onclick=()=>setMode('orbit'); document.querySelector('#walk').onclick=()=>setMode('walk');
@@ -73,13 +75,33 @@ document.querySelector('#reset').onclick=()=>shot('overview');
 document.querySelector('#stop').onclick=()=>{flying=false;status.textContent='Camera movement stopped.'};
 document.querySelector('#fly').onclick=()=>{setMode('orbit');flying=true;flyStart=performance.now();status.textContent='Cinematic fly-through playing…';};
 document.querySelector('#fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();};
+function createFan(x,z,name,idx){
+const h=THREE.MathUtils.randFloat(2.8,3.2);const colors=[0xff6b6b,0x4ecdc4,0x45b7d1,0xf9ca24,0x6c5ce7,0xa29bfe,0xfd79a8,0xfdcb6e,0x6c7a89];const col=colors[idx%colors.length];
+const grp=new THREE.Group(); grp.position.set(x,0,z);
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.25,1.2,4,8),new THREE.MeshStandardMaterial({color:col,metalness:.2,roughness:.7})); body.position.y=h;body.castShadow=true;grp.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.35,8,8),new THREE.MeshStandardMaterial({color:col,metalness:.1,roughness:.6})); head.position.y=h+.85;head.castShadow=true;grp.add(head);
+const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.1,.6,4,6),new THREE.MeshStandardMaterial({color:col,metalness:.15,roughness:.75}));
+const arml=arm.clone(); arml.position.set(-.3,h+.3,0); grp.add(arml);
+const armr=arm.clone(); armr.position.set(.3,h+.3,0); grp.add(armr);
+fanMeshes.push(grp); fanData.push({mesh:grp,x,z,name,t:Math.random()*Math.PI*2}); scene.add(grp);
+}
+function updateFans(now){fanMeshes.forEach((mesh,i)=>{const data=fanData[i];const t=(now*.001+data.t)*1.5;
+mesh.children[0].rotation.z=Math.sin(t)*.3; mesh.children[2].rotation.x=Math.sin(t)*.4; mesh.children[3].rotation.x=Math.sin(t+.5)*.4;
+mesh.position.y=Math.sin(t*.8)*.15;});}
 new GLTFLoader().load('./zamin_fk_stadium.glb',g=>{model=g.scene;scene.add(model);box.setFromObject(model);box.getCenter(center);box.getSize(size);radius=Math.max(size.x,size.y,size.z)*.85; if(!isFinite(radius)||radius<5)radius=35;
 // Center model at the origin for predictable camera controls.
 model.position.sub(center); box.setFromObject(model); box.getCenter(center); box.getSize(size);
-shot('overview'); loading.style.display='none'; status.textContent='Model loaded · '+Math.round(size.x)+' × '+Math.round(size.y)+' × '+Math.round(size.z)+' scene units.';
+shot('overview'); loading.style.display='none';
+let seed=12345;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+for(let i=0;i<fans.length;i++){
+const angle=i/fans.length*Math.PI*2;const dist=40+rnd()*20;const x=Math.cos(angle)*dist;const z=Math.sin(angle)*dist;
+createFan(x,z,fans[i],i);
+}
+status.textContent='Model loaded · '+Math.round(size.x)+' × '+Math.round(size.y)+' × '+Math.round(size.z)+' scene units · '+fans.length+' fans';
 },xhr=>{if(xhr.total)status.textContent='Loading model… '+Math.round(xhr.loaded/xhr.total*100)+'%';},err=>{loading.innerHTML='MODEL LOAD FAILED<small>Keep index.html and zamin_fk_stadium.glb in the same folder.</small>';status.textContent='Could not load GLB. Run through a local web server.';console.error(err);});
 function animate(now){requestAnimationFrame(animate);const dt=Math.min(.05,clock.getDelta()); if(mode==='walk'&&walker.isLocked){const speed=18*dt;if(keys.KeyW)walker.moveForward(speed);if(keys.KeyS)walker.moveForward(-speed);if(keys.KeyA)walker.moveRight(-speed);if(keys.KeyD)walker.moveRight(speed);if(keys.Space)camera.position.y+=speed;if(keys.ShiftLeft)camera.position.y-=speed;}
 if(flying&&model){const t=Math.min(1,(now-flyStart)/flyDuration),a=t*Math.PI*2;const p=center.clone().add(new THREE.Vector3(Math.cos(a)*radius*1.45,radius*(.55+.42*Math.sin(t*Math.PI*2)),Math.sin(a)*radius*1.45));camera.position.lerp(p,.035);const target=center.clone().add(new THREE.Vector3(0,Math.sin(t*Math.PI*4)*2,0));camera.lookAt(target);orbit.target.lerp(target,.04);if(t>=1){flying=false;status.textContent='Cinematic fly-through complete.';}}
+updateFans(now);
 if(mode==='orbit')orbit.update();renderer.render(scene,camera);}
 const clock=new THREE.Clock();requestAnimationFrame(animate);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
