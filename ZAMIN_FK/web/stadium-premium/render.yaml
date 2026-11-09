@@ -1,0 +1,11 @@
+services:
+  - type: static_site
+    name: zamin-fk-stadium-premium
+    buildCommand: echo "Ready to deploy"
+    staticPublishPath: .
+    routes:
+      - path: /
+        destination: /index.html
+      - path: /zamin_fk_stadium.glb
+        destination: /zamin_fk_stadium.glb
+    envVars: []
