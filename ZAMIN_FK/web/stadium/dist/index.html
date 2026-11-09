@@ -1491,6 +1491,8 @@ canvas.addEventListener("pointerup", e => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
   mouse.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
   ray.setFromCamera(mouse, camera);
+  const sqh = window.PF_SQUAD && window.PF_SQUAD.length && ray.intersectObjects(window.PF_SQUAD)[0];
+  if (sqh) { showPlayerCard(sqh.object.userData.squad); return; }
   const fh = (window.PF_TAP && ray.intersectObject(window.PF_TAP)[0]) || ray.intersectObject(bodies)[0] || ray.intersectObject(heads)[0] || ray.intersectObject(shorts)[0];
   if (fh && fiSeat[fh.instanceId]) { showFan(fiSeat[fh.instanceId]); return; }
   const hq = ray.intersectObjects(HQ_OBJS, true)[0];
@@ -1930,7 +1932,8 @@ async function adminLoad() {
     if (CLUB.av === "users") {
       if (CLUB.ud) A.detail = await post("/api/admin/user", { id: CLUB.ud });
       else A.users = await post("/api/admin/users", { q: CLUB.uf.q, filter: CLUB.uf.filter, sort: CLUB.uf.sort, offset: CLUB.uf.off });
-    } else if (CLUB.av === "missions") A.mst = await post("/api/admin/missions/status", {});
+    } else if (CLUB.av === "prof") A.prof = await post("/api/admin/professions", {});
+    else if (CLUB.av === "missions") A.mst = await post("/api/admin/missions/status", {});
     else { const [list, ms, apps] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {}), post("/api/admin/applications", { kind: CLUB.appF.kind, status: CLUB.appF.status, position: CLUB.appF.pos, dept: CLUB.appF.dept })]); A.list = list; A.ms = ms; A.apps = apps; }
   } catch (e) { CLUB.admin = null; }
   clubRender();
@@ -1991,12 +1994,33 @@ function missionStatusHtml() {
     <small>Bugun: <b>${x.today}</b> / ${M.total} · 7 kun: <b>${x.week}</b></small>
     ${x.recent.length ? `<div class="apfilt" style="margin-top:6px">${x.recent.slice(0, 12).map(r => `<button data-a="uopen2" data-id="${r.tg_id}">${esc(r.nick)} <span class="appc">${ago(r.at)}</span></button>`).join("")}</div>` : `<br><small>Hali hech kim.</small>`}</div>`).join("");
 }
-const adminNav = () => `<div class="apfilt">${[["inbox", "📥 Kelganlar"], ["users", "👥 Foydalanuvchilar"], ["missions", "🎯 Missiyalar holati"]].map(([k, l]) => `<button data-a="av" data-v="${k}" class="${CLUB.av === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+// professions: a plain list of everyone who applied (players by position)
+function profHtml(rows) {
+  if (!rows) return `<small>…</small>`;
+  const st = s => s === "accepted" ? "✅" : "🆕", zfk = r => r.member_no ? " · ZFK-" + String(r.member_no).padStart(5, "0") : "";
+  const line = (r, extra) => `<div class="item" data-a="uopen" data-id="${r.tg_id}" style="cursor:pointer;padding:8px 12px"><div class="hd"><b>${st(r.status)} ${esc(r.name)}</b><small>${extra}</small></div>
+    <small>${esc(r.nick)}${r.tg_username ? " · @" + esc(r.tg_username) : ""}${zfk(r)}</small></div>`;
+  const by = k => rows.filter(r => r.kind === k);
+  let h = `<small>✅ qabul qilingan · 🆕 ko‘rib chiqilmoqda. Ismni bossangiz — profil.</small>`;
+  const pl = by("player");
+  h += `<div class="sec">⚽ Futbolchilar (${pl.length})</div>`;
+  for (const p of ["GK", "DEF", "MID", "FWD", null]) {
+    const g = pl.filter(r => (r.position || null) === p); if (!g.length) continue;
+    h += `<div style="margin:6px 0 4px;font-weight:800">${p ? POS_NAME[p] : "Pozitsiyasiz"} · ${g.length}</div>` + g.map(r => line(r, [r.age ? r.age + " yosh" : "", r.height ? r.height + " sm" : ""].filter(Boolean).join(" · "))).join("");
+  }
+  const sf = by("staff");
+  h += `<div class="sec">🧑‍💼 Jamoa xodimlari (${sf.length})</div>` + (sf.map(r => line(r, esc(r.dept || r.role || ""))).join("") || "<small>—</small>");
+  const ct = by("city");
+  h += `<div class="sec">🏙 Shahar ishchilari (${ct.length})</div>` + (ct.map(r => line(r, esc(r.role || ""))).join("") || "<small>—</small>");
+  return h;
+}
+const adminNav = () => `<div class="apfilt">${[["inbox", "📥 Kelganlar"], ["users", "👥 Foydalanuvchilar"], ["prof", "👷 Kasblar"], ["missions", "🎯 Missiyalar holati"]].map(([k, l]) => `<button data-a="av" data-v="${k}" class="${CLUB.av === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
 
 function adminHtml(me, m, club) {
   const a = CLUB.admin; if (!a) return `<small>…</small>`;
   if (CLUB.av === "users") return adminNav() + usersHtml();
   if (CLUB.av === "missions") return adminNav() + missionStatusHtml();
+  if (CLUB.av === "prof") return adminNav() + profHtml(a.prof);
   if (!a.apps) return adminNav() + `<small>…</small>`;
   return adminNav() + appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
       <small>${esc(c.nick)} · ZFK-${String(c.member_no).padStart(5, "0")}</small><p style="margin:6px 0;font-size:13px">${esc(c.body)}</p>${c.link ? `<small>🔗 <a style="color:#FFD23F" href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></small>` : ""}
@@ -2201,7 +2225,50 @@ async function pfStart() {
     } catch (e) { console.warn("hero", k, e); }
   }
   PF.ready = true;
+  sqLoad(); setInterval(sqLoad, 60000);
   (await fansDone).forEach((r, k) => r.status === "rejected" && console.warn("Polyfork fan model failed:", PF_PEOPLE[k], r.reason));
+}
+
+// ---------- accepted players train on the pitch; tap -> FIFA card ----------
+const SQ = { list: [], hits: [], sig: "" };
+window.PF_SQUAD = SQ.hits;
+const SQ_SPOT = { GK: [-46, 0], DEF: [-28, 0], MID: [-12, 0], FWD: [6, 0] }, SQ_NUM = { GK: [1, 12, 13], DEF: [2, 3, 4, 5, 14, 15], MID: [6, 8, 10, 16, 18], FWD: [9, 7, 11, 17, 19] };
+async function sqLoad() {
+  try {
+    const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
+    const rows = (await r.json()).filter(p => p.kind === "player"), sig = JSON.stringify(rows.map(p => [p.id, p.position, p.name]));
+    if (sig === SQ.sig || !PF.kit) return; SQ.sig = sig;
+    for (const s of SQ.list) scene.remove(s.model); SQ.list.length = 0; SQ.hits.length = 0;
+    const used = {};
+    for (const p of rows) {
+      const pos = SQ_SPOT[p.position] ? p.position : "MID", i = used[pos] = (used[pos] || 0) + 1, gk = pos === "GK";
+      const m = THREE.SkeletonUtils.clone(gk ? (PF.gk || PF.kit) : PF.kit);
+      pfShirt(m, SQ_NUM[pos][i - 1] || 20 + i, String(p.name || "").split(" ")[0]);
+      const [bx, bz] = SQ_SPOT[pos], home = new THREE.Vector3(bx, 0, bz + ((i % 5) - 2) * 9 + (i > 5 ? 4 : 0));
+      m.position.copy(home); m.scale.setScalar(PF_PLAYER_SCALE); scene.add(m);
+      const hit = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.7), new THREE.MeshBasicMaterial()); hit.position.y = 0.9; hit.visible = false; hit.userData.squad = p; m.add(hit);
+      const a = await pfAnimate(m, ["Idle", "Walk", "Run"]);
+      SQ.list.push({ p, model: m, a, home, target: home.clone(), wait: Math.random() * 2, range: gk ? 3 : 8 }); SQ.hits.push(hit);
+    }
+  } catch (e) { console.warn("squad", e); }
+}
+function sqTick(dt) {
+  for (const s of SQ.list) {
+    if (s.wait > 0) { s.wait -= dt; if (s.wait <= 0) s.target.set(s.home.x + (Math.random() * 2 - 1) * s.range * 1.4, 0, s.home.z + (Math.random() * 2 - 1) * s.range); continue; }
+    const dx = s.target.x - s.model.position.x, dz = s.target.z - s.model.position.z, d = Math.hypot(dx, dz);
+    if (d < 0.4) { s.a.loco(0); s.wait = 0.8 + Math.random() * 2; continue; }
+    const sp = 5.5, st = Math.min(d, sp * dt); s.model.position.x += dx / d * st; s.model.position.z += dz / d * st; s.model.rotation.y = Math.atan2(dx, dz); s.a.loco(sp / PF_PLAYER_SCALE);
+  }
+}
+function showPlayerCard(p) {
+  let ov = document.getElementById("fcard");
+  if (!ov) {
+    ov = document.createElement("div"); ov.id = "fcard";
+    ov.style.cssText = "position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(4,10,24,.72);backdrop-filter:blur(4px)";
+    ov.onclick = () => ov.style.display = "none"; document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div style="text-align:center;color:#fff;font-weight:800"><img alt="" style="width:min(78vw,360px);border-radius:18px;box-shadow:0 10px 40px #000a;display:block;margin:0 auto 10px" src="${API}/api/card/${p.id}"><small>${(POS_NAME[p.position] || "")} · ${String(p.name || "").replace(/[<>&"]/g, "")}</small></div>`;
+  ov.style.display = "flex";
 }
 const _pfv = new THREE.Vector3();
 function pfTick(dt) {
@@ -2233,6 +2300,7 @@ function loop(now) {
   sky.position.copy(camera.position);
   animateTeam(now / 1000);
   try { LED.tick(dt); } catch (e) {}
+  try { sqTick(dt); } catch (e) {}
   try { pfTick(dt); } catch (e) { console.error("pfTick failed:", e); }
   cityTick(dt); walkersTick(dt, now / 1000);
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));

@@ -245,6 +245,31 @@ function init({ db, bot, club, led }) {
     return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, parse_mode: "HTML", text: `🗑 Reklama #${esc(id)} o‘chirildi.`, reply_markup: { inline_keyboard: [[{ text: "📺 Reklamalar", callback_data: "adm:led" }]] } });
   }
 
+
+  // FIFA card of an accepted player, for taps on the pitch (public: only accepted players, cached 10 min)
+  const pubCards = new Map();
+  async function playerCardPng(appId) {
+    const k = Number(appId) | 0, c = pubCards.get(k);
+    if (c && Date.now() - c.at < 10 * 60e3) return c.png;
+    const p = await one(`select * from applications where id = $1 and kind = 'player' and status = 'accepted'`, [k]);
+    if (!p) return null;
+    const m = await one(`select * from members where tg_id = $1`, [String(p.tg_id)]);
+    const xp = (m && m.xp) || 0, id = String(p.tg_id);
+    const wk = await one(`select coalesce(sum(xp), 0)::int as v from xp_log where tg_id = $1 and at > now() - interval '7 days'`, [id]);
+    const days = await one(`select count(distinct (at at time zone 'Asia/Tashkent')::date)::int as v from
+      (select at from xp_log where tg_id = $1 union all select at from ledger where tg_id = $1) x`, [id]);
+    const rank = await one(`select count(distinct a.tg_id)::int + 1 as v from applications a join members mm on mm.tg_id = a.tg_id
+      where a.kind = 'player' and a.status in ('new','accepted') and mm.xp > $1`, [xp]);
+    const t = club.tierOf(xp);
+    const png = await cards.playerPng({
+      name: p.name || (m ? m.nick.replace(/^@/, "") : p.nick), pos: p.position || "—", ovr: ovrOf(xp), ovrDelta: ovrOf(xp) - ovrOf(xp - wk.v), stage: p.status,
+      rank: rank.v, weekXp: wk.v, totalXp: xp, days: days.v, id: m ? club.supporterId(m.member_no) : "", photo: await profilePhoto(p.tg_id),
+      goal: t.next ? t.next - t.from : 1, goalHave: t.next ? xp - t.from : 1,
+      goalText: t.next ? `Keyingi daraja (${club.TIERS[t.i + 1][1]}): ${t.next - xp} XP` : "Eng yuqori daraja!" });
+    pubCards.set(k, { at: Date.now(), png });
+    return png;
+  }
+
   // Returns an async job for updates this module handles, or null (then the normal bot reply runs).
   function match(update) {
     const msg = update && update.message, cb = update && update.callback_query;
@@ -310,6 +335,6 @@ function init({ db, bot, club, led }) {
     }
     return null;
   }
-  return { match, sendCard };
+  return { match, sendCard, playerCardPng };
 }
 module.exports = { init, ovrOf };

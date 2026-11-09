@@ -448,6 +448,14 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     (select max(at) from xp_log where tg_id = m.tg_id), (select max(at) from ledger where tg_id = m.tg_id), (select max(at) from mission_claims where tg_id = m.tg_id))`;
   const USERS_FROM = `from members m left join wallets w on w.tg_id = m.tg_id left join homes h on h.tg_id = m.tg_id`;
   const bad = (msg, status = 400) => Object.assign(new Error(msg), { status });
+  // everyone who applied, by profession (players with position), newest last within a group
+  route("/api/admin/professions", async () => {
+    await ready;
+    return (await db.query(`select a.id, a.kind, a.status, coalesce(nullif(a.name,''), m.nick, a.nick) as name, coalesce(m.nick, a.nick) as nick, m.tg_username,
+        a.age, a.position, a.height, a.dept, a.role, m.member_no, a.tg_id, a.created_at
+      from applications a left join members m on m.tg_id = a.tg_id where a.status <> 'rejected' order by a.kind, a.position nulls last, (a.status = 'accepted') desc, a.created_at`)).rows;
+  }, true);
+
   route("/api/admin/users", async (user, b) => {
     await ready;
     const q = String(b.q || "").trim().slice(0, 40), f = String(b.filter || "all"), off = Math.max(0, Number(b.offset) | 0);
