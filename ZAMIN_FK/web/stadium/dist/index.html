@@ -1940,7 +1940,7 @@ async function adminLoad() {
 }
 const ago = t => { if (!t) return "—"; const m = Math.max(0, (Date.now() - new Date(t)) / 60000); return m < 2 ? "hozir" : m < 60 ? Math.round(m) + " daq oldin" : m < 1440 ? Math.round(m / 60) + " soat oldin" : Math.round(m / 1440) + " kun oldin"; };
 const dot = t => { const m = t ? (Date.now() - new Date(t)) / 60000 : 1e9; return m < 1440 ? "🟢" : m < 10080 ? "🟡" : "🔴"; };
-const KIND_NAME = { city: "🏙 Shahar", player: "⚽ Futbolchi", staff: "🧑‍💼 Jamoa" }, STATUS_NAME = { new: "🆕 Yangi", accepted: "✅ Qabul", rejected: "❌ Rad" };
+const KIND_NAME = { city: "🏙 Shahar", player: "⚽ Futbolchi", staff: "🧑‍💼 Jamoa" }, STATUS_NAME = { new: "🆕 Yangi", accepted: "✅ Qabul", rejected: "❌ Rad", removed: "🚫 Olindi", replaced: "↪️ Almashtirildi" };
 function appsHtml(apps) {
   const F = CLUB.appF, cnt = (k, st) => (apps.counts.find(c => c.kind === k && (!st || c.status === st)) || { n: 0 }).n;
   const tot = apps.counts.filter(c => c.status === "new").reduce((x, c) => x + c.n, 0);
@@ -1960,6 +1960,20 @@ function appsHtml(apps) {
   return h;
 }
 
+// admin: give / change / remove a user's role (player position, staff department, city job)
+function rolesHtml(d) {
+  const R = k => (d.roles || []).find(r => r.kind === k), id = d.member.tg_id, pl = R("player"), sf = R("staff"), ct = R("city");
+  const posSel = (cur) => `<select id="rp">${["GK", "DEF", "MID", "FWD"].map(p => `<option value="${p}" ${p === cur ? "selected" : ""}>${POS_NAME[p]}</option>`).join("")}</select>`;
+  const depSel = (cur) => `<select id="rd">${(d.depts || []).map(x => `<option value="${x.id}" ${x.id === cur ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>`;
+  const btns = (kind, has) => `<div class="hd"><button class="btn green" data-a="rset" data-k="${kind}" data-id="${id}">${has ? "💾 Saqlash" : "⭐ Berish"}</button>${has ? `<button class="btn" data-a="rdel" data-k="${kind}" data-id="${id}">🚫 Olib tashlash</button>` : ""}</div>`;
+  return `<div class="sec">🎭 Rollar</div>
+    <div class="item"><div class="hd"><b>⚽ Futbolchi</b><small>${pl ? "✅ " + (POS_NAME[pl.position] || "") : "yo‘q"}</small></div>
+      <div class="adm">${posSel(pl && pl.position)}<input id="rn" placeholder="Formadagi ism" value="${esc((pl && pl.name) || "")}"></div>${btns("player", !!pl)}</div>
+    <div class="item"><div class="hd"><b>🧑‍💼 Klub xodimi</b><small>${sf ? "✅ " + esc(((d.depts || []).find(x => x.id === sf.dept) || {}).name || sf.dept || "") : "yo‘q"}</small></div>
+      <div class="adm">${depSel(sf && sf.dept)}</div>${btns("staff", !!sf)}</div>
+    <div class="item"><div class="hd"><b>🏙 Shahar kasbi</b><small>${ct ? "✅ " + esc(ct.role) : "yo‘q"}</small></div>
+      <div class="adm"><input id="rr" placeholder="Kasb (masalan: Haydovchi)" value="${esc((ct && ct.role) || "")}"></div>${btns("city", !!ct)}</div>`;
+}
 function usersHtml() {
   const a = CLUB.admin, F = CLUB.uf;
   if (CLUB.ud) {
@@ -1970,6 +1984,7 @@ function usersHtml() {
       <small>${u.id}${u.username ? " · @" + esc(u.username) : ""} · TG ${u.tg_id}</small><br>
       <small>Oxirgi faollik: <b>${ago(u.last_at)}</b> · Qo‘shilgan: ${String(u.joined).slice(0, 10)}</small>
       <div class="apfilt" style="margin-top:8px"><span class="chip">🪙 ${fmt(u.coins)}</span><span class="chip">⭐ ${fmt(u.xp)} XP · #${u.rank}</span><span class="chip">🏠 ${u.home ? u.home + "-daraja" : "uy yo‘q"}${u.car ? " · 🚗" : ""}</span><span class="chip">🎟 ${u.seat_no ? "№" + u.seat_no : "—"}</span><span class="chip">🔥 seriya ${u.streak}</span><span class="chip">💼 ${d.shifts.n} smena · ${fmt(d.shifts.earned)} 🪙</span></div></div>
+    ${rolesHtml(d)}
     <div class="sec">🎁 Mukofot / yangilash</div>
     <div class="item"><div class="adm"><input id="gc" type="number" placeholder="🪙 tanga (±)"><input id="gx" type="number" placeholder="⭐ XP (±)"><select id="gl"><option value="">🏠 uy: o‘zgarmasin</option>${[1, 2, 3, 4, 5, 6, 7].map(n => `<option value="${n}">🏠 ${n}-daraja</option>`).join("")}</select></div>
       <input id="gn" placeholder="Izoh (foydalanuvchiga yuboriladi, ixtiyoriy)"><div class="hd"><button class="btn green" data-a="grant" data-id="${u.tg_id}">✅ Berish</button></div>
@@ -2057,6 +2072,14 @@ function clubBind() {
       else if (a === "upage") { CLUB.uf.off = Math.max(0, CLUB.uf.off + 30 * +b.dataset.d); await adminLoad(); return; }
       else if (a === "uopen" || a === "uopen2") { CLUB.av = "users"; CLUB.ud = b.dataset.id; await adminLoad(); return; }
       else if (a === "uback") { CLUB.ud = null; await adminLoad(); return; }
+      else if (a === "rset" || a === "rdel") {
+        const k = b.dataset.k, body = { tg_id: b.dataset.id, kind: k, action: a === "rdel" ? "remove" : "set" };
+        if (a === "rdel" && !confirm("Rolni olib tashlaysizmi?")) return;
+        if (k === "player") { body.position = v("rp").value; body.name = v("rn").value; }
+        if (k === "staff") body.dept = v("rd").value;
+        if (k === "city") body.role = v("rr").value;
+        await post("/api/admin/role", body); haptic("ok"); say(a === "rdel" ? "🚫 Rol olib tashlandi" : "✅ Saqlandi"); await adminLoad(); return;
+      }
       else if (a === "grant") { const r = await post("/api/admin/grant", { id: b.dataset.id, coins: v("gc").value, xp: v("gx").value, level: v("gl").value, note: v("gn").value }); haptic("ok"); say("✅ " + r.lines.join(" · ")); await adminLoad(); return; }
       else if (a === "apf") { CLUB.appF[b.dataset.k] = b.dataset.v; await adminLoad(); return; }
       else if (a === "appdec") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: b.dataset.ok ? "accept" : "reject" }); say("✅"); await adminLoad(); return; }
