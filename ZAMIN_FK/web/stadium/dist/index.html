@@ -498,6 +498,62 @@ legs.count = arms.count = hands.count = shoes.count = fi * 2;
   }
   scene.add(wall);
 }
+// ---------- main stand (north): upper tier + roof over both tiers ----------
+const MAIN = (() => {
+  const R = seats[seats.length - 1].ring + 1, XL = PW / 2 - 1.5, D2 = 0.9, H2 = 0.6, UR = 12;
+  const base = R * ROW_H + 3.6, zf = -(PH / 2 + 9 + (R - 3) * ROW_D), zb = zf - UR * D2, top = base + UR * H2;
+  const g = new THREE.Group(), box = (w, hh, d, x, y, z, mat) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), mat); m.position.set(x, y, z); g.add(m); return m; };
+  const concrete = new THREE.MeshLambertMaterial({ color: 0xe8ecf2 }), dark = new THREE.MeshLambertMaterial({ color: 0x1b2433 }), navy = new THREE.MeshLambertMaterial({ color: 0x0D2557 });
+  box(XL * 2, 0.7, zf - zb + 1.2, 0, base - 0.35, (zf + zb) / 2, dark);                       // tier slab
+  for (let k = 0; k < UR; k++) box(XL * 2, (k + 1) * H2, D2, 0, base + (k + 1) * H2 / 2, zf - (k + 0.5) * D2, concrete);   // stepped rows
+  box(XL * 2 + 1, top + 4 - 0, 0.8, 0, (top + 4) / 2, zb - 0.4, navy);                          // back wall
+  for (const sx of [-1, 1]) box(0.8, top - base + 3, zf - zb, sx * (XL + 0.4), (top + base + 3) / 2, (zf + zb) / 2, navy);   // end walls
+  for (let x = -XL + 6; x <= XL - 6; x += 12) box(0.9, base, 0.9, x, base / 2, zb + 1.5, dark);   // columns under the tier
+  // seats on the upper tier: club colours with a white ZFK block in the middle
+  const n = Math.floor(XL * 2 / SEAT_W), seatsU = new THREE.InstancedMesh(new THREE.BoxGeometry(SEAT_W * 0.8, 0.4, 0.42), new THREE.MeshLambertMaterial({ color: 0xffffff }), n * UR);
+  let c = 0;
+  for (let k = 0; k < UR; k++) for (let i = 0; i < n; i++) {
+    const x = -XL + (i + 0.5) * SEAT_W; M.compose(V.set(x, base + (k + 1) * H2 + 0.2, zf - (k + 0.6) * D2), Q.set(0, 0, 0, 1), S1); seatsU.setMatrixAt(c, M);
+    seatsU.setColorAt(c++, C.set(Math.abs(x) < 9 && k > 2 && k < 10 ? 0xffffff : Math.floor((x + XL) / 8) % 2 ? 0x1F4FB8 : 0x2a62d8));
+  }
+  g.add(seatsU);
+  // fascia along the front of the upper tier
+  const fc = document.createElement("canvas"); fc.width = 2048; fc.height = 64; const fx = fc.getContext("2d");
+  fx.fillStyle = "#0D2557"; fx.fillRect(0, 0, 2048, 64); fx.fillStyle = "#FFD23F"; fx.fillRect(0, 0, 2048, 4); fx.fillRect(0, 60, 2048, 4);
+  fx.fillStyle = "#fff"; fx.font = "900 40px Montserrat, sans-serif"; fx.textAlign = "center";
+  for (let i = 0; i < 4; i++) fx.fillText(i % 2 ? "QORATEPA" : "ZAMIN FK", 256 + i * 512, 46);
+  const ft = new THREE.CanvasTexture(fc), fasc = new THREE.Mesh(new THREE.PlaneGeometry(XL * 2, 1.4), new THREE.MeshBasicMaterial({ map: ft }));
+  fasc.position.set(0, base - 0.4, zf + 0.62); g.add(fasc);
+  // roof: from above the back wall out over the front rows of the lower tier, rising slightly towards the pitch
+  const yb = top + 4, yf = top + 6, zr = -(PH / 2 + 7.5), len = Math.hypot(zb - zr, yf - yb);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(XL * 2 + 4, 0.5, len), new THREE.MeshLambertMaterial({ color: 0xdfe5ec }));
+  roof.position.set(0, (yb + yf) / 2, (zb + zr) / 2); roof.rotation.x = Math.atan2(yf - yb, zb - zr); g.add(roof);
+  box(XL * 2 + 4, 1.2, 0.4, 0, yf - 0.3, zr, navy);                                                // roof edge
+  const strip = box(XL * 2 + 4, 0.25, 0.1, 0, yf - 0.95, zr + 0.25, new THREE.MeshBasicMaterial({ color: 0x5aa0ff }));   // light strip
+  for (let x = -XL; x <= XL + 0.1; x += XL / 4) {                                                // trusses
+    const tl = Math.hypot(zr - zb, yf - yb); const t = box(0.35, 1.6, tl, x, (yb + yf) / 2 + 0.9, (zb + zr) / 2, dark); t.rotation.x = roof.rotation.x;
+    box(0.6, yb + 0.5, 0.6, x, (yb + 0.5) / 2, zb - 0.4, dark);
+  }
+  scene.add(g);
+  return { screenY: yf + 7.6, screenZ: zr - 1 };
+})();
+// ---------- LED boards around the pitch: scrolling club messages ----------
+const LED = (() => {
+  const cv = document.createElement("canvas"); cv.width = 2048; cv.height = 64; const x = cv.getContext("2d");
+  const segs = [["#1F4FB8", "#fff", "ZAMIN FK"], ["#0D2557", "#FFD23F", "1 OBUNACHI = 1 O‘RINDIQ"], ["#FFD23F", "#0D2557", "QORATEPA"], ["#0D2557", "#fff", "⚽ ZAMIN FK SHAHRI"]];
+  segs.forEach(([bg, fg, t], i) => { x.fillStyle = bg; x.fillRect(i * 512, 0, 512, 64); x.fillStyle = fg; x.font = "900 34px Montserrat, sans-serif"; x.textAlign = "center"; x.fillText(t, i * 512 + 256, 45); });
+  const tex = new THREE.CanvasTexture(cv); tex.wrapS = THREE.RepeatWrapping;
+  const mat = new THREE.MeshBasicMaterial({ map: tex }), back = new THREE.MeshLambertMaterial({ color: 0x111822 });
+  const board = (len, px, pz, ry) => {
+    const geo = new THREE.PlaneGeometry(len, 0.9), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * len / 32);
+    const f = new THREE.Mesh(geo, mat); f.position.set(px, 0.55, pz); f.rotation.y = ry; scene.add(f);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(len, 1, 0.25), back); b.position.set(px, 0.5, pz); b.rotation.y = ry; b.translateZ(-0.14); scene.add(b);
+  };
+  const zl = PH / 2 + 3.5, xl = PW / 2 + 4.5;
+  board(PW - 4, 0, -zl, 0); board(PW - 4, 0, zl, Math.PI);
+  board(PH - 26, -xl, 0, Math.PI / 2); board(PH - 26, xl, 0, -Math.PI / 2);
+  return { tick: dt => { tex.offset.x = (tex.offset.x + dt * 0.12) % 1; } };
+})();
 // LED screen above the far stand (renovation) — cycles comment of the day / top fan / new fans
 const SCREEN_SLIDES = [{"title": "ENG FAOL MUXLIS ⭐", "big": "@legends00000001", "small": "VIP o‘rindiq • Rahmat!"}, {"title": "KUN IZOHI", "big": "@kewl.imjay45", "small": "“Stadion” ❤"}, {"title": "STADION TA’MIRLANDI", "big": "20 000 000 so‘m", "small": "Qoratepa sport jamg‘armasi"}, {"title": "MUXLISLAR", "big": "129 ta", "small": "1 obunachi = 1 o‘rindiq"}];
 const scv = document.createElement("canvas"); scv.width = 1024; scv.height = 512;
@@ -512,12 +568,12 @@ function drawScreen(i) {
   scTex.needsUpdate = true;
 }
 {
-  const R = seats[seats.length - 1].ring, zb = -(PH / 2 + 9 + R * ROW_D) - 2, hy = R * ROW_H + 10;
+  const zb = MAIN.screenZ, hy = MAIN.screenY;                                  // sits on the main stand roof
   const frame = new THREE.Mesh(new THREE.BoxGeometry(26, 14, 1.2), new THREE.MeshLambertMaterial({ color: 0x222831 }));
   frame.position.set(0, hy, zb); scene.add(frame);
   const face = new THREE.Mesh(new THREE.PlaneGeometry(24.5, 12.25), new THREE.MeshBasicMaterial({ map: scTex }));
   face.position.set(0, hy, zb + 0.65); scene.add(face);
-  for (const lx of [-9, 9]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.8, hy, 0.8), new THREE.MeshLambertMaterial({ color: 0x555555 })); leg.position.set(lx, hy / 2 - 3.5, zb - 0.5); scene.add(leg); }
+  for (const lx of [-9, 9]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.4, 0.8), new THREE.MeshLambertMaterial({ color: 0x555555 })); leg.position.set(lx, hy - 7.6, zb - 0.5); scene.add(leg); }
   drawScreen(0); let k = 0; setInterval(() => drawScreen(++k), 4000);
 }
 // floodlights
@@ -2148,6 +2204,7 @@ function loop(now) {
   controls.update();
   sky.position.copy(camera.position);
   animateTeam(now / 1000);
+  try { LED.tick(dt); } catch (e) {}
   try { pfTick(dt); } catch (e) { console.error("pfTick failed:", e); }
   cityTick(dt); walkersTick(dt, now / 1000);
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
