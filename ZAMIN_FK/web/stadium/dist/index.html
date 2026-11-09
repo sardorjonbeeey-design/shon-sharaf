@@ -146,6 +146,8 @@
   #lvls { display:flex; gap:4px; margin:0 0 14px; } #lvls i { flex:1; height:10px; border-radius:5px; background:rgba(255,255,255,.15); } #lvls i.on { background:var(--yel); }
   .go { width:100%; font:inherit; font-weight:900; font-size:18px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:14px; }
   .tag.home::before { content:"🏠"; margin-right:4px; }
+  .tag.res { background:#fff; border:2px solid var(--blue); } .tag.res::before { content:"🚶"; margin-right:4px; } .tag.res.car::before { content:"🚗"; }
+  .tag.res.me { background:var(--yel); border-color:var(--navy); font-size:14px; }
   .tag.lot { background:rgba(13,37,87,.85); color:#cfdcff; font-size:11px; }
   .tag.lot::before { content:""; margin:0; }
   .tag.big { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:14px; padding:6px 12px; }
@@ -954,12 +956,15 @@ const ICO = new THREE.IcosahedronGeometry(1, 1), SPH = new THREE.SphereGeometry(
 // a house is built from ~100 boxes; merge them into one mesh per material so each house costs a few draw calls
 function mergeGroup(g) {
   const buckets = new Map();
+  const keep = [];
   g.children.forEach(m => {
+    if (!m.isMesh || !m.geometry) { keep.push(m); return; }      // car models etc. stay as they are
     m.updateMatrix(); let geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); geo.applyMatrix4(m.matrix);
     if (!buckets.has(m.material)) buckets.set(m.material, { p: [], n: [] });
     const b = buckets.get(m.material); b.p.push(...geo.attributes.position.array); b.n.push(...geo.attributes.normal.array); geo.dispose();
   });
   const out = new THREE.Group();
+  keep.forEach(o => out.add(o));
   buckets.forEach((b, mat) => { const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(b.p, 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(b.n, 3)); out.add(new THREE.Mesh(geo, mat)); });
   return out;
 }
@@ -1070,9 +1075,9 @@ function layoutHomes(list) {
   });
   BUILT = used; hideBuiltLand(used, HOMES.length);
   document.getElementById("nh").textContent = HOMES.length;
+  spawnResidentsSoon();
 }
 let BUILT = new Set();
-layoutHomes(STATE.homes);
 // ---------- Kenney 3D models (CC0, see models/kenney/LICENSE-kenney.txt). Loaded once; the scene uses them when ready. ----------
 
 const KENNEY = {};
@@ -1080,6 +1085,7 @@ const HQ_MODEL = { fan: "building-type-a", media: "building-type-f", scouting: "
 const CAR_MODEL = { 1: "van", 2: "sedan", 3: "suv", 4: "suv-luxury" };          // home car by car id (see server CARS)
 const PERSON_MODEL = ["character-male-a", "character-male-b", "character-female-a", "character-female-b", "character-male-c", "character-female-c", "character-male-d", "character-female-d"];
 const KENNEY_PATH = n => (n.startsWith("character-") ? "models/kenney/people/" : TRAFFIC.includes(n) || ["suv-luxury"].includes(n) ? "models/kenney/cars/" : "models/kenney/") + n + ".glb";
+layoutHomes(STATE.homes);        // first layout — must come after the model tables above (a home with a car reads them)
 const KENNEY_READY = (async () => {
   if (!THREE.GLTFLoader) return;
   const ld = new THREE.GLTFLoader(), names = [...new Set([...Object.values(HQ_MODEL), "tree-large", "tree-small", ...TRAFFIC, ...Object.values(CAR_MODEL), ...PERSON_MODEL])];
@@ -1128,6 +1134,59 @@ function walkersTick(dt, t) {
   }
 }
 // scale a model to fit a w x h box (uniform), stand it on the ground and centre it on its origin
+// ---------- residents: every home owner has a character in the city — walking, or driving if they own a car ----------
+var RES = [], RES_T = 0, RES_GEN = 0;
+function spawnResidentsSoon() { clearTimeout(RES_T); RES_T = setTimeout(() => spawnResidents().catch(e => console.error("residents failed:", e)), 400); }
+async function spawnResidents() {
+  let people; try { people = PERSON_MODEL.filter(n => KENNEY[n]); } catch (e) { return; }      // page still loading: models aren't declared yet, a later layout respawns
+  const gen = ++RES_GEN;
+  if (!people.length || !carPaths.length) return;
+  const paths = RES.paths || (RES.paths = carPaths.filter(ps => ps.length > 1).map(ps => { const cum = [0]; for (let i = 1; i < ps.length; i++) cum.push(cum[i - 1] + Math.hypot(ps[i][0] - ps[i - 1][0], ps[i][1] - ps[i - 1][1])); return { ps, cum, L: cum[cum.length - 1] }; }).filter(p => p.L > 60));
+  if (!paths.length) return;
+  const nearest = (x, z) => {                              // closest point on any street: [path, distance along it]
+    let best = null, bd = 1e18;
+    for (const p of paths) for (let i = 1; i < p.ps.length; i++) {
+      const [x1, z1] = p.ps[i - 1], [x2, z2] = p.ps[i], dx = x2 - x1, dz = z2 - z1, l2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((x - x1) * dx + (z - z1) * dz) / l2)), d = (x1 + dx * t - x) ** 2 + (z1 + dz * t - z) ** 2;
+      if (d < bd) { bd = d; best = [p, p.cum[i - 1] + Math.sqrt(l2) * t]; }
+    }
+    return best;
+  };
+  const owners = homeObjs.map(o => o.userData).filter(h => h && h.p).sort((a, b) => (b.id === myId) - (a.id === myId)).slice(0, 80);
+  const hasM = typeof MODELS !== "undefined", mkey = k => k.includes(":") ? k : "kn:" + k, carSrc = k => k && ((hasM && MODELS[mkey(k)]) || KENNEY[k]);
+  if (hasM) await Promise.all([...new Set(owners.map(h => h.car && CAR_MODEL[h.car]).filter(k => k && !carSrc(k)))].map(k => loadModel(mkey(k))));
+  if (gen !== RES_GEN) return;                             // a newer layout started meanwhile
+  const old = new Map(RES.map(r => [r.id, r])); RES.forEach(r => scene.remove(r.o));
+  const list = [];
+  for (const h of owners) {
+    const hit = nearest(h.p.x, h.p.z); if (!hit) continue;
+    const [p, s0] = hit, cm = carSrc(h.car && CAR_MODEL[h.car]) || (h.car ? KENNEY.sedan : null);      // unknown car id still drives (plain sedan)
+    let n = 0; for (const ch of String(h.id)) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
+    const drive = !!cm, o = drive ? fitModel(cm.clone(), 5, 1.8) : fitModel(KENNEY[people[n % people.length]].clone(), 1.5, 2.5);
+    const prev = old.get(h.id), keep = prev && prev.drive === drive && prev.p === p;
+    const lo = drive ? 0 : Math.max(0, s0 - 160), hi = drive ? p.L : Math.min(p.L, s0 + 160);      // walkers stay around their own house
+    scene.add(o);
+    list.push({ id: h.id, nick: h.nick, mine: h.id === myId, drive, o, p, lo, hi, s: keep ? prev.s : Math.max(lo, Math.min(hi, s0 + (n % 60) - 30)), dir: keep ? prev.dir : (n & 1 ? 1 : -1),
+      sp: drive ? 9 + n % 5 : 1.5 + (n % 5) * .12, side: drive ? 1.7 : (n & 2 ? 7 : -7), h: drive ? 2.6 : 3.2 });
+  }
+  list.paths = paths; RES = list;
+}
+function residentsTick(dt, t) {
+  for (const r of RES) {
+    r.s += r.dir * r.sp * dt;
+    if (r.s > r.hi) { r.s = r.hi; r.dir = -1; } if (r.s < r.lo) { r.s = r.lo; r.dir = 1; }
+    const p = r.p; let j = 1; while (j < p.cum.length - 1 && p.cum[j] < r.s) j++;
+    const [x1, z1] = p.ps[j - 1], [x2, z2] = p.ps[j], seg = p.cum[j] - p.cum[j - 1] || 1, k = (r.s - p.cum[j - 1]) / seg, ux = (x2 - x1) / seg, uz = (z2 - z1) / seg;
+    const off = r.drive ? r.side * r.dir : r.side;
+    r.o.position.set(x1 + (x2 - x1) * k - uz * off, r.drive ? 0 : Math.abs(Math.sin(t * 8 + r.s)) * .1, z1 + (z2 - z1) * k + ux * off);
+    r.o.rotation.y = Math.atan2(ux, uz) + (r.dir < 0 ? Math.PI : 0);
+  }
+}
+if (new URLSearchParams(location.search).has("debug")) window.__res = { spawn: () => spawnResidents().then(() => 'ok:' + RES.length, e => 'ERR ' + e.stack), dbg: () => ({ homes: homeObjs.length, placed: homeObjs.filter(o => o.userData && o.userData.p).length, people: PERSON_MODEL.filter(n => KENNEY[n]).length, paths: carPaths.length, myId }), list: () => RES, refresh: async () => layoutHomes((await getState(15000)).homes) };
+function residentLabels(placeAt, camPos) {
+  const near = RES.map(r => [r.mine ? -1 : r.o.position.distanceToSquared(camPos), r]).sort((a, b) => a[0] - b[0]).slice(0, 24);
+  for (const [, r] of near) placeAt(r.o.position.x, r.h, r.o.position.z, "tag res" + (r.drive ? " car" : "") + (r.mine ? " me" : ""), r.nick, r.mine);
+}
 function fitModel(obj, w, h) {
   const sz = new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
   obj.scale.setScalar(Math.min(w / Math.max(sz.x, sz.z, .01), h / Math.max(sz.y, .01)));
@@ -1377,6 +1436,7 @@ function updateLabels(now) {
     for (const l of LOTS) placeAt(l.x, l.park ? 2 : 8, l.z, "tag lot", (l.park ? "" : T[L].soon) + T[L].lots[l.i]);
     for (const o of HQ_OBJS) { const d = o.userData.info; placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", `${d.emoji} ${d.name} · ${d.level ? d.level + "-daraja" : "qurilmoqda"}`, true); }
     const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]).slice(0, 30);
+    residentLabels(placeAt, camPos);
     for (const [, o] of hs) if (o !== mine) placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick);
   }
   for (let k = used; k < pool.length; k++) pool[k].style.display = "none";
@@ -2014,7 +2074,7 @@ function loop(now) {
   controls.update();
   sky.position.copy(camera.position);
   animateTeam(now / 1000);
-  cityTick(dt); walkersTick(dt, now / 1000);
+  cityTick(dt); walkersTick(dt, now / 1000); residentsTick(dt, now / 1000);
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
   DN.tick(now); DN.render();
   updateLabels(now);
