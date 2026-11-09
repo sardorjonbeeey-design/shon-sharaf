@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Zamin FK — stadion va shahar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0D2557; --blue:#1F4FB8; --yel:#FFD23F; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#0a1730; font-family: Montserrat, sans-serif; color:#fff; }
+  #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+  .ui { position:fixed; z-index:5; }
+  .pill { background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  #brand { top:14px; left:14px; display:flex; align-items:center; gap:10px; padding:10px 16px; font-weight:900; font-size:17px; letter-spacing:.5px; }
+  #brand img { height:34px; }
+  #count { top:14px; right:14px; padding:8px 16px; text-align:center; }
+  #count small { display:block; color:var(--yel); font-weight:900; font-size:12px; letter-spacing:2px; }
+  #count b { display:block; font-weight:900; font-size:30px; line-height:1.05; }
+  #count i { display:block; font-style:normal; font-size:10px; letter-spacing:2px; color:#9DB8FF; }
+  #error { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#300; color:#f00; padding:20px; border-radius:10px; text-align:center; display:none; z-index:100; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="brand" class="ui pill"><img id="crest" alt=""></div>
+<div id="count" class="ui pill"><small>VIRTUAL</small><b id="fans">0</b><i>muxlis</i></div>
+<div id="error" class="pill ui"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const API = __API__;
+const FANS_LIST = __FANS__;
+const DEMO = __DEMO__;
+const CREST_DATA = __CREST__;
+
+const errorEl = document.getElementById("error");
+function showError(msg) {
+  console.error(msg);
+  errorEl.textContent = msg;
+  errorEl.style.display = "block";
+}
+
+window.addEventListener("error", e => showError("Error: " + e.message));
+
+// Simple Three.js scene
+const canvas = document.getElementById("c");
+let scene, camera, renderer;
+
+try {
+  // Scene
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0b1838);
+  scene.fog = new THREE.Fog(0x8d96b8, 200, 800);
+
+  // Camera
+  camera = new THREE.PerspectiveCamera(50, 1, 0.5, 5000);
+  camera.position.set(80, 60, 100);
+  camera.lookAt(0, 0, 0);
+
+  // Renderer
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+
+  // Lights
+  const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x203018, 0.9);
+  scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xffe2b8, 1);
+  sun.position.set(-80, 120, 60);
+  sun.castShadow = true;
+  sun.shadow.mapSize.width = 2048;
+  sun.shadow.mapSize.height = 2048;
+  scene.add(sun);
+
+  // Ground
+  const groundGeo = new THREE.PlaneGeometry(600, 400);
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x3a5a2a });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // Stadium: simple pitch + stands
+  const pitchGeo = new THREE.PlaneGeometry(110, 70);
+  const pitchMat = new THREE.MeshLambertMaterial({ color: 0x2d7a2d });
+  const pitch = new THREE.Mesh(pitchGeo, pitchMat);
+  pitch.position.y = 0.1;
+  pitch.receiveShadow = true;
+  scene.add(pitch);
+
+  // Simple stands (boxes)
+  const standMat = new THREE.MeshLambertMaterial({ color: 0x1a3a7a });
+  for (let side of [-1, 1]) {
+    const standGeo = new THREE.BoxGeometry(120, 30, 10);
+    const stand = new THREE.Mesh(standGeo, standMat);
+    stand.position.set(side * 60, 15, 0);
+    stand.castShadow = true;
+    stand.receiveShadow = true;
+    scene.add(stand);
+  }
+
+  // Test cube (green)
+  const cubeGeo = new THREE.BoxGeometry(5, 5, 5);
+  const cubeMat = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+  const cube = new THREE.Mesh(cubeGeo, cubeMat);
+  cube.position.set(0, 5, 0);
+  cube.castShadow = true;
+  scene.add(cube);
+
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+    renderer.render(scene, camera);
+  }
+
+  // Resize handler
+  function onWindowResize() {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  }
+  window.addEventListener("resize", onWindowResize);
+  onWindowResize();
+
+  animate();
+  console.log("✓ Scene initialized");
+
+} catch (e) {
+  showError("Three.js error: " + e.message);
+}
+
+// Fans counter
+document.getElementById("crest").src = CREST_DATA;
+document.getElementById("fans").textContent = FANS_LIST.length;
+
+// API call (for data, non-blocking)
+fetch(API + "/api/state", { cache: "no-store" }).catch(() => {});
+</script>
+</body>
+</html>

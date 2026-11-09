@@ -52,7 +52,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   const isAdmin = id => ADMINS.has(String(id));
   if (!db) {                                  // memory mode (local only): portal disabled, everything else keeps working
     app.use(["/api/club", "/api/admin"], (req, res) => res.status(503).json({ error: "club needs database" }));
-    return { ensureMember: async () => null, summary: async () => null, registerReferral: async () => {} };
+    return { ensureMember: async () => null, summary: async () => null, registerReferral: async () => {}, isAdmin, tierOf, DEPTS, supporterId };
   }
   const ready = base().then(() => db.query(`
     create table if not exists members (tg_id bigint primary key, member_no serial unique, nick text not null, tg_username text,
@@ -87,7 +87,8 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
 
   async function tx(fn) {
     await ready; const c = await db.connect();
-    try { await c.query("begin"); const out = await fn(c); await c.query("commit"); return out; }
+    c.after = [];                                          // admin-channel logs, sent only once the transaction is committed
+    try { await c.query("begin"); const out = await fn(c); await c.query("commit"); for (const f of c.after) { try { f(); } catch (e) { console.error("after", e.message); } } return out; }
     catch (e) { await c.query("rollback").catch(() => {}); throw e; } finally { c.release(); }
   }
   const one = async (c, sql, a) => (await c.query(sql, a)).rows[0];
@@ -101,7 +102,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       for (let i = 0; i < 5 && !m; i++) {
         const code = crypto.randomBytes(6).toString("base64url").replace(/[-_]/g, "").slice(0, 8).toLowerCase();
         m = await one(c, "insert into members (tg_id, nick, tg_username, ref_code) values ($1,$2,$3,$4) on conflict do nothing returning *", [id, nick, tgu, code]);
-        if (m) cache = null;
+        if (m) { cache = null; c.after.push(() => bot.log("🆕 Yangi muxlis", { "Kim": bot.who(user), "ID": supporterId(m.member_no) })); }
         if (!m) m = await one(c, "select * from members where tg_id = $1 for update", [id]);
       }
     } else if (m.nick !== nick || m.tg_username !== tgu) await c.query("update members set nick = $2, tg_username = $3 where tg_id = $1", [id, nick, tgu]);
@@ -111,6 +112,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       await c.query("select pg_advisory_xact_lock(7710001)");
       seat = await one(c, "update seats set seat_no = (select coalesce(max(seat_no), 0) + 1 from seats) where tg_id = $1 and seat_no is null returning seat_no", [id])
         || await one(c, "select seat_no from seats where tg_id = $1", [id]);
+      if (seat.seat_no != null) { const no = seat.seat_no; c.after.push(() => bot.log("🎟 O‘rindiq berildi", { "Kim": bot.who(user), "O‘rindiq": "№" + no })); }
     }
     return { ...m, seat_no: seat.seat_no };
   }
@@ -202,14 +204,15 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     const me = await tx(async c => {
       const m = await ensureMemberTx(c, user), id = String(user.id);
       await qualifyReferral(c, id);
-      const fresh = await one(c, "select xp, influence, dept, dept_at from members where tg_id = $1", [id]);
+      const fresh = await one(c, "select xp, influence, dept, dept_at, profession, profession_at from members where tg_id = $1", [id]);
       const rank = (await one(c, "select count(*)::int + 1 as r from members where xp > $1", [fresh.xp])).r;
       const missions = await missionsFor(c, id);
       const contributions = (await c.query("select id, dept, kind, body, link, status, xp, influence, note, created_at from contributions where tg_id = $1 order by id desc limit 20", [id])).rows;
       const history = (await c.query("select xp, influence, reason, at from xp_log where tg_id = $1 order by id desc limit 20", [id])).rows;
       const refs = await one(c, "select count(*)::int as invited, count(*) filter (where rewarded)::int as active from referrals where referrer_tg = $1", [id]);
       return { member: { id: supporterId(m.member_no), no: m.member_no, nick: m.nick, joined: m.joined_at, seat_no: m.seat_no, xp: fresh.xp,
-        influence: fresh.influence, tier: tierOf(fresh.xp), rank, dept: fresh.dept, deptAt: fresh.dept_at, ref_code: m.ref_code, refs },
+        influence: fresh.influence, tier: tierOf(fresh.xp), rank, dept: fresh.dept, deptAt: fresh.dept_at, ref_code: m.ref_code, refs,
+        profession: fresh.profession || null, professionAt: fresh.profession_at || null },
         missions, contributions, history };
     });
     return { ...me, admin: isAdmin(user.id), club: await summary(), kinds: KINDS, tiers: TIERS, bot: bot.info.username || "" };
@@ -225,6 +228,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     if (m.dept === d.id) return { ok: true, dept: d.id };
     if (m.dept && m.dept_at && Date.now() - new Date(m.dept_at).getTime() < 7 * 864e5) throw fail(429, "wait", { next: new Date(new Date(m.dept_at).getTime() + 7 * 864e5) });
     await c.query("update members set dept = $2, dept_at = now() where tg_id = $1", [id, d.id]); cache = null;
+    c.after.push(() => bot.log("🏢 Bo‘limga qo‘shildi", { "Kim": bot.who(user), "Bo‘lim": d.id, "Avvalgi": m.dept || "" }));
     return { ok: true, dept: d.id };
   }));
 
@@ -243,7 +247,9 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     const dup = await one(c, "select 1 from contributions where tg_id = $1 and body = $2 and created_at > now() - interval '30 days'", [id, text]);
     if (dup) throw fail(409, "duplicate");
     const r = await one(c, "insert into contributions (tg_id, dept, kind, body, link) values ($1,$2,$3,$4,$5) returning id, status", [id, m.dept, kind, text, link || null]);
-    cache = null; return { ok: true, ...r };
+    cache = null;
+    c.after.push(() => bot.log("💡 Yangi hissa #" + r.id, { "Kim": bot.who(user), "Bo‘lim": m.dept, "Turi": kind, "Matn": text, "Havola": link }));
+    return { ok: true, ...r };
   }));
 
   route("/api/club/mission/claim", async (user, body) => tx(async c => {
@@ -271,7 +277,9 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     await c.query("insert into club_funds_log (amount, source, tg_id) values ($1,'donation',$2)", [amount, id]);
     const xp = Math.min(Math.floor((today.v + amount) / 10), DONATE_XP_DAY_MAX) - Math.min(Math.floor(today.v / 10), DONATE_XP_DAY_MAX);
     if (xp > 0) await award(c, id, xp, 0, "donation");
-    cache = null; return { ok: true, coins: w.coins, xp };
+    cache = null;
+    c.after.push(() => bot.log("💰 Klub fondiga xayriya", { "Kim": bot.who(user), "Summa": amount + " 🪙", "XP": xp }));
+    return { ok: true, coins: w.coins, xp };
   }));
 
   // ---------- admin ----------
@@ -284,13 +292,15 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     const approve = !!body.approve, clamp = (v, max) => Math.max(0, Math.min(max, Number(v) || 0) | 0);
     const xp = approve ? clamp(body.xp ?? 50, 500) : 0, inf = approve ? clamp(body.influence ?? 20, 500) : 0, funds = approve ? clamp(body.funds, 100000) : 0;
     const r = await one(c, `update contributions set status = $2, xp = $3, influence = $4, funds = $5, note = $6, decided_at = now(), decided_by = $7
-      where id = $1 and status = 'pending' returning tg_id, dept`, [Number(body.id) || 0, approve ? "approved" : "rejected", xp, inf, funds, String(body.note || "").slice(0, 200), String(user.id)]);
+      where id = $1 and status = 'pending' returning tg_id, dept, kind`, [Number(body.id) || 0, approve ? "approved" : "rejected", xp, inf, funds, String(body.note || "").slice(0, 200), String(user.id)]);
     if (!r) throw fail(409, "already decided");
     if (approve) {
       await award(c, r.tg_id, xp, inf, "contribution:" + body.id);
       if (funds) { await c.query("update club set funds = funds + $1 where id = 1", [funds]); await c.query("insert into club_funds_log (amount, source, tg_id) values ($1,'contribution',$2)", [funds, r.tg_id]); }
     }
-    cache = null; return { ok: true };
+    cache = null;
+    c.after.push(() => bot.log((approve ? "✅ Hissa tasdiqlandi #" : "❌ Hissa rad etildi #") + body.id, { "Admin": bot.who(user), "Muallif ID": r.tg_id, "Bo‘lim": r.dept, "XP": approve ? xp : "", "Ta’sir": approve ? inf : "", "Fond": funds || "" }));
+    return { ok: true };
   }), true);
   route("/api/admin/missions", async () => { await ready; return { missions: (await db.query("select * from missions order by period, sort, id")).rows, actions: ACTIONS }; }, true);
   route("/api/admin/mission/save", async (user, b) => {
@@ -312,7 +322,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
 
   // ---------- applications: city work (free roles) and club (player / staff) — all come to the admin ----------
   const POSITIONS = ["GK", "DEF", "MID", "FWD"];
-  const CITY_ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Avtobus haydovchisi", "Boshqa"];
+  const CITY_ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
   const CLUB_DEPTS = DEPTS.map(d => d[0]);
   const APP_KINDS = ["city", "player", "staff"];
   ready.then(() => db.query(`
@@ -327,7 +337,12 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     alter table applications add column if not exists admin_note text;
     alter table applications add column if not exists decided_at timestamptz;
     alter table applications add column if not exists decided_by bigint;
-    create index if not exists applications_filter_idx on applications (kind, status, created_at desc);`)).catch(e => console.error("apps init", e.message));
+    create index if not exists applications_filter_idx on applications (kind, status, created_at desc);
+    alter table members add column if not exists profession text;
+    alter table members add column if not exists profession_at timestamptz;
+    update members m set profession = a.role, profession_at = a.decided_at from (select distinct on (tg_id) tg_id, role, decided_at from applications
+      where kind = 'city' and status = 'accepted' and role is not null order by tg_id, decided_at desc nulls last) a
+      where m.tg_id = a.tg_id and m.profession is null;`)).catch(e => console.error("apps init", e.message));
 
   route("/api/apply", async (user, body) => tx(async c => {
     const id = String(user.id), kind = String(body.kind || "city");
@@ -356,10 +371,17 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     await ensureMemberTx(c, user);                       // applicants become club members (supporter ID + seat) so they can be assigned
     await c.query("select pg_advisory_xact_lock(7710002)");
     const open = await one(c, "select count(*)::int as n from applications where tg_id = $1 and kind = $2 and status = 'new'", [id, kind]);
-    if (open.n >= (kind === "city" ? 3 : 1)) throw fail(409, "pending");
+    if (open.n >= 1) throw fail(409, "pending");                 // one open application per kind
+    if (kind === "city") {                                       // one profession per user: applying again means switching
+      const cur = await one(c, "select profession from members where tg_id = $1", [id]);
+      if (cur && cur.profession === row.role) throw fail(409, "already");
+    }
     const r = await one(c, `insert into applications (tg_id, nick, role, note, kind, name, age, position, height, link, dept)
       values ($1,$11,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id, status`,
       [id, row.role || row.name || "", note, kind, row.name, row.age, row.position, row.height, row.link, row.dept, nickOf(user)]);
+    const KIND_UZ = { city: "🏙 Shahar ishi (kasb)", player: "🏃 Futbolchi", staff: "🧑‍💼 Klub xodimi" };
+    c.after.push(() => bot.log("📋 Yangi ariza #" + r.id, { "Kim": bot.who(user), "Turi": KIND_UZ[kind], "Kasb": row.role, "Ism": row.name, "Yosh": row.age,
+      "Pozitsiya": row.position, "Bo‘y": row.height, "Bo‘lim": row.dept, "Havola": row.link, "Izoh": note }));
     return { ok: true, id: r.id, status: r.status };
   }));
 
@@ -380,7 +402,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   }, true);
 
   // accept / reject / assign to a department (staff, or a player's department role)
-  route("/api/admin/application/decide", async (user, body) => tx(async c => {
+  const decideApp = (user, body) => tx(async c => {        // used by the mini app admin panel and the bot admin buttons
     const id = Number(body.id) | 0, action = String(body.action || "");
     if (!["accept", "reject", "assign"].includes(action)) throw fail(400, "action");
     const a = await one(c, "select * from applications where id = $1 for update", [id]);
@@ -389,7 +411,9 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       if (!CLUB_DEPTS.includes(body.dept)) throw fail(400, "dept");
       await c.query("update applications set dept = $2 where id = $1", [id, body.dept]);
       if (a.tg_id) await c.query("update members set dept = $2, dept_at = now() where tg_id = $1", [a.tg_id, body.dept]);
-      cache = null; return { ok: true, dept: body.dept };
+      cache = null;
+      c.after.push(() => bot.log("🏢 Bo‘limga tayinlandi #" + id, { "Admin": bot.who(user), "Kim": `${a.nick || ""} (${a.tg_id})`, "Bo‘lim": body.dept }));
+      return { ok: true, dept: body.dept };
     }
     const status = action === "accept" ? "accepted" : "rejected";
     if (a.status !== "new") throw fail(409, "already decided");
@@ -397,7 +421,15 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     await c.query("update applications set status = $2, admin_note = $3, decided_at = now(), decided_by = $4, dept = coalesce($5, dept) where id = $1",
       [id, status, String(body.note || "").slice(0, 200), String(user.id), bodyDept]);
     if (status === "accepted" && bodyDept && a.tg_id) await c.query("update members set dept = $2, dept_at = now() where tg_id = $1", [a.tg_id, bodyDept]);
+    let prevProf = null;
+    if (status === "accepted" && a.kind === "city" && a.tg_id) {      // one profession per user: the new one replaces the old one
+      prevProf = (await one(c, "select profession from members where tg_id = $1", [a.tg_id]) || {}).profession || null;
+      await c.query("update applications set status = 'replaced' where tg_id = $1 and kind = 'city' and status = 'accepted' and id <> $2", [a.tg_id, id]);
+      await c.query("update members set profession = $2, profession_at = now() where tg_id = $1", [a.tg_id, a.role]);
+    }
     cache = null;
+    c.after.push(() => bot.log((status === "accepted" ? "✅ Ariza qabul qilindi #" : "❌ Ariza rad etildi #") + id, { "Admin": bot.who(user),
+      "Arizachi": `${a.nick || ""} (${a.tg_id})`, "Turi": a.kind, "Kasb": a.kind === "city" ? a.role : "", "Avvalgi kasb": prevProf || "", "Bo‘lim": bodyDept || a.dept || "", "Izoh": body.note || "" }));
     // tell the applicant in Telegram (after commit; a failed message never blocks the decision)
     if (a.tg_id) {
       const what = a.kind === "player" ? "futbolchi" : a.kind === "staff" ? "klub xodimi" : (a.role || "ish");
@@ -407,7 +439,15 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       setTimeout(() => bot.api("sendMessage", { chat_id: String(a.tg_id), text, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)), 0);
     }
     return { ok: true, status };
-  }), true);
+  });
+  route("/api/admin/application/decide", decideApp, true);
+
+  // feedback sent to the bot (/feedback)
+  route("/api/admin/feedback", async (user, body) => {
+    await ready;
+    if (body.id && ["new", "done"].includes(body.status)) await db.query("update feedback set status = $2 where id = $1", [Number(body.id) | 0, body.status]);
+    return (await db.query("select id, tg_id, username, message, status, created_at from feedback order by id desc limit 200")).rows;
+  }, true);
 
   // accepted players (squad shown on the pitch) and staff — public, no personal data beyond name/position
   app.get("/api/squad", async (req, res) => {
@@ -419,39 +459,8 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
   });
 
-  // ---------- broadcast: tell existing users about new features (admin only; test first; each text can be sent once) ----------
-  ready.then(() => db.query(`create table if not exists broadcasts (id serial primary key, text_hash text unique not null, text text not null,
-      total int not null, sent int not null default 0, failed int not null default 0, by_admin bigint, created_at timestamptz not null default now(), done boolean not null default false)`)).catch(e => console.error("broadcast init", e.message));
-  let live = null;
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
-  route("/api/admin/broadcast", async (user, b) => {
-    await ready;
-    const text = String(b.text || "").trim().slice(0, 1500);
-    if (text.length < 10) throw fail(400, "text");
-    const ids = (await db.query(`select distinct tg_id from (select tg_id from members union select tg_id from homes union select tg_id from seats union select tg_id from wallets) x`)).rows.map(r => String(r.tg_id));
-    if (b.mode === "count") return { recipients: ids.length };
-    if (b.mode === "test") { await bot.send(user.id, text, true); return { sent: 1 }; }
-    if (b.mode !== "all" || b.confirm !== true) throw fail(400, "confirm");
-    if (live && !live.done) throw fail(409, "already sending");
-    const hash = crypto.createHash("sha256").update(text).digest("hex");
-    const ins = await db.query("insert into broadcasts (text_hash, text, total, by_admin) values ($1,$2,$3,$4) on conflict do nothing returning id", [hash, text, ids.length, String(user.id)]);
-    if (!ins.rowCount) throw fail(409, "this text was already sent");
-    const bid = ins.rows[0].id; live = { id: bid, total: ids.length, sent: 0, failed: 0, done: false };
-    (async () => {
-      for (const id of ids) {
-        try { await bot.send(id, text, true); live.sent++; }
-        catch (e) { live.failed++; if (/Too Many Requests/i.test(e.message)) await sleep(3000); }
-        await sleep(60);                                         // ~16 messages/second, under Telegram's limit
-      }
-      live.done = true;
-      await db.query("update broadcasts set sent = $2, failed = $3, done = true where id = $1", [bid, live.sent, live.failed]).catch(() => {});
-    })();
-    return { started: true, total: ids.length };
-  }, true);
-  route("/api/admin/broadcast/status", async () => live || { idle: true }, true);
-
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
-  return { ensureMember, summary, registerReferral };
+  return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId };
 }
 
 module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay };

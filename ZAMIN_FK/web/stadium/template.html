@@ -13,17 +13,19 @@
   #c { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
   .ui { position:fixed; z-index:5; }
   .pill { background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.35); }
-  #brand { top:8px; left:8px; display:flex; align-items:center; gap:6px; padding:6px 10px; font-weight:900; font-size:14px; letter-spacing:.3px; }
-  #brand img { height:28px; }
-  #count { top:8px; right:8px; padding:4px 10px; text-align:center; }
-  #count small { display:block; color:var(--yel); font-weight:900; font-size:10px; letter-spacing:1px; }
+  #brand { top:14px; left:14px; display:flex; align-items:center; gap:10px; padding:10px 16px; font-weight:900; font-size:17px; letter-spacing:.5px; }
+  #brand img { height:34px; }
+  #count { top:14px; right:14px; padding:6px 12px 7px; min-width:72px; box-sizing:border-box; text-align:center; border-radius:14px; border-width:1.5px; }
+  #count small { display:block; color:var(--yel); font-weight:900; font-size:9px; letter-spacing:1.5px; }
   #count b { display:block; font-weight:900; font-size:22px; line-height:1.05; }
-  #count i { display:block; font-style:normal; font-size:8px; letter-spacing:1px; color:#9DB8FF; }
-  #langs { top:46px; left:8px; display:flex; gap:4px; }
-  #langs button { font:inherit; font-weight:700; font-size:10px; color:#fff; background:rgba(13,37,87,.85); border:1.5px solid rgba(255,255,255,.2); border-radius:10px; padding:4px 7px; cursor:pointer; }
-  #langs button.on { background:var(--yel); color:var(--navy); border-color:var(--yel); }
-  #side { right:8px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:6px; }
-  #side button { width:40px; height:40px; border-radius:12px; font:inherit; font-weight:900; font-size:18px; color:#fff; background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); cursor:pointer; }
+  #count i { display:block; font-style:normal; font-size:7.5px; letter-spacing:1.5px; color:#9DB8FF; }
+  #langs { top:74px; left:14px; display:flex; align-items:center; gap:6px; padding:5px; border-radius:16px; background:rgba(13,37,87,.85); border:2px solid rgba(255,255,255,.2); box-sizing:border-box; max-width:48px; overflow:hidden; transition:max-width .3s ease; }
+  #langs.open { max-width:160px; }
+  #langs button { flex:0 0 auto; width:34px; height:24px; padding:0; border:2px solid transparent; border-radius:6px; overflow:hidden; background:none; line-height:0; cursor:pointer; }
+  #langs button svg { width:100%; height:100%; display:block; }
+  #langs button.on { border-color:var(--yel); }
+  #side { right:14px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:10px; }
+  #side button { width:52px; height:52px; border-radius:16px; font:inherit; font-weight:900; font-size:24px; color:#fff; background:rgba(13,37,87,.92); border:2px solid rgba(255,255,255,.25); }
   #find { left:12px; right:12px; bottom:14px; display:flex; gap:10px; }
   #find input { flex:1; min-width:0; font:inherit; font-weight:700; font-size:17px; color:#fff; background:rgba(13,37,87,.95); border:2px solid rgba(255,255,255,.25); border-radius:18px; padding:16px 18px; outline:none; }
   #find input::placeholder { color:#9DB8FF; }
@@ -95,7 +97,7 @@
   body.city #actions { display:flex; }
   body.city #rule { display:none; }
   #count .homes { display:none; }
-  body.city #count .homes { display:block; margin-top:4px; }
+  body.city #count .homes { display:block; margin-top:5px; padding-top:5px; border-top:1px solid rgba(255,255,255,.15); }
   #cta { left:50%; transform:translateX(-50%); bottom:130px; display:none; font:inherit; font-weight:900; font-size:14px; color:#fff; background:var(--blue); border:2px solid var(--yel); border-radius:16px; padding:10px 16px; white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,.35); }
   body:not(.city) #cta.on { display:block; }
   .sheet { left:12px; right:12px; bottom:14px; z-index:7; padding:18px; display:none; max-height:80vh; overflow:auto; }
@@ -229,7 +231,7 @@ const T = {
       homeH:"Uyingizni oling", homeGo:"Uyimni olish", homeP:"Shaharda bepul 1 qavatli uy olasiz va stadionda nomingiz bilan o‘rindiq paydo bo‘ladi. Har kuni uyingizni bir darajaga yaxshilang!", homeSave:"Rangni saqlash", lotSel:"📍 Tanlangan joyga quriladi.", lotAuto:"📍 Xaritadagi “+” belgisini bosib joy tanlang yoki stadionga eng yaqin bo‘sh joy olinadi.", lotFree:"Bo‘sh joy — bu yerda uy qurish mumkin.", lotWeb:"Bu bo‘sh joy! Uy qurish uchun @zaminfk_bot ga kiring.", lotTaken:"Bu joy band bo‘lib qoldi, boshqasini tanlang.",
       lv:["","Kichik uy","Ikki qavatli uy","Uch qavatli uy","To‘rt qavatli uy","Besh qavatli bino","Olti qavatli bino","Osmono‘par 🚁"], lvOf:(a,b)=>`Daraja ${a}/${b}`,
       up:(n)=>`⬆️ Yaxshilash: ${n}`, upWait:(t)=>`⏳ Keyingi yaxshilash: ${t}`, upMax:"🏆 Eng yuqori daraja!", upOk:(n)=>`Tabriklaymiz! Uyingiz endi: ${n} 🎉`, visit:"📍 Uyimga borish", hr:"soat", mn:"daq", jobH:"Shaharda ishlash", jobP:"Zamin FK shahrini birga quramiz. Yo‘nalishni tanlang va o‘zingiz haqingizda yozing.", jobGo:"Ariza yuborish", jobPh:"Tajribangiz, portfolio havolasi…",
-      roles:["Quruvchi (3D)","Dizayner","Video montaj","SMM","Dasturchi","Avtobus haydovchisi","Boshqa"], styles:["Kottej","Katta kottej","Shisha bino","Pog‘onali bino","O‘zbek hovli"], plaza:"☕ Choyxona",
+      roles:["Quruvchi (3D)","Dizayner","Video montaj","SMM","Dasturchi","Boshqa"], styles:["Kottej","Katta kottej","Shisha bino","Pog‘onali bino","O‘zbek hovli"], plaza:"☕ Choyxona",
       needTg:"Buning uchun ilovani Telegram orqali oching.", seatOk:(s)=>`O‘rningiz tayyor! ${s}`, homeOk:"Uyingiz tayyor! 🏠", jobOk:"Ariza qabul qilindi! Siz bilan bog‘lanamiz.", err:"Saqlab bo‘lmadi, qayta urinib ko‘ring.", homeOf:(n,i)=>`${n} — ${i}-uy`, soon:"Kelajakda: ",
       lots:["Mashg‘ulot maydoni","Hovuz","Xodimlar binosi","Media markaz","Klub ofisi","🅿 Avtoturargoh"], stad:"ZAMIN FK STADIONI"},
   ru:{title:"ZAMIN FK", fans:"БОЛЕЛЬЩИКИ", pop:"ЖИТЕЛИ", rule:"1 подписчик = 1 место", find:"Найти", ph:"Поиск по нику", demo:"Демо-список", nf:"Этого ника пока нет ни на стадионе, ни в городе. Подпишитесь — место будет готово!", seat:(s)=>`Сектор ${s.sec} · Ряд ${s.row} · Место ${s.no}`,
@@ -238,7 +240,7 @@ const T = {
       homeH:"Получите дом", homeGo:"Получить дом", homeP:"Бесплатный одноэтажный дом в городе и место с вашим именем на стадионе. Улучшайте дом на один уровень каждый день!", homeSave:"Сохранить цвет", lotSel:"📍 Дом будет построен на выбранном месте.", lotAuto:"📍 Нажмите «+» на карте, чтобы выбрать место, или получите ближайшее к стадиону.", lotFree:"Свободное место — здесь можно построить дом.", lotWeb:"Свободное место! Чтобы построить дом, откройте @zaminfk_bot.", lotTaken:"Это место уже заняли, выберите другое.",
       lv:["","Маленький дом","Двухэтажный дом","Трёхэтажный дом","Четырёхэтажный дом","Пятиэтажка","Шестиэтажка","Небоскрёб 🚁"], lvOf:(a,b)=>`Уровень ${a}/${b}`,
       up:(n)=>`⬆️ Улучшить: ${n}`, upWait:(t)=>`⏳ Следующее улучшение: ${t}`, upMax:"🏆 Максимальный уровень!", upOk:(n)=>`Поздравляем! Теперь у вас: ${n} 🎉`, visit:"📍 К моему дому", hr:"ч", mn:"мин", jobH:"Работа в городе", jobP:"Строим город Zamin FK вместе. Выберите направление и расскажите о себе.", jobGo:"Отправить заявку", jobPh:"Опыт, ссылка на портфолио…",
-      roles:["Строитель (3D)","Дизайнер","Видеомонтаж","SMM","Программист","Водитель автобуса","Другое"], styles:["Коттедж","Большой коттедж","Стеклянная башня","Ступенчатая башня","Узбекский двор"], plaza:"☕ Чайхана",
+      roles:["Строитель (3D)","Дизайнер","Видеомонтаж","SMM","Программист","Другое"], styles:["Коттедж","Большой коттедж","Стеклянная башня","Ступенчатая башня","Узбекский двор"], plaza:"☕ Чайхана",
       needTg:"Для этого откройте приложение через Telegram.", seatOk:(s)=>`Ваше место готово! ${s}`, homeOk:"Ваш дом готов! 🏠", jobOk:"Заявка принята! Мы свяжемся с вами.", err:"Не удалось сохранить, попробуйте ещё раз.", homeOf:(n,i)=>`${n} — дом №${i}`, soon:"Скоро: ",
       lots:["Тренировочное поле","Бассейн","Корпус персонала","Медиацентр","Офис клуба","🅿 Парковка"], stad:"СТАДИОН ZAMIN FK"},
   en:{title:"ZAMIN FK", fans:"FANS", pop:"RESIDENTS", rule:"1 follower = 1 seat", find:"Find", ph:"Search by nick", demo:"Demo list", nf:"This nick isn’t in the stadium or the city yet. Follow us — your seat will be ready!", seat:(s)=>`Sector ${s.sec} · Row ${s.row} · Seat ${s.no}`,
@@ -247,7 +249,7 @@ const T = {
       homeH:"Get your home", homeGo:"Get my home", homeP:"A free one-floor home in the city and a seat with your name in the stadium. Upgrade it one level every day!", homeSave:"Save colour", lotSel:"📍 It will be built on the lot you picked.", lotAuto:"📍 Tap a “+” on the map to pick a lot, or get the free one nearest the stadium.", lotFree:"Free lot — a home can be built here.", lotWeb:"Free lot! Open @zaminfk_bot to build your home.", lotTaken:"Someone just took this lot, pick another.",
       lv:["","Small house","Two-floor house","Three-floor house","Four-floor house","Five-floor block","Six-floor block","Skyscraper 🚁"], lvOf:(a,b)=>`Level ${a}/${b}`,
       up:(n)=>`⬆️ Upgrade: ${n}`, upWait:(t)=>`⏳ Next upgrade in ${t}`, upMax:"🏆 Top level!", upOk:(n)=>`Congratulations! Your home is now: ${n} 🎉`, visit:"📍 Go to my home", hr:"h", mn:"min", jobH:"Work in the city", jobP:"Let’s build Zamin FK city together. Pick a field and tell us about yourself.", jobGo:"Send application", jobPh:"Experience, portfolio link…",
-      roles:["Builder (3D)","Designer","Video editor","SMM","Developer","Bus driver","Other"], styles:["Cottage","Big cottage","Glass tower","Stepped tower","Uzbek courtyard"], plaza:"☕ Teahouse",
+      roles:["Builder (3D)","Designer","Video editor","SMM","Developer","Other"], styles:["Cottage","Big cottage","Glass tower","Stepped tower","Uzbek courtyard"], plaza:"☕ Teahouse",
       needTg:"Open the app in Telegram for this.", seatOk:(s)=>`Your seat is ready! ${s}`, homeOk:"Your home is ready! 🏠", jobOk:"Application received! We’ll contact you.", err:"Couldn’t save, please try again.", homeOf:(n,i)=>`${n} — home #${i}`, soon:"Coming: ",
       lots:["Training pitch","Pool","Staff building","Media centre","Club office","🅿 Parking"], stad:"ZAMIN FK STADIUM"},
 };
@@ -1680,15 +1682,15 @@ const JX = {
     clubP: "Klub uchun: futbolchi yoki jamoa a’zosi sifatida.", player: "🏃 Futbolchi", staff: "🧑‍💼 Jamoa a’zosi",
     name: "Ism va familiya", age: "Yoshingiz", height: "Bo‘yingiz (sm, ixtiyoriy)", pos: "Pozitsiya", link: "Video havola (ixtiyoriy)", note: "Qo‘shimcha ma’lumot",
     dept: "Qaysi bo‘limda ishlamoqchisiz?", send: "📨 Yuborish", sent: "Arizangiz adminga yuborildi! Javobni kuting.", pend: "Sizda ko‘rib chiqilayotgan ariza bor.",
-    errs: { name: "Ismingizni kiriting", age: "Yoshingizni to‘g‘ri kiriting", position: "Pozitsiyani tanlang", dept: "Bo‘limni tanlang", link: "Havola noto‘g‘ri", pending: "Sizda ko‘rib chiqilayotgan ariza bor", role: "Sohani tanlang", "kind": "Xato" } },
+    errs: { name: "Ismingizni kiriting", age: "Yoshingizni to‘g‘ri kiriting", position: "Pozitsiyani tanlang", dept: "Bo‘limni tanlang", link: "Havola noto‘g‘ri", pending: "Sizda ko‘rib chiqilayotgan ariza bor", role: "Sohani tanlang", "kind": "Xato", already: "Bu kasb allaqachon sizniki" } },
   ru: { path: "Какая заявка?", pathP: "Выберите работу в городе или вступите в команду клуба.", city: "🏙 Работа в городе", club: "⚽ Команда клуба", clubP: "Для клуба: игроком или членом команды.",
     player: "🏃 Игрок", staff: "🧑‍💼 Член команды", name: "Имя и фамилия", age: "Возраст", height: "Рост (см, необязательно)", pos: "Позиция", link: "Ссылка на видео (необязательно)",
     note: "Дополнительно", dept: "В каком отделе хотите работать?", send: "📨 Отправить", sent: "Заявка отправлена админу! Ждите ответа.", pend: "У вас уже есть заявка на рассмотрении.",
-    errs: { name: "Введите имя", age: "Введите возраст", position: "Выберите позицию", dept: "Выберите отдел", link: "Неверная ссылка", pending: "У вас уже есть заявка на рассмотрении", role: "Выберите сферу" } },
+    errs: { name: "Введите имя", age: "Введите возраст", position: "Выберите позицию", dept: "Выберите отдел", link: "Неверная ссылка", pending: "У вас уже есть заявка на рассмотрении", role: "Выберите сферу", already: "Эта профессия уже ваша" } },
   en: { path: "What kind of application?", pathP: "Work in the city, or join the club team.", city: "🏙 Work in the city", club: "⚽ Club team",
     clubP: "For the club: as a player or a team member.", player: "🏃 Player", staff: "🧑‍💼 Team member", name: "Full name", age: "Age", height: "Height (cm, optional)", pos: "Position",
     link: "Video link (optional)", note: "Anything else", dept: "Which department?", send: "📨 Send", sent: "Your application was sent to the admin!", pend: "You already have an application pending.",
-    errs: { name: "Enter your name", age: "Enter a valid age", position: "Choose a position", dept: "Choose a department", link: "Invalid link", pending: "You already have an application pending", role: "Choose an area" } },
+    errs: { name: "Enter your name", age: "Enter a valid age", position: "Choose a position", dept: "Choose a department", link: "Invalid link", pending: "You already have an application pending", role: "Choose an area", already: "This is already your profession" } },
 };
 const JT = k => (JX[L] && JX[L][k] !== undefined ? JX[L][k] : JX.uz[k]);
 const APP = { path: null, kind: "player", pos: null, dept: null };
@@ -1932,12 +1934,6 @@ async function adminLoad() {
   catch (e) { CLUB.admin = null; }
   clubRender();
 }
-const BC_DEFAULT = "🎉 ZAMIN FK shahrida yangiliklar!\n🏠 Uyingizni 7 darajagacha yaxshilang\n🪙 Kofexonada ishlab tanga toping, kunlik bonus oling\n🛒 Bozordan mashina sotib oling\n⚽ Klub portali: a’zolik kartasi, Fan XP, bo‘limlar, missiyalar\n💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza bering — avtobus haydovchisi ham kerak!\n\nPastdagi tugma orqali oching 👇";
-function bcHtml() {
-  return `<div class="sec">📣 Foydalanuvchilarga xabar</div><div class="item"><textarea id="bcText" rows="9">${esc(CLUB.bcText || BC_DEFAULT)}</textarea>
-    <div class="hd"><small id="bcInfo">${CLUB.bcInfo || ""}</small></div>
-    <div class="adm" style="grid-template-columns:1fr 1fr 1fr"><button class="btn blue" data-a="bcCount">Soni</button><button class="btn" data-a="bcTest">Menga test</button><button class="btn red" data-a="bcAll">Hammasiga</button></div></div>`;
-}
 const KIND_NAME = { city: "🏙 Shahar", player: "⚽ Futbolchi", staff: "🧑‍💼 Jamoa" }, STATUS_NAME = { new: "🆕 Yangi", accepted: "✅ Qabul", rejected: "❌ Rad" };
 function appsHtml(apps) {
   const F = CLUB.appF, cnt = (k, st) => (apps.counts.find(c => c.kind === k && (!st || c.status === st)) || { n: 0 }).n;
@@ -1960,7 +1956,7 @@ function appsHtml(apps) {
 
 function adminHtml(me, m, club) {
   const a = CLUB.admin; if (!a) return `<small>…</small>`;
-  return bcHtml() + appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
+  return appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
       <small>${esc(c.nick)} · ZFK-${String(c.member_no).padStart(5, "0")}</small><p style="margin:6px 0;font-size:13px">${esc(c.body)}</p>${c.link ? `<small>🔗 <a style="color:#FFD23F" href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></small>` : ""}
       <div class="adm"><input id="ax${c.id}" type="number" value="50" title="XP"><input id="ai${c.id}" type="number" value="20" title="Influence"><input id="af${c.id}" type="number" value="0" title="Funds"></div>
       <input id="an${c.id}" placeholder="Izoh (ixtiyoriy)"><div class="hd"><button class="btn green" data-a="decide" data-id="${c.id}" data-ok="1">${PT.uz.approve}</button><button class="btn red" data-a="decide" data-id="${c.id}">${PT.uz.reject}</button></div></div>`).join("") || `<small>${PT.uz.none}</small>`}
@@ -1989,14 +1985,6 @@ function clubBind() {
       else if (a === "donate") { const d = await post("/api/club/donate", { amount: +b.dataset.n }); haptic("ok"); say(PT.uz.donated(b.dataset.n, d.xp)); await fetchMe(); await clubLoad(); }
       else if (a === "decide") { const id = b.dataset.id; await post("/api/admin/contribution/decide", { id: +id, approve: !!b.dataset.ok, xp: +v("ax" + id).value, influence: +v("ai" + id).value, funds: +v("af" + id).value, note: v("an" + id).value }); await adminLoad(); return; }
       else if (a === "msave") { const id = b.dataset.id, k = s => v(s + id); await post("/api/admin/mission/save", { id: id === "new" ? undefined : +id, title: k("mt").value, period: k("mp").value, action: k("ma").value, target: +k("mg").value, xp: +k("mx").value, active: id === "new" ? true : k("mo").checked }); say("✅"); await adminLoad(); return; }
-      else if (a === "bcCount" || a === "bcTest" || a === "bcAll") {
-        const text = v("bcText").value; CLUB.bcText = text;
-        if (a === "bcCount") { const d = await post("/api/admin/broadcast", { text, mode: "count" }); CLUB.bcInfo = d.recipients + " ta foydalanuvchi"; }
-        else if (a === "bcTest") { await post("/api/admin/broadcast", { text, mode: "test" }); CLUB.bcInfo = "Test sizga yuborildi ✅"; }
-        else { const c = await post("/api/admin/broadcast", { text, mode: "count" });
-          if (!confirm(c.recipients + " ta foydalanuvchiga yuborilsinmi? Qaytarib bo‘lmaydi.")) return;
-          const d = await post("/api/admin/broadcast", { text, mode: "all", confirm: true }); CLUB.bcInfo = "Yuborilmoqda: " + d.total + " ta"; }
-        clubRender(); return; }
       else if (a === "apf") { CLUB.appF[b.dataset.k] = b.dataset.v; await adminLoad(); return; }
       else if (a === "appdec") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: b.dataset.ok ? "accept" : "reject" }); say("✅"); await adminLoad(); return; }
       else if (a === "appassign") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: "assign", dept: v("asd" + b.dataset.id).value }); say("✅ 🏢"); await adminLoad(); return; }
@@ -2009,9 +1997,21 @@ if (TG) clubLoad();
 
 // ---------- language ----------
 const langsEl = document.getElementById("langs");
+const FLAGS = {          // small inline SVG flags (emoji flags don't show on every device)
+  uz: '<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#1eb53a"/><rect width="30" height="13.2" fill="#fff"/><rect width="30" height="6.4" fill="#0099b5"/><rect y="6.4" width="30" height=".6" fill="#ce1126"/><rect y="12.6" width="30" height=".6" fill="#ce1126"/><circle cx="5" cy="3.2" r="2.2" fill="#fff"/><circle cx="5.8" cy="3.2" r="2" fill="#0099b5"/><g fill="#fff"><circle cx="9.5" cy="2" r=".45"/><circle cx="11" cy="2" r=".45"/><circle cx="12.5" cy="2" r=".45"/><circle cx="9.5" cy="3.4" r=".45"/><circle cx="11" cy="3.4" r=".45"/><circle cx="12.5" cy="3.4" r=".45"/><circle cx="11" cy="4.8" r=".45"/><circle cx="12.5" cy="4.8" r=".45"/></g></svg>',
+  ru: '<svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#d52b1e"/><rect width="30" height="13.33" fill="#0039a6"/><rect width="30" height="6.67" fill="#fff"/></svg>',
+  en: '<svg viewBox="0 0 60 40"><clipPath id="gbc"><rect width="60" height="40"/></clipPath><g clip-path="url(#gbc)"><rect width="60" height="40" fill="#012169"/><path d="M0,0 60,40M60,0 0,40" stroke="#fff" stroke-width="8"/><path d="M0,0 60,40M60,0 0,40" stroke="#c8102e" stroke-width="3"/><path d="M30,0V40M0,20H60" stroke="#fff" stroke-width="12"/><path d="M30,0V40M0,20H60" stroke="#c8102e" stroke-width="7"/></g></svg>',
+};
 [["uz", "O‘zbekcha"], ["ru", "Русский"], ["en", "English"]].forEach(([k, n]) => {
-  const b = document.createElement("button"); b.textContent = n; b.onclick = () => setLang(k); b.dataset.k = k; langsEl.appendChild(b);
+  const b = document.createElement("button"); b.innerHTML = FLAGS[k]; b.title = n; b.setAttribute("aria-label", n); b.dataset.k = k;
+  b.onclick = e => {                       // closed: tap the flag to slide the others out; open: tap a flag to pick it
+    e.stopPropagation();
+    if (!langsEl.classList.contains("open")) { langsEl.classList.add("open"); return; }
+    langsEl.classList.remove("open"); if (k !== L) setLang(k);
+  };
+  langsEl.appendChild(b);
 });
+document.addEventListener("pointerdown", e => { if (!langsEl.contains(e.target)) langsEl.classList.remove("open"); });
 function setLang(k) {
   L = k; try { localStorage.setItem("zfk_lang", k); } catch (e) {}
   document.querySelectorAll("[data-t]").forEach(el => el.textContent = T[L][el.dataset.t]);
@@ -2019,6 +2019,7 @@ function setLang(k) {
   document.getElementById("igNick").placeholder = T[L].igPh;
   document.getElementById("jobNote").placeholder = T[L].jobPh;
   langsEl.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.k === L));
+  const cur = langsEl.querySelector('button[data-k="' + L + '"]'); if (cur) langsEl.prepend(cur);   // current flag first (shown when closed)
   document.getElementById("demo").style.display = DEMO ? "block" : "none";
   buildPickers();
 }

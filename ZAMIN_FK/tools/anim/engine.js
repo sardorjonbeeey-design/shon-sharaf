@@ -36,7 +36,6 @@ function idleXform(kind, t) {
     case 'shake': return { dy: 0, s: 1, r: Math.sin(t * 22) * 2.5 };
     case 'pulse': return { dy: 0, s: 1 + Math.sin(t * 7) * 0.04, r: 0 };
     case 'sway': return { dy: Math.sin(t * 3) * 4, s: 1, r: Math.sin(t * 3) * 2 };
-    case 'talk': return { dy: -Math.abs(Math.sin(t * 11)) * 6, s: 1 + Math.abs(Math.sin(t * 11)) * 0.02, r: Math.sin(t * 4) * 1.2 };
     default: return { dy: 0, s: 1, r: 0 };
   }
 }

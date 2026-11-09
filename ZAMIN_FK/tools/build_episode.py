@@ -146,7 +146,7 @@ os.makedirs(os.path.dirname(out), exist_ok=True)
 run(["ffmpeg", "-loglevel", "error", "-y", *inputs, "-filter_complex", ";".join(fc),
      "-map", f"[{last}]", "-map", "[aout]", "-t", f"{total:.3f}", "-r", str(FPS),
      "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-profile:v", "high",
-     "-ac", "2", "-ar", "48000", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out])
+     "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out])
 
 # 6. SRT captions from overlays marked as subtitles --------------------------------------
 def ts(s):

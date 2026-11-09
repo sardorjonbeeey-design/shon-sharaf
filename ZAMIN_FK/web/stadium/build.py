@@ -37,6 +37,10 @@ heroes = [
      "role": {"uz": "Darvozabon. Har doim bahonasi tayyor.", "ru": "Вратарь. Оправдание всегда наготове.", "en": "Goalkeeper. Always has an excuse ready."}},
     {"key": "aziz", "name": "Aziz", "img": data_uri(os.path.join(SPR, "aziz_ball.png")), "x": -2, "z": -4, "h": 3.0,
      "role": {"uz": "Yarim himoyachi. Atrofda xaos — u jiddiy.", "ru": "Полузащитник. Вокруг хаос — он серьёзен.", "en": "Midfielder. Chaos all around — he stays serious."}},
+    {"key": "doston", "name": "Doston", "img": data_uri(os.path.join(SPR, "doston_full.png")), "x": -34, "z": 9, "h": 3.1,
+     "role": {"uz": "Himoyachi. 22 yosh, juda tez.", "ru": "Защитник. 22 года, очень быстрый.", "en": "Defender. 22 years old, very fast."}},
+    {"key": "sherzod", "name": "Sherzod", "img": data_uri(os.path.join(SPR, "sherzod_full.png")), "x": -34, "z": -9, "h": 3.2,
+     "role": {"uz": "Himoyachi. 25 yosh, juda kuchli.", "ru": "Защитник. 25 лет, очень сильный.", "en": "Defender. 25 years old, very strong."}},
     {"key": "echki", "name": "Echki", "img": data_uri(os.path.join(SPR, "goat_side.png")), "x": 46, "z": -26, "h": 1.6,
      "role": {"uz": "Stadionning eng sodiq muxlisi. Ismini siz tanlaysiz!", "ru": "Самый верный болельщик стадиона. Имя выберете вы!", "en": "The stadium’s most loyal fan. You pick its name!"}},
 ]
