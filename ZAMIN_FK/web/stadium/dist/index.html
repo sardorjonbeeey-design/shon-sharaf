@@ -539,10 +539,38 @@ const MAIN = (() => {
 })();
 // ---------- LED boards around the pitch: scrolling club messages ----------
 const LED = (() => {
-  const cv = document.createElement("canvas"); cv.width = 2048; cv.height = 128; const x = cv.getContext("2d");
-  const segs = [["#1F4FB8", "#fff", "ZAMIN FK"], ["#0D2557", "#FFD23F", "1 OBUNACHI = 1 O‘RINDIQ"], ["#FFD23F", "#0D2557", "QORATEPA"], ["#0D2557", "#fff", "⚽ ZAMIN FK SHAHRI"]];
-  segs.forEach(([bg, fg, t], i) => { x.fillStyle = bg; x.fillRect(i * 512, 0, 512, 128); x.fillStyle = fg; x.font = "900 " + (t.length > 14 ? 40 : 60) + "px Montserrat, sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(t, i * 512 + 256, 66); });
+  // ads come from the admin bot (/reklama) via /api/led; without ads the boards show club messages
+  const DEFAULT = [["#1F4FB8", "#fff", "ZAMIN FK"], ["#0D2557", "#FFD23F", "1 OBUNACHI = 1 O‘RINDIQ"], ["#FFD23F", "#0D2557", "QORATEPA"], ["#0D2557", "#fff", "⚽ ZAMIN FK SHAHRI"]].map(([bg, fg, text]) => ({ kind: "text", bg, fg, text }));
+  const cv = document.createElement("canvas"); cv.width = 2048; cv.height = 128;
   const tex = new THREE.CanvasTexture(cv); tex.wrapS = THREE.RepeatWrapping;
+  let slots = 4, sig = "";
+  function draw(ads, imgs) {
+    slots = Math.max(4, ads.length); cv.width = Math.min(4096, slots * 512); const sw = cv.width / slots, x = cv.getContext("2d");
+    ads.forEach((a, i) => {
+      const x0 = i * sw;
+      if (a.kind === "image" && imgs[i]) {
+        const im = imgs[i], s = Math.max(sw / im.width, 128 / im.height), w = im.width * s, hh = im.height * s;
+        x.save(); x.beginPath(); x.rect(x0, 0, sw, 128); x.clip(); x.drawImage(im, x0 + (sw - w) / 2, (128 - hh) / 2, w, hh); x.restore();
+      } else {
+        const t = String(a.text || ""); x.fillStyle = a.bg || "#1F4FB8"; x.fillRect(x0, 0, sw, 128);
+        x.fillStyle = a.fg || "#fff"; x.textAlign = "center"; x.textBaseline = "middle";
+        let fs = 60; do { x.font = "900 " + fs + "px Montserrat, sans-serif"; fs -= 4; } while (fs > 24 && x.measureText(t).width > sw - 24);
+        x.fillText(t, x0 + sw / 2, 66);
+      }
+    });
+    tex.repeat.x = 4 / slots; tex.needsUpdate = true;
+  }
+  const loadImg = url => new Promise(res => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = () => res(null); im.src = url; });
+  async function refresh() {
+    try {
+      const r = await fetch(API + "/api/led", { cache: "no-store" }); if (!r.ok) return;
+      const ads = (await r.json()).filter(a => a.kind === "text" || a.kind === "image"), s = JSON.stringify(ads);
+      if (s === sig) return; sig = s;
+      const list = ads.length ? ads : DEFAULT;
+      draw(list, await Promise.all(list.map(a => a.kind === "image" ? loadImg(API + a.img) : null)));
+    } catch (e) { console.warn("led ads", e); }
+  }
+  draw(DEFAULT, []); refresh(); setInterval(refresh, 120000);
   const mat = new THREE.MeshBasicMaterial({ map: tex }), back = new THREE.MeshLambertMaterial({ color: 0x111822 });
   const board = (len, px, pz, ry) => {
     const geo = new THREE.PlaneGeometry(len, 1.3), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * len / 20.8);
@@ -552,7 +580,7 @@ const LED = (() => {
   const zl = PH / 2 + 3.5, xl = PW / 2 + 4.5;
   board(PW - 4, 0, -zl, 0); board(PW - 4, 0, zl, Math.PI);
   board(PH - 26, -xl, 0, Math.PI / 2); board(PH - 26, xl, 0, -Math.PI / 2);
-  return { tick: dt => { tex.offset.x = (tex.offset.x + dt * 0.12) % 1; } };
+  return { tick: dt => { tex.offset.x = (tex.offset.x + dt * 0.12 * 4 / slots) % 1; } };
 })();
 // LED screen above the far stand (renovation) — cycles comment of the day / top fan / new fans
 const SCREEN_SLIDES = [{"title": "ENG FAOL MUXLIS ⭐", "big": "@legends00000001", "small": "VIP o‘rindiq • Rahmat!"}, {"title": "KUN IZOHI", "big": "@kewl.imjay45", "small": "“Stadion” ❤"}, {"title": "STADION TA’MIRLANDI", "big": "20 000 000 so‘m", "small": "Qoratepa sport jamg‘armasi"}, {"title": "MUXLISLAR", "big": "129 ta", "small": "1 obunachi = 1 o‘rindiq"}];
