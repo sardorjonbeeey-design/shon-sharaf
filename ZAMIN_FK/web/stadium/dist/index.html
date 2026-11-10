@@ -152,12 +152,15 @@
   .tag.lot::before { content:""; margin:0; }
   .tag.big { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:14px; padding:6px 12px; }
   .tag.big::before { content:"🏟"; margin-right:6px; }
+  .mrow { display:flex; gap:8px; overflow-x:auto; padding:6px 2px 10px; -webkit-overflow-scrolling:touch; }
+  .mdl { flex:none; width:76px; height:64px; border-radius:12px; border:3px solid transparent; background:#fff center/contain no-repeat; font:inherit; font-weight:900; font-size:12px; color:#0D2557; }
+  .mdl.on { border-color:#FFD23F; box-shadow:0 0 0 2px #0D2557; }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="labels"></div>
-<div id="brand" class="ui pill"><img src="data:image/webp;base64,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" alt=""><span data-t="title"></span></div>
+<div id="brand" class="ui pill"><img src=""data:image/webp;base64,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"" alt=""><span data-t="title"></span></div>
 <div id="count" class="ui pill"><small data-t="fans"></small><b id="n">0</b><i>VIRTUAL</i><div class="homes"><small data-t="pop"></small><b id="nh">0</b></div></div>
 <div id="langs" class="ui"></div>
 <div id="place" class="ui"></div>
@@ -177,7 +180,7 @@
 <div id="sSeat" class="ui pill sheet"><button class="x">×</button><h3 data-t="seatH"></h3><p data-t="seatP"></p>
   <input id="igNick" maxlength="31" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="go" id="seatGo" data-t="seatGo"></button></div>
 <div id="sHome" class="ui pill sheet"><button class="x">×</button><h3 id="homeTitle"></h3><p id="homeInfo"></p>
-  <div id="lvls"></div><div class="row" id="colors"></div>
+  <div id="lvls"></div><div class="mrow" id="models"></div><div class="row" id="colors"></div>
   <button class="go" id="homeGo"></button><button class="go alt2" id="homeUp"></button><button class="go gift" id="homeBonus"></button><button class="go alt3" id="homeVisit" data-t="visit"></button>
   <button class="go alt3" id="homeSeat" data-t="linkIg"></button></div>
 <div id="sJob" class="ui pill sheet"><button class="x">×</button><h3 id="jTitle"></h3><p id="jSub"></p>
@@ -199,7 +202,6 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
@@ -500,90 +502,6 @@ legs.count = arms.count = hands.count = shoes.count = fi * 2;
   }
   scene.add(wall);
 }
-// ---------- main stand (north): upper tier + roof over both tiers ----------
-const MAIN = (() => {
-  const R = seats[seats.length - 1].ring + 1, XL = PW / 2 - 1.5, D2 = 0.9, H2 = 0.6, UR = 12;
-  const base = R * ROW_H + 3.6, zf = -(PH / 2 + 9 + (R - 3) * ROW_D), zb = zf - UR * D2, top = base + UR * H2;
-  const g = new THREE.Group(), box = (w, hh, d, x, y, z, mat) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), mat); m.position.set(x, y, z); g.add(m); return m; };
-  const concrete = new THREE.MeshLambertMaterial({ color: 0xe8ecf2 }), dark = new THREE.MeshLambertMaterial({ color: 0x1b2433 }), navy = new THREE.MeshLambertMaterial({ color: 0x0D2557 });
-  box(XL * 2, 0.7, zf - zb + 1.2, 0, base - 0.35, (zf + zb) / 2, dark);                       // tier slab
-  for (let k = 0; k < UR; k++) box(XL * 2, (k + 1) * H2, D2, 0, base + (k + 1) * H2 / 2, zf - (k + 0.5) * D2, concrete);   // stepped rows
-  box(XL * 2 + 1, top + 4 - 0, 0.8, 0, (top + 4) / 2, zb - 0.4, navy);                          // back wall
-  for (const sx of [-1, 1]) box(0.8, top - base + 3, zf - zb, sx * (XL + 0.4), (top + base + 3) / 2, (zf + zb) / 2, navy);   // end walls
-  for (let x = -XL + 6; x <= XL - 6; x += 12) box(0.9, base, 0.9, x, base / 2, zb + 1.5, dark);   // columns under the tier
-  // seats on the upper tier: club colours with a white ZFK block in the middle
-  const n = Math.floor(XL * 2 / SEAT_W), seatsU = new THREE.InstancedMesh(new THREE.BoxGeometry(SEAT_W * 0.8, 0.4, 0.42), new THREE.MeshLambertMaterial({ color: 0xffffff }), n * UR);
-  let c = 0;
-  for (let k = 0; k < UR; k++) for (let i = 0; i < n; i++) {
-    const x = -XL + (i + 0.5) * SEAT_W; M.compose(V.set(x, base + (k + 1) * H2 + 0.2, zf - (k + 0.6) * D2), Q.set(0, 0, 0, 1), S1); seatsU.setMatrixAt(c, M);
-    seatsU.setColorAt(c++, C.set(Math.abs(x) < 9 && k > 2 && k < 10 ? 0x9fb0c8 : Math.floor((x + XL) / 8) % 2 ? 0x1F4FB8 : 0x2a62d8));
-  }
-  g.add(seatsU);
-  // fascia along the front of the upper tier
-  const fc = document.createElement("canvas"); fc.width = 2048; fc.height = 64; const fx = fc.getContext("2d");
-  fx.fillStyle = "#0D2557"; fx.fillRect(0, 0, 2048, 64); fx.fillStyle = "#FFD23F"; fx.fillRect(0, 0, 2048, 4); fx.fillRect(0, 60, 2048, 4);
-  fx.fillStyle = "#fff"; fx.font = "900 40px Montserrat, sans-serif"; fx.textAlign = "center";
-  for (let i = 0; i < 4; i++) fx.fillText(i % 2 ? "QORATEPA" : "ZAMIN FK", 256 + i * 512, 46);
-  const ft = new THREE.CanvasTexture(fc), fasc = new THREE.Mesh(new THREE.PlaneGeometry(XL * 2, 1.4), new THREE.MeshBasicMaterial({ map: ft, color: 0xcccccc }));
-  fasc.position.set(0, base - 0.4, zf + 0.62); g.add(fasc);
-  // roof: from above the back wall out over the front rows of the lower tier, rising slightly towards the pitch
-  const yb = top + 4, yf = top + 6, zr = -(PH / 2 + 7.5), len = Math.hypot(zb - zr, yf - yb);
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(XL * 2 + 4, 0.5, len), new THREE.MeshLambertMaterial({ color: 0xdfe5ec }));
-  roof.position.set(0, (yb + yf) / 2, (zb + zr) / 2); roof.rotation.x = Math.atan2(yf - yb, zb - zr); g.add(roof);
-  box(XL * 2 + 4, 1.2, 0.4, 0, yf - 0.3, zr, navy);                                                // roof edge
-  const strip = box(XL * 2 + 4, 0.25, 0.1, 0, yf - 0.95, zr + 0.25, new THREE.MeshBasicMaterial({ color: 0x5aa0ff }));   // light strip
-  for (let x = -XL; x <= XL + 0.1; x += XL / 4) {                                                // trusses
-    const tl = Math.hypot(zr - zb, yf - yb); const t = box(0.35, 1.6, tl, x, (yb + yf) / 2 + 0.9, (zb + zr) / 2, dark); t.rotation.x = roof.rotation.x;
-    box(0.6, yb + 0.5, 0.6, x, (yb + 0.5) / 2, zb - 0.4, dark);
-  }
-  scene.add(g);
-  return { screenY: yf + 7.6, screenZ: zr - 1 };
-})();
-// ---------- LED boards around the pitch: scrolling club messages ----------
-const LED = (() => {
-  // ads come from the admin bot (/reklama) via /api/led; without ads the boards show club messages
-  const DEFAULT = [["#1F4FB8", "#fff", "ZAMIN FK"], ["#0D2557", "#FFD23F", "1 OBUNACHI = 1 O‘RINDIQ"], ["#FFD23F", "#0D2557", "QORATEPA"], ["#0D2557", "#fff", "⚽ ZAMIN FK SHAHRI"]].map(([bg, fg, text]) => ({ kind: "text", bg, fg, text }));
-  const cv = document.createElement("canvas"); cv.width = 2048; cv.height = 128;
-  const tex = new THREE.CanvasTexture(cv); tex.wrapS = THREE.RepeatWrapping;
-  let slots = 4, sig = "";
-  function draw(ads, imgs) {
-    slots = Math.max(4, ads.length); cv.width = Math.min(4096, slots * 512); const sw = cv.width / slots, x = cv.getContext("2d");
-    ads.forEach((a, i) => {
-      const x0 = i * sw;
-      if (a.kind === "image" && imgs[i]) {
-        const im = imgs[i], s = Math.max(sw / im.width, 128 / im.height), w = im.width * s, hh = im.height * s;
-        x.save(); x.beginPath(); x.rect(x0, 0, sw, 128); x.clip(); x.drawImage(im, x0 + (sw - w) / 2, (128 - hh) / 2, w, hh); x.restore();
-      } else {
-        const t = String(a.text || ""); x.fillStyle = a.bg || "#1F4FB8"; x.fillRect(x0, 0, sw, 128);
-        x.fillStyle = a.fg || "#fff"; x.textAlign = "center"; x.textBaseline = "middle";
-        let fs = 60; do { x.font = "900 " + fs + "px Montserrat, sans-serif"; fs -= 4; } while (fs > 24 && x.measureText(t).width > sw - 24);
-        x.fillText(t, x0 + sw / 2, 66);
-      }
-    });
-    tex.repeat.x = 4 / slots; tex.needsUpdate = true;
-  }
-  const loadImg = url => new Promise(res => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = () => res(null); im.src = url; });
-  async function refresh() {
-    try {
-      const r = await fetch(API + "/api/led", { cache: "no-store" }); if (!r.ok) return;
-      const ads = (await r.json()).filter(a => a.kind === "text" || a.kind === "image"), s = JSON.stringify(ads);
-      if (s === sig) return; sig = s;
-      const list = ads.length ? ads : DEFAULT;
-      draw(list, await Promise.all(list.map(a => a.kind === "image" ? loadImg(API + a.img) : null)));
-    } catch (e) { console.warn("led ads", e); }
-  }
-  draw(DEFAULT, []); refresh(); setInterval(refresh, 120000);
-  tex.anisotropy = 8; const mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xcccccc }), back = new THREE.MeshLambertMaterial({ color: 0x111822 });
-  const board = (len, px, pz, ry) => {
-    const geo = new THREE.PlaneGeometry(len, 1.3), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * len / 20.8);
-    const f = new THREE.Mesh(geo, mat); f.position.set(px, 0.8, pz); f.rotation.y = ry; scene.add(f);
-    const b = new THREE.Mesh(new THREE.BoxGeometry(len, 1.5, 0.3), back); b.position.set(px, 0.75, pz); b.rotation.y = ry; b.translateZ(-0.17); scene.add(b);
-  };
-  const zl = PH / 2 + 3.5, xl = PW / 2 + 4.5;
-  board(PW - 4, 0, -zl, 0); board(PW - 4, 0, zl, Math.PI);
-  board(PH - 26, -xl, 0, Math.PI / 2); board(PH - 26, xl, 0, -Math.PI / 2);
-  return { tick: dt => { tex.offset.x = (tex.offset.x + dt * 0.12 * 4 / slots) % 1; } };
-})();
 // LED screen above the far stand (renovation) — cycles comment of the day / top fan / new fans
 const SCREEN_SLIDES = [{"title": "ENG FAOL MUXLIS ⭐", "big": "@legends00000001", "small": "VIP o‘rindiq • Rahmat!"}, {"title": "KUN IZOHI", "big": "@kewl.imjay45", "small": "“Stadion” ❤"}, {"title": "STADION TA’MIRLANDI", "big": "20 000 000 so‘m", "small": "Qoratepa sport jamg‘armasi"}, {"title": "MUXLISLAR", "big": "129 ta", "small": "1 obunachi = 1 o‘rindiq"}];
 const scv = document.createElement("canvas"); scv.width = 1024; scv.height = 512;
@@ -598,12 +516,12 @@ function drawScreen(i) {
   scTex.needsUpdate = true;
 }
 {
-  const zb = MAIN.screenZ, hy = MAIN.screenY;                                  // sits on the main stand roof
+  const R = seats[seats.length - 1].ring, zb = -(PH / 2 + 9 + R * ROW_D) - 2, hy = R * ROW_H + 10;
   const frame = new THREE.Mesh(new THREE.BoxGeometry(26, 14, 1.2), new THREE.MeshLambertMaterial({ color: 0x222831 }));
   frame.position.set(0, hy, zb); scene.add(frame);
-  scTex.anisotropy = 8; const face = new THREE.Mesh(new THREE.PlaneGeometry(24.5, 12.25), new THREE.MeshBasicMaterial({ map: scTex, color: 0xcccccc }));
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(24.5, 12.25), new THREE.MeshBasicMaterial({ map: scTex }));
   face.position.set(0, hy, zb + 0.65); scene.add(face);
-  for (const lx of [-9, 9]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.4, 0.8), new THREE.MeshLambertMaterial({ color: 0x555555 })); leg.position.set(lx, hy - 7.6, zb - 0.5); scene.add(leg); }
+  for (const lx of [-9, 9]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.8, hy, 0.8), new THREE.MeshLambertMaterial({ color: 0x555555 })); leg.position.set(lx, hy / 2 - 3.5, zb - 0.5); scene.add(leg); }
   drawScreen(0); let k = 0; setInterval(() => drawScreen(++k), 4000);
 }
 // floodlights
@@ -784,7 +702,8 @@ function buildRealTown(map) {
       for (const t of THREE.ShapeUtils.triangulateShape(v, [])) for (const k of up(v, t)) push(v[k].x, H, v[k].y, 0, 0, 1);
       if (kind === "mosque") domes.push([mx, H, mz]);
     }
-    // other OSM buildings (flats, schools, public) are no longer drawn: plain blocks that meant nothing on the map
+    if (pos.length) { const bm = new THREE.Mesh(merged(pos, nrm, col), new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); bm.name = "otherBuildings"; scene.add(bm); }
+    instanced(new THREE.SphereGeometry(.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), lamC(0x2f7fc1), domes.map(([x, y, z]) => [x, y, z, 9, 7, 9]));
   }
   // "+" on every free lot (one instanced mesh); hidden where a fan has built
   plots = houses.map(h => ({ ...h, ry: Math.PI / 2 - h.ang, d: Math.hypot(h.x, h.z) })).sort((a, b) => a.d - b.d);
@@ -1053,19 +972,7 @@ function mergeGroup(g) {
   buckets.forEach((b, mat) => { const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(b.p, 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(b.n, 3)); out.add(new THREE.Mesh(geo, mat)); });
   return out;
 }
-// level-1 houses use the starter house model (models/starter, Z-up, front towards -Y); built-in house until it loads or if it fails
-const STARTER = { scene: null };
-if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/starter/starter_house_l1.glb", g => { STARTER.scene = g.scene; if (typeof HOMES !== "undefined" && HOMES) layoutHomes(HOMES); }, undefined, e => console.warn("starter house", e));
-function starterHome(h) {
-  if ((h.level || 1) !== 1 || !STARTER.scene) return null;
-  const m = STARTER.scene.clone(true); m.rotation.x = -Math.PI / 2;
-  m.traverse(o => { if (o.isMesh && o.material && /window glass/i.test(o.material.name || "")) o.material = LM.lit; });   // windows glow at night like the other houses
-  const up = new THREE.Group(); up.add(m);
-  const g = new THREE.Group(); g.add(fitModel(up, 12.4, 12));
-  if (h.car && KENNEY[CAR_MODEL[h.car]]) { const c = fitModel(KENNEY[CAR_MODEL[h.car]].clone(), 2.2, 1.9); c.position.set(3.2, 0, 3.6); c.rotation.y = Math.PI / 2; g.add(c); }
-  return g;
-}
-function makeHome(h) { return starterHome(h) || mergeGroup(buildHome(h)); }
+function makeHome(h) { return mergeGroup(buildHome(h)); }
 function buildHome(h) {
   const g = new THREE.Group(), L = Math.max(1, Math.min(7, h.level || 1)), acc = accM[h.color] || accM[0];
   const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
@@ -1130,8 +1037,10 @@ function buildHome(h) {
     for (const [x, z] of [[-5, 4.6], [5, 4.6], [-5, -5], [5, -5]]) { box(LM.trim, 1.8, .7, 1.2, x, G + .35, z); mesh(SPH, LM.bush, .7, .5, .45, x, G + .9, z); }
     tree(-5, .5, 1.1); tree(5, .5, 1.1);
   }
-  if (h.car && KENNEY[CAR_MODEL[h.car]]) {                  // real car model parked on the lawn
-    const c = fitModel(KENNEY[CAR_MODEL[h.car]].clone(), 2.2, 1.9); c.position.set(3.1, G, 3.9); c.rotation.y = Math.PI / 2; g.add(c);
+  const ckey = h.car && CAR_MODEL[h.car] ? (CAR_MODEL[h.car].includes(":") ? CAR_MODEL[h.car] : "kn:" + CAR_MODEL[h.car]) : null;
+  if (ckey && !MODELS[ckey]) loadModel(ckey).then(m => m && relayoutSoon());
+  if (ckey && MODELS[ckey]) {                               // parked car model
+    const c = fitModel(MODELS[ckey].clone(), 2.2, 1.9); c.position.set(3.1, G, 3.9); c.rotation.y = Math.PI / 2; g.add(c);
   } else if (h.car) {                                       // car parked on the lawn (bought in the market), simple fallback
     const cc = [0, 0xf2f2f2, 0xb8bcc2, 0x2a4f8a, 0x1d1f24][h.car] || 0xf2f2f2, cm = lamC(cc), van = h.car === 1, big = h.car === 3;
     const cx = 3.1, cz = 3.9, bh = van ? 1.7 : big ? 1.3 : 1.05;
@@ -1150,7 +1059,7 @@ function layoutHomes(list) {
   HOMES.forEach(h => {
     let p = h.lot != null ? byId.get(h.lot) : null;
     if (!p) { while (k < plots.length && used.has(plots[k].id)) k++; p = plots[k]; if (!p) return; used.add(p.id); }
-    const o = makeHome(h); o.position.set(p.x, 0, p.z);
+    const o = modelHome(h) || makeHome(h); o.position.set(p.x, 0, p.z);
     if (p.len) {                                          // real lot: align to its footprint, front towards the stadium
       const want = Math.atan2(-p.x, -p.z); let best = p.ry, bd = 9;
       for (let q = 0; q < 4; q++) { const r = p.ry + q * Math.PI / 2, d = Math.abs(Math.atan2(Math.sin(r - want), Math.cos(r - want))); if (d < bd) { bd = d; best = r; } }
@@ -1167,7 +1076,46 @@ let BUILT = new Set();
 
 const KENNEY = {};
 const HQ_MODEL = { fan: "building-type-a", media: "building-type-f", scouting: "building-type-k", stadium: "building-type-n", academy: "building-type-d" };
-const CAR_MODEL = { 1: "van", 2: "sedan", 3: "suv", 4: "suv-luxury" };          // home car by car id (see server CARS)
+const CAR_MODEL = { 1: "van", 2: "sedan", 3: "suv", 4: "suv-luxury", 5: "hatchback-sports", 6: "sedan-sports", 7: "taxi",
+  8: "ky:car_hatchback", 9: "ky:car_police", 10: "ky:car_sedan", 11: "ky:car_stationwagon", 12: "ky:car_taxi" };   // home car by car id (see server CARS)
+const KN_L = "abcdefghijklmnopqrstu", KY_L = "ABCDEFGH";
+const HOUSE_MODEL = i => i >= 1 && i <= 21 ? "kn:building-type-" + KN_L[i - 1] : i >= 22 && i <= 29 ? "ky:building_" + KY_L[i - 22] : null;   // style 1..29
+const HOUSE_THUMB = i => i <= 21 ? "models/thumbs/kn_" + KN_L[i - 1] + ".png" : "models/thumbs/kk_" + KY_L[i - 22] + ".png";
+const CAR_THUMB = id => { const m = CAR_MODEL[id]; return m ? "models/thumbs/car_" + (m.startsWith("ky:") ? "kk_" + m.slice(7) : m) + ".png" : ""; };
+// lazy model cache: "kn:name" (Kenney .glb) or "ky:name" (KayKit .gltf); MODELS[key] is set once loaded
+const MODELS = {}, MODEL_P = {};
+function loadModel(key) {
+  if (!MODEL_P[key]) MODEL_P[key] = new Promise(r => {
+    if (!THREE.GLTFLoader) return r(null);
+    const [src, n] = key.includes(":") ? key.split(":") : ["kn", key];
+    const url = src === "ky" ? "models/kaykit/" + n + ".gltf" : KENNEY_PATH(n);
+    new THREE.GLTFLoader().load(url, g => { MODELS[key] = g.scene; r(g.scene); }, undefined, () => r(null));
+  });
+  return MODEL_P[key];
+}
+let relayoutT = null;
+const relayoutSoon = () => { clearTimeout(relayoutT); relayoutT = setTimeout(() => { if (HOMES) layoutHomes(HOMES); }, 120); };
+// Kenney roofs are green in their colour sheet: swap that green for the owner's colour (shading kept)
+const ROOF_TEX = {};
+function roofTex(orig, ci) {
+  if (ROOF_TEX[ci]) return ROOF_TEX[ci];
+  const img = orig.image, c = document.createElement("canvas"); c.width = img.width; c.height = img.height; const x = c.getContext("2d"); x.drawImage(img, 0, 0);
+  const d = x.getImageData(0, 0, c.width, c.height), px = d.data, hex = COLORS[ci] || COLORS[0], tr = hex >> 16 & 255, tg = hex >> 8 & 255, tb = hex & 255;
+  for (let i = 0; i < px.length; i += 4) { const r = px[i], g = px[i + 1], b = px[i + 2];
+    if (g > r + 25 && g > b + 25) { const l = Math.min(1.25, (r + g + b) / 3 / 150); px[i] = Math.min(255, tr * l); px[i + 1] = Math.min(255, tg * l); px[i + 2] = Math.min(255, tb * l); } }
+  x.putImageData(d, 0, 0); const t = new THREE.CanvasTexture(c); t.flipY = orig.flipY; t.encoding = orig.encoding; return ROOF_TEX[ci] = t;
+}
+function modelHome(h) {                                    // picked model (style 1..29); null -> built-in house
+  const key = HOUSE_MODEL(h.style || 0); if (!key) return null;
+  const src = MODELS[key]; if (!src) { loadModel(key).then(m => m && relayoutSoon()); return null; }
+  const obj = src.clone(true);
+  if (key.startsWith("kn:")) obj.traverse(m => { if (m.isMesh && m.material && m.material.map) { m.material = m.material.clone(); m.material.map = roofTex(src.children.length ? m.material.map : m.material.map, h.color); } });
+  const g = new THREE.Group(); g.add(fitModel(obj, 11.5, 40));
+  const ck = h.car && CAR_MODEL[h.car];
+  if (ck) { const cm = MODELS[ck.includes(":") ? ck : "kn:" + ck]; if (cm) { const c = fitModel(cm.clone(), 2.2, 1.9); c.position.set(4.6, 0, 5.2); c.rotation.y = Math.PI / 2; g.add(c); }
+    else loadModel(ck.includes(":") ? ck : "kn:" + ck).then(m => m && relayoutSoon()); }
+  return g;
+}
 const PERSON_MODEL = ["character-male-a", "character-male-b", "character-female-a", "character-female-b", "character-male-c", "character-female-c", "character-male-d", "character-female-d"];
 const KENNEY_PATH = n => (n.startsWith("character-") ? "models/kenney/people/" : TRAFFIC.includes(n) || ["suv-luxury"].includes(n) ? "models/kenney/cars/" : "models/kenney/") + n + ".glb";
 layoutHomes(STATE.homes);        // first layout — must come after the model tables above (a home with a car reads them)
@@ -1177,7 +1125,8 @@ const KENNEY_READY = (async () => {
   await Promise.all(names.map(n => new Promise(r => ld.load(KENNEY_PATH(n), g => { KENNEY[n] = g.scene; r(); }, undefined, () => r()))));
   if (typeof layoutHomes === "function" && HOMES) layoutHomes(HOMES);      // rebuild homes with the real car models
   swapStreetsToKenney();
-  spawnWalkers();
+  try { spawnWalkers(); } catch (e) { console.error("spawnWalkers failed:", e); }
+  try { await placeProps(); } catch (e) { console.error("placeProps failed:", e); }
 })();
 // street trees and traffic: real models replace the simple shapes (the simple ones are hidden, not deleted)
 function swapStreetsToKenney() {
@@ -1192,6 +1141,23 @@ function swapStreetsToKenney() {
     CAR_BOXES.forEach(m => m.visible = false);
     CAR_CLONES = cars.map((k, i) => { const o = fitModel(KENNEY[TRAFFIC[i % TRAFFIC.length]].clone(), 4.4, 1.5); scene.add(o); return o; });
   }
+}
+// ---------- street props: traffic lights, hydrants, bins, bushes, a water tower (KayKit CC0) ----------
+async function placeProps() {
+  const names = ["trafficlight_A", "trafficlight_C", "firehydrant", "trash_A", "bush", "dumpster", "watertower", "box_A", "bench", "streetlight"];
+  await Promise.all(names.map(n => loadModel("ky:" + n)));
+  const M = n => MODELS["ky:" + n], put = (n, x, z, ry, w, h) => { if (!M(n)) return; const o = fitModel(M(n).clone(), w, h); o.position.set(x, 0, z); o.rotation.y = ry || 0; scene.add(o); };
+  const CL = (x, z) => Math.abs(x) < OUT_A + 52 && Math.abs(z) < OUT_B + 46;
+  const xs = new Set(), zs = new Set();
+  for (const ps of carPaths) { if (ps.length !== 2) continue; const [[x1, z1], [x2, z2]] = ps; if (x1 === x2) xs.add(x1); if (z1 === z2) zs.add(z1); }
+  const XS = [...xs].filter(v => Math.abs(v) < 420), ZS = [...zs].filter(v => Math.abs(v) < 420);
+  let k = 0;
+  for (const x of XS) for (const z of ZS) { if (CL(x, z)) continue;
+    put(k++ % 2 ? "trafficlight_A" : "trafficlight_C", x + 9, z + 9, Math.PI / 4, 1.6, 6);
+    if (rr() < .5) put("firehydrant", x - 9, z + 9, 0, .7, 1); if (rr() < .5) put("trash_A", x + 9, z - 9, 0, .8, 1.1); }
+  for (let i = 0; i < 70; i++) { const x = choose(XS) + (rr() < .5 ? -1 : 1) * 9.5, z = (rr() - .5) * 800; if (!CL(x, z)) put(i % 3 ? "bush" : "bench", x, z, Math.PI / 2, i % 3 ? 2 : 2.4, i % 3 ? 1.6 : 1.2); }
+  for (const [x, z] of [[-520, 470], [560, -500], [480, 520], [-560, -460]]) put("watertower", x, z, 0, 9, 18);
+  for (let i = 0; i < 8; i++) { const z = choose(ZS) + 9.5, x = (rr() - .5) * 700; if (!CL(x, z)) put(i % 2 ? "dumpster" : "box_A", x, z, 0, i % 2 ? 2.6 : 1.2, 1.8); }
 }
 // ---------- people: walkers on the sidewalks + fans circling the stadium in club colours ----------
 const WALKERS = [];
@@ -1356,7 +1322,53 @@ function moveTo(o, x, z, y = 0) {
   const p = last.get(o) || [x, z]; face(o, x - p[0]); last.set(o, [x, z]);
   o.position.set(x, y, z);
 }
+// ---------- approved squad: starters occupy their 4-3-3 positions; substitutes line the touchline ----------
+const SQUAD = [];
+const POS_SPOT = {
+  GK: [42, 0],
+  LB: [28, -22], CB: [31, -7], RB: [28, 22],
+  CDM: [14, 0], CM: [9, -13], CAM: [5, 13],
+  LW: [-12, -20], ST: [-19, 0], RW: [-12, 20],
+  DEF: [26, 0], MID: [10, 0], FWD: [-8, 0]
+};
+function makeSquadPlayer(p, i) {
+  const g = new THREE.Group(), kit = p.kind === "city" ? 0xf0a030 : p.kind === "staff" ? 0x0D2557 : p.position === "GK" ? 0x2e9e4f : 0x1F4FB8, m = c => new THREE.MeshLambertMaterial({ color: c });
+  const add = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); g.add(o); return o; };
+  add(new THREE.CylinderGeometry(.32, .28, .9, 10), m(kit), 0, 1.25, 0);
+  add(new THREE.SphereGeometry(.26, 12, 10), m(0xe0ac80), 0, 1.95, 0);
+  add(new THREE.CylinderGeometry(.3, .3, .3, 10), m(p.kind === "player" ? 0xffffff : 0x0D2557), 0, .7, 0);
+  const lL = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), -.13, .3, 0), lR = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), .13, .3, 0);
+  g.scale.setScalar(1.6); scene.add(g);
+  const W = SQUAD.filter(q => q.p.kind === p.kind).length;
+  const benchIndex = SQUAD.filter(q => q.p.kind === "player" && q.p.squad_role === "substitute").length;
+  const positionSpot = p.position === "CB" ? [31, Number(p.position_rank) >= 3 ? 7 : -7] : (POS_SPOT[p.position] || POS_SPOT[p.applied_position] || [0, 0]);
+  const [bx, bz] = p.kind === "city"
+    ? [-(OUT_A + 14) + (W % 8) * 5, OUT_B + 14 + Math.floor(W / 8) * 5]
+    : p.kind === "staff" ? [-30 + W * 6, 33]
+    : p.squad_role === "substitute" ? [-35 + benchIndex * 7, 43]
+    : positionSpot;
+  return { g, lL, lR, p, bx, bz, ph: i * 1.7 };
+}
+async function loadSquad() {
+  try {
+    const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
+    const list = await r.json(); SQUAD.forEach(s => scene.remove(s.g)); SQUAD.length = 0;
+    list.forEach((p, i) => SQUAD.push(makeSquadPlayer(p, i)));
+  } catch (e) { console.error("loadSquad fetch failed:", e); }
+}
+try { loadSquad(); } catch (e) { console.error("loadSquad init failed:", e); }
+try { setInterval(loadSquad, 60000); } catch (e) { console.error("loadSquad interval failed:", e); }
+function animateSquad(t) {
+  for (const s of SQUAD) {
+    const k = t * .6 + s.ph, run = s.p.kind === "player" && s.p.squad_role !== "substitute";
+    const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
+    s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
+    const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
+  }
+}
+function squadLabels(place) { for (const s of SQUAD) place(s.g.position.x, 4.4, s.g.position.z, "tag hero", (s.p.kind === "city" ? "🛠 " : s.p.kind === "staff" ? "🧑‍💼 " : "⚽ ") + s.p.name + (s.p.position ? " · " + s.p.position : s.p.role ? " · " + s.p.role : "") + (s.p.squad_role === "substitute" ? " · BENCH" : "")); }
 function animateTeam(t) {
+  animateSquad(t);
   const bek = H("bekzod"), az = H("aziz"), jas = H("jasur"), rus = H("rustam"), goat = H("echki");
   // Bekzod: sprint up and down the right half, small hop while running
   if (bek) { const u = (Math.sin(t * 0.7) + 1) / 2; moveTo(bek, 6 + u * 22, 6 + Math.sin(t * 0.35) * 8, Math.abs(Math.sin(t * 9)) * 0.18); }
@@ -1426,7 +1438,7 @@ const DN = (() => {
     const ang = ((h - SUNRISE) / (SUNSET - SUNRISE)) * Math.PI;            // sun arc east -> west; moonlight from above at night
     sun.position.set(Math.cos(ang) * -300, day > .05 ? Math.max(40, Math.sin(ang) * 400) : 260, 120);
     for (const g of glow) g.mt.color.copy(mix3(g.night, DAYGLASS, day * .85));
-    if (bloom) { bloom.strength = .12 + (1 - day) * 1.05; bloom.threshold = .82 + day * .08; }
+    if (bloom) { bloom.strength = .12 + (1 - day) * 1.05; bloom.threshold = .55 + day * .35; }
     document.documentElement.dataset.night = day < .5 ? "1" : "0";
   }
   return {
@@ -1517,6 +1529,7 @@ function updateLabels(now) {
   const mine = myId && homeObjs.find(o => o.userData.id === myId);
   const hy = o => LEVEL_H[o.userData.level || 1] * o.scale.y + 3;
   if (mine) placeAt(mine.position.x, hy(mine), mine.position.z, "tag me home", mine.userData.nick, true);
+  squadLabels((x, y, z, cls, txt) => placeAt(x, y, z, cls, txt, true));
   if (!near || MODE === "city") {
     for (const l of LOTS) placeAt(l.x, l.park ? 2 : 8, l.z, "tag lot", (l.park ? "" : T[L].soon) + T[L].lots[l.i]);
     for (const o of HQ_OBJS) { const d = o.userData.info; placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", `${d.emoji} ${d.name} · ${d.level ? d.level + "-daraja" : "qurilmoqda"}`, true); }
@@ -1551,9 +1564,7 @@ canvas.addEventListener("pointerup", e => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
   mouse.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
   ray.setFromCamera(mouse, camera);
-  const sqh = window.PF_SQUAD && window.PF_SQUAD.length && ray.intersectObjects(window.PF_SQUAD)[0];
-  if (sqh) { showPlayerCard(sqh.object.userData.squad); return; }
-  const fh = (window.PF_TAP && ray.intersectObject(window.PF_TAP)[0]) || ray.intersectObject(bodies)[0] || ray.intersectObject(heads)[0] || ray.intersectObject(shorts)[0];
+  const fh = ray.intersectObject(bodies)[0] || ray.intersectObject(heads)[0] || ray.intersectObject(shorts)[0];
   if (fh && fiSeat[fh.instanceId]) { showFan(fiSeat[fh.instanceId]); return; }
   const hq = ray.intersectObjects(HQ_OBJS, true)[0];
   if (hq) { clubOpen("depts"); return; }
@@ -1668,10 +1679,12 @@ document.getElementById("seatGo").onclick = async () => {
 };
 
 // my house
-let pick = { color: 2 };
+let pick = { color: 2, style: 0 };
 const colorsEl = document.getElementById("colors"), rolesEl = document.getElementById("roles");
-function mark() { [...colorsEl.children].forEach((b, i) => b.classList.toggle("on", i === pick.color)); }
+function mark() { [...colorsEl.children].forEach((b, i) => b.classList.toggle("on", i === pick.color)); [...document.getElementById("models").children].forEach((b, i) => b.classList.toggle("on", i === pick.style)); }
 function buildPickers() {
+  const mEl = document.getElementById("models"); mEl.innerHTML = "";
+  for (let i = 0; i <= 29; i++) { const b = document.createElement("button"); b.className = "mdl"; if (i) b.style.backgroundImage = `url(${HOUSE_THUMB(i)})`; else b.textContent = "🏠 Asl"; b.onclick = () => { pick.style = i; mark(); }; mEl.appendChild(b); }
   colorsEl.innerHTML = ""; COLORS.forEach((c, i) => { const b = document.createElement("button"); b.className = "sw"; b.style.background = "#" + c.toString(16).padStart(6, "0"); b.onclick = () => { pick.color = i; mark(); }; colorsEl.appendChild(b); });
   rolesEl.innerHTML = ""; T[L].roles.forEach((n, i) => { const b = document.createElement("button"); b.className = "opt"; b.textContent = n; b.dataset.i = i; b.onclick = () => { [...rolesEl.children].forEach(x => x.classList.toggle("on", x === b)); }; rolesEl.appendChild(b); });
   mark(); updateHomeUi();
@@ -1695,12 +1708,12 @@ function updateHomeUi() {
   }
 }
 async function refreshHomes() { const s = await getState(8000); if (s) { STATE = s; layoutHomes(s.homes); } updateHomeUi(); }
-document.getElementById("bHome").onclick = needTg(() => { const m = myHome(); if (m) pick.color = m.color; mark(); updateHomeUi(); open("sHome"); fetchMe(); });
+document.getElementById("bHome").onclick = needTg(() => { const m = myHome(); if (m) { pick.color = m.color; pick.style = m.style || 0; } mark(); updateHomeUi(); open("sHome"); fetchMe(); });
 document.getElementById("homeGo").onclick = async () => {
   const had = !!myHome();
   try {
     const lot = had ? undefined : (SEL_LOT && !BUILT.has(SEL_LOT.id) ? SEL_LOT : plots.find(p => !BUILT.has(p.id)));
-    await post("/api/home", { color: pick.color, lot: lot ? lot.id : undefined });
+    await post("/api/home", { color: pick.color, style: pick.style, lot: lot ? lot.id : undefined });
     if (!had) { try { sessionStorage.setItem("zfk_newhome", "1"); } catch (e) {} location.reload(); return; }   // stadium gets the new seat
     document.getElementById("sHome").style.display = "none";
     await refreshHomes(); const m = myHome(); if (m) { goHome(m); say(T[L].homeOk + " " + m.nick); }
@@ -1860,7 +1873,7 @@ function renderShop() {
   const el = document.getElementById("shopList"); el.innerHTML = "";
   for (const c of ME ? ME.catalog.cars : []) {
     const own = ME.home && ME.home.car === c.id, d = document.createElement("div"); d.className = "card";
-    d.innerHTML = `<div class="ic">${CAR_IC[c.id]}</div><div class="tx"><b>${c.name}</b><small>${fmt(c.price)} 🪙</small></div>`;
+    d.innerHTML = `<div class="ic" style="background:#fff url(${CAR_THUMB(c.id)}) center/contain no-repeat;border-radius:10px">${CAR_THUMB(c.id) ? "" : CAR_IC[c.id] || "🚗"}</div><div class="tx"><b>${c.name}</b><small>${fmt(c.price)} 🪙</small></div>`;
     const b = document.createElement("button"); b.textContent = own ? T[L].owned : T[L].buy; b.disabled = own || !ME.home || ME.coins < c.price;
     b.onclick = async () => { try { const r = await post("/api/buy", { item: "car", id: c.id }); applyMe(r); haptic("ok"); await refreshHomes(); renderShop(); say(T[L].bought(c.name)); const m = myHome(); if (m) { sheets.forEach(s => s.style.display = "none"); goHome(m); } }
       catch (e) { say(e.data && e.data.need ? T[L].poor(fmt(e.data.need - ME.coins)) : e.message === "no home" ? T[L].needHome : T[L].err); } };
@@ -1992,15 +2005,14 @@ async function adminLoad() {
     if (CLUB.av === "users") {
       if (CLUB.ud) A.detail = await post("/api/admin/user", { id: CLUB.ud });
       else A.users = await post("/api/admin/users", { q: CLUB.uf.q, filter: CLUB.uf.filter, sort: CLUB.uf.sort, offset: CLUB.uf.off });
-    } else if (CLUB.av === "prof") A.prof = await post("/api/admin/professions", {});
-    else if (CLUB.av === "missions") A.mst = await post("/api/admin/missions/status", {});
+    } else if (CLUB.av === "missions") A.mst = await post("/api/admin/missions/status", {});
     else { const [list, ms, apps] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {}), post("/api/admin/applications", { kind: CLUB.appF.kind, status: CLUB.appF.status, position: CLUB.appF.pos, dept: CLUB.appF.dept })]); A.list = list; A.ms = ms; A.apps = apps; }
   } catch (e) { CLUB.admin = null; }
   clubRender();
 }
 const ago = t => { if (!t) return "—"; const m = Math.max(0, (Date.now() - new Date(t)) / 60000); return m < 2 ? "hozir" : m < 60 ? Math.round(m) + " daq oldin" : m < 1440 ? Math.round(m / 60) + " soat oldin" : Math.round(m / 1440) + " kun oldin"; };
 const dot = t => { const m = t ? (Date.now() - new Date(t)) / 60000 : 1e9; return m < 1440 ? "🟢" : m < 10080 ? "🟡" : "🔴"; };
-const KIND_NAME = { city: "🏙 Shahar", player: "⚽ Futbolchi", staff: "🧑‍💼 Jamoa" }, STATUS_NAME = { new: "🆕 Yangi", accepted: "✅ Qabul", rejected: "❌ Rad", removed: "🚫 Olindi", replaced: "↪️ Almashtirildi" };
+const KIND_NAME = { city: "🏙 Shahar", player: "⚽ Futbolchi", staff: "🧑‍💼 Jamoa" }, STATUS_NAME = { new: "🆕 Yangi", accepted: "✅ Qabul", rejected: "❌ Rad" };
 function appsHtml(apps) {
   const F = CLUB.appF, cnt = (k, st) => (apps.counts.find(c => c.kind === k && (!st || c.status === st)) || { n: 0 }).n;
   const tot = apps.counts.filter(c => c.status === "new").reduce((x, c) => x + c.n, 0);
@@ -2020,20 +2032,6 @@ function appsHtml(apps) {
   return h;
 }
 
-// admin: give / change / remove a user's role (player position, staff department, city job)
-function rolesHtml(d) {
-  const R = k => (d.roles || []).find(r => r.kind === k), id = d.member.tg_id, pl = R("player"), sf = R("staff"), ct = R("city");
-  const posSel = (cur) => `<select id="rp">${["GK", "DEF", "MID", "FWD"].map(p => `<option value="${p}" ${p === cur ? "selected" : ""}>${POS_NAME[p]}</option>`).join("")}</select>`;
-  const depSel = (cur) => `<select id="rd">${(d.depts || []).map(x => `<option value="${x.id}" ${x.id === cur ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>`;
-  const btns = (kind, has) => `<div class="hd"><button class="btn green" data-a="rset" data-k="${kind}" data-id="${id}">${has ? "💾 Saqlash" : "⭐ Berish"}</button>${has ? `<button class="btn" data-a="rdel" data-k="${kind}" data-id="${id}">🚫 Olib tashlash</button>` : ""}</div>`;
-  return `<div class="sec">🎭 Rollar</div>
-    <div class="item"><div class="hd"><b>⚽ Futbolchi</b><small>${pl ? "✅ " + (POS_NAME[pl.position] || "") : "yo‘q"}</small></div>
-      <div class="adm">${posSel(pl && pl.position)}<input id="rn" placeholder="Formadagi ism" value="${esc((pl && pl.name) || "")}"></div>${btns("player", !!pl)}</div>
-    <div class="item"><div class="hd"><b>🧑‍💼 Klub xodimi</b><small>${sf ? "✅ " + esc(((d.depts || []).find(x => x.id === sf.dept) || {}).name || sf.dept || "") : "yo‘q"}</small></div>
-      <div class="adm">${depSel(sf && sf.dept)}</div>${btns("staff", !!sf)}</div>
-    <div class="item"><div class="hd"><b>🏙 Shahar kasbi</b><small>${ct ? "✅ " + esc(ct.role) : "yo‘q"}</small></div>
-      <div class="adm"><input id="rr" placeholder="Kasb (masalan: Haydovchi)" value="${esc((ct && ct.role) || "")}"></div>${btns("city", !!ct)}</div>`;
-}
 function usersHtml() {
   const a = CLUB.admin, F = CLUB.uf;
   if (CLUB.ud) {
@@ -2044,7 +2042,6 @@ function usersHtml() {
       <small>${u.id}${u.username ? " · @" + esc(u.username) : ""} · TG ${u.tg_id}</small><br>
       <small>Oxirgi faollik: <b>${ago(u.last_at)}</b> · Qo‘shilgan: ${String(u.joined).slice(0, 10)}</small>
       <div class="apfilt" style="margin-top:8px"><span class="chip">🪙 ${fmt(u.coins)}</span><span class="chip">⭐ ${fmt(u.xp)} XP · #${u.rank}</span><span class="chip">🏠 ${u.home ? u.home + "-daraja" : "uy yo‘q"}${u.car ? " · 🚗" : ""}</span><span class="chip">🎟 ${u.seat_no ? "№" + u.seat_no : "—"}</span><span class="chip">🔥 seriya ${u.streak}</span><span class="chip">💼 ${d.shifts.n} smena · ${fmt(d.shifts.earned)} 🪙</span></div></div>
-    ${rolesHtml(d)}
     <div class="sec">🎁 Mukofot / yangilash</div>
     <div class="item"><div class="adm"><input id="gc" type="number" placeholder="🪙 tanga (±)"><input id="gx" type="number" placeholder="⭐ XP (±)"><select id="gl"><option value="">🏠 uy: o‘zgarmasin</option>${[1, 2, 3, 4, 5, 6, 7].map(n => `<option value="${n}">🏠 ${n}-daraja</option>`).join("")}</select></div>
       <input id="gn" placeholder="Izoh (foydalanuvchiga yuboriladi, ixtiyoriy)"><div class="hd"><button class="btn green" data-a="grant" data-id="${u.tg_id}">✅ Berish</button></div>
@@ -2069,33 +2066,12 @@ function missionStatusHtml() {
     <small>Bugun: <b>${x.today}</b> / ${M.total} · 7 kun: <b>${x.week}</b></small>
     ${x.recent.length ? `<div class="apfilt" style="margin-top:6px">${x.recent.slice(0, 12).map(r => `<button data-a="uopen2" data-id="${r.tg_id}">${esc(r.nick)} <span class="appc">${ago(r.at)}</span></button>`).join("")}</div>` : `<br><small>Hali hech kim.</small>`}</div>`).join("");
 }
-// professions: a plain list of everyone who applied (players by position)
-function profHtml(rows) {
-  if (!rows) return `<small>…</small>`;
-  const st = s => s === "accepted" ? "✅" : "🆕", zfk = r => r.member_no ? " · ZFK-" + String(r.member_no).padStart(5, "0") : "";
-  const line = (r, extra) => `<div class="item" data-a="uopen" data-id="${r.tg_id}" style="cursor:pointer;padding:8px 12px"><div class="hd"><b>${st(r.status)} ${esc(r.name)}</b><small>${extra}</small></div>
-    <small>${esc(r.nick)}${r.tg_username ? " · @" + esc(r.tg_username) : ""}${zfk(r)}</small></div>`;
-  const by = k => rows.filter(r => r.kind === k);
-  let h = `<small>✅ qabul qilingan · 🆕 ko‘rib chiqilmoqda. Ismni bossangiz — profil.</small>`;
-  const pl = by("player");
-  h += `<div class="sec">⚽ Futbolchilar (${pl.length})</div>`;
-  for (const p of ["GK", "DEF", "MID", "FWD", null]) {
-    const g = pl.filter(r => (r.position || null) === p); if (!g.length) continue;
-    h += `<div style="margin:6px 0 4px;font-weight:800">${p ? POS_NAME[p] : "Pozitsiyasiz"} · ${g.length}</div>` + g.map(r => line(r, [r.age ? r.age + " yosh" : "", r.height ? r.height + " sm" : ""].filter(Boolean).join(" · "))).join("");
-  }
-  const sf = by("staff");
-  h += `<div class="sec">🧑‍💼 Jamoa xodimlari (${sf.length})</div>` + (sf.map(r => line(r, esc(r.dept || r.role || ""))).join("") || "<small>—</small>");
-  const ct = by("city");
-  h += `<div class="sec">🏙 Shahar ishchilari (${ct.length})</div>` + (ct.map(r => line(r, esc(r.role || ""))).join("") || "<small>—</small>");
-  return h;
-}
-const adminNav = () => `<div class="apfilt">${[["inbox", "📥 Kelganlar"], ["users", "👥 Foydalanuvchilar"], ["prof", "👷 Kasblar"], ["missions", "🎯 Missiyalar holati"]].map(([k, l]) => `<button data-a="av" data-v="${k}" class="${CLUB.av === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+const adminNav = () => `<div class="apfilt">${[["inbox", "📥 Kelganlar"], ["users", "👥 Foydalanuvchilar"], ["missions", "🎯 Missiyalar holati"]].map(([k, l]) => `<button data-a="av" data-v="${k}" class="${CLUB.av === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
 
 function adminHtml(me, m, club) {
   const a = CLUB.admin; if (!a) return `<small>…</small>`;
   if (CLUB.av === "users") return adminNav() + usersHtml();
   if (CLUB.av === "missions") return adminNav() + missionStatusHtml();
-  if (CLUB.av === "prof") return adminNav() + profHtml(a.prof);
   if (!a.apps) return adminNav() + `<small>…</small>`;
   return adminNav() + appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
       <small>${esc(c.nick)} · ZFK-${String(c.member_no).padStart(5, "0")}</small><p style="margin:6px 0;font-size:13px">${esc(c.body)}</p>${c.link ? `<small>🔗 <a style="color:#FFD23F" href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></small>` : ""}
@@ -2132,14 +2108,6 @@ function clubBind() {
       else if (a === "upage") { CLUB.uf.off = Math.max(0, CLUB.uf.off + 30 * +b.dataset.d); await adminLoad(); return; }
       else if (a === "uopen" || a === "uopen2") { CLUB.av = "users"; CLUB.ud = b.dataset.id; await adminLoad(); return; }
       else if (a === "uback") { CLUB.ud = null; await adminLoad(); return; }
-      else if (a === "rset" || a === "rdel") {
-        const k = b.dataset.k, body = { tg_id: b.dataset.id, kind: k, action: a === "rdel" ? "remove" : "set" };
-        if (a === "rdel" && !confirm("Rolni olib tashlaysizmi?")) return;
-        if (k === "player") { body.position = v("rp").value; body.name = v("rn").value; }
-        if (k === "staff") body.dept = v("rd").value;
-        if (k === "city") body.role = v("rr").value;
-        await post("/api/admin/role", body); haptic("ok"); say(a === "rdel" ? "🚫 Rol olib tashlandi" : "✅ Saqlandi"); await adminLoad(); return;
-      }
       else if (a === "grant") { const r = await post("/api/admin/grant", { id: b.dataset.id, coins: v("gc").value, xp: v("gx").value, level: v("gl").value, note: v("gn").value }); haptic("ok"); say("✅ " + r.lines.join(" · ")); await adminLoad(); return; }
       else if (a === "apf") { CLUB.appF[b.dataset.k] = b.dataset.v; await adminLoad(); return; }
       else if (a === "appdec") { await post("/api/admin/application/decide", { id: +b.dataset.id, action: b.dataset.ok ? "accept" : "reject" }); say("✅"); await adminLoad(); return; }
@@ -2191,182 +2159,6 @@ function fmt(v) { return Math.round(v).toLocaleString("fr-FR").replace(/ | /g, "
 
 function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); DN.resize(); }
 addEventListener("resize", resize); resize();
-// ---------- Polyfork people: seated fans and kitted players (models CC BY 4.0, polyfork.dev) ----------
-// The toy fans and hero sprites stay in the scene (invisible) so taps and cards keep working; if Polyfork fails, nothing changes.
-const PF_CDN = "https://polyfork.dev/cdn/";
-const PF_PEOPLE = ["poker-pro-da0258", "skate-filmer-b9d393", "vert-skater-972639", "passenger-ac425a", "park-ranger-c1697e", "player-in-a-cardigan-b558c9",
-  "suburban-resident-a9db9c", "player-in-flannel-d0bae4", "teen-player-37865e", "chinchinero-2cc296", "gas-station-attendant-38bd86", "street-skater-4ee28b"];
-const PF_MAX_FANS = 400, PF_PLAYER_SCALE = 1.6;
-const PF = { anims: [], movers: [], ready: false, kit: null, gk: null, coach: null };
-const pfClips = new Map();
-function pfClip(name) {
-  const url = PF_CDN + "anim-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".json";
-  if (!pfClips.has(url)) pfClips.set(url, fetch(url).then(r => { if (!r.ok) throw new Error("clip " + name); return r.json(); }));
-  return pfClips.get(url);
-}
-async function pfAnimate(obj, names, inPlace = true) {
-  const bones = {}; obj.traverse(o => { if (o.isBone && !bones[o.name]) bones[o.name] = o; });
-  const hips = bones.Hips, rest = hips.position.clone(), ratio = (rest.y || 0.95) / 0.95;
-  const raws = await Promise.all(names.map(pfClip)), mixer = new THREE.AnimationMixer(obj), actions = {};
-  names.forEach((n, i) => {
-    const raw = raws[i], tracks = [];
-    for (const [b, v] of Object.entries(raw.tracks)) if (bones[b] && v.length) tracks.push(new THREE.QuaternionKeyframeTrack(bones[b].uuid + ".quaternion", raw.times.slice(), Float32Array.from(v)));
-    const pos = new Float32Array(raw.hips.length);
-    for (let k = 0; k < pos.length; k += 3) { pos[k] = rest.x + (inPlace ? 0 : raw.hips[k] * ratio); pos[k + 1] = rest.y + raw.hips[k + 1] * ratio; pos[k + 2] = rest.z + (inPlace ? 0 : raw.hips[k + 2] * ratio); }
-    tracks.push(new THREE.VectorKeyframeTrack(hips.uuid + ".position", raw.times.slice(), pos));
-    actions[n] = mixer.clipAction(new THREE.AnimationClip(n, -1, tracks));
-  });
-  let cur = null;
-  const play = (n, ts = 1) => { const a = actions[n]; if (!a) return; a.timeScale = ts; if (a === cur) return; a.reset().play(); if (cur) cur.crossFadeTo(a, 0.2, false); cur = a; };
-  const loco = s => { s /= ratio; if (s < 0.15 || !actions.Walk) play(actions.Idle ? "Idle" : names[0]); else if (s < 2.8 || !actions.Run) play("Walk", Math.min(1.9, Math.max(0.55, s / 1.45))); else play("Run", Math.min(1.6, Math.max(0.7, s / 3.9))); };
-  play(names[0]); PF.anims.push(mixer);
-  return { mixer, play, loco };
-}
-// recolour vertex colours: rules [fromHex, toHex | (y) => hex|null]
-function pfPaint(root, rules) {
-  const lin = x => new THREE.Color(x).convertSRGBToLinear();
-  const R = rules.map(([f, t]) => [lin(f), t]), c = new THREE.Color();
-  root.traverse(o => {
-    const g = o.isMesh && o.geometry, col = g && g.attributes.color, pos = g && g.attributes.position; if (!col) return;
-    const arr = col.array, sc = !col.normalized ? 1 : arr instanceof Uint8Array ? 255 : arr instanceof Uint16Array ? 65535 : 1;
-    for (let i = 0; i < col.count; i++) {
-      c.setRGB(col.getX(i) / sc, col.getY(i) / sc, col.getZ(i) / sc);
-      for (const [f, t] of R) {
-        if (Math.abs(c.r - f.r) + Math.abs(c.g - f.g) + Math.abs(c.b - f.b) > 0.02) continue;
-        const hex = typeof t === "function" ? t(pos.getY(i)) : t; if (hex == null) break;
-        const to = lin(hex); col.setXYZ(i, to.r * sc, to.g * sc, to.b * sc); break;
-      }
-    }
-    if (col.isInterleavedBufferAttribute) col.data.needsUpdate = true; else col.needsUpdate = true;
-  });
-  return root;
-}
-const PF_KIT = [["#6aa3bc", "#1f4fb8"], ["#434c61", y => y < 0.13 ? "#1d2024" : "#ffffff"], ["#8f8d83", "#ffffff"]];
-const PF_GK = [["#9e2a32", "#2e8b3e"], ["#3f3f42", "#1f6b2e"], ["#45454a", "#1f6b2e"], ["#8f8d83", "#2e8b3e"], ["#a8a8a8", "#ffffff"], ["#b24a22", "#1d2024"], ["#9c5a2e", "#1d2024"], ["#e3b595", "#c8a282"]];
-const PF_COACH = [["#434c61", y => y < 0.13 ? "#1d2024" : "#1f4fb8"], ["#6aa3bc", y => y < 0.45 ? "#1f4fb8" : "#ffffff"], ["#64798e", "#ffffff"]];
-function pfShirt(root, num, name) {
-  const cv = document.createElement("canvas"); cv.width = cv.height = 256; const g = cv.getContext("2d");
-  g.fillStyle = "#fff"; g.textAlign = "center";
-  if (name) { g.font = "bold 40px sans-serif"; g.fillText(name.toUpperCase().slice(0, 10), 128, 56); }
-  if (num) { g.font = "bold 170px sans-serif"; g.fillText(String(num), 128, 226); }
-  const tex = new THREE.CanvasTexture(cv); tex.encoding = THREE.sRGBEncoding;
-  const crestEl = document.querySelector("#brand img"), crest = crestEl && new THREE.TextureLoader().load(crestEl.src);
-  let spine = null; root.traverse(o => { if (o.isBone && o.name === "Spine2") spine = o; });
-  root.updateMatrixWorld(true);
-  const patch = (map, w, x, y, z, back) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w), new THREE.MeshBasicMaterial({ map, transparent: true, depthWrite: false }));
-    m.position.set(x, y, z); if (back) m.rotation.y = Math.PI; (spine || root).attach(m); };
-  patch(tex, 0.3, 0, 1.22, -0.16, true);
-  if (crest) patch(crest, 0.09, 0.07, 1.3, 0.15, false);
-}
-function pfLoad(id, q = "") { return new Promise((res, rej) => new THREE.GLTFLoader().load(PF_CDN + id + q, g => res(g.scene), undefined, rej)); }
-// a model that follows an existing (invisible) object; speed drives Idle/Walk/Run
-function pfFollow(src, model, anim, scale) {
-  model.scale.setScalar(scale); scene.add(model);
-  PF.movers.push({ src, model, anim, last: new THREE.Vector3().copy(src.position), head: 0 });
-}
-async function pfStart() {
-  // fans: each model replaces its own toy fans as soon as it arrives (one slow or failed file only affects its fans)
-  const fanSeats = fiSeat.filter(Boolean);
-  const tap = new THREE.InstancedMesh(bodies.geometry, new THREE.MeshBasicMaterial(), bodies.count), mm = new THREE.Matrix4();
-  for (let i = 0; i < bodies.count; i++) { bodies.getMatrixAt(i, mm); tap.setMatrixAt(i, mm); }
-  tap.visible = false; scene.add(tap); window.PF_TAP = tap;           // taps still find fans after the toys are hidden
-  const hideToy = f => {
-    for (const m of [bodies, heads, shorts, hair, afro]) m.setMatrixAt(f, HIDE);
-    for (const m of [legs, arms, hands, shoes]) { m.setMatrixAt(f * 2, HIDE); m.setMatrixAt(f * 2 + 1, HIDE); }
-  };
-  const flush = () => FAN_MESHES.forEach(m => m.instanceMatrix.needsUpdate = true);
-  const groups = PF_PEOPLE.map(() => []);
-  fanSeats.slice(0, PF_MAX_FANS).forEach((st, i) => groups[Math.abs(hash(st.fan)) % PF_PEOPLE.length].push([st, i]));
-  pfClip("Sitting"); pfClip("Sitting talking");
-  const fansDone = Promise.allSettled(PF_PEOPLE.map(async (id, k) => {
-    if (!groups[k].length) return;
-    const proto = await pfLoad(id + ".glb");
-    await Promise.all(groups[k].map(async ([st, i]) => {
-      const o = THREE.SkeletonUtils.clone(proto);
-      o.position.set(st.x - st.nx * 0.35, st.y - 0.36, st.z - st.nz * 0.35); o.rotation.y = Math.atan2(-st.nx, -st.nz);
-      const a = await pfAnimate(o, [i % 3 ? "Sitting" : "Sitting talking"], false); a.mixer.setTime(Math.random() * 5);
-      scene.add(o); hideToy(st.fi);
-    }));
-    flush();
-  }));
-  // heroes: the models follow the existing training paths; sprites stay for taps
-  const kits = await Promise.allSettled([
-    pfLoad("outfield-player-2b742a-remix.glb", '?p={"matchday":1}').then(m => pfPaint(m, PF_KIT)),
-    pfLoad("goalkeeper-10017a-remix.glb", '?p={"figure":"masculine"}').then(m => pfPaint(m, PF_GK)),
-    pfLoad("outfield-player-2b742a.glb").then(m => pfPaint(m, PF_COACH))]);
-  [PF.kit, PF.gk, PF.coach] = kits.map(r => r.value || null);
-  const heroKit = { bekzod: [9, "Bekzod"], aziz: [8, "Aziz"], jasur: [1, "Jasur"] };
-  for (const o of heroObjs) {
-    const k = o.userData.key, src = k === "jasur" ? PF.gk : k === "rustam" ? PF.coach : k === "echki" ? null : PF.kit;
-    if (!src) continue;
-    try {
-      const m = THREE.SkeletonUtils.clone(src);
-      if (heroKit[k]) pfShirt(m, ...heroKit[k]);
-      const a = await pfAnimate(m, ["Idle", "Walk", "Run"]);
-      o.material.opacity = 0; o.material.depthWrite = false;
-      pfFollow(o, m, a, PF_PLAYER_SCALE);
-    } catch (e) { console.warn("hero", k, e); }
-  }
-  PF.ready = true;
-  sqLoad(); setInterval(sqLoad, 60000);
-  (await fansDone).forEach((r, k) => r.status === "rejected" && console.warn("Polyfork fan model failed:", PF_PEOPLE[k], r.reason));
-}
-
-// ---------- accepted players train on the pitch; tap -> FIFA card ----------
-const SQ = { list: [], hits: [], sig: "" };
-window.PF_SQUAD = SQ.hits;
-const SQ_SPOT = { GK: [-46, 0], DEF: [-28, 0], MID: [-12, 0], FWD: [6, 0] }, SQ_NUM = { GK: [1, 12, 13], DEF: [2, 3, 4, 5, 14, 15], MID: [6, 8, 10, 16, 18], FWD: [9, 7, 11, 17, 19] };
-async function sqLoad() {
-  try {
-    const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
-    const rows = (await r.json()).filter(p => p.kind === "player"), sig = JSON.stringify(rows.map(p => [p.id, p.position, p.name]));
-    if (sig === SQ.sig || !PF.kit) return; SQ.sig = sig;
-    for (const s of SQ.list) scene.remove(s.model); SQ.list.length = 0; SQ.hits.length = 0;
-    const used = {};
-    for (const p of rows) {
-      const pos = SQ_SPOT[p.position] ? p.position : "MID", i = used[pos] = (used[pos] || 0) + 1, gk = pos === "GK";
-      const m = THREE.SkeletonUtils.clone(gk ? (PF.gk || PF.kit) : PF.kit);
-      pfShirt(m, SQ_NUM[pos][i - 1] || 20 + i, String(p.name || "").split(" ")[0]);
-      const [bx, bz] = SQ_SPOT[pos], home = new THREE.Vector3(bx, 0, bz + ((i % 5) - 2) * 9 + (i > 5 ? 4 : 0));
-      m.position.copy(home); m.scale.setScalar(PF_PLAYER_SCALE); scene.add(m);
-      const hit = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.7), new THREE.MeshBasicMaterial()); hit.position.y = 0.9; hit.visible = false; hit.userData.squad = p; m.add(hit);
-      const a = await pfAnimate(m, ["Idle", "Walk", "Run"]);
-      SQ.list.push({ p, model: m, a, home, target: home.clone(), wait: Math.random() * 2, range: gk ? 3 : 8 }); SQ.hits.push(hit);
-    }
-  } catch (e) { console.warn("squad", e); }
-}
-function sqTick(dt) {
-  for (const s of SQ.list) {
-    if (s.wait > 0) { s.wait -= dt; if (s.wait <= 0) s.target.set(s.home.x + (Math.random() * 2 - 1) * s.range * 1.4, 0, s.home.z + (Math.random() * 2 - 1) * s.range); continue; }
-    const dx = s.target.x - s.model.position.x, dz = s.target.z - s.model.position.z, d = Math.hypot(dx, dz);
-    if (d < 0.4) { s.a.loco(0); s.wait = 0.8 + Math.random() * 2; continue; }
-    const sp = 5.5, st = Math.min(d, sp * dt); s.model.position.x += dx / d * st; s.model.position.z += dz / d * st; s.model.rotation.y = Math.atan2(dx, dz); s.a.loco(sp / PF_PLAYER_SCALE);
-  }
-}
-function showPlayerCard(p) {
-  let ov = document.getElementById("fcard");
-  if (!ov) {
-    ov = document.createElement("div"); ov.id = "fcard";
-    ov.style.cssText = "position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(4,10,24,.72);backdrop-filter:blur(4px)";
-    ov.onclick = () => ov.style.display = "none"; document.body.appendChild(ov);
-  }
-  ov.innerHTML = `<div style="text-align:center;color:#fff;font-weight:800"><img alt="" style="width:min(78vw,360px);border-radius:18px;box-shadow:0 10px 40px #000a;display:block;margin:0 auto 10px" src="${API}/api/card/${p.id}"><small>${(POS_NAME[p.position] || "")} · ${String(p.name || "").replace(/[<>&"]/g, "")}</small></div>`;
-  ov.style.display = "flex";
-}
-const _pfv = new THREE.Vector3();
-function pfTick(dt) {
-  for (const mx of PF.anims) mx.update(dt);
-  if (!dt) return;
-  for (const m of PF.movers) {
-    _pfv.copy(m.src.position).sub(m.last); _pfv.y = 0; m.last.copy(m.src.position);
-    const sp = _pfv.length() / dt;
-    if (sp > 0.05) m.head = Math.atan2(_pfv.x, _pfv.z);
-    m.model.position.set(m.src.position.x, 0, m.src.position.z); m.model.rotation.y = m.head;
-    m.anim.loco(sp / PF_PLAYER_SCALE);
-  }
-}
-pfStart().catch(e => console.error("Polyfork people failed (toy fans kept):", e));
-
 let prev = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
@@ -2381,20 +2173,16 @@ function loop(now) {
   }
   controls.update();
   sky.position.copy(camera.position);
-  animateTeam(now / 1000);
-  try { LED.tick(dt); } catch (e) {}
-  try { sqTick(dt); } catch (e) {}
-  try { pfTick(dt); } catch (e) { console.error("pfTick failed:", e); }
-  cityTick(dt); walkersTick(dt, now / 1000);
-  try { residentsTick(dt, now / 1000); } catch (e) {}
+  try { animateTeam(now / 1000); } catch (e) { console.error("animateTeam failed:", e); }
+  try { cityTick(dt); walkersTick(dt, now / 1000); residentsTick(dt, now / 1000); } catch (e) { console.error("city/walkers tick failed:", e); }
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
-  DN.tick(now); DN.render();
-  updateLabels(now);
+  try { DN.tick(now); DN.render(); } catch (e) { console.error("DN tick/render failed:", e); }
+  try { updateLabels(now); } catch (e) { console.error("updateLabels failed:", e); }
   requestAnimationFrame(loop);
 }
-DN.init();
+try { DN.init(); } catch (e) { console.error("DN.init failed:", e); }
 requestAnimationFrame(loop);
-if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
+if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, camera, controls, flyTo, walkers: () => WALKERS, kenney: () => KENNEY, layoutHomes, homes: () => HOMES, selectLot, plots: () => plots, built: () => BUILT, hq: () => HQ_OBJS, kz: () => ({ cars: CAR_CLONES.length, trees: TREE_SPOTS && TREE_SPOTS.pop.length + TREE_SPOTS.round.length, kenney: Object.keys(KENNEY) }) };
 
 // after a seat claim: fly to it; in the Mini App: fly to my home
 {
