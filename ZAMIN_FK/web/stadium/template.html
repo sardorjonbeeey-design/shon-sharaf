@@ -422,7 +422,7 @@ const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3
 const stepGeo = new THREE.BoxGeometry(SEAT_W, ROW_H, ROW_D), seatGeo = new THREE.BoxGeometry(SEAT_W * 0.8, 0.12, 0.42);
 const steps = new THREE.InstancedMesh(stepGeo, new THREE.MeshLambertMaterial({ color: 0xeef1f6 }), seats.length);
 const chairs = new THREE.InstancedMesh(seatGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), seats.length);
-const fans = FANS.length, NF = Math.max(1, fans);
+const fans = FANS.length, CROWD_COUNT = Math.min(seats.length, Math.max(fans, 600)), NF = Math.max(1, CROWD_COUNT);
 const VIP = new Set(__VIP__);              // honoured fans: gold seat + name on the screen
 // toy-style fans (smooth, faceless, random kit colours)
 const lam = () => new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -457,8 +457,9 @@ seats.forEach((st, i) => {
   const sec = Math.floor(st.s / st.len * 16);
   chairs.setColorAt(i, C.set(VIP.has(st.fan) ? 0xFFD23F : st.fan && FAN_META.get(st.fan) && FAN_META.get(st.fan).member ? 0xffe27a : st.stand ? 0x0D2557 : (sec % 4 === 0 ? 0xffffff : 0x1F4FB8)));
   st.i = i;
-  if (!st.fan) return;
-  const h = hash(st.fan), f = fi;
+  if (!st.fan && i >= CROWD_COUNT) return;
+  const realFan = !!st.fan;
+  const h = hash(realFan ? st.fan : "zfk-crowd-" + i), f = fi;
   baseQ = Q.clone(); base = new THREE.Vector3(st.x, st.y, st.z);
   const shirt = new THREE.Color().setHSL(rnd(h, 1), 0.55 + rnd(h, 2) * 0.35, 0.42 + rnd(h, 3) * 0.2);
   const pants = rnd(h, 4) < 0.35 ? new THREE.Color(0xf4f4f4) : rnd(h, 4) < 0.7 ? shirt.clone().offsetHSL(0, 0, -0.08) : new THREE.Color(0x22283a);
@@ -493,7 +494,8 @@ seats.forEach((st, i) => {
     const dx = Math.sin(rz) * 0.44 * s, dy = -Math.cos(rz) * 0.44 * s;
     put(hands, f * 2 + k, sx * 0.25 * s + dx, 1.15 * s + dy, 0.02, 0, 0, s); hands.setColorAt(f * 2 + k, C.set(skin));
   }
-  fiSeat[fi] = st; st.fi = fi++;
+  if (realFan) { fiSeat[fi] = st; st.fi = fi; } else fiSeat[fi] = null;
+  fi++;
 });
 const FAN_MESHES = [bodies, heads, shorts, legs, arms, hands, shoes, hair, afro];
 [steps, chairs, ...FAN_MESHES].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
