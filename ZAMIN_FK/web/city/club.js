@@ -45,6 +45,157 @@ const tashkentDay = (t = Date.now()) => new Date(t + 5 * 3600e3).toISOString().s
 const weekStart = day => { const d = new Date(day + "T00:00:00Z"), w = (d.getUTCDay() + 6) % 7; return new Date(d.getTime() - w * 864e5).toISOString().slice(0, 10); };
 const tkStart = day => day + "T00:00:00+05:00";
 const supporterId = no => "ZFK-" + String(no).padStart(5, "0");
+// Squad proposal rules. Applied group has priority; XP ranks players within that
+// group. Only genuine group vacancies can be filled by overflow from other groups.
+const SQUAD_GROUPS = Object.freeze({
+  GK:  { quota: 2, positions: ["GK", "GK"], starters: 1 },
+  DEF: { quota: 8, positions: ["LB", "CB", "CB", "RB", "LB", "CB", "CB", "RB"], starters: 4 },
+  MID: { quota: 6, positions: ["CDM", "CM", "CAM", "CDM", "CM", "CAM"], starters: 3 },
+  FWD: { quota: 6, positions: ["LW", "ST", "RW", "LW", "ST", "RW"], starters: 3 },
+});
+const SQUAD_GROUP_ORDER = ["GK", "DEF", "MID", "FWD"];
+const SQUAD_APPLIED_POSITIONS = SQUAD_GROUP_ORDER;
+const SQUAD_ACTIVE_LIMIT = 22;
+const SQUAD_RESERVE_LIMIT = 2;
+
+function squadXpRank(a, b) {
+  const xp = (Number(b.xp) || 0) - (Number(a.xp) || 0);
+  if (xp) return xp;
+  const atA = Date.parse(a.decided_at || a.created_at || "") || 0;
+  const atB = Date.parse(b.decided_at || b.created_at || "") || 0;
+  if (atA !== atB) return atA - atB;
+  return String(a.tg_id).localeCompare(String(b.tg_id), "en", { numeric: true });
+}
+
+// Pure calculation: no database writes and no changes to application position or XP.
+function buildSquadProposal(input = []) {
+  const unique = new Map();
+  for (const row of input) {
+    const group = String(row.applied_position || row.position || "").toUpperCase();
+    const tgId = String(row.tg_id || "");
+    if (!tgId || !SQUAD_GROUPS[group]) continue;
+    const candidate = {
+      application_id: row.application_id || row.id || null,
+      tg_id: tgId,
+      name: String(row.name || row.nick || "Player"),
+      xp: Math.max(0, Number(row.xp) || 0),
+      applied_position: group,
+      created_at: row.created_at || null,
+      decided_at: row.decided_at || null,
+    };
+    const prior = unique.get(tgId);
+    if (!prior || (Date.parse(candidate.decided_at || candidate.created_at || "") || 0) >
+                  (Date.parse(prior.decided_at || prior.created_at || "") || 0)) unique.set(tgId, candidate);
+  }
+
+  const pools = Object.fromEntries(SQUAD_GROUP_ORDER.map(g => [g, []]));
+  for (const player of unique.values()) pools[player.applied_position].push(player);
+  for (const group of SQUAD_GROUP_ORDER) pools[group].sort(squadXpRank);
+
+  const assigned = {}, overflow = [];
+  for (const group of SQUAD_GROUP_ORDER) {
+    assigned[group] = pools[group].slice(0, SQUAD_GROUPS[group].quota)
+      .map(player => ({ ...player, assigned_group: group, reassigned: false }));
+    overflow.push(...pools[group].slice(SQUAD_GROUPS[group].quota));
+  }
+  overflow.sort(squadXpRank);
+
+  // A surplus player can transfer only into an under-filled group; XP ranks transfers.
+  for (const group of SQUAD_GROUP_ORDER) {
+    const vacancies = SQUAD_GROUPS[group].quota - assigned[group].length;
+    for (let i = 0; i < vacancies && overflow.length; i++) {
+      const player = overflow.shift();
+      assigned[group].push({ ...player, assigned_group: group, reassigned: true });
+    }
+  }
+
+  const byGroup = {};
+  for (const group of SQUAD_GROUP_ORDER) {
+    const ranked = assigned[group].slice().sort(squadXpRank); // once reassigned, XP competes across the destination group
+    byGroup[group] = ranked.map((player, index) => {
+      const starter = index < SQUAD_GROUPS[group].starters;
+      return {
+        ...player,
+        stadium_position: SQUAD_GROUPS[group].positions[index],
+        squad_role: starter ? "starter" : "substitute",
+        position_rank: index + 1,
+        reason: player.reassigned
+          ? "Applied " + player.applied_position + "; its quota was full. Reassigned to " + group + " by XP ranking."
+          : "Applied " + player.applied_position + "; selected in that group by XP ranking.",
+      };
+    });
+  }
+
+  const starters = [
+    byGroup.GK[0], ...byGroup.DEF.slice(0, 4), ...byGroup.MID.slice(0, 3), ...byGroup.FWD.slice(0, 3),
+  ].filter(Boolean);
+  const substitutes = [
+    byGroup.GK[1], ...byGroup.DEF.slice(4, 8), ...byGroup.MID.slice(3, 6), ...byGroup.FWD.slice(3, 6),
+  ].filter(Boolean);
+  const active = [...starters, ...substitutes].slice(0, SQUAD_ACTIVE_LIMIT)
+    .map((player, index) => ({ ...player, squad_order: index + 1, squad_role: index < starters.length ? "starter" : "substitute" }));
+  const reserves = overflow.slice(0, SQUAD_RESERVE_LIMIT).map((player, index) => ({
+    ...player, assigned_group: null, stadium_position: null, squad_role: "reserve",
+    reserve_rank: index + 1, reassigned: false,
+    reason: "Outside the active 22; highest remaining XP reserve.",
+  }));
+
+  return {
+    rules: { group_quotas: Object.fromEntries(SQUAD_GROUP_ORDER.map(g => [g, SQUAD_GROUPS[g].quota])),
+      active_limit: SQUAD_ACTIVE_LIMIT, reserve_limit: SQUAD_RESERVE_LIMIT,
+      xp_source: "members.xp", priority: "applied_position_then_xp" },
+    eligible_count: unique.size,
+    active_count: active.length,
+    reserve_count: reserves.length,
+    shortfall: Math.max(0, SQUAD_ACTIVE_LIMIT - active.length),
+    active,
+    reserves,
+  };
+}
+
+
+const SQUAD_STADIUM_POSITIONS = Object.freeze({
+  GK: new Set(["GK"]),
+  DEF: new Set(["LB", "CB", "RB"]),
+  MID: new Set(["CDM", "CM", "CAM"]),
+  FWD: new Set(["LW", "ST", "RW"]),
+});
+
+// Validate the exact snapshot before it can replace the currently approved roster.
+function validateSquadSnapshot(payload) {
+  if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves)) return false;
+  if (payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT) return false;
+  if (Number(payload.active_count) !== payload.active.length || Number(payload.reserve_count) !== payload.reserves.length) return false;
+  if (Number(payload.shortfall) !== Math.max(0, SQUAD_ACTIVE_LIMIT - payload.active.length)) return false;
+
+  const ids = new Set();
+  const occupiedSlots = new Set();
+  let starters = 0, substitutes = 0;
+  for (const player of payload.active) {
+    const id = String(player && player.tg_id || "");
+    const group = String(player && player.assigned_group || "");
+    const position = String(player && player.stadium_position || "");
+    const role = String(player && player.squad_role || "");
+    const applied = String(player && player.applied_position || "");
+    const rank = Number(player && player.position_rank);
+    if (!id || ids.has(id) || !SQUAD_GROUPS[applied] || !SQUAD_STADIUM_POSITIONS[group] || !SQUAD_STADIUM_POSITIONS[group].has(position)) return false;
+    if (!["starter", "substitute"].includes(role) || !Number.isInteger(rank) || rank < 1 || rank > SQUAD_GROUPS[group].quota) return false;
+    if (SQUAD_GROUPS[group].positions[rank - 1] !== position) return false;
+    if ((rank <= SQUAD_GROUPS[group].starters) !== (role === "starter")) return false;
+    const slot = group + ":" + rank;
+    if (occupiedSlots.has(slot)) return false;
+    occupiedSlots.add(slot);
+    ids.add(id);
+    if (role === "starter") starters++; else substitutes++;
+  }
+  for (const player of payload.reserves) {
+    const id = String(player && player.tg_id || "");
+    if (!id || ids.has(id) || player.squad_role !== "reserve") return false;
+    ids.add(id);
+  }
+  return starters <= 11 && substitutes <= 11;
+}
+
 
 function init({ app, db, auth, bot, nickOf, ready: base }) {
   let cache = null, cacheAt = 0;
@@ -54,7 +205,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     app.use(["/api/club", "/api/admin"], (req, res) => res.status(503).json({ error: "club needs database" }));
     return { ensureMember: async () => null, summary: async () => null, registerReferral: async () => {}, isAdmin, tierOf, DEPTS, supporterId };
   }
-  const ready = base().then(() => db.query(`
+  let ready = base().then(() => db.query(`
     create table if not exists members (tg_id bigint primary key, member_no serial unique, nick text not null, tg_username text,
       joined_at timestamptz not null default now(), xp int not null default 0, influence int not null default 0,
       dept text, dept_at timestamptz, ref_code text unique);
@@ -78,6 +229,23 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     create table if not exists club (id int primary key default 1 check (id = 1), funds bigint not null default 0);
     insert into club (id) values (1) on conflict do nothing;
     create table if not exists club_funds_log (id bigserial primary key, amount int not null, source text not null, tg_id bigint, at timestamptz not null default now());
+    create table if not exists squad_proposals (
+      id bigserial primary key,
+      status text not null default 'pending' check (status in ('pending','approved','rejected')),
+      payload jsonb not null,
+      created_by bigint not null,
+      created_at timestamptz not null default now(),
+      decided_by bigint,
+      decided_at timestamptz
+    );
+    create index if not exists squad_proposals_status_idx on squad_proposals (status, created_at desc);
+    create table if not exists squad_approved_roster (
+      id int primary key default 1 check (id = 1),
+      proposal_id bigint not null references squad_proposals(id),
+      payload jsonb not null,
+      approved_by bigint not null,
+      approved_at timestamptz not null default now()
+    );
   `)).then(async () => {
     for (const [i, [id, emoji, name, desc]] of DEPTS.entries())
       await db.query("insert into departments (id, emoji, name, description, sort) values ($1,$2,$3,$4,$5) on conflict (id) do nothing", [id, emoji, name, desc, i]);
@@ -93,6 +261,51 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   }
   const one = async (c, sql, a) => (await c.query(sql, a)).rows[0];
   const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
+  async function createSquadProposal(user) {
+    return tx(async client => {
+      await client.query("select pg_advisory_xact_lock(7710003)");
+      const rows = (await client.query(`select distinct on (a.tg_id)
+          a.id as application_id, a.tg_id,
+          coalesce(nullif(a.name,''), m.nick, a.nick) as name,
+          a.position as applied_position, m.xp, a.created_at, a.decided_at
+        from applications a join members m on m.tg_id = a.tg_id
+        where a.kind = 'player' and a.status = 'accepted' and a.position = any($1::text[])
+        order by a.tg_id, a.decided_at desc nulls last, a.id desc`, [SQUAD_APPLIED_POSITIONS])).rows;
+      const proposal = buildSquadProposal(rows);
+      const saved = await one(client, "insert into squad_proposals (payload, created_by) values ($1::jsonb, $2) returning id, status, created_at", [JSON.stringify(proposal), String(user.id)]);
+      return { ...saved, proposal };
+    });
+  }
+
+  async function getSquadStatus() {
+    await ready;
+    const pending = await one(db, "select id, status, payload, created_by, created_at from squad_proposals where status = 'pending' order by id desc limit 1");
+    const approved = await one(db, "select proposal_id, payload, approved_by, approved_at from squad_approved_roster where id = 1");
+    return { pending, approved };
+  }
+
+  async function decideSquadProposal(user, body) {
+    return tx(async client => {
+      const id = Math.max(0, Math.trunc(Number(body.id) || 0));
+      const action = String(body.action || "");
+      await client.query("select pg_advisory_xact_lock(7710003)");
+      if (!id || !["approve", "reject"].includes(action)) throw fail(400, "proposal id and approve/reject action required");
+      const proposal = await one(client, "select id, status, payload from squad_proposals where id = $1 for update", [id]);
+      if (!proposal) throw fail(404, "proposal not found");
+      if (proposal.status !== "pending") throw fail(409, "proposal already decided");
+      if (action === "approve") {
+        const payload = typeof proposal.payload === "string" ? JSON.parse(proposal.payload) : proposal.payload;
+        if (!validateSquadSnapshot(payload)) throw fail(409, "invalid proposal snapshot");
+        await client.query(`insert into squad_approved_roster (id, proposal_id, payload, approved_by, approved_at)
+          values (1, $1, $2::jsonb, $3, now())
+          on conflict (id) do update set proposal_id = excluded.proposal_id, payload = excluded.payload, approved_by = excluded.approved_by, approved_at = excluded.approved_at`,
+          [id, JSON.stringify(payload), String(user.id)]);
+        await client.query("update squad_proposals set status = 'rejected', decided_by = $2, decided_at = now() where status = 'pending' and id <> $1", [id, String(user.id)]);
+      }
+      await client.query("update squad_proposals set status = $2, decided_by = $3, decided_at = now() where id = $1", [id, action === "approve" ? "approved" : "rejected", String(user.id)]);
+      return { ok: true, id, status: action === "approve" ? "approved" : "rejected" };
+    });
+  }
 
   // Member + permanent seat. Seat numbers are handed out one at a time under an advisory lock, so they are unique and never move.
   async function ensureMemberTx(c, user) {
@@ -325,7 +538,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   const CITY_ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
   const CLUB_DEPTS = DEPTS.map(d => d[0]);
   const APP_KINDS = ["city", "player", "staff"];
-  ready.then(() => db.query(`
+  ready = ready.then(() => db.query(`
     alter table applications add column if not exists kind text not null default 'city';
     alter table applications add column if not exists name text;
     alter table applications add column if not exists age int;
@@ -585,18 +798,52 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     return (await db.query("select id, tg_id, username, message, status, created_at from feedback order by id desc limit 200")).rows;
   }, true);
 
-  // accepted players (squad shown on the pitch) and staff — public, no personal data beyond name/position
+  // Admin squad API delegates to methods also used by the Telegram admin panel.
+  route("/api/admin/squad/proposal", async user => createSquadProposal(user), true);
+  route("/api/admin/squad/status", async () => getSquadStatus(), true);
+  route("/api/admin/squad/decide", async (user, body) => decideSquadProposal(user, body), true);
+  // Public stadium feed: approved snapshot controls players; city workers and staff remain live.
+  // Before the first approval, keep the legacy accepted-player feed so the pitch does not go empty.
   app.get("/api/squad", async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
-    try { await ready;
-      const rows = (await db.query(`select a.id, a.kind, case when a.kind = 'city' then coalesce(m.nick, a.nick) else coalesce(nullif(a.name,''), m.nick, a.nick) end as name, a.position, a.dept, case when a.kind = 'city' then a.role end as role
-        from applications a left join members m on m.tg_id = a.tg_id where a.status = 'accepted' order by a.decided_at`)).rows;
-      res.json(rows);
+    try {
+      await ready;
+      const approved = await one(db, "select payload from squad_approved_roster where id = 1");
+      let players;
+      if (approved) {
+        const payload = typeof approved.payload === "string" ? JSON.parse(approved.payload) : approved.payload;
+        players = (Array.isArray(payload && payload.active) ? payload.active : []).map(p => ({
+          id: p.application_id || null,
+          kind: "player",
+          name: String(p.name || "Player"),
+          position: p.stadium_position || null,
+          applied_position: p.applied_position || null,
+          squad_role: p.squad_role || null,
+          squad_order: p.squad_order || null,
+          position_rank: p.position_rank || null,
+          assigned_group: p.assigned_group || null,
+          reassigned: !!p.reassigned
+        }));
+      } else {
+        players = (await db.query(`select a.id, 'player' as kind,
+            coalesce(nullif(a.name,''), m.nick, a.nick) as name,
+            a.position, null::text as dept, null::text as role
+          from applications a left join members m on m.tg_id = a.tg_id
+          where a.status = 'accepted' and a.kind = 'player'
+          order by a.decided_at, a.id`)).rows;
+      }
+      const cityAndStaff = (await db.query(`select a.id, a.kind,
+          case when a.kind = 'city' then coalesce(m.nick, a.nick) else coalesce(nullif(a.name,''), m.nick, a.nick) end as name,
+          a.position, a.dept, case when a.kind = 'city' then a.role end as role
+        from applications a left join members m on m.tg_id = a.tg_id
+        where a.status = 'accepted' and a.kind in ('city','staff')
+        order by a.decided_at, a.id`)).rows;
+      res.json([...players, ...cityAndStaff]);
     } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
   });
 
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
-  return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId };
+  return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId, createSquadProposal, getSquadStatus, decideSquadProposal };
 }
 
-module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay };
+module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, validateSquadSnapshot, SQUAD_GROUPS };
