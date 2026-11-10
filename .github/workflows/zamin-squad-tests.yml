@@ -8,12 +8,22 @@ on:
       - "ZAMIN_FK/web/city/club.js"
       - "ZAMIN_FK/web/city/squad.test.js"
       - "ZAMIN_FK/web/city/package.json"
+      - "ZAMIN_FK/web/stadium/template.html"
+      - "ZAMIN_FK/web/stadium/build.py"
+      - "ZAMIN_FK/web/stadium/fans_instagram.json"
+      - "ZAMIN_FK/01_Art_Direction/Sprites/**"
+      - "ZAMIN_FK/03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"
       - ".github/workflows/zamin-squad-tests.yml"
   pull_request:
     paths:
       - "ZAMIN_FK/web/city/club.js"
       - "ZAMIN_FK/web/city/squad.test.js"
       - "ZAMIN_FK/web/city/package.json"
+      - "ZAMIN_FK/web/stadium/template.html"
+      - "ZAMIN_FK/web/stadium/build.py"
+      - "ZAMIN_FK/web/stadium/fans_instagram.json"
+      - "ZAMIN_FK/01_Art_Direction/Sprites/**"
+      - "ZAMIN_FK/03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"
       - ".github/workflows/zamin-squad-tests.yml"
 
 jobs:
