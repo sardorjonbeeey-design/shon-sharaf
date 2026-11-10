@@ -153,9 +153,67 @@ function init({ db, bot, club, led }) {
     return { text: "🛠 <b>Admin panel</b>\nKerakli bo‘limni tanlang:", parse_mode: "HTML", reply_markup: { inline_keyboard: [
       [{ text: `📋 Yangi arizalar (${n.apps})`, callback_data: "adm:apps" }],
       [{ text: `📬 Feedback (${n.fb})`, callback_data: "adm:fb" }],
+      [{ text: "⚽ Tarkibni boshqarish", callback_data: "adm:squad" }],
       [{ text: "📊 Statistika", callback_data: "adm:stats" }],
       [{ text: "📣 Yangiliklar yuborish", callback_data: "adm:bc" }], ...(led ? [[{ text: "📺 LED reklama", callback_data: "adm:led" }]] : []), ...(appBtn.length ? [appBtn] : [])] } };
   };
+  async function squadMenu(chat) {
+    const status = await club.getSquadStatus();
+    const pending = status.pending ? "#" + status.pending.id : "yo‘q";
+    const approved = status.approved ? "#" + status.approved.proposal_id : "hali tasdiqlanmagan";
+    return api("sendMessage", { chat_id: chat, parse_mode: "HTML",
+      text: "⚽ <b>ZAMIN FK — Tarkib boshqaruvi</b>\n\nKutilayotgan proposal: <b>" + pending + "</b>\nTasdiqlangan roster: <b>" + approved + "</b>\n\nYangi proposal accepted player arizalari va joriy XP asosida yaratiladi. U approved tarkibni avtomatik almashtirmaydi.",
+      reply_markup: { inline_keyboard: [
+        [{ text: "🧮 Yangi tarkib taklifini yaratish", callback_data: "adm:squad:generate" }],
+        [{ text: "🔎 Holatni yangilash", callback_data: "adm:squad:status" }],
+        [{ text: "⬅️ Admin menyu", callback_data: "adm:menu" }]
+      ] } });
+  }
+
+  const squadPosition = p => p.stadium_position || p.applied_position || "—";
+  const squadPlayerLine = (p, index) => {
+    const role = p.squad_role === "starter" ? "STARTER" : p.squad_role === "substitute" ? "BENCH" : "RESERVE";
+    return (index + 1) + ". <b>" + esc(p.name) + "</b> — " + esc(p.applied_position) + " → <b>" + esc(squadPosition(p)) + "</b>" + (p.reassigned ? " ↪️" : "") + " · " + (Number(p.xp) || 0) + " XP · " + role;
+  };
+
+  async function generateAndShowSquad(chat, user) {
+    const saved = await club.createSquadProposal(user);
+    const p = saved.proposal;
+    const header = "⚽ <b>Squad proposal #" + saved.id + "</b>\n" + p.active_count + "/22 active · " + p.reserve_count + "/2 reserves · " + p.eligible_count + " eligible\n\n";
+    const groups = [
+      ["🟢 <b>STARTING XI</b>", p.active.filter(x => x.squad_role === "starter")],
+      ["🪑 <b>SUBSTITUTES</b>", p.active.filter(x => x.squad_role === "substitute")],
+      ["🛟 <b>RESERVES</b>", p.reserves]
+    ];
+    const chunks = [];
+    for (const [label, players] of groups) {
+      const lines = players.map((player, i) => squadPlayerLine(player, i));
+      if (!lines.length) chunks.push(label + "\n—");
+      else for (let i = 0; i < lines.length; i += 8) chunks.push(label + (i ? " (davomi)" : "") + "\n" + lines.slice(i, i + 8).join("\n"));
+    }
+    await api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: header + chunks.shift() });
+    for (const chunk of chunks) await api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: chunk });
+    const note = p.shortfall ? "\n⚠️ " + p.shortfall + " ta active slot bo‘sh." : "";
+    return api("sendMessage", { chat_id: chat, parse_mode: "HTML",
+      text: "📝 <b>Proposal #" + saved.id + " — PENDING</b>" + note + "\n\nTarkibni tekshiring. Tasdiqlash approved roster’ni yangilaydi; rad etish amaldagi approved roster’ga tegmaydi.",
+      reply_markup: { inline_keyboard: [
+        [{ text: "✅ Tasdiqlash", callback_data: "sq:approve:" + saved.id }, { text: "❌ Rad etish", callback_data: "sq:reject:" + saved.id }],
+        [{ text: "⚽ Tarkib paneli", callback_data: "adm:squad" }, { text: "⬅️ Admin menyu", callback_data: "adm:menu" }]
+      ] } });
+  }
+
+  async function showSquadStatus(chat) {
+    const status = await club.getSquadStatus();
+    const lines = ["⚽ <b>Squad status</b>"];
+    if (status.pending) lines.push("\n📝 Pending proposal: <b>#" + status.pending.id + "</b> · " + status.pending.created_at);
+    else lines.push("\n📝 Pending proposal: yo‘q");
+    if (status.approved) {
+      const payload = typeof status.approved.payload === "string" ? JSON.parse(status.approved.payload) : status.approved.payload;
+      lines.push("\n✅ Approved: <b>#" + status.approved.proposal_id + "</b> · " + payload.active_count + "/22 active · " + payload.reserve_count + "/2 reserves\nTasdiqlangan vaqt: " + status.approved.approved_at);
+    } else lines.push("\n✅ Approved roster: hali yo‘q");
+    return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: lines.join("\n"),
+      reply_markup: { inline_keyboard: [[{ text: "🔄 Yangilash", callback_data: "adm:squad:status" }, { text: "⬅️ Tarkib paneli", callback_data: "adm:squad" }]] } });
+  }
   const KIND = { city: "🏙 Shahar ishi", player: "⚽ Futbolchi", staff: "🧑‍💼 Klub xodimi" };
   const appText = a => [`📋 <b>Ariza #${a.id}</b> — ${KIND[a.kind] || a.kind}`,
     `<b>Kim:</b> ${esc(a.nick)} (<code>${a.tg_id}</code>)`, a.name && `<b>Ism:</b> ${esc(a.name)}`, a.age && `<b>Yosh:</b> ${a.age}`,
@@ -169,6 +227,20 @@ function init({ db, bot, club, led }) {
     if (data === "adm:led") return ledMenu(chat);
     if (data === "adm:bc") return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: "📣 <b>Foydalanuvchilarga xabar</b>\n\nTayyor namunani yuborish uchun tugmani bosing. O‘zingizning matningiz uchun: <code>/xabar</code> va keyin matn.", reply_markup: { inline_keyboard: [[{ text: "📨 Tayyor namunani yuborish", callback_data: "bc:sample" }]] } });
     if (data === "adm:menu") return api("editMessageText", { chat_id: chat, message_id: cb.message.message_id, ...(await adminMenu()) });
+    if (data === "adm:squad") return squadMenu(chat);
+    if (data === "adm:squad:generate") return generateAndShowSquad(chat, cb.from);
+    if (data === "adm:squad:status") return showSquadStatus(chat);
+    if (data.startsWith("sq:approve:") || data.startsWith("sq:reject:")) {
+      const parts = data.split(":");
+      const action = parts[1] === "approve" ? "approve" : "reject";
+      const id = Number(parts[2]);
+      try {
+        const result = await club.decideSquadProposal(cb.from, { id, action });
+        const message = action === "approve" ? "✅ <b>Proposal #" + result.id + " tasdiqlandi.</b>\nApproved roster yangilandi." : "❌ <b>Proposal #" + result.id + " rad etildi.</b>\nApproved roster o‘zgarmadi.";
+        return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: message,
+          reply_markup: { inline_keyboard: [[{ text: "⚽ Tarkib paneli", callback_data: "adm:squad" }, { text: "⬅️ Admin menyu", callback_data: "adm:menu" }]] } });
+      } catch (e) { return api("sendMessage", { chat_id: chat, text: "Xato: " + esc(e.message) }); }
+    }
     if (data === "adm:apps") {
       const rows = await q("select * from applications where status = 'new' order by created_at limit 5");
       if (!rows.length) return api("sendMessage", { chat_id: chat, text: "✅ Yangi ariza yo‘q." });
