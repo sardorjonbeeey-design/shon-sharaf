@@ -1322,9 +1322,15 @@ function moveTo(o, x, z, y = 0) {
   const p = last.get(o) || [x, z]; face(o, x - p[0]); last.set(o, [x, z]);
   o.position.set(x, y, z);
 }
-// ---------- accepted players (from applications) train on the pitch; staff stand on the touchline ----------
+// ---------- approved squad: starters occupy their 4-3-3 positions; substitutes line the touchline ----------
 const SQUAD = [];
-const POS_SPOT = { GK: [42, 0], DEF: [26, 0], MID: [10, 0], FWD: [-8, 0] };
+const POS_SPOT = {
+  GK: [42, 0],
+  LB: [28, -22], CB: [31, -7], RB: [28, 22],
+  CDM: [14, 0], CM: [9, -13], CAM: [5, 13],
+  LW: [-12, -20], ST: [-19, 0], RW: [-12, 20],
+  DEF: [26, 0], MID: [10, 0], FWD: [-8, 0]
+};
 function makeSquadPlayer(p, i) {
   const g = new THREE.Group(), kit = p.kind === "city" ? 0xf0a030 : p.kind === "staff" ? 0x0D2557 : p.position === "GK" ? 0x2e9e4f : 0x1F4FB8, m = c => new THREE.MeshLambertMaterial({ color: c });
   const add = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); g.add(o); return o; };
@@ -1334,8 +1340,12 @@ function makeSquadPlayer(p, i) {
   const lL = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), -.13, .3, 0), lR = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), .13, .3, 0);
   g.scale.setScalar(1.6); scene.add(g);
   const W = SQUAD.filter(q => q.p.kind === p.kind).length;
-  const [bx, bz] = p.kind === "city" ? [-(OUT_A + 14) + (W % 8) * 5, OUT_B + 14 + Math.floor(W / 8) * 5] : p.kind === "staff" ? [-30 + W * 6, 33] : POS_SPOT[p.position] || [0, 0];
-  return { g, lL, lR, p, bx, bz: p.kind === "player" ? bz + ((i % 5) - 2) * 7 : bz, ph: i * 1.7 };
+  const [bx, bz] = p.kind === "city"
+    ? [-(OUT_A + 14) + (W % 8) * 5, OUT_B + 14 + Math.floor(W / 8) * 5]
+    : p.kind === "staff" ? [-30 + W * 6, 33]
+    : p.squad_role === "substitute" ? [-35 + W * 7, 43]
+    : POS_SPOT[p.position] || POS_SPOT[p.applied_position] || [0, 0];
+  return { g, lL, lR, p, bx, bz, ph: i * 1.7 };
 }
 async function loadSquad() {
   try {
@@ -1348,13 +1358,13 @@ try { loadSquad(); } catch (e) { console.error("loadSquad init failed:", e); }
 try { setInterval(loadSquad, 60000); } catch (e) { console.error("loadSquad interval failed:", e); }
 function animateSquad(t) {
   for (const s of SQUAD) {
-    const k = t * .6 + s.ph, run = s.p.kind === "player";
+    const k = t * .6 + s.ph, run = s.p.kind === "player" && s.p.squad_role !== "substitute";
     const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
     s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
     const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
   }
 }
-function squadLabels(place) { for (const s of SQUAD) place(s.g.position.x, 4.4, s.g.position.z, "tag hero", (s.p.kind === "city" ? "🛠 " : s.p.kind === "staff" ? "🧑‍💼 " : "⚽ ") + s.p.name + (s.p.position ? " · " + s.p.position : s.p.role ? " · " + s.p.role : "")); }
+function squadLabels(place) { for (const s of SQUAD) place(s.g.position.x, 4.4, s.g.position.z, "tag hero", (s.p.kind === "city" ? "🛠 " : s.p.kind === "staff" ? "🧑‍💼 " : "⚽ ") + s.p.name + (s.p.position ? " · " + s.p.position : s.p.role ? " · " + s.p.role : "") + (s.p.squad_role === "substitute" ? " · BENCH" : "")); }
 function animateTeam(t) {
   animateSquad(t);
   const bek = H("bekzod"), az = H("aziz"), jas = H("jasur"), rus = H("rustam"), goat = H("echki");
