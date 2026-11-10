@@ -29,3 +29,14 @@ jobs:
           node-version: 20
       - name: Run squad regression tests
         run: npm test
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Rebuild stadium page from source template
+        run: |
+          python -m pip install Pillow
+          cd ../stadium
+          python3 build.py fans_instagram.json
+          grep -q "POS_SPOT" dist/index.html
+          grep -q "benchIndex" dist/index.html
+          grep -q "position_rank" dist/index.html
