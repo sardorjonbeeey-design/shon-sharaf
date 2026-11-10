@@ -1309,7 +1309,7 @@ const heroObjs = HEROES.map(hz => {
   sp.center.set(0.5, 0); sp.position.set(hz.x, 0, hz.z);
   tex.onload = () => {};
   const img = new Image(); img.onload = () => sp.scale.set(hz.h * img.width / img.height, hz.h, 1); img.src = hz.img;
-  sp.userData = hz; scene.add(sp); return sp;
+  sp.userData = hz; sp.visible = false; scene.add(sp); return sp;
 });
 
 // ---------- training animation ----------
@@ -1544,7 +1544,7 @@ function updateLabels(now) {
     for (const o of HQ_OBJS) { const d = o.userData.info; const distance = o.position.distanceTo(camPos); const label = distance > 180 ? d.emoji : `${d.emoji} ${d.name} · ${d.level ? d.level + "-daraja" : "qurilmoqda"}`; placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", label, true); }
     residentLabels(placeAt, camPos);
   }
-  const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]).slice(0, 100);
+  const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]);
   for (const [, o] of hs) if (o !== mine) placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick);
   for (let k = used; k < pool.length; k++) pool[k].style.display = "none";
 }
