@@ -45,6 +45,116 @@ const tashkentDay = (t = Date.now()) => new Date(t + 5 * 3600e3).toISOString().s
 const weekStart = day => { const d = new Date(day + "T00:00:00Z"), w = (d.getUTCDay() + 6) % 7; return new Date(d.getTime() - w * 864e5).toISOString().slice(0, 10); };
 const tkStart = day => day + "T00:00:00+05:00";
 const supporterId = no => "ZFK-" + String(no).padStart(5, "0");
+// Squad proposal rules. Applied group has priority; XP ranks players within that
+// group. Only genuine group vacancies can be filled by overflow from other groups.
+const SQUAD_GROUPS = Object.freeze({
+  GK:  { quota: 2, positions: ["GK", "GK"], starters: 1 },
+  DEF: { quota: 8, positions: ["LB", "CB", "CB", "RB", "LB", "CB", "CB", "RB"], starters: 4 },
+  MID: { quota: 6, positions: ["CDM", "CM", "CAM", "CDM", "CM", "CAM"], starters: 3 },
+  FWD: { quota: 6, positions: ["LW", "ST", "RW", "LW", "ST", "RW"], starters: 3 },
+});
+const SQUAD_GROUP_ORDER = ["GK", "DEF", "MID", "FWD"];
+const SQUAD_APPLIED_POSITIONS = SQUAD_GROUP_ORDER;
+const SQUAD_ACTIVE_LIMIT = 22;
+const SQUAD_RESERVE_LIMIT = 2;
+
+function squadXpRank(a, b) {
+  const xp = (Number(b.xp) || 0) - (Number(a.xp) || 0);
+  if (xp) return xp;
+  const atA = Date.parse(a.decided_at || a.created_at || "") || 0;
+  const atB = Date.parse(b.decided_at || b.created_at || "") || 0;
+  if (atA !== atB) return atA - atB;
+  return String(a.tg_id).localeCompare(String(b.tg_id), "en", { numeric: true });
+}
+
+// Pure calculation: no database writes and no changes to application position or XP.
+function buildSquadProposal(input = []) {
+  const unique = new Map();
+  for (const row of input) {
+    const group = String(row.applied_position || row.position || "").toUpperCase();
+    const tgId = String(row.tg_id || "");
+    if (!tgId || !SQUAD_GROUPS[group]) continue;
+    const candidate = {
+      application_id: row.application_id || row.id || null,
+      tg_id: tgId,
+      name: String(row.name || row.nick || "Player"),
+      xp: Math.max(0, Number(row.xp) || 0),
+      applied_position: group,
+      created_at: row.created_at || null,
+      decided_at: row.decided_at || null,
+    };
+    const prior = unique.get(tgId);
+    if (!prior || (Date.parse(candidate.decided_at || candidate.created_at || "") || 0) >
+                  (Date.parse(prior.decided_at || prior.created_at || "") || 0)) unique.set(tgId, candidate);
+  }
+
+  const pools = Object.fromEntries(SQUAD_GROUP_ORDER.map(g => [g, []]));
+  for (const player of unique.values()) pools[player.applied_position].push(player);
+  for (const group of SQUAD_GROUP_ORDER) pools[group].sort(squadXpRank);
+
+  const assigned = {}, overflow = [];
+  for (const group of SQUAD_GROUP_ORDER) {
+    assigned[group] = pools[group].slice(0, SQUAD_GROUPS[group].quota)
+      .map(player => ({ ...player, assigned_group: group, reassigned: false }));
+    overflow.push(...pools[group].slice(SQUAD_GROUPS[group].quota));
+  }
+  overflow.sort(squadXpRank);
+
+  // A surplus player can transfer only into an under-filled group; XP ranks transfers.
+  for (const group of SQUAD_GROUP_ORDER) {
+    const vacancies = SQUAD_GROUPS[group].quota - assigned[group].length;
+    for (let i = 0; i < vacancies && overflow.length; i++) {
+      const player = overflow.shift();
+      assigned[group].push({ ...player, assigned_group: group, reassigned: true });
+    }
+  }
+
+  const byGroup = {};
+  for (const group of SQUAD_GROUP_ORDER) {
+    const nativePlayers = assigned[group].filter(p => !p.reassigned).sort(squadXpRank);
+    const movedPlayers = assigned[group].filter(p => p.reassigned).sort(squadXpRank);
+    const ranked = [...nativePlayers, ...movedPlayers]; // applied group first, then XP
+    byGroup[group] = ranked.map((player, index) => {
+      const starter = index < SQUAD_GROUPS[group].starters;
+      return {
+        ...player,
+        stadium_position: SQUAD_GROUPS[group].positions[index],
+        squad_role: starter ? "starter" : "substitute",
+        position_rank: index + 1,
+        reason: player.reassigned
+          ? "Applied " + player.applied_position + "; its quota was full. Reassigned to " + group + " by XP ranking."
+          : "Applied " + player.applied_position + "; selected in that group by XP ranking.",
+      };
+    });
+  }
+
+  const starters = [
+    byGroup.GK[0], ...byGroup.DEF.slice(0, 4), ...byGroup.MID.slice(0, 3), ...byGroup.FWD.slice(0, 3),
+  ].filter(Boolean);
+  const substitutes = [
+    byGroup.GK[1], ...byGroup.DEF.slice(4, 8), ...byGroup.MID.slice(3, 6), ...byGroup.FWD.slice(3, 6),
+  ].filter(Boolean);
+  const active = [...starters, ...substitutes].slice(0, SQUAD_ACTIVE_LIMIT)
+    .map((player, index) => ({ ...player, squad_order: index + 1, squad_role: index < starters.length ? "starter" : "substitute" }));
+  const reserves = overflow.slice(0, SQUAD_RESERVE_LIMIT).map((player, index) => ({
+    ...player, assigned_group: null, stadium_position: null, squad_role: "reserve",
+    reserve_rank: index + 1, reassigned: false,
+    reason: "Outside the active 22; highest remaining XP reserve.",
+  }));
+
+  return {
+    rules: { group_quotas: Object.fromEntries(SQUAD_GROUP_ORDER.map(g => [g, SQUAD_GROUPS[g].quota])),
+      active_limit: SQUAD_ACTIVE_LIMIT, reserve_limit: SQUAD_RESERVE_LIMIT,
+      xp_source: "members.xp", priority: "applied_position_then_xp" },
+    eligible_count: unique.size,
+    active_count: active.length,
+    reserve_count: reserves.length,
+    shortfall: Math.max(0, SQUAD_ACTIVE_LIMIT - active.length),
+    active,
+    reserves,
+  };
+}
+
 
 function init({ app, db, auth, bot, nickOf, ready: base }) {
   let cache = null, cacheAt = 0;
@@ -585,6 +695,19 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     return (await db.query("select id, tg_id, username, message, status, created_at from feedback order by id desc limit 200")).rows;
   }, true);
 
+  // Admin-only read-only preview. It does not change the approved/live squad.
+  route("/api/admin/squad/proposal", async () => {
+    await ready;
+    const rows = (await db.query(\`select distinct on (a.tg_id)
+        a.id as application_id, a.tg_id,
+        coalesce(nullif(a.name,''), m.nick, a.nick) as name,
+        a.position as applied_position, m.xp, a.created_at, a.decided_at
+      from applications a join members m on m.tg_id = a.tg_id
+      where a.kind = 'player' and a.status = 'accepted' and a.position = any($1::text[])
+      order by a.tg_id, a.decided_at desc nulls last, a.id desc\`, [SQUAD_APPLIED_POSITIONS])).rows;
+    return buildSquadProposal(rows);
+  }, true);
+
   // accepted players (squad shown on the pitch) and staff — public, no personal data beyond name/position
   app.get("/api/squad", async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
@@ -599,4 +722,4 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId };
 }
 
-module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay };
+module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, SQUAD_GROUPS };
