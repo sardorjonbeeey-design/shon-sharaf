@@ -776,6 +776,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
           applied_position: p.applied_position || null,
           squad_role: p.squad_role || null,
           squad_order: p.squad_order || null,
+          position_rank: p.position_rank || null,
           assigned_group: p.assigned_group || null,
           reassigned: !!p.reassigned
         }));
