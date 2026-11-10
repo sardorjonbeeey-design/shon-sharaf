@@ -1340,10 +1340,11 @@ function makeSquadPlayer(p, i) {
   const lL = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), -.13, .3, 0), lR = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), .13, .3, 0);
   g.scale.setScalar(1.6); scene.add(g);
   const W = SQUAD.filter(q => q.p.kind === p.kind).length;
+  const benchIndex = SQUAD.filter(q => q.p.kind === "player" && q.p.squad_role === "substitute").length;
   const [bx, bz] = p.kind === "city"
     ? [-(OUT_A + 14) + (W % 8) * 5, OUT_B + 14 + Math.floor(W / 8) * 5]
     : p.kind === "staff" ? [-30 + W * 6, 33]
-    : p.squad_role === "substitute" ? [-35 + W * 7, 43]
+    : p.squad_role === "substitute" ? [-35 + benchIndex * 7, 43]
     : POS_SPOT[p.position] || POS_SPOT[p.applied_position] || [0, 0];
   return { g, lL, lR, p, bx, bz, ph: i * 1.7 };
 }
