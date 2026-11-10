@@ -111,9 +111,7 @@ function buildSquadProposal(input = []) {
 
   const byGroup = {};
   for (const group of SQUAD_GROUP_ORDER) {
-    const nativePlayers = assigned[group].filter(p => !p.reassigned).sort(squadXpRank);
-    const movedPlayers = assigned[group].filter(p => p.reassigned).sort(squadXpRank);
-    const ranked = [...nativePlayers, ...movedPlayers]; // applied group first, then XP
+    const ranked = assigned[group].slice().sort(squadXpRank); // once reassigned, XP competes across the destination group
     byGroup[group] = ranked.map((player, index) => {
       const starter = index < SQUAD_GROUPS[group].starters;
       return {
