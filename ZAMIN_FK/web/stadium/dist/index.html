@@ -419,6 +419,7 @@ const VIP = new Set(["legends00000001"]);              // honoured fans: gold se
 // previous compact supporter style: simple club-colour shirts + heads
 // Keep the current on-screen fan height (~1.5 world units); only restore the older silhouette.
 const FAN_SCALE = 1.45;
+const FAN_SIZE = new THREE.Vector3(FAN_SCALE, FAN_SCALE, FAN_SCALE);
 const lam = () => new THREE.MeshLambertMaterial({ color: 0xffffff });
 const IM = (g, n) => new THREE.InstancedMesh(g, lam(), n);
 const bodies = IM(new THREE.CylinderGeometry(0.17 * FAN_SCALE, 0.22 * FAN_SCALE, 0.62 * FAN_SCALE, 6), NF);
@@ -439,9 +440,9 @@ seats.forEach((st, i) => {
   const h = hash(st.fan);
   const bob = ((h >> 6) % 10) / 100 * FAN_SCALE;
   const px = st.x - st.nx * 0.12, pz = st.z - st.nz * 0.12;
-  M.compose(V.set(px, st.y + 0.43 * FAN_SCALE + bob, pz), Q, SC.set(FAN_SCALE, FAN_SCALE, FAN_SCALE)); bodies.setMatrixAt(fi, M);
+  M.compose(V.set(px, st.y + 0.43 * FAN_SCALE + bob, pz), Q, FAN_SIZE); bodies.setMatrixAt(fi, M);
   bodies.setColorAt(fi, C.set(SHIRT[h % SHIRT.length]));
-  M.compose(V.set(px, st.y + 0.88 * FAN_SCALE + bob, pz), Q, SC.set(FAN_SCALE, FAN_SCALE, FAN_SCALE)); heads.setMatrixAt(fi, M);
+  M.compose(V.set(px, st.y + 0.88 * FAN_SCALE + bob, pz), Q, FAN_SIZE); heads.setMatrixAt(fi, M);
   heads.setColorAt(fi, C.set(SKIN[(h >> 3) % SKIN.length]));
   fiSeat[fi] = st; st.fi = fi++;
 });
