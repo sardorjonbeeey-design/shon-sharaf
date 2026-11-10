@@ -397,7 +397,7 @@ function init({ db, bot, club, led }) {
             await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true;
             return await onLed(cb, data);
           }
-          if (/^(adm|ap|fb):/.test(data)) {
+          if (/^(adm|ap|fb|sq):/.test(data)) {
             if (!isAdmin(cb.from.id)) { answered = true; return api("answerCallbackQuery", { callback_query_id: cb.id, text: "Faqat adminlar uchun", show_alert: true }); }
             if (!data.startsWith("ap:")) { await api("answerCallbackQuery", { callback_query_id: cb.id }); answered = true; }
             return await onAdmin(cb, data);
