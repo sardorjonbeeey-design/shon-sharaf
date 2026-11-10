@@ -33,12 +33,11 @@
   #rule { left:50%; transform:translateX(-50%); bottom:86px; background:var(--yel); color:var(--navy); font-weight:900; font-size:14px; padding:8px 14px; border-radius:14px; white-space:nowrap; }
   #toast { left:50%; transform:translateX(-50%); top:120px; padding:12px 18px; font-weight:700; font-size:15px; text-align:center; display:none; max-width:90vw; }
   #labels { position:fixed; inset:0; pointer-events:none; z-index:3; overflow:hidden; }
-  .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.95); color:var(--navy); font-family:"Segoe UI",Arial,sans-serif; font-weight:500; font-size:10px; letter-spacing:.1px; padding:3px 7px; border-radius:8px; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,.24); }
+  .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.95); color:var(--navy); font-weight:900; font-size:10px; padding:3px 7px; border-radius:10px; white-space:nowrap; box-shadow:0 3px 10px rgba(0,0,0,.3); }
   .tag::before { content:"•"; color:var(--blue); margin-right:4px; }
-  .tag.me { background:var(--yel); font-size:10px; font-weight:500; padding:3px 7px; border:1px solid var(--navy); }
-  .tag.hero { background:var(--navy); color:#fff; border:1px solid var(--yel); font-family:"Segoe UI",Arial,sans-serif; font-size:10px; font-weight:500; padding:3px 7px; }
-  .tag.hero::before, .tag.fan::before { content:"★"; color:var(--yel); }
-  .tag.fan { background:var(--navy); color:#fff; border:1px solid var(--yel); font-family:"Segoe UI",Arial,sans-serif; font-size:10px; font-weight:500; padding:3px 7px; }
+  .tag.me { background:var(--yel); font-size:10px; padding:3px 7px; border:2px solid var(--navy); }
+  .tag.hero { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:10px; padding:3px 7px; }
+  .tag.hero::before { content:"★"; color:var(--yel); }
   .tag.squad { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:8px; font-weight:900; padding:2px 5px; border-radius:8px; box-shadow:0 2px 7px rgba(0,0,0,.28); }
   .tag.squad::before { content:"★"; color:var(--yel); margin-right:3px; }
   #card { left:50%; bottom:130px; z-index:6; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; }
@@ -84,7 +83,7 @@
   #cbody input, #cbody textarea, #cbody select { width:100%; font:inherit; font-weight:700; font-size:14px; color:#fff; background:rgba(0,0,0,.3); border:2px solid rgba(255,255,255,.2); border-radius:12px; padding:10px; margin:6px 0; }
   .kinds { display:flex; flex-wrap:wrap; gap:6px; } .kinds button { font:inherit; font-size:12px; font-weight:700; color:#fff; background:rgba(255,255,255,.1); border:2px solid transparent; border-radius:10px; padding:7px 9px; } .kinds button.on { border-color:var(--yel); }
   .adm { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; } .adm input { margin:0 !important; }
-  .tag.hq { background:var(--navy); color:#fff; border:1px solid var(--yel); font-size:10px; font-weight:500; padding:3px 7px; } .tag.hq::before { content:""; margin:0; }
+  .tag.hq { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:10px; padding:3px 7px; } .tag.hq::before { content:""; margin:0; }
   #jpath button, #jkind button { flex:1; font:inherit; font-weight:900; font-size:14px; color:#fff; background:rgba(255,255,255,.1); border:3px solid transparent; border-radius:14px; padding:12px 6px; }
   #jpath button.on, #jkind button.on { border-color:var(--yel); }
   #sJob input { width:100%; font:inherit; font-weight:700; font-size:15px; color:#fff; background:rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.25); border-radius:14px; padding:12px; margin-bottom:10px; outline:none; }
@@ -153,7 +152,7 @@
   .tag.res.me { background:var(--yel); border-color:var(--navy); font-size:14px; }
   .tag.lot { background:rgba(13,37,87,.85); color:#cfdcff; font-size:11px; }
   .tag.lot::before { content:""; margin:0; }
-  .tag.big { background:var(--navy); color:#fff; border:2px solid var(--yel); font-family:"Segoe UI",Arial,sans-serif; font-size:22px; font-weight:650; letter-spacing:.2px; padding:8px 15px; box-shadow:0 4px 12px rgba(0,0,0,.4); }
+  .tag.big { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:14px; padding:6px 12px; }
   .tag.big::before { content:"🏟"; margin-right:6px; }
   .mrow { display:flex; gap:8px; overflow-x:auto; padding:6px 2px 10px; -webkit-overflow-scrolling:touch; }
   .mdl { flex:none; width:76px; height:64px; border-radius:12px; border:3px solid transparent; background:#fff center/contain no-repeat; font:inherit; font-weight:900; font-size:12px; color:#0D2557; }
@@ -1273,18 +1272,33 @@ function buildHQ(d) {
     box(lamC(0xf0c419), .8, 22, .8, 9, 11, -4); box(lamC(0xf0c419), 18, .7, .7, 3, 22, -4); box(LM.rail, 1.6, 1.6, 1.6, 10.5, 21, -4);
   } else if (KENNEY[HQ_MODEL[d.id]] && KENNEY["tree-large"]) {        // built HQ: real building model + two trees
     const F = d.level === 1 ? 2 : 4, H = F * 3.4;
-    g.add(fitModel(KENNEY[HQ_MODEL[d.id]].clone(), 24, H));
-    for (const x of [-12.5, 12.5]) { const t = fitModel(KENNEY["tree-large"].clone(), 4.5, 6.5); t.position.set(x, 0, 6.5); g.add(t); }
+    g.add(fitModel(KENNEY[HQ_MODEL[d.id]].clone(), d.id === "academy" ? 29 : 24, H));
+    for (const x of (d.id === "academy" ? [-15, 15] : [-12.5, 12.5])) { const t = fitModel(KENNEY["tree-large"].clone(), 4.5, 6.5); t.position.set(x, 0, 6.5); g.add(t); }
     PERSON_MODEL.forEach((n, i) => { if (!KENNEY[n]) return; const q = fitModel(KENNEY[n].clone(), 1, 1.8); q.position.set(-6 + i * 4, 0, 9.5); g.add(q); });   // people on the forecourt
   } else {
     const F = d.level === 1 ? 2 : 4, H = F * 3.4;
-    box(LM.white, 24, H, 11, 0, .3 + H / 2, -1);
-    for (let f = 0; f < F; f++) { box(acc, 24.2, .35, 11.2, 0, .3 + f * 3.4, -1);
-      for (let k = -10; k <= 10; k += 2.5) { box(LM.glass, 1.6, 1.9, .1, k, .3 + f * 3.4 + 1.8, 4.53); box(LM.glassLit, 1.2, 1.4, .12, k, .3 + f * 3.4 + 1.8, 4.55); } }
+    box(LM.white, d.id === "academy" ? 28 : 24, H, 11, 0, .3 + H / 2, -1);
+    for (let f = 0; f < F; f++) { box(acc, d.id === "academy" ? 28.2 : 24.2, .35, 11.2, 0, .3 + f * 3.4, -1);
+      for (let k = d.id === "academy" ? -12 : -10; k <= (d.id === "academy" ? 12 : 10); k += 2.5) { box(LM.glass, 1.6, 1.9, .1, k, .3 + f * 3.4 + 1.8, 4.53); box(LM.glassLit, 1.2, 1.4, .12, k, .3 + f * 3.4 + 1.8, 4.55); } }
     box(LM.glass, 5, 2.8, .3, 0, 1.7, 4.6); box(acc, 6.4, .4, 2.4, 0, 3.4, 5.5);   // entrance + canopy
-    box(LM.flat, 24.4, .5, 11.4, 0, .3 + H + .25, -1);
+    box(LM.flat, d.id === "academy" ? 28.4 : 24.4, .5, 11.4, 0, .3 + H + .25, -1);
     if (d.level >= 2) { box(LM.white, 8, 3.4, 8, -6, .3 + H + 2, -1); box(LM.rail, .2, 7, .2, 8, .3 + H + 3.5, -3); box(acc, 3.2, 2, .1, 9.6, .3 + H + 6, -3); }
     for (const x of [-12.5, 12.5]) { const t = new THREE.Mesh(ICO, LM.leaf); t.scale.set(1.8, 2, 1.8); t.position.set(x, 3, 6.5); g.add(t); }
+  }
+  if (d.id === "academy") {
+    // Dedicated mini training pitch beside the academy building.
+    box(LM.path, 25, .3, 18, 29, .15, 0);
+    box(lamC(0x32884b), 22, .35, 15, 29, .42, 0);
+    const line = lamC(0xffffff);
+    box(line, .16, .08, 15, 18, .64, 0); box(line, .16, .08, 15, 40, .64, 0);
+    box(line, 22, .08, .16, 29, .64, -7.5); box(line, 22, .08, .16, 29, .64, 7.5);
+    box(line, .14, .08, 15, 29, .64, 0);
+    // Small goal frames at both ends of the training pitch.
+    for (const gx of [18, 40]) {
+      box(line, .16, 2, .16, gx, 1.55, -2);
+      box(line, .16, 2, .16, gx, 1.55, 2);
+      box(line, .16, .16, 4, gx, 2.5, 0);
+    }
   }
   const sh = d.level === 0 ? 4.5 : (d.level === 1 ? 2 : 4) * 3.4 + 2.2;              // sign board on top / on the fence
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(14, 3), new THREE.MeshBasicMaterial({ map: signTex(d.emoji + " " + d.name, d.color) }));
