@@ -1286,7 +1286,7 @@ const hqGroup = new THREE.Group(); scene.add(hqGroup);
 let HQ_OBJS = [], HQ_SIG = "";
 function deptInfo() {
   const live = (STATE.club && STATE.club.departments) || [];
-  return DEPT_BASE.map(([id, emoji, name, color]) => { const d = live.find(x => x.id === id) || {}; return { id, emoji: d.emoji || emoji, name: d.name || name, color, level: d.level || 0, members: d.members || 0, active: d.active !== false }; });
+  return DEPT_BASE.map(([id, emoji, name, color]) => { const d = live.find(x => x.id === id) || {}; const isAcademy = id === "academy"; return { id, emoji: isAcademy ? "🎓" : (d.emoji || emoji), name: isAcademy ? "Youth Academy" : (d.name || name), color, level: isAcademy ? Math.max(1, Number(d.level) || 0) : (Number(d.level) || 0), members: d.members || 0, active: d.active !== false }; });
 }
 function signTex(text, color) {
   const c = document.createElement("canvas"); c.width = 512; c.height = 112; const x = c.getContext("2d");
@@ -1304,18 +1304,33 @@ function buildHQ(d) {
     box(lamC(0xf0c419), .8, 22, .8, 9, 11, -4); box(lamC(0xf0c419), 18, .7, .7, 3, 22, -4); box(LM.rail, 1.6, 1.6, 1.6, 10.5, 21, -4);
   } else if (KENNEY[HQ_MODEL[d.id]] && KENNEY["tree-large"]) {        // built HQ: real building model + two trees
     const F = d.level === 1 ? 2 : 4, H = F * 3.4;
-    g.add(fitModel(KENNEY[HQ_MODEL[d.id]].clone(), 24, H));
-    for (const x of [-12.5, 12.5]) { const t = fitModel(KENNEY["tree-large"].clone(), 4.5, 6.5); t.position.set(x, 0, 6.5); g.add(t); }
+    g.add(fitModel(KENNEY[HQ_MODEL[d.id]].clone(), d.id === "academy" ? 29 : 24, H));
+    for (const x of (d.id === "academy" ? [-15, 15] : [-12.5, 12.5])) { const t = fitModel(KENNEY["tree-large"].clone(), 4.5, 6.5); t.position.set(x, 0, 6.5); g.add(t); }
     PERSON_MODEL.forEach((n, i) => { if (!KENNEY[n]) return; const q = fitModel(KENNEY[n].clone(), 1, 1.8); q.position.set(-6 + i * 4, 0, 9.5); g.add(q); });   // people on the forecourt
   } else {
     const F = d.level === 1 ? 2 : 4, H = F * 3.4;
-    box(LM.white, 24, H, 11, 0, .3 + H / 2, -1);
-    for (let f = 0; f < F; f++) { box(acc, 24.2, .35, 11.2, 0, .3 + f * 3.4, -1);
-      for (let k = -10; k <= 10; k += 2.5) { box(LM.glass, 1.6, 1.9, .1, k, .3 + f * 3.4 + 1.8, 4.53); box(LM.glassLit, 1.2, 1.4, .12, k, .3 + f * 3.4 + 1.8, 4.55); } }
+    box(LM.white, d.id === "academy" ? 28 : 24, H, 11, 0, .3 + H / 2, -1);
+    for (let f = 0; f < F; f++) { box(acc, d.id === "academy" ? 28.2 : 24.2, .35, 11.2, 0, .3 + f * 3.4, -1);
+      for (let k = d.id === "academy" ? -12 : -10; k <= (d.id === "academy" ? 12 : 10); k += 2.5) { box(LM.glass, 1.6, 1.9, .1, k, .3 + f * 3.4 + 1.8, 4.53); box(LM.glassLit, 1.2, 1.4, .12, k, .3 + f * 3.4 + 1.8, 4.55); } }
     box(LM.glass, 5, 2.8, .3, 0, 1.7, 4.6); box(acc, 6.4, .4, 2.4, 0, 3.4, 5.5);   // entrance + canopy
-    box(LM.flat, 24.4, .5, 11.4, 0, .3 + H + .25, -1);
+    box(LM.flat, d.id === "academy" ? 28.4 : 24.4, .5, 11.4, 0, .3 + H + .25, -1);
     if (d.level >= 2) { box(LM.white, 8, 3.4, 8, -6, .3 + H + 2, -1); box(LM.rail, .2, 7, .2, 8, .3 + H + 3.5, -3); box(acc, 3.2, 2, .1, 9.6, .3 + H + 6, -3); }
     for (const x of [-12.5, 12.5]) { const t = new THREE.Mesh(ICO, LM.leaf); t.scale.set(1.8, 2, 1.8); t.position.set(x, 3, 6.5); g.add(t); }
+  }
+  if (d.id === "academy") {
+    // Dedicated mini training pitch beside the academy building.
+    box(LM.path, 25, .3, 18, 29, .15, 0);
+    box(lamC(0x32884b), 22, .35, 15, 29, .42, 0);
+    const line = lamC(0xffffff);
+    box(line, .16, .08, 15, 18, .64, 0); box(line, .16, .08, 15, 40, .64, 0);
+    box(line, 22, .08, .16, 29, .64, -7.5); box(line, 22, .08, .16, 29, .64, 7.5);
+    box(line, .14, .08, 15, 29, .64, 0);
+    // Small goal frames at both ends of the training pitch.
+    for (const gx of [18, 40]) {
+      box(line, .16, 2, .16, gx, 1.55, -2);
+      box(line, .16, 2, .16, gx, 1.55, 2);
+      box(line, .16, .16, 4, gx, 2.5, 0);
+    }
   }
   const sh = d.level === 0 ? 4.5 : (d.level === 1 ? 2 : 4) * 3.4 + 2.2;              // sign board on top / on the fence
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(14, 3), new THREE.MeshBasicMaterial({ map: signTex(d.emoji + " " + d.name, d.color) }));
@@ -1340,7 +1355,7 @@ const heroObjs = HEROES.map(hz => {
   sp.center.set(0.5, 0); sp.position.set(hz.x, 0, hz.z);
   tex.onload = () => {};
   const img = new Image(); img.onload = () => sp.scale.set(hz.h * img.width / img.height, hz.h, 1); img.src = hz.img;
-  sp.userData = hz; scene.add(sp); return sp;
+  sp.userData = hz; sp.visible = false; scene.add(sp); return sp;
 });
 
 // ---------- training animation ----------
@@ -1356,6 +1371,53 @@ function moveTo(o, x, z, y = 0) {
   const p = last.get(o) || [x, z]; face(o, x - p[0]); last.set(o, [x, z]);
   o.position.set(x, y, z);
 }
+// ---------- approved squad: starters occupy their 4-3-3 positions; substitutes line the touchline ----------
+const SQUAD = [];
+const POS_SPOT = {
+  GK: [42, 0],
+  LB: [28, -22], CB: [31, -7], RB: [28, 22],
+  CDM: [14, 0], CM: [9, -13], CAM: [5, 13],
+  LW: [-12, -20], ST: [-19, 0], RW: [-12, 20],
+  DEF: [26, 0], MID: [10, 0], FWD: [-8, 0]
+};
+function makeSquadPlayer(p, i) {
+  const g = new THREE.Group(), kit = p.kind === "city" ? 0xf0a030 : p.kind === "staff" ? 0x0D2557 : p.position === "GK" ? 0x2e9e4f : 0x1F4FB8, m = c => new THREE.MeshLambertMaterial({ color: c });
+  const add = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); g.add(o); return o; };
+  add(new THREE.CylinderGeometry(.32, .28, .9, 10), m(kit), 0, 1.25, 0);
+  add(new THREE.SphereGeometry(.26, 12, 10), m(0xe0ac80), 0, 1.95, 0);
+  add(new THREE.CylinderGeometry(.3, .3, .3, 10), m(p.kind === "player" ? 0xffffff : 0x0D2557), 0, .7, 0);
+  const lL = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), -.13, .3, 0), lR = add(new THREE.BoxGeometry(.16, .6, .16), m(0xffffff), .13, .3, 0);
+  g.scale.setScalar(1.6); scene.add(g);
+  const W = SQUAD.filter(q => q.p.kind === p.kind).length;
+  const benchIndex = SQUAD.filter(q => q.p.kind === "player" && q.p.squad_role === "substitute").length;
+  const positionSpot = p.position === "CB" ? [31, Number(p.position_rank) >= 3 ? 7 : -7] : (POS_SPOT[p.position] || POS_SPOT[p.applied_position] || [0, 0]);
+  const [bx, bz] = p.kind === "city"
+    ? [-(OUT_A + 14) + (W % 8) * 5, OUT_B + 14 + Math.floor(W / 8) * 5]
+    : p.kind === "staff" ? [-30 + W * 6, 33]
+    : p.squad_role === "substitute" ? [-35 + benchIndex * 7, 43]
+    : positionSpot;
+  return { g, lL, lR, p, bx, bz, ph: i * 1.7 };
+}
+async function loadSquad() {
+  try {
+    const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
+    const list = await r.json(); SQUAD.forEach(s => scene.remove(s.g)); SQUAD.length = 0;
+    list.filter(p => p.kind !== "player" || p.squad_role === "starter").forEach((p, i) => {
+      const s = makeSquadPlayer(p, i); s.g.userData.squadPlayer = s; SQUAD.push(s);
+    });
+  } catch (e) { console.error("loadSquad fetch failed:", e); }
+}
+try { loadSquad(); } catch (e) { console.error("loadSquad init failed:", e); }
+try { setInterval(loadSquad, 60000); } catch (e) { console.error("loadSquad interval failed:", e); }
+function animateSquad(t) {
+  for (const s of SQUAD) {
+    const k = t * .6 + s.ph, run = s.p.kind === "player" && s.p.squad_role !== "substitute";
+    const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
+    s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
+    const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
+  }
+}
+function squadLabels(place) { for (const s of SQUAD) if (s.p.kind === "player" && s.p.squad_role === "starter") place(s.g.position.x, 4.4, s.g.position.z, "tag hero", s.p.name); }
 function animateTeam(t) {
   const bek = H("bekzod"), az = H("aziz"), jas = H("jasur"), rus = H("rustam"), goat = H("echki");
   // Bekzod: sprint up and down the right half, small hop while running
@@ -1557,6 +1619,18 @@ canvas.addEventListener("pointerup", e => {
   if (fh && fiSeat[fh.instanceId]) { showFan(fiSeat[fh.instanceId]); return; }
   const hq = ray.intersectObjects(HQ_OBJS, true)[0];
   if (hq) { clubOpen("depts"); return; }
+  const squadHit = ray.intersectObjects(SQUAD.map(s => s.g), true)[0];
+  if (squadHit) {
+    let node = squadHit.object;
+    while (node && !node.userData.squadPlayer) node = node.parent;
+    const s = node && node.userData.squadPlayer;
+    if (s) {
+      const p = s.p, assigned = p.position || p.applied_position || "—";
+      document.getElementById("ch").textContent = p.name;
+      document.getElementById("cp").textContent = "Position: " + assigned + (p.applied_position && p.applied_position !== assigned ? " · Applied: " + p.applied_position : "");
+      document.getElementById("card").style.display = "block"; return;
+    }
+  }
   const hit = ray.intersectObjects(heroObjs)[0];
   if (hit) { const hz = hit.object.userData; document.getElementById("ch").textContent = hz.name; document.getElementById("cp").textContent = hz.role[L]; document.getElementById("card").style.display = "block"; return; }
   const hh = ray.intersectObjects(homeObjs, true)[0];
