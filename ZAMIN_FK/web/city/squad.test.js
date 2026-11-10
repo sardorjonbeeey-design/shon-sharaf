@@ -164,3 +164,35 @@ test("approval validation rejects duplicate position slots", () => {
   defenders[1].position_rank = defenders[0].position_rank;
   assert.equal(validateSquadSnapshot(proposal), false);
 });
+
+
+test("applied group slots stay protected even when another group has much higher XP", () => {
+  const rows = players();
+  rows.find(p => p.applied_position === "GK").xp = 1;
+  rows.find(p => p.applied_position === "DEF").xp = 999999;
+  const result = buildSquadProposal(rows);
+  assert.equal(result.active.find(p => p.applied_position === "GK").assigned_group, "GK");
+  assert.equal(result.active.find(p => p.applied_position === "DEF").assigned_group, "DEF");
+});
+
+test("XP determines the exact slot order within an applied group", () => {
+  const rows = players();
+  const defenders = rows.filter(p => p.applied_position === "DEF");
+  defenders.forEach((p, i) => { p.xp = i + 1; });
+  const result = buildSquadProposal(rows);
+  const ranked = result.active.filter(p => p.assigned_group === "DEF").sort((a, b) => a.position_rank - b.position_rank);
+  assert.equal(ranked[0].xp, 8);
+  assert.equal(ranked[0].stadium_position, "LB");
+  assert.equal(ranked[1].xp, 7);
+  assert.equal(ranked[1].stadium_position, "CB");
+});
+
+test("remaining reserve places are assigned by descending XP", () => {
+  const rows = players();
+  rows.push(
+    { tg_id: "23", name: "Reserve lower", applied_position: "DEF", xp: 5 },
+    { tg_id: "24", name: "Reserve higher", applied_position: "DEF", xp: 50 }
+  );
+  const result = buildSquadProposal(rows);
+  assert.deepEqual(result.reserves.map(p => p.name), ["Reserve higher", "Reserve lower"]);
+});
