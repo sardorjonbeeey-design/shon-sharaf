@@ -154,6 +154,46 @@ function buildSquadProposal(input = []) {
 }
 
 
+const SQUAD_STADIUM_POSITIONS = Object.freeze({
+  GK: new Set(["GK"]),
+  DEF: new Set(["LB", "CB", "RB"]),
+  MID: new Set(["CDM", "CM", "CAM"]),
+  FWD: new Set(["LW", "ST", "RW"]),
+});
+
+// Validate the exact snapshot before it can replace the currently approved roster.
+function validateSquadSnapshot(payload) {
+  if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves)) return false;
+  if (payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT) return false;
+  if (Number(payload.active_count) !== payload.active.length || Number(payload.reserve_count) !== payload.reserves.length) return false;
+  if (Number(payload.shortfall) !== Math.max(0, SQUAD_ACTIVE_LIMIT - payload.active.length)) return false;
+
+  const ids = new Set();
+  const occupiedSlots = new Set();
+  let starters = 0, substitutes = 0;
+  for (const player of payload.active) {
+    const id = String(player && player.tg_id || "");
+    const group = String(player && player.assigned_group || "");
+    const position = String(player && player.stadium_position || "");
+    const role = String(player && player.squad_role || "");
+    const rank = Number(player && player.position_rank);
+    if (!id || ids.has(id) || !SQUAD_STADIUM_POSITIONS[group] || !SQUAD_STADIUM_POSITIONS[group].has(position)) return false;
+    if (!["starter", "substitute"].includes(role) || !Number.isInteger(rank) || rank < 1 || rank > SQUAD_GROUPS[group].quota) return false;
+    const slot = group + ":" + rank;
+    if (occupiedSlots.has(slot)) return false;
+    occupiedSlots.add(slot);
+    ids.add(id);
+    if (role === "starter") starters++; else substitutes++;
+  }
+  for (const player of payload.reserves) {
+    const id = String(player && player.tg_id || "");
+    if (!id || ids.has(id) || player.squad_role !== "reserve") return false;
+    ids.add(id);
+  }
+  return starters <= 11 && substitutes <= 11;
+}
+
+
 function init({ app, db, auth, bot, nickOf, ready: base }) {
   let cache = null, cacheAt = 0;
   const ADMINS = new Set(String(process.env.ADMIN_IDS || "").split(/[\s,]+/).filter(Boolean));
@@ -250,9 +290,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       if (proposal.status !== "pending") throw fail(409, "proposal already decided");
       if (action === "approve") {
         const payload = typeof proposal.payload === "string" ? JSON.parse(proposal.payload) : proposal.payload;
-        if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves) || payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT) throw fail(409, "invalid proposal snapshot");
-        const ids = [...payload.active, ...payload.reserves].map(p => String(p.tg_id));
-        if (new Set(ids).size !== ids.length) throw fail(409, "duplicate player in proposal");
+        if (!validateSquadSnapshot(payload)) throw fail(409, "invalid proposal snapshot");
         await client.query(`insert into squad_approved_roster (id, proposal_id, payload, approved_by, approved_at)
           values (1, $1, $2::jsonb, $3, now())
           on conflict (id) do update set proposal_id = excluded.proposal_id, payload = excluded.payload, approved_by = excluded.approved_by, approved_at = excluded.approved_at`,
@@ -802,4 +840,4 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId, createSquadProposal, getSquadStatus, decideSquadProposal };
 }
 
-module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, SQUAD_GROUPS };
+module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, validateSquadSnapshot, SQUAD_GROUPS };
