@@ -1384,8 +1384,7 @@ KENNEY_READY.then(() => { HQ_SIG = ""; layoutHQ(); });
 // =============== end CITY ===============
 
 // heroes on the pitch (billboard sprites)
-const LEGACY_PLAYER_HEROES = new Set(["bekzod", "jasur", "aziz", "doston", "sherzod"]);
-const heroObjs = HEROES.filter(hz => !LEGACY_PLAYER_HEROES.has(hz.key)).map(hz => {
+const heroObjs = HEROES.map(hz => {
   const tex = new THREE.TextureLoader().load(hz.img);
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
   sp.center.set(0.5, 0); sp.position.set(hz.x, 0, hz.z);
@@ -1445,24 +1444,39 @@ async function loadSquad() {
 }
 try { loadSquad(); } catch (e) { console.error("loadSquad init failed:", e); }
 try { setInterval(loadSquad, 60000); } catch (e) { console.error("loadSquad interval failed:", e); }
-function animateSquad() {
+function animateSquad(t) {
   for (const s of SQUAD) {
-    s.g.position.set(s.bx, 0, s.bz);
-    s.g.rotation.y = 0;
-    s.lL.rotation.x = 0;
-    s.lR.rotation.x = 0;
+    const k = t * .6 + s.ph, run = s.p.kind === "player" && s.p.squad_role !== "substitute";
+    const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
+    s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
+    const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
   }
 }
-function squadLabels(place) {
-  for (const s of SQUAD) {
-    if (s.p.kind !== "player" || s.p.squad_role !== "starter") continue;
-    const name = String(s.p.name || s.p.nick || "").trim();
-    if (name) place(s.g.position.x, 4.4, s.g.position.z, "tag hero", name);
+function squadLabels(place) { for (const s of SQUAD) if (s.p.kind === "player" && s.p.squad_role === "starter") place(s.g.position.x, 4.4, s.g.position.z, "tag hero", s.p.name); }
+function animateTeam(t) {
+  animateSquad(t);
+  const bek = H("bekzod"), az = H("aziz"), jas = H("jasur"), rus = H("rustam"), goat = H("echki");
+  // Bekzod: sprint up and down the right half, small hop while running
+  if (bek) { const u = (Math.sin(t * 0.7) + 1) / 2; moveTo(bek, 6 + u * 22, 6 + Math.sin(t * 0.35) * 8, Math.abs(Math.sin(t * 9)) * 0.18); }
+  // Aziz: calm side-steps near the centre circle
+  if (az) moveTo(az, -2 + Math.sin(t * 0.5) * 3, -4 + Math.cos(t * 0.4) * 2, Math.abs(Math.sin(t * 6)) * 0.06);
+  // ball: passed back and forth between Aziz and Bekzod on a 1.6 s cycle, arcing over the grass
+  if (az && bek) {
+    const cyc = t % 3.2, toB = cyc < 1.6, k = (cyc % 1.6) / 1.6;
+    const A = toB ? az.position : bek.position, B = toB ? bek.position : az.position;
+    ball.position.set(A.x + (B.x - A.x) * k, 0.22 + Math.sin(k * Math.PI) * 2.2, A.z + (B.z - A.z) * k + 0.6);
+    ball.rotation.x += 0.2;
   }
-}
-function animateTeam() {
-  // The approved starting XI stays in its assigned formation; no legacy pitch-running animation.
-  animateSquad();
+  // Jasur: shuffles across the goal line, dives every ~6 s
+  if (jas) {
+    const dive = (t % 6) > 5.2, dz = Math.sin(t * 1.3) * 3;
+    moveTo(jas, -50, dz + (dive ? 2.5 : 0), dive ? 0.4 : Math.abs(Math.sin(t * 5)) * 0.08);
+    jas.material.rotation = dive ? -1.2 : 0;
+  }
+  // Rustam: paces the touchline, stopping to blow the whistle
+  if (rus) { const u = Math.sin(t * 0.25); moveTo(rus, -10 + u * 14, 32, (t % 4) > 3.4 ? 0.15 : 0); }
+  // goat: slow loop near the corner flag
+  if (goat) moveTo(goat, 44 + Math.cos(t * 0.15) * 6, -26 + Math.sin(t * 0.15) * 4, 0);
 }
 
 // ---------- day / night by Uzbekistan time (UTC+5); ?time=night|day|<hour> to preview ----------
@@ -1588,7 +1602,6 @@ function updateLabels(now) {
   if (me) place(me, "tag me", "@" + me.fan);
   const near = camR < 260;                       // inside the stadium: people; far away: the city
   if (near) {
-    heroObjs.forEach(o => placeAt(o.position.x, o.userData.h + 0.6, o.position.z, "tag hero", o.userData.name, true));
     const cand = [], step = Math.max(1, Math.floor(fans / 3000));
     for (let k = 0; k < fans; k += step) { const st = seats[order[k]]; cand.push([(st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2, st]); }
     cand.sort((a, b) => a[0] - b[0]);
