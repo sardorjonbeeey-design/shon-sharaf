@@ -2050,7 +2050,7 @@ async function adminLoad() {
       if (CLUB.ud) A.detail = await post("/api/admin/user", { id: CLUB.ud });
       else A.users = await post("/api/admin/users", { q: CLUB.uf.q, filter: CLUB.uf.filter, sort: CLUB.uf.sort, offset: CLUB.uf.off });
     } else if (CLUB.av === "prof") A.prof = await post("/api/admin/professions", {});
-    } else if (CLUB.av === "missions") A.mst = await post("/api/admin/missions/status", {});
+    else if (CLUB.av === "missions") A.mst = await post("/api/admin/missions/status", {});
     else { const [list, ms, apps] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {}), post("/api/admin/applications", { kind: CLUB.appF.kind, status: CLUB.appF.status, position: CLUB.appF.pos, dept: CLUB.appF.dept })]); A.list = list; A.ms = ms; A.apps = apps; }
   } catch (e) { CLUB.admin = null; }
   clubRender();
