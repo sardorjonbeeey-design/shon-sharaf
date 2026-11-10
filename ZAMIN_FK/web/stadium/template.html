@@ -1341,11 +1341,12 @@ function makeSquadPlayer(p, i) {
   g.scale.setScalar(1.6); scene.add(g);
   const W = SQUAD.filter(q => q.p.kind === p.kind).length;
   const benchIndex = SQUAD.filter(q => q.p.kind === "player" && q.p.squad_role === "substitute").length;
+  const positionSpot = p.position === "CB" ? [31, Number(p.position_rank) >= 3 ? 7 : -7] : (POS_SPOT[p.position] || POS_SPOT[p.applied_position] || [0, 0]);
   const [bx, bz] = p.kind === "city"
     ? [-(OUT_A + 14) + (W % 8) * 5, OUT_B + 14 + Math.floor(W / 8) * 5]
     : p.kind === "staff" ? [-30 + W * 6, 33]
     : p.squad_role === "substitute" ? [-35 + benchIndex * 7, 43]
-    : POS_SPOT[p.position] || POS_SPOT[p.applied_position] || [0, 0];
+    : positionSpot;
   return { g, lL, lR, p, bx, bz, ph: i * 1.7 };
 }
 async function loadSquad() {
