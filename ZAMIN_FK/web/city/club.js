@@ -263,6 +263,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
   async function createSquadProposal(user) {
     return tx(async client => {
+      await client.query("select pg_advisory_xact_lock(7710002)");
       const rows = (await client.query(`select distinct on (a.tg_id)
           a.id as application_id, a.tg_id,
           coalesce(nullif(a.name,''), m.nick, a.nick) as name,
