@@ -696,13 +696,13 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   // Admin-only read-only preview. It does not change the approved/live squad.
   route("/api/admin/squad/proposal", async () => {
     await ready;
-    const rows = (await db.query(\`select distinct on (a.tg_id)
+    const rows = (await db.query(`select distinct on (a.tg_id)
         a.id as application_id, a.tg_id,
         coalesce(nullif(a.name,''), m.nick, a.nick) as name,
         a.position as applied_position, m.xp, a.created_at, a.decided_at
       from applications a join members m on m.tg_id = a.tg_id
       where a.kind = 'player' and a.status = 'accepted' and a.position = any($1::text[])
-      order by a.tg_id, a.decided_at desc nulls last, a.id desc\`, [SQUAD_APPLIED_POSITIONS])).rows;
+      order by a.tg_id, a.decided_at desc nulls last, a.id desc`, [SQUAD_APPLIED_POSITIONS])).rows;
     return buildSquadProposal(rows);
   }, true);
 
