@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Zamin FK — stadion va shahar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Josefin+Sans:wght@300;400&display=swap" rel="stylesheet">
 <style>
   :root { --navy:#0D2557; --blue:#1F4FB8; --yel:#FFD23F; }
   * { box-sizing: border-box; }
@@ -34,6 +34,10 @@
   #toast { left:50%; transform:translateX(-50%); top:120px; padding:12px 18px; font-weight:700; font-size:15px; text-align:center; display:none; max-width:90vw; }
   #labels { position:fixed; inset:0; pointer-events:none; z-index:3; overflow:hidden; }
   .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.95); color:var(--navy); font-weight:900; font-size:12px; padding:4px 9px; border-radius:10px; white-space:nowrap; box-shadow:0 3px 10px rgba(0,0,0,.3); }
+  /* Josefin Sans is reserved for personal names; interface and place labels keep Montserrat. */
+  .tag:not(.big):not(.lot):not(.hq) { font-family:"Josefin Sans",sans-serif; font-weight:400; }
+  .tag.me:not(.big):not(.lot):not(.hq) { font-weight:300; }
+  .mcard .nm { font-family:"Josefin Sans",sans-serif; font-weight:300; }
   .tag::before { content:"•"; color:var(--blue); margin-right:4px; }
   .tag.me { background:var(--yel); font-size:15px; padding:6px 12px; border:2px solid var(--navy); }
   .tag.hero { background:var(--navy); color:#fff; border:2px solid var(--yel); }
