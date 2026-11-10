@@ -156,6 +156,12 @@
   .tag.lot::before { content:""; margin:0; }
   .tag.big { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:14px; padding:6px 12px; }
   .tag.big::before { content:"🏟"; margin-right:6px; }
+  /* Name sizing: buildings, players, fans, and personal labels. */
+  .tag.lot, .tag.hq, .tag.big { font-size:10px; padding:3px 8px; }
+  .tag.hero { font-size:8px; padding:3px 8px; }
+  .tag:not(.res):not(.big):not(.lot):not(.hq):not(.hero):not(.home) { font-size:8px; padding:3px 8px; }
+  .tag.me:not(.big):not(.lot):not(.hq) { font-size:11px; }
+  .tag.res.me { font-size:11px; }
 </style>
 </head>
 <body>
