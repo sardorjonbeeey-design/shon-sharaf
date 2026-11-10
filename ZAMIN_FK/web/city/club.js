@@ -287,6 +287,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     return tx(async client => {
       const id = Math.max(0, Math.trunc(Number(body.id) || 0));
       const action = String(body.action || "");
+      await client.query("select pg_advisory_xact_lock(7710002)");
       if (!id || !["approve", "reject"].includes(action)) throw fail(400, "proposal id and approve/reject action required");
       const proposal = await one(client, "select id, status, payload from squad_proposals where id = $1 for update", [id]);
       if (!proposal) throw fail(404, "proposal not found");
@@ -298,6 +299,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
           values (1, $1, $2::jsonb, $3, now())
           on conflict (id) do update set proposal_id = excluded.proposal_id, payload = excluded.payload, approved_by = excluded.approved_by, approved_at = excluded.approved_at`,
           [id, JSON.stringify(payload), String(user.id)]);
+        await client.query("update squad_proposals set status = 'rejected', decided_by = $2, decided_at = now() where status = 'pending' and id <> $1", [id, String(user.id)]);
       }
       await client.query("update squad_proposals set status = $2, decided_by = $3, decided_at = now() where id = $1", [id, action === "approve" ? "approved" : "rejected", String(user.id)]);
       return { ok: true, id, status: action === "approve" ? "approved" : "rejected" };
