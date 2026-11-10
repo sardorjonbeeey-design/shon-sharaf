@@ -31,6 +31,12 @@ test("22 eligible players produce 11 starters and 11 substitutes", () => {
   assert.equal(result.active.filter(p => p.squad_role === "starter").length, 11);
   assert.equal(result.active.filter(p => p.squad_role === "substitute").length, 11);
   assert.deepEqual(
+    result.active.filter(p => p.squad_role === "starter").map(p => p.stadium_position),
+    ["GK", "LB", "CB", "CB", "RB", "CDM", "CM", "CAM", "LW", "ST", "RW"]
+  );
+  const centreBacks = result.active.filter(p => p.squad_role === "starter" && p.stadium_position === "CB");
+  assert.deepEqual(centreBacks.map(p => p.position_rank), [2, 3]);
+  assert.deepEqual(
     Object.fromEntries(["GK", "DEF", "MID", "FWD"].map(g => [
       g, result.active.filter(p => p.assigned_group === g).length
     ])),
