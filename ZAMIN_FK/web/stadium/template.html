@@ -1255,7 +1255,7 @@ const hqGroup = new THREE.Group(); scene.add(hqGroup);
 let HQ_OBJS = [], HQ_SIG = "";
 function deptInfo() {
   const live = (STATE.club && STATE.club.departments) || [];
-  return DEPT_BASE.map(([id, emoji, name, color]) => { const d = live.find(x => x.id === id) || {}; return { id, emoji: d.emoji || emoji, name: d.name || name, color, level: d.level || 0, members: d.members || 0, active: d.active !== false }; });
+  return DEPT_BASE.map(([id, emoji, name, color]) => { const d = live.find(x => x.id === id) || {}; const isAcademy = id === "academy"; return { id, emoji: isAcademy ? "🎓" : (d.emoji || emoji), name: isAcademy ? "Youth Academy" : (d.name || name), color, level: isAcademy ? Math.max(1, Number(d.level) || 0) : (Number(d.level) || 0), members: d.members || 0, active: d.active !== false }; });
 }
 function signTex(text, color) {
   const c = document.createElement("canvas"); c.width = 512; c.height = 112; const x = c.getContext("2d");
