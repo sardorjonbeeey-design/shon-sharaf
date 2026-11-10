@@ -97,11 +97,24 @@ test("invalid applied positions are excluded", () => {
 test("overflow can fill a genuine vacancy and then competes by XP in the destination group", () => {
   const rows = [];
   let id = 1;
-  for (let i = 0; i < 2; i++) rows.push({ tg_id: String(id), name: "GK " + id, applied_position: "GK", xp: 500 - id++ });
-  for (let i = 0; i < 8; i++) rows.push({ tg_id: String(id), name: "DEF " + id, applied_position: "DEF", xp: 300 - i, });
-  rows.push({ tg_id: String(id), name: "DEF overflow", applied_position: "DEF", xp: 100 }); id++;
-  for (let i = 0; i < 5; i++) rows.push({ tg_id: String(id), name: "MID " + id, applied_position: "MID", xp: 10 - i++ });
-  for (let i = 0; i < 6; i++) rows.push({ tg_id: String(id), name: "FWD " + id, applied_position: "FWD", xp: 50 - i++ });
+  for (let i = 0; i < 2; i++) {
+    rows.push({ tg_id: String(id), name: "GK " + id, applied_position: "GK", xp: 500 - id });
+    id++;
+  }
+  for (let i = 0; i < 8; i++) {
+    rows.push({ tg_id: String(id), name: "DEF " + id, applied_position: "DEF", xp: 300 - i });
+    id++;
+  }
+  rows.push({ tg_id: String(id), name: "DEF overflow", applied_position: "DEF", xp: 100 });
+  id++;
+  for (let i = 0; i < 5; i++) {
+    rows.push({ tg_id: String(id), name: "MID " + id, applied_position: "MID", xp: 10 - i });
+    id++;
+  }
+  for (let i = 0; i < 6; i++) {
+    rows.push({ tg_id: String(id), name: "FWD " + id, applied_position: "FWD", xp: 50 - i });
+    id++;
+  }
 
   const result = buildSquadProposal(rows);
   const moved = result.active.find(p => p.name === "DEF overflow");
