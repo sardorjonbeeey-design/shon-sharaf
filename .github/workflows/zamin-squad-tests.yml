@@ -1,0 +1,31 @@
+name: ZAMIN squad regression tests
+
+on:
+  push:
+    branches:
+      - zamin-squad-test
+    paths:
+      - "ZAMIN_FK/web/city/club.js"
+      - "ZAMIN_FK/web/city/squad.test.js"
+      - "ZAMIN_FK/web/city/package.json"
+      - ".github/workflows/zamin-squad-tests.yml"
+  pull_request:
+    paths:
+      - "ZAMIN_FK/web/city/club.js"
+      - "ZAMIN_FK/web/city/squad.test.js"
+      - "ZAMIN_FK/web/city/package.json"
+      - ".github/workflows/zamin-squad-tests.yml"
+
+jobs:
+  squad-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ZAMIN_FK/web/city
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run squad regression tests
+        run: npm test
