@@ -812,18 +812,30 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       let players;
       if (approved) {
         const payload = typeof approved.payload === "string" ? JSON.parse(approved.payload) : approved.payload;
-        players = (Array.isArray(payload && payload.active) ? payload.active : []).map(p => ({
-          id: p.application_id || null,
-          kind: "player",
-          name: String(p.name || "Player"),
-          position: p.stadium_position || null,
-          applied_position: p.applied_position || null,
-          squad_role: p.squad_role || null,
-          squad_order: p.squad_order || null,
-          position_rank: p.position_rank || null,
-          assigned_group: p.assigned_group || null,
-          reassigned: !!p.reassigned
-        }));
+        const active = Array.isArray(payload && payload.active) ? payload.active : [];
+        const ids = active.map(p => String(p.tg_id || "")).filter(Boolean);
+        const memberRows = ids.length
+          ? (await db.query("select tg_id::text as tg_id, nick from members where tg_id = any($1::bigint[])", [ids])).rows
+          : [];
+        const nickById = new Map(memberRows.map(m => [String(m.tg_id), String(m.nick || "").trim()]));
+        players = active.map(p => {
+          const savedName = String(p.name || "").trim();
+          const memberNick = nickById.get(String(p.tg_id || "")) || "";
+          const name = savedName && savedName.toLowerCase() !== "player"
+            ? savedName : (memberNick || ("Player " + String(p.squad_order || "")));
+          return {
+            id: p.application_id || null,
+            kind: "player",
+            name,
+            position: p.stadium_position || null,
+            applied_position: p.applied_position || null,
+            squad_role: p.squad_role || null,
+            squad_order: p.squad_order || null,
+            position_rank: p.position_rank || null,
+            assigned_group: p.assigned_group || null,
+            reassigned: !!p.reassigned
+          };
+        });
       } else {
         players = (await db.query(`select a.id, 'player' as kind,
             coalesce(nullif(a.name,''), m.nick, a.nick) as name,
