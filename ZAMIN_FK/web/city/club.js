@@ -176,9 +176,12 @@ function validateSquadSnapshot(payload) {
     const group = String(player && player.assigned_group || "");
     const position = String(player && player.stadium_position || "");
     const role = String(player && player.squad_role || "");
+    const applied = String(player && player.applied_position || "");
     const rank = Number(player && player.position_rank);
-    if (!id || ids.has(id) || !SQUAD_STADIUM_POSITIONS[group] || !SQUAD_STADIUM_POSITIONS[group].has(position)) return false;
+    if (!id || ids.has(id) || !SQUAD_GROUPS[applied] || !SQUAD_STADIUM_POSITIONS[group] || !SQUAD_STADIUM_POSITIONS[group].has(position)) return false;
     if (!["starter", "substitute"].includes(role) || !Number.isInteger(rank) || rank < 1 || rank > SQUAD_GROUPS[group].quota) return false;
+    if (SQUAD_GROUPS[group].positions[rank - 1] !== position) return false;
+    if ((rank <= SQUAD_GROUPS[group].starters) !== (role === "starter")) return false;
     const slot = group + ":" + rank;
     if (occupiedSlots.has(slot)) return false;
     occupiedSlots.add(slot);
