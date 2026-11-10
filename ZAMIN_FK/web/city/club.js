@@ -758,13 +758,42 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   route("/api/admin/squad/proposal", async user => createSquadProposal(user), true);
   route("/api/admin/squad/status", async () => getSquadStatus(), true);
   route("/api/admin/squad/decide", async (user, body) => decideSquadProposal(user, body), true);
-  // accepted players (squad shown on the pitch) and staff — public, no personal data beyond name/position
+  // Public stadium feed: approved snapshot controls players; city workers and staff remain live.
+  // Before the first approval, keep the legacy accepted-player feed so the pitch does not go empty.
   app.get("/api/squad", async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
-    try { await ready;
-      const rows = (await db.query(`select a.id, a.kind, case when a.kind = 'city' then coalesce(m.nick, a.nick) else coalesce(nullif(a.name,''), m.nick, a.nick) end as name, a.position, a.dept, case when a.kind = 'city' then a.role end as role
-        from applications a left join members m on m.tg_id = a.tg_id where a.status = 'accepted' order by a.decided_at`)).rows;
-      res.json(rows);
+    try {
+      await ready;
+      const approved = await one(db, "select payload from squad_approved_roster where id = 1");
+      let players;
+      if (approved) {
+        const payload = typeof approved.payload === "string" ? JSON.parse(approved.payload) : approved.payload;
+        players = (Array.isArray(payload && payload.active) ? payload.active : []).map(p => ({
+          id: p.application_id || null,
+          kind: "player",
+          name: String(p.name || "Player"),
+          position: p.stadium_position || null,
+          applied_position: p.applied_position || null,
+          squad_role: p.squad_role || null,
+          squad_order: p.squad_order || null,
+          assigned_group: p.assigned_group || null,
+          reassigned: !!p.reassigned
+        }));
+      } else {
+        players = (await db.query(`select a.id, 'player' as kind,
+            coalesce(nullif(a.name,''), m.nick, a.nick) as name,
+            a.position, null::text as dept, null::text as role
+          from applications a left join members m on m.tg_id = a.tg_id
+          where a.status = 'accepted' and a.kind = 'player'
+          order by a.decided_at, a.id`)).rows;
+      }
+      const cityAndStaff = (await db.query(`select a.id, a.kind,
+          case when a.kind = 'city' then coalesce(m.nick, a.nick) else coalesce(nullif(a.name,''), m.nick, a.nick) end as name,
+          a.position, a.dept, case when a.kind = 'city' then a.role end as role
+        from applications a left join members m on m.tg_id = a.tg_id
+        where a.status = 'accepted' and a.kind in ('city','staff')
+        order by a.decided_at, a.id`)).rows;
+      res.json([...players, ...cityAndStaff]);
     } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
   });
 
