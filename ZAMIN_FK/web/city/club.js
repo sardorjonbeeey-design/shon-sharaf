@@ -218,6 +218,50 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   }
   const one = async (c, sql, a) => (await c.query(sql, a)).rows[0];
   const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
+  async function createSquadProposal(user) {
+    return tx(async client => {
+      const rows = (await client.query(`select distinct on (a.tg_id)
+          a.id as application_id, a.tg_id,
+          coalesce(nullif(a.name,''), m.nick, a.nick) as name,
+          a.position as applied_position, m.xp, a.created_at, a.decided_at
+        from applications a join members m on m.tg_id = a.tg_id
+        where a.kind = 'player' and a.status = 'accepted' and a.position = any($1::text[])
+        order by a.tg_id, a.decided_at desc nulls last, a.id desc`, [SQUAD_APPLIED_POSITIONS])).rows;
+      const proposal = buildSquadProposal(rows);
+      const saved = await one(client, "insert into squad_proposals (payload, created_by) values ($1::jsonb, $2) returning id, status, created_at", [JSON.stringify(proposal), String(user.id)]);
+      return { ...saved, proposal };
+    });
+  }
+
+  async function getSquadStatus() {
+    await ready;
+    const pending = await one(db, "select id, status, payload, created_by, created_at from squad_proposals where status = 'pending' order by id desc limit 1");
+    const approved = await one(db, "select proposal_id, payload, approved_by, approved_at from squad_approved_roster where id = 1");
+    return { pending, approved };
+  }
+
+  async function decideSquadProposal(user, body) {
+    return tx(async client => {
+      const id = Math.max(0, Math.trunc(Number(body.id) || 0));
+      const action = String(body.action || "");
+      if (!id || !["approve", "reject"].includes(action)) throw fail(400, "proposal id and approve/reject action required");
+      const proposal = await one(client, "select id, status, payload from squad_proposals where id = $1 for update", [id]);
+      if (!proposal) throw fail(404, "proposal not found");
+      if (proposal.status !== "pending") throw fail(409, "proposal already decided");
+      if (action === "approve") {
+        const payload = typeof proposal.payload === "string" ? JSON.parse(proposal.payload) : proposal.payload;
+        if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves) || payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT) throw fail(409, "invalid proposal snapshot");
+        const ids = [...payload.active, ...payload.reserves].map(p => String(p.tg_id));
+        if (new Set(ids).size !== ids.length) throw fail(409, "duplicate player in proposal");
+        await client.query(`insert into squad_approved_roster (id, proposal_id, payload, approved_by, approved_at)
+          values (1, $1, $2::jsonb, $3, now())
+          on conflict (id) do update set proposal_id = excluded.proposal_id, payload = excluded.payload, approved_by = excluded.approved_by, approved_at = excluded.approved_at`,
+          [id, JSON.stringify(payload), String(user.id)]);
+      }
+      await client.query("update squad_proposals set status = $2, decided_by = $3, decided_at = now() where id = $1", [id, action === "approve" ? "approved" : "rejected", String(user.id)]);
+      return { ok: true, id, status: action === "approve" ? "approved" : "rejected" };
+    });
+  }
 
   // Member + permanent seat. Seat numbers are handed out one at a time under an advisory lock, so they are unique and never move.
   async function ensureMemberTx(c, user) {
@@ -710,53 +754,10 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     return (await db.query("select id, tg_id, username, message, status, created_at from feedback order by id desc limit 200")).rows;
   }, true);
 
-  // Admin squad workflow: generating stores a pending snapshot; only explicit approval publishes it.
-  route("/api/admin/squad/proposal", async (user) => tx(async c => {
-    const rows = (await c.query(`select distinct on (a.tg_id)
-        a.id as application_id, a.tg_id,
-        coalesce(nullif(a.name,''), m.nick, a.nick) as name,
-        a.position as applied_position, m.xp, a.created_at, a.decided_at
-      from applications a join members m on m.tg_id = a.tg_id
-      where a.kind = 'player' and a.status = 'accepted' and a.position = any($1::text[])
-      order by a.tg_id, a.decided_at desc nulls last, a.id desc`, [SQUAD_APPLIED_POSITIONS])).rows;
-    const proposal = buildSquadProposal(rows);
-    const saved = await one(c, "insert into squad_proposals (payload, created_by) values ($1::jsonb, $2) returning id, status, created_at",
-      [JSON.stringify(proposal), String(user.id)]);
-    return { ...saved, proposal };
-  }), true);
-
-  route("/api/admin/squad/status", async () => {
-    await ready;
-    const pending = await one(db, "select id, status, payload, created_by, created_at from squad_proposals where status = 'pending' order by id desc limit 1");
-    const approved = await one(db, "select proposal_id, payload, approved_by, approved_at from squad_approved_roster where id = 1");
-    return { pending, approved };
-  }, true);
-
-  route("/api/admin/squad/decide", async (user, body) => tx(async c => {
-    const id = Math.max(0, Math.trunc(Number(body.id) || 0));
-    const action = String(body.action || "");
-    if (!id || !["approve", "reject"].includes(action)) throw fail(400, "proposal id and approve/reject action required");
-    const proposal = await one(c, "select id, status, payload from squad_proposals where id = $1 for update", [id]);
-    if (!proposal) throw fail(404, "proposal not found");
-    if (proposal.status !== "pending") throw fail(409, "proposal already decided");
-    if (action === "approve") {
-      const payload = typeof proposal.payload === "string" ? JSON.parse(proposal.payload) : proposal.payload;
-      if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves) ||
-          payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT)
-        throw fail(409, "invalid proposal snapshot");
-      const ids = [...payload.active, ...payload.reserves].map(p => String(p.tg_id));
-      if (new Set(ids).size !== ids.length) throw fail(409, "duplicate player in proposal");
-      await c.query(`insert into squad_approved_roster (id, proposal_id, payload, approved_by, approved_at)
-        values (1, $1, $2::jsonb, $3, now())
-        on conflict (id) do update set proposal_id = excluded.proposal_id, payload = excluded.payload,
-          approved_by = excluded.approved_by, approved_at = excluded.approved_at`,
-        [id, JSON.stringify(payload), String(user.id)]);
-    }
-    await c.query("update squad_proposals set status = $2, decided_by = $3, decided_at = now() where id = $1",
-      [id, action === "approve" ? "approved" : "rejected", String(user.id)]);
-    return { ok: true, id, status: action === "approve" ? "approved" : "rejected" };
-  }), true);
-
+  // Admin squad API delegates to methods also used by the Telegram admin panel.
+  route("/api/admin/squad/proposal", async user => createSquadProposal(user), true);
+  route("/api/admin/squad/status", async () => getSquadStatus(), true);
+  route("/api/admin/squad/decide", async (user, body) => decideSquadProposal(user, body), true);
   // accepted players (squad shown on the pitch) and staff — public, no personal data beyond name/position
   app.get("/api/squad", async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
@@ -768,7 +769,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   });
 
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
-  return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId };
+  return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId, createSquadProposal, getSquadStatus, decideSquadProposal };
 }
 
 module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, SQUAD_GROUPS };
