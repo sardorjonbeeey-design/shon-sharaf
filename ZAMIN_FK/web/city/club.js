@@ -205,7 +205,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     app.use(["/api/club", "/api/admin"], (req, res) => res.status(503).json({ error: "club needs database" }));
     return { ensureMember: async () => null, summary: async () => null, registerReferral: async () => {}, isAdmin, tierOf, DEPTS, supporterId };
   }
-  const ready = base().then(() => db.query(`
+  let ready = base().then(() => db.query(`
     create table if not exists members (tg_id bigint primary key, member_no serial unique, nick text not null, tg_username text,
       joined_at timestamptz not null default now(), xp int not null default 0, influence int not null default 0,
       dept text, dept_at timestamptz, ref_code text unique);
@@ -535,7 +535,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   const CITY_ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
   const CLUB_DEPTS = DEPTS.map(d => d[0]);
   const APP_KINDS = ["city", "player", "staff"];
-  ready.then(() => db.query(`
+  ready = ready.then(() => db.query(`
     alter table applications add column if not exists kind text not null default 'city';
     alter table applications add column if not exists name text;
     alter table applications add column if not exists age int;
