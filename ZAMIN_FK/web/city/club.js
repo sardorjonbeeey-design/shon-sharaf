@@ -186,6 +186,23 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     create table if not exists club (id int primary key default 1 check (id = 1), funds bigint not null default 0);
     insert into club (id) values (1) on conflict do nothing;
     create table if not exists club_funds_log (id bigserial primary key, amount int not null, source text not null, tg_id bigint, at timestamptz not null default now());
+    create table if not exists squad_proposals (
+      id bigserial primary key,
+      status text not null default 'pending' check (status in ('pending','approved','rejected')),
+      payload jsonb not null,
+      created_by bigint not null,
+      created_at timestamptz not null default now(),
+      decided_by bigint,
+      decided_at timestamptz
+    );
+    create index if not exists squad_proposals_status_idx on squad_proposals (status, created_at desc);
+    create table if not exists squad_approved_roster (
+      id int primary key default 1 check (id = 1),
+      proposal_id bigint not null references squad_proposals(id),
+      payload jsonb not null,
+      approved_by bigint not null,
+      approved_at timestamptz not null default now()
+    );
   `)).then(async () => {
     for (const [i, [id, emoji, name, desc]] of DEPTS.entries())
       await db.query("insert into departments (id, emoji, name, description, sort) values ($1,$2,$3,$4,$5) on conflict (id) do nothing", [id, emoji, name, desc, i]);
@@ -693,18 +710,52 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     return (await db.query("select id, tg_id, username, message, status, created_at from feedback order by id desc limit 200")).rows;
   }, true);
 
-  // Admin-only read-only preview. It does not change the approved/live squad.
-  route("/api/admin/squad/proposal", async () => {
-    await ready;
-    const rows = (await db.query(`select distinct on (a.tg_id)
+  // Admin squad workflow: generating stores a pending snapshot; only explicit approval publishes it.
+  route("/api/admin/squad/proposal", async (user) => tx(async c => {
+    const rows = (await c.query(`select distinct on (a.tg_id)
         a.id as application_id, a.tg_id,
         coalesce(nullif(a.name,''), m.nick, a.nick) as name,
         a.position as applied_position, m.xp, a.created_at, a.decided_at
       from applications a join members m on m.tg_id = a.tg_id
       where a.kind = 'player' and a.status = 'accepted' and a.position = any($1::text[])
       order by a.tg_id, a.decided_at desc nulls last, a.id desc`, [SQUAD_APPLIED_POSITIONS])).rows;
-    return buildSquadProposal(rows);
+    const proposal = buildSquadProposal(rows);
+    const saved = await one(c, "insert into squad_proposals (payload, created_by) values ($1::jsonb, $2) returning id, status, created_at",
+      [JSON.stringify(proposal), String(user.id)]);
+    return { ...saved, proposal };
+  }), true);
+
+  route("/api/admin/squad/status", async () => {
+    await ready;
+    const pending = await one(db, "select id, status, payload, created_by, created_at from squad_proposals where status = 'pending' order by id desc limit 1");
+    const approved = await one(db, "select proposal_id, payload, approved_by, approved_at from squad_approved_roster where id = 1");
+    return { pending, approved };
   }, true);
+
+  route("/api/admin/squad/decide", async (user, body) => tx(async c => {
+    const id = Math.max(0, Math.trunc(Number(body.id) || 0));
+    const action = String(body.action || "");
+    if (!id || !["approve", "reject"].includes(action)) throw fail(400, "proposal id and approve/reject action required");
+    const proposal = await one(c, "select id, status, payload from squad_proposals where id = $1 for update", [id]);
+    if (!proposal) throw fail(404, "proposal not found");
+    if (proposal.status !== "pending") throw fail(409, "proposal already decided");
+    if (action === "approve") {
+      const payload = typeof proposal.payload === "string" ? JSON.parse(proposal.payload) : proposal.payload;
+      if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves) ||
+          payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT)
+        throw fail(409, "invalid proposal snapshot");
+      const ids = [...payload.active, ...payload.reserves].map(p => String(p.tg_id));
+      if (new Set(ids).size !== ids.length) throw fail(409, "duplicate player in proposal");
+      await c.query(`insert into squad_approved_roster (id, proposal_id, payload, approved_by, approved_at)
+        values (1, $1, $2::jsonb, $3, now())
+        on conflict (id) do update set proposal_id = excluded.proposal_id, payload = excluded.payload,
+          approved_by = excluded.approved_by, approved_at = excluded.approved_at`,
+        [id, JSON.stringify(payload), String(user.id)]);
+    }
+    await c.query("update squad_proposals set status = $2, decided_by = $3, decided_at = now() where id = $1",
+      [id, action === "approve" ? "approved" : "rejected", String(user.id)]);
+    return { ok: true, id, status: action === "approve" ? "approved" : "rejected" };
+  }), true);
 
   // accepted players (squad shown on the pitch) and staff — public, no personal data beyond name/position
   app.get("/api/squad", async (req, res) => {
