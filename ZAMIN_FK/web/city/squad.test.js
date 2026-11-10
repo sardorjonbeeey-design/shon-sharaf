@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildSquadProposal } = require("./club");
+const { buildSquadProposal, validateSquadSnapshot } = require("./club");
 
 const QUOTAS = { GK: 2, DEF: 8, MID: 6, FWD: 6 };
 
@@ -129,4 +129,38 @@ test("overflow can fill a genuine vacancy and then competes by XP in the destina
   assert.equal(moved.reassigned, true);
   assert.equal(moved.stadium_position, "CDM");
   assert.equal(moved.squad_role, "starter");
+});
+
+
+test("a correctly generated full squad snapshot is approvable", () => {
+  const proposal = buildSquadProposal(players());
+  assert.equal(validateSquadSnapshot(proposal), true);
+});
+
+test("a correctly generated short squad snapshot is approvable with its shortfall recorded", () => {
+  const proposal = buildSquadProposal(players({ GK: 2, DEF: 8, MID: 6, FWD: 2 }));
+  assert.equal(validateSquadSnapshot(proposal), true);
+});
+
+test("approval validation rejects duplicate player IDs across active and reserves", () => {
+  const proposal = buildSquadProposal(players({ GK: 2, DEF: 8, MID: 6, FWD: 8 }));
+  proposal.reserves[0].tg_id = proposal.active[0].tg_id;
+  assert.equal(validateSquadSnapshot(proposal), false);
+});
+
+test("approval validation rejects inconsistent counts and invalid stadium positions", () => {
+  const proposal = buildSquadProposal(players());
+  proposal.active_count = 21;
+  assert.equal(validateSquadSnapshot(proposal), false);
+
+  const badPosition = buildSquadProposal(players());
+  badPosition.active[0].stadium_position = "ST";
+  assert.equal(validateSquadSnapshot(badPosition), false);
+});
+
+test("approval validation rejects duplicate position slots", () => {
+  const proposal = buildSquadProposal(players());
+  const defenders = proposal.active.filter(p => p.assigned_group === "DEF");
+  defenders[1].position_rank = defenders[0].position_rank;
+  assert.equal(validateSquadSnapshot(proposal), false);
 });
