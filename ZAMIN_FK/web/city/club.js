@@ -263,7 +263,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
   async function createSquadProposal(user) {
     return tx(async client => {
-      await client.query("select pg_advisory_xact_lock(7710002)");
+      await client.query("select pg_advisory_xact_lock(7710003)");
       const rows = (await client.query(`select distinct on (a.tg_id)
           a.id as application_id, a.tg_id,
           coalesce(nullif(a.name,''), m.nick, a.nick) as name,
@@ -288,7 +288,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     return tx(async client => {
       const id = Math.max(0, Math.trunc(Number(body.id) || 0));
       const action = String(body.action || "");
-      await client.query("select pg_advisory_xact_lock(7710002)");
+      await client.query("select pg_advisory_xact_lock(7710003)");
       if (!id || !["approve", "reject"].includes(action)) throw fail(400, "proposal id and approve/reject action required");
       const proposal = await one(client, "select id, status, payload from squad_proposals where id = $1 for update", [id]);
       if (!proposal) throw fail(404, "proposal not found");
