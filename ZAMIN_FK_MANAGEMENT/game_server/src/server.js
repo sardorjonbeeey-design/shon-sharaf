@@ -101,11 +101,11 @@ async function playFixture(fixtureId,userId){
  return inTransaction(async client=>{
   const f=(await client.query('SELECT * FROM fixtures WHERE id=$1 FOR UPDATE',[fixtureId])).rows[0];
   if(!f)throw new HttpError(404,'Fixture not found');
-  if(f.status==='played')return {alreadyPlayed:true,fixture:f};
   const clubs=await client.query('SELECT * FROM clubs WHERE id=ANY($1::uuid[])',[[f.home_club_id,f.away_club_id]]);
   const home=clubs.rows.find(c=>c.id===f.home_club_id),away=clubs.rows.find(c=>c.id===f.away_club_id);
   if(!home||!away)throw new HttpError(404,'Fixture club not found');
   if(home.owner_user_id!==userId&&away.owner_user_id!==userId)throw new HttpError(403,'You do not manage either club in this fixture');
+  if(f.status==='played')return {alreadyPlayed:true,fixture:f};
   const [hl,al]=await Promise.all([
    client.query('SELECT p.* FROM lineups l CROSS JOIN LATERAL unnest(l.starters) WITH ORDINALITY s(id,ord) JOIN players p ON p.id=s.id WHERE l.club_id=$1 ORDER BY s.ord',[home.id]),
    client.query('SELECT p.* FROM lineups l CROSS JOIN LATERAL unnest(l.starters) WITH ORDINALITY s(id,ord) JOIN players p ON p.id=s.id WHERE l.club_id=$1 ORDER BY s.ord',[away.id])
