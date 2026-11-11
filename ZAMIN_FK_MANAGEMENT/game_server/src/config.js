@@ -12,3 +12,7 @@ export const config = {
 };
 if (config.startingBudgetUzs < 0n) throw new Error('STARTING_BUDGET_UZS cannot be negative');
 if (!Number.isInteger(config.port) || config.port < 1 || config.port > 65535) throw new Error('PORT is invalid');
+if (!Number.isInteger(config.startingSquadSize) || config.startingSquadSize < 11 || config.startingSquadSize > 25) throw new Error('STARTING_SQUAD_SIZE must be an integer from 11 to 25');
+if (!Number.isInteger(config.sessionMaxAgeSeconds) || config.sessionMaxAgeSeconds < 60) throw new Error('SESSION_MAX_AGE_SECONDS must be at least 60');
+if (!Number.isInteger(config.telegramAuthMaxAgeSeconds) || config.telegramAuthMaxAgeSeconds < 60) throw new Error('TELEGRAM_AUTH_MAX_AGE_SECONDS must be at least 60');
+if (!Number.isFinite(config.matchHomeAdvantage)) throw new Error('MATCH_HOME_ADVANTAGE is invalid');
