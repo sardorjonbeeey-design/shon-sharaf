@@ -11,7 +11,7 @@ services:
     volumes:
       - game_uploads:/app/ZAMIN_FK_MANAGEMENT/game_server/uploads
     healthcheck:
-      test: ["CMD","node","-e","fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD","node","-e","fetch('http://127.0.0.1:8080/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
