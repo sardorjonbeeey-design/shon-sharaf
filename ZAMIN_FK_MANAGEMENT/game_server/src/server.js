@@ -129,7 +129,7 @@ async function handle(req,res){
   const r=await db().query('SELECT id,full_name,nationality,age,position,quality,overall,potential,market_value_uzs,attributes FROM players WHERE club_id IS NULL ORDER BY overall DESC LIMIT 100');
   return json(res,200,{players:r.rows});
  }
- if(req.method==='POST'&&path==='/api/clubs'){
+ if(req.method==='GET'&&path==='/api/clubs'){\n  const r=await db().query('SELECT * FROM clubs WHERE owner_user_id=$1 ORDER BY created_at',[user.id]);return json(res,200,{clubs:r.rows});\n }\n if(req.method==='POST'&&path==='/api/clubs'){
   const body=await readJson(req);const result=await makeClub(user.id,body);
   return json(res,201,{club:result.club,squad:result.players});
  }
@@ -138,7 +138,7 @@ async function handle(req,res){
   const clubId=uuid(parts[2],'Club ID');
   const club=await ownedClub(db(),clubId,user.id);
   if(req.method==='GET'&&parts.length===3)return json(res,200,{club});
-  if(req.method==='GET'&&parts[3]==='squad')return json(res,200,{players:await clubSquad(clubId)});
+  if(req.method==='GET'&&parts[3]==='squad')return json(res,200,{players:await clubSquad(clubId)});\n  if(req.method==='GET'&&parts[3]==='lineup'){const r=await db().query('SELECT * FROM lineups WHERE club_id=$1',[clubId]);return json(res,200,{lineup:r.rows[0]||null});}\n  if(req.method==='GET'&&parts[3]==='league'){const r=await db().query('SELECT lm.*,c.name,c.short_name,c.primary_colour FROM league_members lm JOIN clubs c ON c.id=lm.club_id WHERE lm.league_id=(SELECT league_id FROM league_members WHERE club_id=$1 ORDER BY league_id DESC LIMIT 1) ORDER BY lm.points DESC,(lm.goals_for-lm.goals_against) DESC,lm.goals_for DESC',[clubId]);return json(res,200,{table:r.rows});}
   if(req.method==='GET'&&parts[3]==='missions'){
    const r=await db().query('SELECT m.*,cm.progress,cm.completed_at,cm.claimed_at FROM club_missions cm JOIN missions m ON m.id=cm.mission_id WHERE cm.club_id=$1 ORDER BY m.id',[clubId]);
    return json(res,200,{missions:r.rows});
