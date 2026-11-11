@@ -7,7 +7,7 @@ export const config = {
  telegramAuthMaxAgeSeconds: Number(process.env.TELEGRAM_AUTH_MAX_AGE_SECONDS || 86400),
  allowDevAuth: process.env.ALLOW_DEV_AUTH === 'true',
  startingBudgetUzs: BigInt(process.env.STARTING_BUDGET_UZS || '0'),
- startingSquadSize: Math.max(11, Math.min(25, Number(process.env.STARTING_SQUAD_SIZE || 18))),
+ startingSquadSize: Math.floor(Math.max(11, Math.min(25, Number(process.env.STARTING_SQUAD_SIZE || 18)))),
  matchHomeAdvantage: Math.max(0, Math.min(0.15, Number(process.env.MATCH_HOME_ADVANTAGE || 0.06)))
 };
 if (config.startingBudgetUzs < 0n) throw new Error('STARTING_BUDGET_UZS cannot be negative');
