@@ -82,6 +82,10 @@ async function clubSquad(clubId){
  const r=await db().query('SELECT p.*,l.formation,l.starters,l.substitutes FROM players p LEFT JOIN lineups l ON l.club_id=p.club_id WHERE p.club_id=$1 ORDER BY p.position,p.overall DESC',[clubId]);
  return r.rows;
 }
+async function awardDevelopmentPoints(client,clubId,amount,reason,referenceId=null){
+ const r=await client.query('UPDATE clubs SET development_points=development_points+$2 WHERE id=$1 RETURNING development_points',[clubId,amount]);
+ await client.query('INSERT INTO development_ledger(club_id,amount_dp,balance_after_dp,reason,reference_id) VALUES($1,$2,$3,$4,$5)',[clubId,amount,r.rows[0].development_points,reason,referenceId]);
+}
 async function progressMission(client,clubId,metric,amount){
  const rows=await client.query('SELECT cm.mission_id,cm.progress,cm.completed_at,cm.claimed_at,m.target,m.reward_dp FROM club_missions cm JOIN missions m ON m.id=cm.mission_id WHERE cm.club_id=$1 AND m.metric=$2 FOR UPDATE',[clubId,metric]);
  for(const row of rows.rows){
@@ -89,7 +93,7 @@ async function progressMission(client,clubId,metric,amount){
   const next=Math.min(Number(row.target),Number(row.progress)+amount);
   const done=next>=Number(row.target);
   await client.query('UPDATE club_missions SET progress=$3,completed_at=CASE WHEN $4 THEN NOW() ELSE NULL END,claimed_at=CASE WHEN $4 THEN NOW() ELSE NULL END WHERE club_id=$1 AND mission_id=$2',[clubId,row.mission_id,next,done]);
-  if(done)await client.query('UPDATE clubs SET development_points=development_points+$2 WHERE id=$1',[clubId,row.reward_dp]);
+  if(done)await awardDevelopmentPoints(client,clubId,Number(row.reward_dp),'mission_reward',null);
  }
 }
 async function playFixture(fixtureId,userId){
@@ -112,6 +116,7 @@ async function playFixture(fixtureId,userId){
    const win=gf>ga,draw=gf===ga,loss=gf<ga;
    await client.query('UPDATE league_members SET played=played+1,wins=wins+$3,draws=draws+$4,losses=losses+$5,goals_for=goals_for+$6,goals_against=goals_against+$7,points=points+$8 WHERE league_id=$1 AND club_id=$2',
     [f.league_id,clubId,win?1:0,draw?1:0,loss?1:0,gf,ga,win?3:draw?1:0]);
+   await awardDevelopmentPoints(client,clubId,2,'match_reward',fixtureId);
    await progressMission(client,clubId,'matches_played',1);
    await progressMission(client,clubId,'wins',win?1:0);
    await progressMission(client,clubId,'goals_scored',gf);
@@ -162,6 +167,7 @@ async function handle(req,res){
   if(req.method==='GET'&&parts[3]==='squad')return json(res,200,{players:await clubSquad(clubId)});
   if(req.method==='GET'&&parts[3]==='lineup'){const r=await db().query('SELECT * FROM lineups WHERE club_id=$1',[clubId]);return json(res,200,{lineup:r.rows[0]||null});}
   if(req.method==='GET'&&parts[3]==='league'){const r=await db().query('SELECT lm.*,c.name,c.short_name,c.primary_colour FROM league_members lm JOIN clubs c ON c.id=lm.club_id WHERE lm.league_id=(SELECT league_id FROM league_members WHERE club_id=$1 ORDER BY league_id DESC LIMIT 1) ORDER BY lm.points DESC,(lm.goals_for-lm.goals_against) DESC,lm.goals_for DESC',[clubId]);return json(res,200,{table:r.rows});}
+  if(req.method==='GET'&&parts[3]==='development-ledger'){const r=await db().query('SELECT amount_dp,balance_after_dp,reason,created_at FROM development_ledger WHERE club_id=$1 ORDER BY created_at DESC LIMIT 30',[clubId]);return json(res,200,{transactions:r.rows});}
   if(req.method==='GET'&&parts[3]==='ledger'){const r=await db().query('SELECT amount_uzs,balance_after_uzs,reason,created_at FROM money_ledger WHERE club_id=$1 ORDER BY created_at DESC LIMIT 30',[clubId]);return json(res,200,{transactions:r.rows});}
   if(req.method==='GET'&&parts[3]==='missions'){
    const r=await db().query('SELECT m.*,cm.progress,cm.completed_at,cm.claimed_at FROM club_missions cm JOIN missions m ON m.id=cm.mission_id WHERE cm.club_id=$1 ORDER BY m.id',[clubId]);
@@ -231,7 +237,8 @@ async function handle(req,res){
     const quality=overall<54?'academy':overall<62?'developing':overall<69?'established':'elite';
     const marketValue=Math.round(overall*overall*17000);
     await client.query('UPDATE players SET attributes=$2::jsonb,overall=$3,quality=$4,market_value_uzs=$5 WHERE id=$1',[playerId,JSON.stringify(attrs),overall,quality,marketValue]);
-    await client.query('UPDATE clubs SET development_points=development_points-$2 WHERE id=$1',[clubId,cost]);
+    const dp=await client.query('UPDATE clubs SET development_points=development_points-$2 WHERE id=$1 RETURNING development_points',[clubId,cost]);
+    await client.query('INSERT INTO development_ledger(club_id,amount_dp,balance_after_dp,reason,reference_id) VALUES($1,$2,$3,$4,$5)',[clubId,-cost,dp.rows[0].development_points,'player_upgrade',playerId]);
     return {player:{...p,attributes:attrs,overall},spentDp:cost,remainingDp:Number(c.development_points)-cost};
    });
    return json(res,200,result);
