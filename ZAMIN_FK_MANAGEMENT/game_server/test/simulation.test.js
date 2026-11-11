@@ -16,7 +16,9 @@ test('match simulation returns bounded integer score and ordered events',()=>{
  assert.ok(result.homeGoals>=0&&result.homeGoals<=7);
  assert.ok(result.awayGoals>=0&&result.awayGoals<=7);
  assert.deepEqual(result.events.map(e=>e.minute),result.events.map(e=>e.minute).slice().sort((a,b)=>a-b));
- assert.equal(result.events.filter(e=>e.type==='goal').length,result.homeGoals+result.awayGoals);
+ const goals=result.events.filter(e=>e.type==='goal');
+ assert.equal(goals.length,result.homeGoals+result.awayGoals);
+ if(goals.length){assert.equal(goals.at(-1).homeScore,result.homeGoals);assert.equal(goals.at(-1).awayScore,result.awayGoals);}
  assert.ok(result.homeStrength>result.awayStrength);
 });
 
