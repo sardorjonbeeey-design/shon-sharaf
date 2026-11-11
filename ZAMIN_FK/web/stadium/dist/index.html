@@ -1341,6 +1341,54 @@ function moveTo(o, x, z, y = 0) {
 }
 // ---------- approved squad: starters occupy their 4-3-3 positions; substitutes line the touchline ----------
 const SQUAD = [];
+// ---------- TEST: the starting goalkeeper wears the realistic rigged model (name + number printed on the shirt). To undo: delete this block, the gkModel() call and the s.rig lines below, and models/player ----------
+const GK3D = { name: null, root: null, mx: null, want: null, busy: false };
+function shirtPrint(mesh, o) {            // a patch laid on the shirt and skinned like the cloth under it, carrying a canvas texture
+  const G = mesh.geometry.attributes, P = G.position, near = [], sg = o.front ? 1 : -1;
+  for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i); if (P.getZ(i) * sg > 0.02 && Math.abs(x - o.cx) < o.w && Math.abs(y - o.cy) < o.h) near.push(i); }
+  const nx = 12, ny = 14, pos = [], uv = [], idx = [], si = [], sw = [];
+  for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) {
+    const x = o.cx + (i / nx - .5) * o.w, y = o.cy + (j / ny - .5) * o.h; let best = near[0], bd = 1e9, z = 0, n = 0;
+    for (const k of near) { const d = (P.getX(k) - x) ** 2 + (P.getY(k) - y) ** 2; if (d < bd) { bd = d; best = k; } if (d < 0.0006) { z += P.getZ(k); n++; } }
+    pos.push(x, y, (n ? z / n : P.getZ(best)) + sg * 0.012); uv.push(o.front ? i / nx : 1 - i / nx, j / ny);
+    si.push(G.skinIndex.getX(best), G.skinIndex.getY(best), G.skinIndex.getZ(best), G.skinIndex.getW(best)); sw.push(G.skinWeight.getX(best), G.skinWeight.getY(best), G.skinWeight.getZ(best), G.skinWeight.getW(best));
+  }
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const a = j * (nx + 1) + i, b = a + 1, c = a + nx + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
+  g.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(si, 4)); g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(sw, 4));
+  const cv = document.createElement("canvas"); cv.width = o.pw; cv.height = o.ph; o.draw(cv.getContext("2d"), cv.width, cv.height);
+  const tx = new THREE.CanvasTexture(cv); tx.encoding = THREE.sRGBEncoding; tx.anisotropy = 4;
+  const m = new THREE.SkinnedMesh(g, new THREE.MeshBasicMaterial({ map: tx, color: 0xa9b1c0, skinning: true, transparent: true, side: THREE.DoubleSide, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
+  m.frustumCulled = false; mesh.parent.add(m); m.bind(mesh.skeleton, mesh.bindMatrix); return m;
+}
+function gkModel(s) {
+  if (!THREE.GLTFLoader) return;
+  GK3D.want = s;
+  const key = s.p.name + "|" + (s.p.number || 1);
+  const use = () => { const w = GK3D.want; if (GK3D.root.parent) GK3D.root.parent.remove(GK3D.root); w.g.children.forEach(o => o.visible = false); w.g.add(GK3D.root); w.rig = GK3D; };
+  if (GK3D.root && GK3D.name === key) return use();
+  if (GK3D.busy) return;
+  GK3D.busy = true;
+  const ld = new THREE.GLTFLoader(), fail = e => { GK3D.busy = false; console.warn("goalkeeper model:", e); };
+  ld.load("models/player/player.glb", gl => {
+    const root = gl.scene; let mesh = null;
+    root.traverse(o => { if (o.isSkinnedMesh) mesh = o; o.frustumCulled = false; });
+    if (!mesh) return fail("no skinned mesh");
+    mesh.material.emissive.setScalar(0.85);
+    const name = String(s.p.name || "").toUpperCase().slice(0, 12), num = String(s.p.number || 1);
+    const ink = (c, txt, font, x, y) => { c.font = font; c.textAlign = "center"; c.textBaseline = "middle"; c.lineJoin = "round"; c.lineWidth = Math.max(4, parseInt(font.match(/(\d+)px/)[1]) * .07); c.strokeStyle = "#0D2557"; c.strokeText(txt, x, y); c.fillStyle = "#fff"; c.fillText(txt, x, y); };
+    const F = 'px "Arial Narrow","Roboto Condensed","Helvetica Neue",Arial,sans-serif';
+    shirtPrint(mesh, { cx: 0, cy: 1.235, w: .24, h: .30, pw: 256, ph: 320, front: false, draw: (c, w, h) => { ink(c, name, "900 " + Math.min(58, 420 / Math.max(3, name.length)) + F, w / 2, 40); ink(c, num, "900 190" + F, w / 2, 205); } });
+    shirtPrint(mesh, { cx: -.085, cy: 1.335, w: .09, h: .09, pw: 128, ph: 128, front: true, draw: (c, w, h) => ink(c, num, "900 84" + F, w / 2, h / 2) });
+    const mx = new THREE.AnimationMixer(root), run = mx.clipAction(gl.animations[0]); run.play();
+    ld.load("models/player/player_walk.glb", w => {
+      const walk = mx.clipAction(w.animations[0]); walk.play(); walk.setEffectiveWeight(0);
+      Object.assign(GK3D, { name: key, root, mx, run, walk, busy: false, last: 0 });
+      const cur = GK3D.want, k2 = cur.p.name + "|" + (cur.p.number || 1);
+      if (k2 === key) use(); else gkModel(cur);
+    }, undefined, fail);
+  }, undefined, fail);
+}
 const POS_SPOT = {
   GK: [42, 0],
   LB: [28, -22], CB: [31, -7], RB: [28, 22],
@@ -1364,7 +1412,9 @@ function makeSquadPlayer(p, i) {
     : p.kind === "staff" ? [-30 + W * 6, 33]
     : p.squad_role === "substitute" ? [-35 + benchIndex * 7, 43]
     : positionSpot;
-  return { g, lL, lR, p, bx, bz, ph: i * 1.7 };
+  const s = { g, lL, lR, p, bx, bz, ph: i * 1.7 };
+  if (p.kind === "player" && p.position === "GK") gkModel(s);
+  return s;
 }
 async function loadSquad() {
   try {
@@ -1383,6 +1433,12 @@ function animateSquad(t) {
     const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
     s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
     const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
+    if (s.rig && s.rig.mx) {                                  // rigged model: blend walk and run by how fast it is moving
+      const R = s.rig, v = Math.hypot(Math.cos(k) * 5.4, Math.cos(k * .7) * 2.52), w = Math.min(1, Math.max(0, (v - 2) / 2.2));
+      R.run.setEffectiveWeight(w); R.walk.setEffectiveWeight(1 - w);
+      R.run.timeScale = Math.min(1.15, Math.max(.6, v / 6.2)); R.walk.timeScale = Math.min(1.4, Math.max(.35, v / 2.6));
+      R.mx.update(Math.min(.1, Math.max(0, t - (R.last || t)))); R.last = t;
+    }
   }
 }
 function squadLabels(place) { for (const s of SQUAD) if (s.p.kind === "player" && s.p.squad_role === "starter") place(s.g.position.x, 4.4, s.g.position.z, "tag hero", s.p.name); }
