@@ -9,6 +9,7 @@ import {json,readJson,HttpError,safeString,colour,uuid} from './http.js';
 import {simulateMatch} from './simulation.js';
 import {saveCrest,readCrest} from './uploads.js';
 import {generateRoundRobin} from './league.js';
+import {saleValueUzs,upgradeCost,qualityForOverall,marketValueUzs} from './economy.js';
 
 const db=()=>requireDb();
 const clientRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../game_client');
@@ -210,7 +211,7 @@ async function handle(req,res){
     if(!p)throw new HttpError(404,'Player not found');
     const count=await client.query('SELECT COUNT(*)::int AS count FROM players WHERE club_id=$1',[clubId]);
     if(Number(count.rows[0].count)<=11)throw new HttpError(400,'A club must keep at least 11 players');
-    const fee=(BigInt(p.market_value_uzs)*80n/100n),bal=(BigInt(c.budget_uzs)+fee).toString();
+    const fee=saleValueUzs(p.market_value_uzs),bal=(BigInt(c.budget_uzs)+fee).toString();
     await client.query('UPDATE players SET club_id=NULL WHERE id=$1',[playerId]);
     await client.query('UPDATE clubs SET budget_uzs=budget_uzs+$2 WHERE id=$1',[clubId,fee.toString()]);
     await client.query('UPDATE lineups SET starters=array_remove(starters,$2::uuid),substitutes=array_remove(substitutes,$2::uuid) WHERE club_id=$1',[clubId,playerId]);
@@ -229,13 +230,13 @@ async function handle(req,res){
     if(!p)throw new HttpError(404,'Player not found');
     const attrs={...p.attributes},start=Number(attrs[attribute]||1),end=Math.min(Number(p.potential),start+levels);
     const actual=end-start;if(actual<1)throw new HttpError(400,'Player has reached the upgrade cap for this attribute');
-    let cost=0;for(let n=start;n<end;n++)cost+=2+Math.floor(n/10);
+    const cost=upgradeCost(start,actual);
     if(Number(c.development_points)<cost)throw new HttpError(400,'Not enough development points');
     attrs[attribute]=end;
     const avg=Object.values(attrs).reduce((a,b)=>a+Number(b),0)/6;
     const overall=Math.min(Number(p.potential),Math.max(Number(p.overall),Math.round(avg)));
-    const quality=overall<54?'academy':overall<62?'developing':overall<69?'established':'elite';
-    const marketValue=Math.round(overall*overall*17000);
+    const quality=qualityForOverall(overall);
+    const marketValue=marketValueUzs(overall);
     await client.query('UPDATE players SET attributes=$2::jsonb,overall=$3,quality=$4,market_value_uzs=$5 WHERE id=$1',[playerId,JSON.stringify(attrs),overall,quality,marketValue]);
     const dp=await client.query('UPDATE clubs SET development_points=development_points-$2 WHERE id=$1 RETURNING development_points',[clubId,cost]);
     await client.query('INSERT INTO development_ledger(club_id,amount_dp,balance_after_dp,reason,reference_id) VALUES($1,$2,$3,$4,$5)',[clubId,-cost,dp.rows[0].development_points,'player_upgrade',playerId]);
