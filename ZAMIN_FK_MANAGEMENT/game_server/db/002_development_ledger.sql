@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS development_ledger (
  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS development_ledger_club_idx ON development_ledger(club_id,created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS players_full_name_unique ON players(full_name);
