@@ -47,9 +47,15 @@ function missionsPage(){
  const cards=state.missions.map(m=>{const progress=Math.min(Number(m.target),Number(m.progress||0)),pct=Math.round(progress/Number(m.target)*100);return '<div class="mission"><div class="symbol">✦</div><div class="mission-main"><strong>'+esc(m.title)+'</strong><small>'+esc(m.description)+' · Reward '+esc(m.reward_dp)+' DP</small><div class="progress"><i style="width:'+pct+'%"></i></div><small>'+progress+' / '+m.target+(m.completed_at?' · COMPLETED':'')+'</small></div><span class="pill">'+(m.completed_at?'DONE':'ACTIVE')+'</span></div>';}).join('');
  return pageHead('CLUB OBJECTIVES','Missions','Earn Development Points through matches and varied objectives.')+'<section class="panel">'+(cards||'<div class="empty">Missions will appear after the game data is initialized.</div>')+'</section>';
 }
+function pitchMarkup(){
+ const home=[[10,20],[25,14],[25,31],[25,50],[25,69],[44,22],[44,42],[44,61],[68,20],[68,50],[80,38]];
+ const away=[[90,20],[75,14],[75,31],[75,50],[75,69],[56,22],[56,42],[56,61],[32,20],[32,50],[20,38]];
+ const dots=home.map(p=>'<i class="dot home" style="left:'+p[0]+'%;top:'+p[1]+'%"></i>').join('')+away.map(p=>'<i class="dot away" style="left:'+p[0]+'%;top:'+p[1]+'%"></i>').join('');
+ return '<div class="pitch"><div class="pitch-mid"></div><div class="pitch-circle"></div><div class="pitch-box left"></div><div class="pitch-box right"></div><div class="pitch-goal left"></div><div class="pitch-goal right"></div>'+dots+'</div>';
+}
 function fixturesPage(){
  const cards=state.fixtures.map(f=>'<div class="fixture"><div><strong>'+esc(f.home_name)+' <span class="muted">vs</span> '+esc(f.away_name)+'</strong><div class="meta">ROUND '+esc(f.round_number)+' · '+esc(f.status)+'</div></div><div class="row">'+(f.status==='played'?'<span class="score">'+f.home_goals+' : '+f.away_goals+'</span>':'<button class="btn" data-action="play" data-fixture="'+f.id+'">Play match</button>')+'</div></div>').join('');
- const match=state.lastMatch?'<div class="panel"><div class="eyebrow">MATCH REPORT</div><h2>'+esc(state.lastMatch.home_name||'Home')+' '+state.lastMatch.home_goals+' — '+state.lastMatch.away_goals+' '+esc(state.lastMatch.away_name||'Away')+'</h2><div class="sub">'+(state.lastMatch.events||[]).map(e=>e.minute+"' "+esc(e.text)).join(' · ')+'</div></div>':'';
+ const match=state.lastMatch?'<div class="panel"><div class="eyebrow">MATCH REPORT · FINAL SCORE</div><h2>'+esc(state.lastMatch.home_name||'Home')+' '+state.lastMatch.home_goals+' — '+state.lastMatch.away_goals+' '+esc(state.lastMatch.away_name||'Away')+'</h2>'+pitchMarkup()+'<div class="event-list">'+(state.lastMatch.events||[]).map(e=>'<div><span>'+e.minute+"'</span> "+esc(e.text)+'</div>').join('')+'</div></div>':'';
  return pageHead('COMPETITION','Fixtures','Watch accelerated match simulations and collect Development Points.')+match+'<section class="panel">'+(cards||'<div class="empty">The league starts after at least 10 clubs have been created. Your fixtures will appear here.</div>')+'</section>';
 }
 function leaguePage(){
