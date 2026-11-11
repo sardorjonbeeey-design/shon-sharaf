@@ -1,6 +1,7 @@
 export const config = {
  port: Number(process.env.PORT || 8080), nodeEnv: process.env.NODE_ENV || 'development',
- databaseUrl: process.env.DATABASE_URL || '', webOrigin: process.env.WEB_ORIGIN || '',
+ databaseUrl: process.env.DATABASE_URL || '',
+  expectedDatabaseName: process.env.EXPECTED_DATABASE_NAME || 'zamin_game', webOrigin: process.env.WEB_ORIGIN || '',
  telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
  sessionSecret: process.env.SESSION_SECRET || '',
  sessionMaxAgeSeconds: Number(process.env.SESSION_MAX_AGE_SECONDS || 86400),
