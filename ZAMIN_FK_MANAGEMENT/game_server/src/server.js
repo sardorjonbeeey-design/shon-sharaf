@@ -3,7 +3,8 @@ import {config} from './config.js';
 import {requireDb,inTransaction} from './db.js';
 import {authenticate,telegramLogin} from './auth.js';
 import {json,readJson,HttpError,safeString,colour,uuid} from './http.js';
-import {simulateMatch} from './simulation.js';\nimport {saveCrest,readCrest} from './uploads.js';
+import {simulateMatch} from './simulation.js';
+import {saveCrest,readCrest} from './uploads.js';
 
 const db=()=>requireDb();
 const formationPattern=/^(4-3-3|4-4-2|4-2-3-1|3-5-2|4-1-4-1)$/;
