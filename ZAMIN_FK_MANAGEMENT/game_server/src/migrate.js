@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {requireDb} from './db.js';
+const here=path.dirname(fileURLToPath(import.meta.url));
+const db=requireDb();
+const version='001_initial';
+const sql=await fs.readFile(path.join(here,'../db/001_initial.sql'),'utf8');
+await db.query(sql);
+await db.query('INSERT INTO schema_migrations(version) VALUES($1) ON CONFLICT DO NOTHING',[version]);
+console.log('Applied migration '+version);
+await db.end();
