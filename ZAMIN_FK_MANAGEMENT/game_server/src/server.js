@@ -163,7 +163,7 @@ async function handle(req,res){
    if(!/^[A-Z0-9]{2,5}$/.test(shortName))throw new HttpError(400,'Short name must contain 2–5 letters or numbers');
    const primary=colour(body.primaryColour,'Primary colour'),secondary=colour(body.secondaryColour,'Secondary colour');
    const crest=body.crestUrl===undefined?club.crest_url:body.crestUrl;
-   if(crest&&(!((/^https:\/\//i.test(crest)&&crest.length<=500)||/^\/uploads\/[0-9a-f-]{36}\.(png|jpg|webp)$/.test(crest))))throw new HttpError(400,'Crest URL must be HTTPS or an uploaded game crest');
+   if(crest&&!/^\/uploads\/[0-9a-f-]{36}\.(png|jpg|webp)$/.test(crest))throw new HttpError(400,'Crest must be uploaded through the game server');
    const updated=await inTransaction(async client=>{await ownedClub(client,clubId,user.id,true);return (await client.query('UPDATE clubs SET name=$2,short_name=$3,primary_colour=$4,secondary_colour=$5,crest_url=$6 WHERE id=$1 RETURNING *',[clubId,name,shortName,primary,secondary,crest])).rows[0];});
    return json(res,200,{club:updated});
   }
