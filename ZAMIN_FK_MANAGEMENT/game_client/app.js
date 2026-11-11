@@ -1,7 +1,7 @@
 (() => {
 const root=document.getElementById('app');
 const cfg=window.ZAMIN_GAME_CONFIG||{};
-const state={token:null,user:null,clubs:[],club:null,squad:[],market:[],lineup:null,lineupDraft:[],missions:[],fixtures:[],table:[],ledger:[],dpLedger:[],tab:'overview',crestData:'',lastMatch:null};
+const state={token:null,user:null,clubs:[],club:null,squad:[],market:[],lineup:null,lineupDraft:[],missions:[],fixtures:[],table:[],ledger:[],dpLedger:[],tab:'overview',crestData:'',lastMatch:null,matchLoading:false};
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=(v)=>{try{return new Intl.NumberFormat('en-US').format(BigInt(v||0))+' UZS';}catch{return '0 UZS';}};
 const $=(s)=>root.querySelector(s);
@@ -55,7 +55,7 @@ function pitchMarkup(){
 }
 function fixturesPage(){
  const cards=state.fixtures.map(f=>'<div class="fixture"><div><strong>'+esc(f.home_name)+' <span class="muted">vs</span> '+esc(f.away_name)+'</strong><div class="meta">ROUND '+esc(f.round_number)+' · '+esc(f.status)+'</div></div><div class="row">'+(f.status==='played'?'<span class="score">'+f.home_goals+' : '+f.away_goals+'</span>':'<button class="btn" data-action="play" data-fixture="'+f.id+'">Play match</button>')+'</div></div>').join('');
- const match=state.lastMatch?'<div class="panel"><div class="eyebrow">MATCH REPORT · FINAL SCORE</div><h2>'+esc(state.lastMatch.home_name||'Home')+' '+state.lastMatch.home_goals+' — '+state.lastMatch.away_goals+' '+esc(state.lastMatch.away_name||'Away')+'</h2>'+pitchMarkup()+'<div class="event-list">'+(state.lastMatch.events||[]).map(e=>'<div><span>'+e.minute+"'</span> "+esc(e.text)+'</div>').join('')+'</div></div>':'';
+ const match=state.matchLoading?'<div class="panel"><div class="eyebrow">LIVE SIMULATION · FAST FORWARD</div><h2>Match in progress…</h2>'+pitchMarkup()+'<p class="sub">Calculating chances, goals and match events.</p></div>':state.lastMatch?'<div class="panel"><div class="eyebrow">MATCH REPORT · FINAL SCORE</div><h2>'+esc(state.lastMatch.home_name||'Home')+' '+state.lastMatch.home_goals+' — '+state.lastMatch.away_goals+' '+esc(state.lastMatch.away_name||'Away')+'</h2>'+pitchMarkup()+'<div class="event-list">'+(state.lastMatch.events||[]).map(e=>'<div><span>'+e.minute+"'</span> "+esc(e.text)+'</div>').join('')+'</div></div>':'';
  return pageHead('COMPETITION','Fixtures','Watch accelerated match simulations and collect Development Points.')+match+'<section class="panel">'+(cards||'<div class="empty">The league starts after at least 10 clubs have been created. Your fixtures will appear here.</div>')+'</section>';
 }
 function leaguePage(){
@@ -114,7 +114,7 @@ root.addEventListener('click',async e=>{
   if(action==='upgrade'){await api('/api/clubs/'+state.club.id+'/players/upgrade',{method:'POST',body:{playerId:b.dataset.player,attribute:b.dataset.attr,levels:1}});toast('Player upgraded');await loadAll();return;}
   if(action==='sell'){if(!confirm('Sell this player for 80% of market value?'))return;await api('/api/clubs/'+state.club.id+'/players/sell',{method:'POST',body:{playerId:b.dataset.player}});toast('Player sold');await loadAll();return;}
   if(action==='sign'){await api('/api/clubs/'+state.club.id+'/players/sign',{method:'POST',body:{playerId:b.dataset.player}});toast('Player signed');await loadAll();return;}
-  if(action==='play'){b.disabled=true;const result=await api('/api/fixtures/'+b.dataset.fixture+'/play',{method:'POST',body:{}});const f=result.fixture;state.lastMatch={home_name:state.fixtures.find(x=>x.id===f.id)?.home_name,away_name:state.fixtures.find(x=>x.id===f.id)?.away_name,home_goals:f.home_goals,away_goals:f.away_goals,events:f.events||result.simulation?.events||[]};toast('Match completed: '+f.home_goals+' — '+f.away_goals);await loadAll();state.tab='fixtures';render();return;}
+  if(action==='play'){state.matchLoading=true;state.tab='fixtures';render();let result;try{const response=api('/api/fixtures/'+b.dataset.fixture+'/play',{method:'POST',body:{}});[result]=await Promise.all([response,new Promise(resolve=>setTimeout(resolve,2400))]);}catch(error){state.matchLoading=false;render();throw error;}const f=result.fixture;state.matchLoading=false;state.lastMatch={home_name:state.fixtures.find(x=>x.id===f.id)?.home_name,away_name:state.fixtures.find(x=>x.id===f.id)?.away_name,home_goals:f.home_goals,away_goals:f.away_goals,events:f.events||result.simulation?.events||[]};toast('Match completed: '+f.home_goals+' — '+f.away_goals);await loadAll();state.tab='fixtures';render();return;}
  }catch(err){toast(err.message||'Action failed');b.disabled=false;}
 });
 root.addEventListener('change',async e=>{if(e.target.id==='club-switcher'){state.club=state.clubs.find(x=>x.id===e.target.value)||state.club;state.tab='overview';await loadAll();}});
