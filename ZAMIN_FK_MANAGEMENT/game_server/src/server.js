@@ -35,7 +35,7 @@ async function makeClub(userId,input){
  return inTransaction(async client=>{
   const c=await client.query('INSERT INTO clubs(owner_user_id,name,short_name,primary_colour,secondary_colour,crest_url,budget_uzs) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',[userId,name,shortName,primary,secondary,crest,config.startingBudgetUzs.toString()]);
   const club=c.rows[0];
-  const pool=await client.query('SELECT * FROM players WHERE club_id IS NULL ORDER BY overall ASC,full_name ASC LIMIT 200 FOR UPDATE SKIP LOCKED');
+  const pool=await client.query('SELECT * FROM players WHERE club_id IS NULL ORDER BY overall DESC,full_name ASC LIMIT 200 FOR UPDATE SKIP LOCKED');
   const counts={GK:1,CB:2,LB:1,RB:1,DM:1,CM:2,LW:1,RW:1,ST:1};
   const selected=[];
   for(const [pos,count] of Object.entries(counts)){
@@ -45,7 +45,6 @@ async function makeClub(userId,input){
   if(selected.length<11)throw new HttpError(503,'Not enough free-agent players are available to create a squad');
   const ids=selected.slice(0,config.startingSquadSize).map(p=>p.id);
   await client.query('UPDATE players SET club_id=$1 WHERE id=ANY($2::uuid[])',[club.id,ids]);
-  const starterIds=selected.filter(p=>counts[p.position]&&selected.indexOf(p)<11).slice(0,11).map(p=>p.id);
   const actualStarters=selected.slice(0,11).map(p=>p.id);
   const substitutes=selected.slice(11).map(p=>p.id);
   await client.query('INSERT INTO lineups(club_id,formation,starters,substitutes) VALUES($1,$2,$3,$4)',[club.id,'4-3-3',actualStarters,substitutes]);
@@ -159,7 +158,9 @@ async function handle(req,res){
    if(!formationPattern.test(formation))throw new HttpError(400,'Unsupported formation');
    if(!Array.isArray(body.starters)||body.starters.length!==11||new Set(body.starters).size!==11)throw new HttpError(400,'Select exactly 11 unique starters');
    if(!Array.isArray(body.substitutes)||body.substitutes.length>7||new Set(body.substitutes).size!==body.substitutes.length)throw new HttpError(400,'Invalid substitutes');
-   const all=body.starters.concat(body.substitutes).map(id=>uuid(id,'Player ID'));
+   const subs=body.substitutes===undefined?[]:body.substitutes;
+   if(!Array.isArray(subs))throw new HttpError(400,'Invalid substitutes');
+   const all=body.starters.concat(subs).map(id=>uuid(id,'Player ID'));
    const owned=await db().query('SELECT id FROM players WHERE club_id=$1 AND id=ANY($2::uuid[])',[clubId,all]);
    if(owned.rowCount!==all.length)throw new HttpError(400,'Lineup contains a player outside this club');
    await db().query('INSERT INTO lineups(club_id,formation,starters,substitutes,updated_at) VALUES($1,$2,$3,$4,NOW()) ON CONFLICT(club_id) DO UPDATE SET formation=EXCLUDED.formation,starters=EXCLUDED.starters,substitutes=EXCLUDED.substitutes,updated_at=NOW()',[clubId,formation,body.starters,body.substitutes]);
@@ -187,6 +188,8 @@ async function handle(req,res){
     const c=await ownedClub(client,clubId,user.id,true);
     const p=(await client.query('SELECT * FROM players WHERE id=$1 AND club_id=$2 FOR UPDATE',[playerId,clubId])).rows[0];
     if(!p)throw new HttpError(404,'Player not found');
+    const count=await client.query('SELECT COUNT(*)::int AS count FROM players WHERE club_id=$1',[clubId]);
+    if(Number(count.rows[0].count)<=11)throw new HttpError(400,'A club must keep at least 11 players');
     const fee=(BigInt(p.market_value_uzs)*80n/100n),bal=(BigInt(c.budget_uzs)+fee).toString();
     await client.query('UPDATE players SET club_id=NULL WHERE id=$1',[playerId]);
     await client.query('UPDATE clubs SET budget_uzs=budget_uzs+$2 WHERE id=$1',[clubId,fee.toString()]);
