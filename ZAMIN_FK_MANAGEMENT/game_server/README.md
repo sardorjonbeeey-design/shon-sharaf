@@ -53,3 +53,13 @@ All mutation routes require authentication and ownership checks. Money and match
 - Player ratings, attribute costs, transfer values, match probabilities and mission rewards are initial balancing defaults and should be tuned after playtesting.
 - The league is created only after at least 10 clubs exist. League size and season format are provisionally set to a 10-club round-robin.
 - This is a deployment candidate, not production-approved. Security review, backups, rate limiting, monitoring, load testing and cloud configuration remain required before launch.
+
+## Project documents
+- API_REFERENCE.md — endpoint payloads and authentication.
+- CLOUD_ARCHITECTURE.md — server/database separation and scaling limits.
+- BALANCING_DEFAULTS.md — provisional gameplay and economy values.
+- OPEN_DECISIONS.md — owner decisions required before public launch.
+- VERIFICATION_STATUS.md — checks actually completed versus checks still pending.
+- deploy/ORACLE_CLOUD_SETUP.md — VM and Docker deployment.
+- deploy/MOBILE_ACTIVATION_GUIDE.md — Android-first setup.
+- deploy/ENVIRONMENT_CHECKLIST.md — private environment and activation checklist.
