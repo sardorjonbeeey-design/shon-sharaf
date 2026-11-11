@@ -40,7 +40,7 @@ function squadPage(){
  '<div class="row" style="margin:18px 0 10px"><div class="eyebrow">REGISTERED PLAYERS · '+players.length+'</div><div class="meta">Upgrade cost increases with attribute level</div></div><div class="players">'+(cards||'<div class="empty">No players in the squad yet.</div>')+'</div>';
 }
 function marketPage(){
- const cards=state.market.map(p=>'<article class="player"><div class="player-top"><span class="pill">'+esc(p.quality)+'</span><span class="rating">'+esc(p.overall)+'</span></div><h3>'+esc(p.full_name)+'</h3><div class="meta">'+esc(p.position)+' · '+esc(p.age)+' yrs · Potential '+esc(p.potential)+'</div><p class="sub">Market value: <strong>'+money(p.market_value_uzs)+'</strong></p><button class="btn" data-action="sign" data-player="'+p.id+'">Sign player</button></article>').join('');
+ const cards=state.market.map(p=>'<article class="player"><div class="player-top"><span class="pill">'+esc(p.quality)+'</span><span class="rating">'+esc(p.overall)+'</span></div><h3>'+esc(p.full_name)+'</h3><div class="meta">'+esc(p.position)+' · '+esc(p.age)+' yrs · Potential '+esc(p.potential)+'</div><p class="sub">Market value: <strong>'+money(p.market_value_uzs)+'</strong></p><button class="btn" data-action="sign" data-player="'+p.id+'" '+(BigInt(state.club.budget_uzs)>=BigInt(p.market_value_uzs)?'':'disabled')+'>Sign player</button></article>').join('');
  return pageHead('TRANSFER MARKET','Find your next player','Sign available fictional players using your club budget.')+'<div class="players">'+(cards||'<div class="empty">No free agents available.</div>')+'</div>';
 }
 function missionsPage(){
