@@ -45,5 +45,7 @@ export function simulateMatch(homePlayers,awayPlayers,options={}) {
   if(rng()>0.42)events.push({minute:item[0],type:item[1],side:rng()<share?'home':'away',text:item[2]});
  }
  events.sort((a,b)=>a.minute-b.minute);
+ let chronologicalHome=0,chronologicalAway=0;
+ for(const event of events)if(event.type==='goal'){if(event.side==='home')chronologicalHome++;else chronologicalAway++;event.homeScore=chronologicalHome;event.awayScore=chronologicalAway;}
  return {homeGoals,awayGoals,events,homeStrength:Number(homeStrength.toFixed(1)),awayStrength:Number(awayStrength.toFixed(1))};
 }
