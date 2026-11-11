@@ -8,6 +8,7 @@ import {authenticate,telegramLogin} from './auth.js';
 import {json,readJson,HttpError,safeString,colour,uuid} from './http.js';
 import {simulateMatch} from './simulation.js';
 import {saveCrest,readCrest} from './uploads.js';
+import {generateRoundRobin} from './league.js';
 
 const db=()=>requireDb();
 const clientRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../game_client');
@@ -71,15 +72,9 @@ async function ensureLeague(client){
  const league=(await client.query("INSERT INTO leagues(name,season_number,status) VALUES('ZAMIN FK League',1,'active') RETURNING id")).rows[0];
  const ids=clubs.rows.map(r=>r.id);
  for(const id of ids)await client.query('INSERT INTO league_members(league_id,club_id) VALUES($1,$2)',[league.id,id]);
- const rotation=ids.slice();
- const rounds=rotation.length-1;
- for(let round=0;round<rounds;round++){
-  for(let i=0;i<rotation.length/2;i++){
-   const a=rotation[i],b=rotation[rotation.length-1-i];
-   const home=(round+i)%2===0?a:b,away=home===a?b:a;
-   await client.query('INSERT INTO fixtures(league_id,round_number,home_club_id,away_club_id) VALUES($1,$2,$3,$4)',[league.id,round+1,home,away]);
-  }
-  rotation.splice(1,0,rotation.pop());
+ const rounds=generateRoundRobin(ids);
+ for(const round of rounds)for(const fixture of round){
+  await client.query('INSERT INTO fixtures(league_id,round_number,home_club_id,away_club_id) VALUES($1,$2,$3,$4)',[league.id,fixture.roundNumber,fixture.homeClubId,fixture.awayClubId]);
  }
  return league.id;
 }
