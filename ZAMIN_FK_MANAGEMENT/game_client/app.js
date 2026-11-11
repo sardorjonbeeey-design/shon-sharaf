@@ -16,7 +16,7 @@ async function api(path,options={}){
  return data;
 }
 function shell(body){
- root.innerHTML='<div class="shell"><header class="top"><div class="brand"><span class="mark">Z</span><span>ZAMIN FK</span></div><span class="tag">CLUB MANAGEMENT</span></header><div class="layout"><nav class="nav">'+
+ root.innerHTML='<div class="shell"><header class="top"><div class="brand"><span class="mark">Z</span><span>ZAMIN FK</span></div><div class="top-right">'+(state.clubs.length>1?'<select id="club-switcher">'+state.clubs.map(x=>'<option value="'+x.id+'" '+(x.id===state.club.id?'selected':'')+'>'+esc(x.short_name)+' · '+esc(x.name)+'</option>').join('')+'</select>':'')+'<span class="tag">CLUB MANAGEMENT</span></div></header><div class="layout"><nav class="nav">'+
  [['overview','Overview'],['squad','Squad'],['market','Transfer market'],['missions','Missions'],['fixtures','Fixtures'],['league','League']].map(x=>'<button data-tab="'+x[0]+'" class="'+(state.tab===x[0]?'active':'')+'">'+x[1]+'</button>').join('')+
  '<div class="nav-foot">ISOLATED GAME CLIENT<br>NOT CONNECTED TO LIVE SYSTEMS</div></nav><main class="content">'+body+'</main></div><footer class="footer"><span>ZAMIN FK · MANAGEMENT GAME</span><span>ISOLATED BUILD 0.1</span></footer></div>';
 }
@@ -117,6 +117,7 @@ root.addEventListener('click',async e=>{
   if(action==='play'){b.disabled=true;const result=await api('/api/fixtures/'+b.dataset.fixture+'/play',{method:'POST',body:{}});const f=result.fixture;state.lastMatch={home_name:state.fixtures.find(x=>x.id===f.id)?.home_name,away_name:state.fixtures.find(x=>x.id===f.id)?.away_name,home_goals:f.home_goals,away_goals:f.away_goals,events:f.events||result.simulation?.events||[]};toast('Match completed: '+f.home_goals+' — '+f.away_goals);await loadAll();state.tab='fixtures';render();return;}
  }catch(err){toast(err.message||'Action failed');b.disabled=false;}
 });
+root.addEventListener('change',async e=>{if(e.target.id==='club-switcher'){state.club=state.clubs.find(x=>x.id===e.target.value)||state.club;state.tab='overview';await loadAll();}});
 root.addEventListener('submit',async e=>{
  if(e.target.id!=='club-form'&&e.target.id!=='identity-form')return;e.preventDefault();
  const form=e.target,data=new FormData(form),button=form.querySelector('button[type=submit]');button.disabled=true;
