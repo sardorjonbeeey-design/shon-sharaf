@@ -39,7 +39,9 @@ Production requests use Telegram Mini App initData sent as JSON to POST /api/aut
 - GET /api/clubs/:clubId/fixtures
 - POST /api/fixtures/:fixtureId/play
 
-The game client is served by the same origin at /, /app.js and /styles.css. Uploaded crest images are stored in the server's persistent uploads directory.\n\nAll mutation routes require authentication and ownership checks. Money and match results are calculated server-side. Transfers and match settlement use database transactions and row locks.
+The game client is served by the same origin at /, /app.js and /styles.css. Uploaded crest images are stored in the server's persistent uploads directory.
+
+All mutation routes require authentication and ownership checks. Money and match results are calculated server-side. Transfers and match settlement use database transactions and row locks.
 
 ## Configuration notes
 - Starting budget defaults to 0 UZS because the owner has not approved an opening amount.
