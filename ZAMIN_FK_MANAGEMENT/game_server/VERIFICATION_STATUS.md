@@ -8,6 +8,7 @@ Updated: 2026-11-11
 - Round-robin fixture generator executed with 10 clubs: 9 rounds, 45 fixtures and 45 unique club pairings.
 - Match simulation executed with deterministic random input: valid 2–1 result, three goal events and stronger home squad strength.
 - HTTP validation helpers executed: valid name, colour and UUID accepted; invalid inputs rejected.
+- Database isolation guard executed with mock connections: zamin_game accepted; a different database name rejected.
 - Repository branch and newly created files verified through GitHub.
 
 ## Not yet executed
