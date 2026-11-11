@@ -21,20 +21,25 @@ Production requests use Telegram Mini App initData sent as JSON to POST /api/aut
 ## API
 - GET /health
 - POST /api/auth/telegram
+- GET /api/clubs (clubs owned by the authenticated user)
+- POST /api/uploads/crest (PNG/JPG/WEBP, maximum 2 MB)
 - GET /api/market
 - POST /api/clubs
 - GET /api/clubs/:clubId
+- POST /api/clubs/:clubId/identity
 - GET /api/clubs/:clubId/squad
+- GET /api/clubs/:clubId/lineup
 - POST /api/clubs/:clubId/lineup
 - POST /api/clubs/:clubId/players/sign
 - POST /api/clubs/:clubId/players/sell
 - POST /api/clubs/:clubId/players/upgrade
 - GET /api/clubs/:clubId/missions
 - POST /api/clubs/:clubId/leagues/ensure
+- GET /api/clubs/:clubId/league
 - GET /api/clubs/:clubId/fixtures
 - POST /api/fixtures/:fixtureId/play
 
-All mutation routes require authentication and ownership checks. Money and match results are calculated server-side. Transfers and match settlement use database transactions and row locks.
+The game client is served by the same origin at /, /app.js and /styles.css. Uploaded crest images are stored in the server's persistent uploads directory.\n\nAll mutation routes require authentication and ownership checks. Money and match results are calculated server-side. Transfers and match settlement use database transactions and row locks.
 
 ## Configuration notes
 - Starting budget defaults to 0 UZS because the owner has not approved an opening amount.
