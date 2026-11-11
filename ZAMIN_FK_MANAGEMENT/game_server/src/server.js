@@ -178,8 +178,9 @@ async function handle(req,res){
    const subs=body.substitutes===undefined?[]:body.substitutes;
    if(!Array.isArray(subs)||subs.length>7||new Set(subs).size!==subs.length)throw new HttpError(400,'Invalid substitutes');
    const all=body.starters.concat(subs).map(id=>uuid(id,'Player ID'));
-   const owned=await db().query('SELECT id FROM players WHERE club_id=$1 AND id=ANY($2::uuid[])',[clubId,all]);
+   const owned=await db().query('SELECT id,position FROM players WHERE club_id=$1 AND id=ANY($2::uuid[])',[clubId,all]);
    if(owned.rowCount!==all.length)throw new HttpError(400,'Lineup contains a player outside this club');
+   if(!owned.rows.some(p=>p.position==='GK'&&body.starters.includes(p.id)))throw new HttpError(400,'Your Starting XI must include a goalkeeper');
    await db().query('INSERT INTO lineups(club_id,formation,starters,substitutes,updated_at) VALUES($1,$2,$3,$4,NOW()) ON CONFLICT(club_id) DO UPDATE SET formation=EXCLUDED.formation,starters=EXCLUDED.starters,substitutes=EXCLUDED.substitutes,updated_at=NOW()',[clubId,formation,body.starters,subs]);
    return json(res,200,{ok:true});
   }
