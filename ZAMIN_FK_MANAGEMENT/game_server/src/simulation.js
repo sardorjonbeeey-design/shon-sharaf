@@ -1,6 +1,13 @@
 import { config } from './config.js';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const average=(xs)=>xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:45;
+const shapes={
+ '4-3-3':{GK:1,CB:2,LB:1,RB:1,DM:1,CM:2,LW:1,RW:1,ST:1},
+ '4-4-2':{GK:1,CB:2,LB:1,RB:1,CM:2,LW:1,RW:1,ST:2},
+ '4-2-3-1':{GK:1,CB:2,LB:1,RB:1,DM:2,AM:1,LW:1,RW:1,ST:1},
+ '3-5-2':{GK:1,CB:3,DM:1,CM:2,LW:1,RW:1,ST:2},
+ '4-1-4-1':{GK:1,CB:2,LB:1,RB:1,DM:1,CM:2,LW:1,RW:1,ST:1}
+};
 export function squadStrength(players,formation='4-3-3') {
  if (!Array.isArray(players)||players.length<11) return 35;
  const starters=players.slice(0,11);
