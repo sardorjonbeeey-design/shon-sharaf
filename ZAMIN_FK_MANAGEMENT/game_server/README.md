@@ -12,9 +12,9 @@ Independent Node.js API and PostgreSQL schema for the management-game candidate.
 1. Create a new, separate database/project. Do not use the existing Mini App database.
 2. Create the separate PostgreSQL database named zamin_game, then copy .env.example to .env and set DATABASE_URL to that database.
 3. Keep EXPECTED_DATABASE_NAME=zamin_game. The server readiness check, migration runner and seed script refuse to proceed if the connected database name differs.
-3. Set TELEGRAM_BOT_TOKEN only when ready to enable Telegram Mini App authentication.
-4. Run npm install, npm run db:migrate, npm run db:seed, npm test, then npm start.
-5. Set WEB_ORIGIN to the exact game origin before production use.
+4. Set TELEGRAM_BOT_TOKEN only when ready to enable Telegram Mini App authentication.
+5. Run npm install, npm run db:migrate, npm run db:seed, npm test, then npm start.
+6. Set WEB_ORIGIN to the exact game origin before production use.
 
 ## Authentication
 Production requests use Telegram Mini App initData sent as JSON to POST /api/auth/telegram. The server validates Telegram's HMAC signature and freshness, then issues a short-lived signed bearer token. Never put the bot token or session secret in browser code. For isolated local testing only, ALLOW_DEV_AUTH=true permits x-dev-user-id; this is rejected outside NODE_ENV=development.
