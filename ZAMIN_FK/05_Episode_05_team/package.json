@@ -1,0 +1,6 @@
+{
+  "name": "zfk-ep05-team-film",
+  "private": true,
+  "description": "Offline copies of what the stadium page loads from CDNs, for the frame-stepped film render.",
+  "dependencies": { "three": "0.128.0", "@fontsource/montserrat": "^5", "@fontsource/josefin-sans": "^5" }
+}

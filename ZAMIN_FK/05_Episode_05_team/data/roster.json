@@ -1,0 +1,222 @@
+[
+ {
+  "id": "39",
+  "name": "Sardor yuldoshev",
+  "shirt": "SARDOR YULDOSHEV",
+  "position": "GK",
+  "group": "GK",
+  "role": "starter",
+  "order": 1,
+  "number": 44
+ },
+ {
+  "id": "10",
+  "name": "Urunov Ruslan",
+  "shirt": "URUNOV RUSLAN",
+  "position": "LB",
+  "group": "DEF",
+  "role": "starter",
+  "order": 2,
+  "number": 18
+ },
+ {
+  "id": "14",
+  "name": "Muhammadyasin Xikmatillayev",
+  "shirt": "MUHAMMADYASIN XIKMATILLAYEV",
+  "position": "CB",
+  "group": "DEF",
+  "role": "starter",
+  "order": 3,
+  "number": 23
+ },
+ {
+  "id": "34",
+  "name": "Duschanov Murodbek",
+  "shirt": "DUSCHANOV MURODBEK",
+  "position": "CB",
+  "group": "DEF",
+  "role": "starter",
+  "order": 4,
+  "number": 11
+ },
+ {
+  "id": "41",
+  "name": "Temirmalik_Baxtiyorov",
+  "shirt": "TEMIRMALIK BAXTIYOROV",
+  "position": "RB",
+  "group": "DEF",
+  "role": "starter",
+  "order": 5,
+  "number": 47
+ },
+ {
+  "id": "27",
+  "name": "Maxmudov",
+  "shirt": "MAXMUDOV",
+  "position": "CDM",
+  "group": "MID",
+  "role": "starter",
+  "order": 6,
+  "number": 21
+ },
+ {
+  "id": "33",
+  "name": "Elshod Abdullayev",
+  "shirt": "ELSHOD ABDULLAYEV",
+  "position": "CM",
+  "group": "MID",
+  "role": "starter",
+  "order": 7,
+  "number": 27
+ },
+ {
+  "id": "17",
+  "name": "z1to",
+  "shirt": "Z1TO",
+  "position": "CAM",
+  "group": "MID",
+  "role": "starter",
+  "order": 8,
+  "number": 66
+ },
+ {
+  "id": "25",
+  "name": "Yorqulov nodirbek",
+  "shirt": "YORQULOV NODIRBEK",
+  "position": "LW",
+  "group": "FWD",
+  "role": "starter",
+  "order": 9,
+  "number": 99
+ },
+ {
+  "id": "32",
+  "name": "Muhiddin",
+  "shirt": "MUHIDDIN",
+  "position": "ST",
+  "group": "FWD",
+  "role": "starter",
+  "order": 10,
+  "number": 19
+ },
+ {
+  "id": "40",
+  "name": "Farhod",
+  "shirt": "FARHOD",
+  "position": "RW",
+  "group": "FWD",
+  "role": "starter",
+  "order": 11,
+  "number": 4
+ },
+ {
+  "id": "38",
+  "name": "Abdurauf Tursunov",
+  "shirt": "ABDURAUF TURSUNOV",
+  "position": "GK",
+  "group": "GK",
+  "role": "substitute",
+  "order": 12,
+  "number": 6
+ },
+ {
+  "id": "36",
+  "name": "Saddam",
+  "shirt": "SADDAM",
+  "position": "LB",
+  "group": "DEF",
+  "role": "substitute",
+  "order": 13,
+  "number": 25
+ },
+ {
+  "id": "19",
+  "name": "Xusanov Azizbek",
+  "shirt": "XUSANOV AZIZBEK",
+  "position": "CB",
+  "group": "DEF",
+  "role": "substitute",
+  "order": 14,
+  "number": 3
+ },
+ {
+  "id": "26",
+  "name": "Davronjonov Muhammadzohid",
+  "shirt": "DAVRONJONOV MUHAMMADZOHID",
+  "position": "CB",
+  "group": "DEF",
+  "role": "substitute",
+  "order": 15,
+  "number": 2
+ },
+ {
+  "id": "3",
+  "name": "Muhamedov.islom",
+  "shirt": "MUHAMEDOV.ISLOM",
+  "position": "RB",
+  "group": "DEF",
+  "role": "substitute",
+  "order": 16,
+  "number": 16
+ },
+ {
+  "id": "15",
+  "name": "Abduhalilov ibrohimjon",
+  "shirt": "ABDUHALILOV IBROHIMJON",
+  "position": "CDM",
+  "group": "MID",
+  "role": "substitute",
+  "order": 17,
+  "number": 22
+ },
+ {
+  "id": "16",
+  "name": "Meyrambek",
+  "shirt": "MEYRAMBEK",
+  "position": "CM",
+  "group": "MID",
+  "role": "substitute",
+  "order": 18,
+  "number": 9
+ },
+ {
+  "id": "30",
+  "name": "tedro Qurbonaluyev",
+  "shirt": "TEDRO QURBONALUYEV",
+  "position": "CAM",
+  "group": "MID",
+  "role": "substitute",
+  "order": 19,
+  "number": 5
+ },
+ {
+  "id": "20",
+  "name": "Yuldashev Mirsaid",
+  "shirt": "YULDASHEV MIRSAID",
+  "position": "LW",
+  "group": "FWD",
+  "role": "substitute",
+  "order": 20,
+  "number": 10
+ },
+ {
+  "id": "13",
+  "name": "Rashidov Bilol",
+  "shirt": "RASHIDOV BILOL",
+  "position": "ST",
+  "group": "FWD",
+  "role": "substitute",
+  "order": 21,
+  "number": 12
+ },
+ {
+  "id": "35",
+  "name": "SayyidIsfandiyorxon",
+  "shirt": "SAYYIDISFANDIYORXON",
+  "position": "RW",
+  "group": "FWD",
+  "role": "substitute",
+  "order": 22,
+  "number": 30
+ }
+]
