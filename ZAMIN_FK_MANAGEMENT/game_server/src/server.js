@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {config} from './config.js';
-import {requireDb,inTransaction,assertIsolatedDatabase} from './db.js';
+import {requireDb,inTransaction,assertIsolatedDatabase,pool} from './db.js';
 import {authenticate,telegramLogin} from './auth.js';
 import {json,readJson,HttpError,safeString,colour,uuid} from './http.js';
 import {simulateMatch} from './simulation.js';
@@ -273,4 +273,6 @@ const server=http.createServer(async(req,res)=>{
  }
 });
 server.listen(config.port,'0.0.0.0',()=>console.log('ZAMIN FK isolated game server listening on '+config.port));
-process.on('SIGTERM',()=>server.close(()=>process.exit(0)));
+async function shutdown(){server.close(async()=>{try{await pool?.end();process.exit(0);}catch(error){console.error(error);process.exit(1);}});}
+process.on('SIGTERM',shutdown);
+process.on('SIGINT',shutdown);
