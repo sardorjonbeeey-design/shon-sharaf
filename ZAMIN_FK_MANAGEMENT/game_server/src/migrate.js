@@ -5,6 +5,7 @@ import {requireDb} from './db.js';
 const here=path.dirname(fileURLToPath(import.meta.url));
 const dir=path.join(here,'../db');
 const db=requireDb();
+await db.query('CREATE TABLE IF NOT EXISTS schema_migrations (version VARCHAR(80) PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
 const files=(await fs.readdir(dir)).filter(name=>name.endsWith('.sql')).sort();
 for(const file of files){
  const version=file.replace(/\.sql$/,'');
