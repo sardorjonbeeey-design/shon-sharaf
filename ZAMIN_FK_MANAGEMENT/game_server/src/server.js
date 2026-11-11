@@ -157,13 +157,12 @@ async function handle(req,res){
    const body=await readJson(req),formation=safeString(body.formation,8,'Formation');
    if(!formationPattern.test(formation))throw new HttpError(400,'Unsupported formation');
    if(!Array.isArray(body.starters)||body.starters.length!==11||new Set(body.starters).size!==11)throw new HttpError(400,'Select exactly 11 unique starters');
-   if(!Array.isArray(body.substitutes)||body.substitutes.length>7||new Set(body.substitutes).size!==body.substitutes.length)throw new HttpError(400,'Invalid substitutes');
    const subs=body.substitutes===undefined?[]:body.substitutes;
-   if(!Array.isArray(subs))throw new HttpError(400,'Invalid substitutes');
+   if(!Array.isArray(subs)||subs.length>7||new Set(subs).size!==subs.length)throw new HttpError(400,'Invalid substitutes');
    const all=body.starters.concat(subs).map(id=>uuid(id,'Player ID'));
    const owned=await db().query('SELECT id FROM players WHERE club_id=$1 AND id=ANY($2::uuid[])',[clubId,all]);
    if(owned.rowCount!==all.length)throw new HttpError(400,'Lineup contains a player outside this club');
-   await db().query('INSERT INTO lineups(club_id,formation,starters,substitutes,updated_at) VALUES($1,$2,$3,$4,NOW()) ON CONFLICT(club_id) DO UPDATE SET formation=EXCLUDED.formation,starters=EXCLUDED.starters,substitutes=EXCLUDED.substitutes,updated_at=NOW()',[clubId,formation,body.starters,body.substitutes]);
+   await db().query('INSERT INTO lineups(club_id,formation,starters,substitutes,updated_at) VALUES($1,$2,$3,$4,NOW()) ON CONFLICT(club_id) DO UPDATE SET formation=EXCLUDED.formation,starters=EXCLUDED.starters,substitutes=EXCLUDED.substitutes,updated_at=NOW()',[clubId,formation,body.starters,subs]);
    return json(res,200,{ok:true});
   }
   if(req.method==='POST'&&parts[3]==='players'&&parts[4]==='sign'){
