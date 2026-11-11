@@ -24,7 +24,7 @@ function pageHead(kicker,title,sub,action){return '<div class="hero"><div><div c
 function crest(club,large){const style='style="--accent:'+esc(club.primary_colour||'#167a55')+'"';return '<div class="crest" '+style+'>'+(club.crest_url?'<img src="'+esc((cfg.apiBase||'')+club.crest_url)+'" alt="Club crest">':esc(club.short_name||'ZFK'))+'</div>';}
 function overview(){
  const c=state.club;
- return pageHead('CLUB CONTROL CENTRE',esc(c.name),'Your club is ready. Build the squad, develop players and compete.', '<button class="btn secondary" data-action="new-club">Create another club</button>')+
+ return pageHead('CLUB CONTROL CENTRE',esc(c.name),'Your club is ready. Build the squad, develop players and compete.', '<div class="actions"><button class="btn secondary" data-action="edit-identity">Edit identity</button><button class="btn ghost" data-action="new-club">New club</button></div>')+
  '<section class="panel club-card">'+crest(c,true)+'<div><div class="eyebrow">CLUB PROFILE</div><h2>'+esc(c.name)+' <span class="muted">· '+esc(c.short_name)+'</span></h2><p>Identity established · '+new Date(c.created_at).toLocaleDateString()+'</p></div></section>'+
  '<div class="stats"><div class="stat"><div class="label">CLUB BUDGET</div><strong>'+money(c.budget_uzs)+'</strong><p>Transfer funds</p></div><div class="stat"><div class="label">DEVELOPMENT POINTS</div><strong>'+esc(c.development_points)+'</strong><p>Player progression</p></div><div class="stat"><div class="label">SQUAD SIZE</div><strong>'+state.squad.length+'</strong><p>Registered players</p></div></div>'+
  '<section class="panel"><div class="row"><div><h2>Club development</h2><p>Choose where to focus next.</p></div></div><div class="grid2"><button class="btn secondary" data-tab="squad">Manage squad →</button><button class="btn secondary" data-tab="market">Explore transfers →</button><button class="btn secondary" data-tab="missions">Complete missions →</button><button class="btn secondary" data-tab="fixtures">View fixtures →</button></div></section>'+
@@ -65,9 +65,13 @@ function leaguePage(){
 function createPage(){
  return '<div class="create">'+pageHead('NEW CLUB','Create your club','Choose your identity. Your starter squad will be assigned automatically.')+'<form id="club-form" class="panel"><div class="field"><label>CLUB NAME</label><input name="name" maxlength="28" required placeholder="e.g. Tashkent United"></div><div class="grid2"><div class="field"><label>SHORT NAME</label><input name="shortName" maxlength="5" required placeholder="TUN"></div><div class="field"><label>PRIMARY COLOUR</label><input name="primaryColour" type="color" value="#167a55"></div></div><div class="field"><label>SECONDARY COLOUR</label><input name="secondaryColour" type="color" value="#f0c75e"></div><div class="field"><label>CLUB CREST · OPTIONAL</label><input id="crest-file" type="file" accept="image/png,image/jpeg,image/webp"><small class="meta">PNG, JPG or WEBP · Maximum 2 MB</small></div><div class="notice">Opening budget is currently set to 0 UZS because the starting amount has not been approved. You can adjust the game balance before launch.</div><button class="btn" type="submit">Create club →</button></form></div>';
 }
+function identityPage(){
+ const c=state.club;
+ return '<div class="create">'+pageHead('CLUB SETTINGS','Edit identity','Update your name, colours and club crest.')+'<form id="identity-form" class="panel"><div class="field"><label>CLUB NAME</label><input name="name" maxlength="28" required value="'+esc(c.name)+'"></div><div class="grid2"><div class="field"><label>SHORT NAME</label><input name="shortName" maxlength="5" required value="'+esc(c.short_name)+'"></div><div class="field"><label>PRIMARY COLOUR</label><input name="primaryColour" type="color" value="'+esc(c.primary_colour)+'"></div></div><div class="field"><label>SECONDARY COLOUR</label><input name="secondaryColour" type="color" value="'+esc(c.secondary_colour)+'"></div><div class="field"><label>REPLACE CREST · OPTIONAL</label><input id="crest-file" type="file" accept="image/png,image/jpeg,image/webp"><small class="meta">Leave empty to keep the current crest.</small></div><div class="actions"><button class="btn" type="submit">Save identity</button><button class="btn ghost" type="button" data-tab="overview">Cancel</button></div></form></div>';
+}
 function render(){
  if(!state.club){root.innerHTML='<div class="shell"><header class="top"><div class="brand"><span class="mark">Z</span><span>ZAMIN FK</span></div><span class="tag">ISOLATED BUILD</span></header>'+createPage()+'</div>';return;}
- let body=state.tab==='overview'?overview():state.tab==='squad'?squadPage():state.tab==='market'?marketPage():state.tab==='missions'?missionsPage():state.tab==='fixtures'?fixturesPage():leaguePage();
+ let body=state.tab==='identity'?identityPage():state.tab==='overview'?overview():state.tab==='squad'?squadPage():state.tab==='market'?marketPage():state.tab==='missions'?missionsPage():state.tab==='fixtures'?fixturesPage():leaguePage();
  shell(body);
 }
 async function loadAll(){
@@ -101,6 +105,7 @@ root.addEventListener('click',async e=>{
  try{
   const action=b.dataset.action;
   if(action==='new-club'){state.club=null;render();return;}
+  if(action==='edit-identity'){state.tab='identity';render();return;}
   if(action==='auto-lineup'){const lineup=bestXI();await api('/api/clubs/'+state.club.id+'/lineup',{method:'POST',body:lineup});toast('Starting XI saved');await loadAll();return;}
   if(action==='upgrade'){await api('/api/clubs/'+state.club.id+'/players/upgrade',{method:'POST',body:{playerId:b.dataset.player,attribute:b.dataset.attr,levels:1}});toast('Player upgraded');await loadAll();return;}
   if(action==='sell'){if(!confirm('Sell this player for 80% of market value?'))return;await api('/api/clubs/'+state.club.id+'/players/sell',{method:'POST',body:{playerId:b.dataset.player}});toast('Player sold');await loadAll();return;}
@@ -109,13 +114,21 @@ root.addEventListener('click',async e=>{
  }catch(err){toast(err.message||'Action failed');b.disabled=false;}
 });
 root.addEventListener('submit',async e=>{
- if(e.target.id!=='club-form')return;e.preventDefault();
+ if(e.target.id!=='club-form'&&e.target.id!=='identity-form')return;e.preventDefault();
  const form=e.target,data=new FormData(form),button=form.querySelector('button[type=submit]');button.disabled=true;
  try{
-  const file=$('#crest-file')?.files?.[0],crestUrl=file?await uploadCrest(file):null;
-  const result=await api('/api/clubs',{method:'POST',body:{name:data.get('name'),shortName:data.get('shortName'),primaryColour:data.get('primaryColour'),secondaryColour:data.get('secondaryColour'),crestUrl}});
-  state.club=result.club;state.tab='overview';toast('Club created');await loadAll();
- }catch(err){toast(err.message||'Could not create club');button.disabled=false;}
+  const file=$('#crest-file')?.files?.[0],crestUrl=file?await uploadCrest(file):undefined;
+  const body={name:data.get('name'),shortName:data.get('shortName'),primaryColour:data.get('primaryColour'),secondaryColour:data.get('secondaryColour')};
+  if(crestUrl)body.crestUrl=crestUrl;
+  if(form.id==='identity-form'){
+   const result=await api('/api/clubs/'+state.club.id+'/identity',{method:'POST',body});
+   state.club=result.club;state.tab='overview';toast('Club identity updated');await loadAll();
+  }else{
+   if(crestUrl)body.crestUrl=crestUrl;
+   const result=await api('/api/clubs',{method:'POST',body});
+   state.club=result.club;state.tab='overview';toast('Club created');await loadAll();
+  }
+ }catch(err){toast(err.message||'Could not save club');button.disabled=false;}
 });
 async function boot(){
  try{
