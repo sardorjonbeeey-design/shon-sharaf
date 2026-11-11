@@ -1,0 +1,123 @@
+(() => {
+const root=document.getElementById('app');
+const cfg=window.ZAMIN_GAME_CONFIG||{};
+const state={token:null,user:null,clubs:[],club:null,squad:[],market:[],lineup:null,missions:[],fixtures:[],table:[],tab:'overview',crestData:'',lastMatch:null};
+const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=(v)=>new Intl.NumberFormat('en-US').format(Number(v||0))+' UZS';
+const $=(s)=>root.querySelector(s);
+function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2600);}
+async function api(path,options={}){
+ const headers={'content-type':'application/json',...(options.headers||{})};
+ if(state.token)headers.authorization='Bearer '+state.token;
+ if(!state.token&&cfg.devUserId)headers['x-dev-user-id']=String(cfg.devUserId);
+ const response=await fetch((cfg.apiBase||'')+path,{...options,headers,body:options.body?JSON.stringify(options.body):undefined});
+ const data=await response.json().catch(()=>({error:'Invalid server response'}));
+ if(!response.ok)throw new Error(data.error||'Request failed');
+ return data;
+}
+function shell(body){
+ root.innerHTML='<div class="shell"><header class="top"><div class="brand"><span class="mark">Z</span><span>ZAMIN FK</span></div><span class="tag">CLUB MANAGEMENT</span></header><div class="layout"><nav class="nav">'+
+ [['overview','Overview'],['squad','Squad'],['market','Transfer market'],['missions','Missions'],['fixtures','Fixtures'],['league','League']].map(x=>'<button data-tab="'+x[0]+'" class="'+(state.tab===x[0]?'active':'')+'">'+x[1]+'</button>').join('')+
+ '<div class="nav-foot">ISOLATED GAME CLIENT<br>NOT CONNECTED TO LIVE SYSTEMS</div></nav><main class="content">'+body+'</main></div><footer class="footer"><span>ZAMIN FK · MANAGEMENT GAME</span><span>ISOLATED BUILD 0.1</span></footer></div>';
+}
+function pageHead(kicker,title,sub,action){return '<div class="hero"><div><div class="eyebrow">'+kicker+'</div><h1>'+title+'</h1><p class="sub">'+sub+'</p></div>'+(action||'')+'</div>';}
+function crest(club,large){const style='style="--accent:'+esc(club.primary_colour||'#167a55')+'"';return '<div class="crest" '+style+'>'+(club.crest_url?'<img src="'+esc((cfg.apiBase||'')+club.crest_url)+'" alt="Club crest">':esc(club.short_name||'ZFK'))+'</div>';}
+function overview(){
+ const c=state.club;
+ return pageHead('CLUB CONTROL CENTRE',esc(c.name),'Your club is ready. Build the squad, develop players and compete.', '<button class="btn secondary" data-action="new-club">Create another club</button>')+
+ '<section class="panel club-card">'+crest(c,true)+'<div><div class="eyebrow">CLUB PROFILE</div><h2>'+esc(c.name)+' <span class="muted">· '+esc(c.short_name)+'</span></h2><p>Identity established · '+new Date(c.created_at).toLocaleDateString()+'</p></div></section>'+
+ '<div class="stats"><div class="stat"><div class="label">CLUB BUDGET</div><strong>'+money(c.budget_uzs)+'</strong><p>Transfer funds</p></div><div class="stat"><div class="label">DEVELOPMENT POINTS</div><strong>'+esc(c.development_points)+'</strong><p>Player progression</p></div><div class="stat"><div class="label">SQUAD SIZE</div><strong>'+state.squad.length+'</strong><p>Registered players</p></div></div>'+
+ '<section class="panel"><div class="row"><div><h2>Club development</h2><p>Choose where to focus next.</p></div></div><div class="grid2"><button class="btn secondary" data-tab="squad">Manage squad →</button><button class="btn secondary" data-tab="market">Explore transfers →</button><button class="btn secondary" data-tab="missions">Complete missions →</button><button class="btn secondary" data-tab="fixtures">View fixtures →</button></div></section>'+
+ (state.lastMatch?'<section class="panel"><div class="eyebrow">LATEST MATCH</div><h2>'+esc(state.lastMatch.home_name||'Home')+' '+state.lastMatch.home_goals+' — '+state.lastMatch.away_goals+' '+esc(state.lastMatch.away_name||'Away')+'</h2><p>Match simulation completed.</p></section>':'');
+}
+function squadPage(){
+ const c=state.club;
+ const players=state.squad;
+ const starterIds=(state.lineup&&state.lineup.starters)||[];
+ const cards=players.map(p=>'<article class="player"><div class="player-top"><span class="pill">'+esc(p.quality)+'</span><span class="rating">'+esc(p.overall)+'</span></div><h3>'+esc(p.full_name)+'</h3><div class="meta">'+esc(p.position)+' · '+esc(p.age)+' yrs · Potential '+esc(p.potential)+'</div><div class="bars">'+['pace','shooting','passing','defending','physical','dribbling'].map(k=>'<div><div class="attr">'+k.slice(0,3).toUpperCase()+' '+esc(p.attributes[k])+'</div><div class="bar"><i style="width:'+Math.min(100,Number(p.attributes[k]))+'%"></i></div></div>').join('')+'</div><div class="meta">'+(starterIds.includes(p.id)?'STARTING XI':'SQUAD')+' · Value '+money(p.market_value_uzs)+'</div><div class="actions">'+['pace','shooting','passing','dribbling','defending','physical'].map(k=>'<button class="btn secondary" data-action="upgrade" data-player="'+p.id+'" data-attr="'+k+'">+'+k.slice(0,3)+'</button>').join('')+'<button class="btn danger" data-action="sell" data-player="'+p.id+'">Sell</button></div></article>').join('');
+ return pageHead('THE SQUAD','Build your team','Upgrade attributes with Development Points. Potential limits each attribute.')+
+ '<section class="panel"><div class="row"><div><h2>Lineup</h2><p>Current formation: '+esc(state.lineup?.formation||'4-3-3')+'</p></div><button class="btn" data-action="auto-lineup">Auto-pick XI</button></div><p class="sub">The strongest available players are selected while keeping the default formation structure.</p></section>'+
+ '<div class="row" style="margin:18px 0 10px"><div class="eyebrow">REGISTERED PLAYERS · '+players.length+'</div><div class="meta">Upgrade cost increases with attribute level</div></div><div class="players">'+(cards||'<div class="empty">No players in the squad yet.</div>')+'</div>';
+}
+function marketPage(){
+ const cards=state.market.map(p=>'<article class="player"><div class="player-top"><span class="pill">'+esc(p.quality)+'</span><span class="rating">'+esc(p.overall)+'</span></div><h3>'+esc(p.full_name)+'</h3><div class="meta">'+esc(p.position)+' · '+esc(p.age)+' yrs · Potential '+esc(p.potential)+'</div><p class="sub">Market value: <strong>'+money(p.market_value_uzs)+'</strong></p><button class="btn" data-action="sign" data-player="'+p.id+'">Sign player</button></article>').join('');
+ return pageHead('TRANSFER MARKET','Find your next player','Sign available fictional players using your club budget.')+'<div class="players">'+(cards||'<div class="empty">No free agents available.</div>')+'</div>';
+}
+function missionsPage(){
+ const cards=state.missions.map(m=>{const progress=Math.min(Number(m.target),Number(m.progress||0)),pct=Math.round(progress/Number(m.target)*100);return '<div class="mission"><div class="symbol">✦</div><div class="mission-main"><strong>'+esc(m.title)+'</strong><small>'+esc(m.description)+' · Reward '+esc(m.reward_dp)+' DP</small><div class="progress"><i style="width:'+pct+'%"></i></div><small>'+progress+' / '+m.target+(m.completed_at?' · COMPLETED':'')+'</small></div><span class="pill">'+(m.completed_at?'DONE':'ACTIVE')+'</span></div>';}).join('');
+ return pageHead('CLUB OBJECTIVES','Missions','Earn Development Points through matches and varied objectives.')+'<section class="panel">'+(cards||'<div class="empty">Missions will appear after the game data is initialized.</div>')+'</section>';
+}
+function fixturesPage(){
+ const cards=state.fixtures.map(f=>'<div class="fixture"><div><strong>'+esc(f.home_name)+' <span class="muted">vs</span> '+esc(f.away_name)+'</strong><div class="meta">ROUND '+esc(f.round_number)+' · '+esc(f.status)+'</div></div><div class="row">'+(f.status==='played'?'<span class="score">'+f.home_goals+' : '+f.away_goals+'</span>':'<button class="btn" data-action="play" data-fixture="'+f.id+'">Play match</button>')+'</div></div>').join('');
+ const match=state.lastMatch?'<div class="panel"><div class="eyebrow">MATCH REPORT</div><h2>'+esc(state.lastMatch.home_name||'Home')+' '+state.lastMatch.home_goals+' — '+state.lastMatch.away_goals+' '+esc(state.lastMatch.away_name||'Away')+'</h2><div class="sub">'+(state.lastMatch.events||[]).map(e=>e.minute+"' "+esc(e.text)).join(' · ')+'</div></div>':'';
+ return pageHead('COMPETITION','Fixtures','Watch accelerated match simulations and collect Development Points.')+match+'<section class="panel">'+(cards||'<div class="empty">The league starts after at least 10 clubs have been created. Your fixtures will appear here.</div>')+'</section>';
+}
+function leaguePage(){
+ const rows=state.table.map((r,i)=>'<tr><td class="rank">'+(i+1)+'</td><td><strong>'+esc(r.short_name)+'</strong> '+esc(r.name)+'</td><td>'+r.played+'</td><td>'+r.wins+'</td><td>'+r.draws+'</td><td>'+r.losses+'</td><td>'+r.goals_for+':'+r.goals_against+'</td><td><strong>'+r.points+'</strong></td></tr>').join('');
+ return pageHead('LEAGUE','The table','League creation is triggered when the game reaches 10 clubs.')+'<section class="panel table-wrap">'+(rows?'<table><thead><tr><th>#</th><th>CLUB</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF:GA</th><th>PTS</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="empty">No active league yet. It will be generated automatically when 10 clubs exist.</div>')+'</section>';
+}
+function createPage(){
+ return '<div class="create">'+pageHead('NEW CLUB','Create your club','Choose your identity. Your starter squad will be assigned automatically.')+'<form id="club-form" class="panel"><div class="field"><label>CLUB NAME</label><input name="name" maxlength="28" required placeholder="e.g. Tashkent United"></div><div class="grid2"><div class="field"><label>SHORT NAME</label><input name="shortName" maxlength="5" required placeholder="TUN"></div><div class="field"><label>PRIMARY COLOUR</label><input name="primaryColour" type="color" value="#167a55"></div></div><div class="field"><label>SECONDARY COLOUR</label><input name="secondaryColour" type="color" value="#f0c75e"></div><div class="field"><label>CLUB CREST · OPTIONAL</label><input id="crest-file" type="file" accept="image/png,image/jpeg,image/webp"><small class="meta">PNG, JPG or WEBP · Maximum 2 MB</small></div><div class="notice">Opening budget is currently set to 0 UZS because the starting amount has not been approved. You can adjust the game balance before launch.</div><button class="btn" type="submit">Create club →</button></form></div>';
+}
+function render(){
+ if(!state.club){root.innerHTML='<div class="shell"><header class="top"><div class="brand"><span class="mark">Z</span><span>ZAMIN FK</span></div><span class="tag">ISOLATED BUILD</span></header>'+createPage()+'</div>';return;}
+ let body=state.tab==='overview'?overview():state.tab==='squad'?squadPage():state.tab==='market'?marketPage():state.tab==='missions'?missionsPage():state.tab==='fixtures'?fixturesPage():leaguePage();
+ shell(body);
+}
+async function loadAll(){
+ const c=await api('/api/clubs');state.clubs=c.clubs||[];
+ if(!state.clubs.length){state.club=null;render();return;}
+ state.club=state.club?state.clubs.find(x=>x.id===state.club.id)||state.clubs[0]:state.clubs[0];
+ const id=state.club.id;
+ const results=await Promise.all([
+  api('/api/clubs/'+id+'/squad'),api('/api/clubs/'+id+'/lineup'),api('/api/clubs/'+id+'/missions'),api('/api/clubs/'+id+'/fixtures'),api('/api/clubs/'+id+'/league'),api('/api/market')
+ ]);
+ state.squad=results[0].players||[];state.lineup=results[1].lineup;state.missions=results[2].missions||[];state.fixtures=results[3].fixtures||[];state.table=results[4].table||[];state.market=results[5].players||[];
+ render();
+}
+async function uploadCrest(file){
+ if(!file)return null;
+ if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024)throw new Error('Choose a PNG, JPG or WEBP image under 2 MB.');
+ const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('Could not read crest image'));reader.readAsDataURL(file);});
+ return (await api('/api/uploads/crest',{method:'POST',body:{dataUrl}})).crestUrl;
+}
+function bestXI(){
+ const remaining=state.squad.slice(),chosen=[];
+ const requirements=[['GK',1],['CB',2],['LB',1],['RB',1],['DM',1],['CM',2],['LW',1],['RW',1],['ST',1]];
+ for(const [position,count] of requirements)for(let i=0;i<count;i++){remaining.sort((a,b)=>b.overall-a.overall);const ix=remaining.findIndex(p=>p.position===position);if(ix>=0)chosen.push(remaining.splice(ix,1)[0]);}
+ remaining.sort((a,b)=>b.overall-a.overall);
+ while(chosen.length<11&&remaining.length)chosen.push(remaining.shift());
+ return {starters:chosen.map(p=>p.id),substitutes:remaining.slice(0,7).map(p=>p.id),formation:'4-3-3'};
+}
+root.addEventListener('click',async e=>{
+ const tab=e.target.closest('[data-tab]');if(tab){state.tab=tab.dataset.tab;render();return;}
+ const b=e.target.closest('[data-action]');if(!b)return;
+ try{
+  const action=b.dataset.action;
+  if(action==='new-club'){state.club=null;render();return;}
+  if(action==='auto-lineup'){const lineup=bestXI();await api('/api/clubs/'+state.club.id+'/lineup',{method:'POST',body:lineup});toast('Starting XI saved');await loadAll();return;}
+  if(action==='upgrade'){await api('/api/clubs/'+state.club.id+'/players/upgrade',{method:'POST',body:{playerId:b.dataset.player,attribute:b.dataset.attr,levels:1}});toast('Player upgraded');await loadAll();return;}
+  if(action==='sell'){if(!confirm('Sell this player for 80% of market value?'))return;await api('/api/clubs/'+state.club.id+'/players/sell',{method:'POST',body:{playerId:b.dataset.player}});toast('Player sold');await loadAll();return;}
+  if(action==='sign'){await api('/api/clubs/'+state.club.id+'/players/sign',{method:'POST',body:{playerId:b.dataset.player}});toast('Player signed');await loadAll();return;}
+  if(action==='play'){b.disabled=true;const result=await api('/api/fixtures/'+b.dataset.fixture+'/play',{method:'POST',body:{}});const f=result.fixture;state.lastMatch={home_name:state.fixtures.find(x=>x.id===f.id)?.home_name,away_name:state.fixtures.find(x=>x.id===f.id)?.away_name,home_goals:f.home_goals,away_goals:f.away_goals,events:f.events||result.simulation?.events||[]};toast('Match completed: '+f.home_goals+' — '+f.away_goals);await loadAll();state.tab='fixtures';render();return;}
+ }catch(err){toast(err.message||'Action failed');b.disabled=false;}
+});
+root.addEventListener('submit',async e=>{
+ if(e.target.id!=='club-form')return;e.preventDefault();
+ const form=e.target,data=new FormData(form),button=form.querySelector('button[type=submit]');button.disabled=true;
+ try{
+  const file=$('#crest-file')?.files?.[0],crestUrl=file?await uploadCrest(file):null;
+  const result=await api('/api/clubs',{method:'POST',body:{name:data.get('name'),shortName:data.get('shortName'),primaryColour:data.get('primaryColour'),secondaryColour:data.get('secondaryColour'),crestUrl}});
+  state.club=result.club;state.tab='overview';toast('Club created');await loadAll();
+ }catch(err){toast(err.message||'Could not create club');button.disabled=false;}
+});
+async function boot(){
+ try{
+  const tg=window.Telegram&&window.Telegram.WebApp;
+  if(tg&&tg.initData){tg.ready();tg.expand();const login=await api('/api/auth/telegram',{method:'POST',body:{initData:tg.initData}});state.token=login.token;state.user=login.user;}
+  else if(!cfg.devUserId){root.innerHTML='<div class="shell"><header class="top"><div class="brand"><span class="mark">Z</span><span>ZAMIN FK</span></div><span class="tag">ISOLATED BUILD</span></header><section class="panel create"><h1>Game client ready</h1><p class="sub">Open this client inside the configured Telegram Mini App, or set a local development user ID in config.js and enable development authentication on the isolated server.</p><div class="notice">This client is not connected to the live ZAMIN FK Mini App or production database.</div></section></div>';return;}
+  await loadAll();
+ }catch(err){root.innerHTML='<div class="shell"><section class="panel create"><h1>Connection unavailable</h1><p class="sub">'+esc(err.message)+'</p><p class="sub">Check the isolated game server URL, database migration and authentication settings.</p></section></div>';}
+}
+boot();
+})();
