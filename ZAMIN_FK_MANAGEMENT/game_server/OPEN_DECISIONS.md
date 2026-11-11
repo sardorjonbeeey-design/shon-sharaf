@@ -11,7 +11,9 @@ The software foundation is prepared, but these game-design and activation choice
 - DP awarded per match and mission reward values.
 - Whether wages, stadium expenses or other recurring club costs belong in the first release.
 
-- Whether one user may own one club only or multiple clubs. The prototype currently permits multiple clubs, so this must be decided before a public league to prevent one owner filling multiple league places.\n\n## Competition
+- Whether one user may own one club only or multiple clubs. The prototype currently permits multiple clubs, so this must be decided before a public league to prevent one owner filling multiple league places.
+
+## Competition
 - Confirm the provisional 10-club single round-robin league.
 - Decide how clubs created after the first league begins should join: next season or a later league.
 - Decide season length, tie-breakers and season reset/reward rules.
