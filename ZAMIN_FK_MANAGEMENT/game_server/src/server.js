@@ -109,10 +109,10 @@ async function playFixture(fixtureId,userId){
   if(home.owner_user_id!==userId&&away.owner_user_id!==userId)throw new HttpError(403,'You do not manage either club in this fixture');
   if(f.status==='played')return {alreadyPlayed:true,fixture:f};
   const [hl,al]=await Promise.all([
-   client.query('SELECT p.* FROM lineups l CROSS JOIN LATERAL unnest(l.starters) WITH ORDINALITY s(id,ord) JOIN players p ON p.id=s.id WHERE l.club_id=$1 ORDER BY s.ord',[home.id]),
+   client.query('SELECT p.*,l.formation FROM lineups l CROSS JOIN LATERAL unnest(l.starters) WITH ORDINALITY s(id,ord) JOIN players p ON p.id=s.id WHERE l.club_id=$1 ORDER BY s.ord',[home.id]),
    client.query('SELECT p.* FROM lineups l CROSS JOIN LATERAL unnest(l.starters) WITH ORDINALITY s(id,ord) JOIN players p ON p.id=s.id WHERE l.club_id=$1 ORDER BY s.ord',[away.id])
   ]);
-  const result=simulateMatch(hl.rows,al.rows);
+  const result=simulateMatch(hl.rows,al.rows,{homeFormation:hl.rows[0]?.formation||'4-3-3',awayFormation:al.rows[0]?.formation||'4-3-3'});
   const played=await client.query("UPDATE fixtures SET status='played',home_goals=$2,away_goals=$3,events=$4::jsonb,played_at=NOW() WHERE id=$1 AND status='scheduled' RETURNING *",[fixtureId,result.homeGoals,result.awayGoals,JSON.stringify(result.events)]);
   if(!played.rowCount)throw new HttpError(409,'Fixture was already settled');
   for(const [clubId,gf,ga] of [[home.id,result.homeGoals,result.awayGoals],[away.id,result.awayGoals,result.homeGoals]]){
