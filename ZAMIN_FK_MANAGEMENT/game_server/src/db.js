@@ -16,3 +16,8 @@ export async function inTransaction(fn) {
  catch (error) { await client.query('ROLLBACK'); throw error; }
  finally { client.release(); }
 }
+
+export async function assertIsolatedDatabase(clientOrPool) {
+ const result=await clientOrPool.query('SELECT current_database() AS database_name');
+ if(result.rows[0]?.database_name!==config.expectedDatabaseName) throw new Error('Refusing database connection: expected isolated database '+config.expectedDatabaseName);
+}
