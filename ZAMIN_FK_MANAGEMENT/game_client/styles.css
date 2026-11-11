@@ -20,3 +20,10 @@
 @media(max-width:700px){.pitch{height:160px}.event-list{grid-template-columns:1fr}}
 
 .top-right{display:flex;align-items:center;gap:9px}.top-right select{max-width:210px;background:#182820;border:1px solid #3c5949;border-radius:9px;padding:8px;color:#e7f0e9;font-size:10px}
+
+.mini-crest{width:27px;height:30px;flex:none;display:inline-grid;place-items:center;clip-path:polygon(8% 0,92% 0,88% 72%,50% 100%,12% 72%);background:var(--accent);color:#fff;font:8px 'DM Mono',monospace;overflow:hidden;vertical-align:middle}
+.mini-crest img{width:100%;height:100%;object-fit:cover}
+.club-context{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;color:#d6e4da;max-width:210px;overflow:hidden}
+.club-context span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fixture-teams{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.fixture-teams strong{font-size:10px}
