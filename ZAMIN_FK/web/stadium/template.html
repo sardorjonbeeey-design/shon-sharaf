@@ -83,6 +83,25 @@
   #cbody input, #cbody textarea, #cbody select { width:100%; font:inherit; font-weight:700; font-size:14px; color:#fff; background:rgba(0,0,0,.3); border:2px solid rgba(255,255,255,.2); border-radius:12px; padding:10px; margin:6px 0; }
   .kinds { display:flex; flex-wrap:wrap; gap:6px; } .kinds button { font:inherit; font-size:12px; font-weight:700; color:#fff; background:rgba(255,255,255,.1); border:2px solid transparent; border-radius:10px; padding:7px 9px; } .kinds button.on { border-color:var(--yel); }
   .adm { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; } .adm input { margin:0 !important; }
+  .lu { border-radius:22px; padding:14px 10px 12px; background:linear-gradient(180deg,#12306f,#071230); }
+  .lu-h { padding:0 6px 10px; } .lu-h small { display:block; color:var(--yel); font-weight:900; font-size:12px; letter-spacing:5px; } .lu-h b { font-size:30px; font-weight:900; line-height:1; letter-spacing:-.5px; } .lu-h b i { font-style:normal; color:var(--yel); }
+  .lued { display:flex; gap:6px; align-items:center; min-height:52px; margin-bottom:8px; } .lued input { margin:0 !important; } .lued input.no { width:68px !important; flex:none; text-align:center; } .lued .btn { flex:none; padding:11px 12px; } .lued .btn.on { background:#fff; }
+  .lued small { color:#9DB8FF; font-weight:700; font-size:12px; padding:0 6px; }
+  .pitch { position:relative; aspect-ratio:1/1.14; border:3px solid var(--yel); border-radius:20px; overflow:hidden; background:repeating-linear-gradient(180deg,#1d49b6 0 11.1%,#1a42a8 11.1% 22.2%); }
+  .pitch > i { position:absolute; border:2px solid rgba(255,255,255,.3); }
+  .pitch > i.mid { left:0; right:0; top:50%; border-width:2px 0 0; } .pitch > i.cir { left:40%; width:20%; aspect-ratio:1; top:50%; transform:translateY(-50%); border-radius:50%; }
+  .pitch > i.bx { left:25%; width:50%; height:17%; } .pitch > i.sm { left:38%; width:24%; height:7%; } .pitch > i.t { top:-2px; } .pitch > i.b { bottom:-2px; }
+  .pl { position:absolute; transform:translate(-50%,-50%); width:31%; padding:0; border:0; background:none; font:inherit; color:inherit; text-align:center; }
+  .pl svg { display:block; width:46px; margin:0 auto; filter:drop-shadow(0 3px 4px rgba(0,0,0,.4)); }
+  .pl .nm { position:relative; display:inline-block; max-width:100%; margin-top:-3px; background:#fff; color:var(--navy); font-weight:900; font-size:9.5px; line-height:1.15; border-radius:7px; padding:3px 6px; overflow-wrap:break-word; box-shadow:0 2px 5px rgba(0,0,0,.3); }
+  .pl.empty .nm { opacity:.5; } .pl.sel svg { filter:drop-shadow(0 0 7px var(--yel)); } .pl.sel .nm { background:var(--yel); }
+  .bench { margin-top:10px; border:2px solid #fff; border-radius:20px; padding:12px; background:#081433; }
+  .bench h4 { display:flex; align-items:center; gap:10px; margin:0 0 10px; color:var(--yel); font-weight:900; font-size:15px; letter-spacing:4px; } .bench h4::after { content:""; flex:1; height:2px; background:linear-gradient(90deg,var(--yel),transparent); }
+  .bench .rows { display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; }
+  .bn { display:flex; align-items:center; gap:8px; min-width:0; padding:3px; border:0; border-radius:9px; background:none; font:inherit; color:#fff; text-align:left; }
+  .bn .n { flex:none; min-width:30px; background:var(--yel); color:var(--navy); font-weight:900; font-size:13px; border-radius:6px; padding:3px 4px; text-align:center; } .bn .nm { font-weight:700; font-size:13px; overflow-wrap:anywhere; }
+  .bn.sel { background:rgba(255,210,63,.22); outline:2px solid var(--yel); }
+  .luact { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; } .luact .btn { flex:1; }
   .tag.hq { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:10px; padding:3px 7px; } .tag.hq::before { content:""; margin:0; }
   #jpath button, #jkind button { flex:1; font:inherit; font-weight:900; font-size:14px; color:#fff; background:rgba(255,255,255,.1); border:3px solid transparent; border-radius:14px; padding:12px 6px; }
   #jpath button.on, #jkind button.on { border-color:var(--yel); }
@@ -1677,7 +1696,7 @@ canvas.addEventListener("pointerup", e => {
     const s = node && node.userData.squadPlayer;
     if (s) {
       const p = s.p, assigned = p.position || p.applied_position || "—";
-      document.getElementById("ch").textContent = p.name;
+      document.getElementById("ch").textContent = (p.number ? p.number + " · " : "") + p.name;
       document.getElementById("cp").textContent = "Position: " + assigned + (p.applied_position && p.applied_position !== assigned ? " · Applied: " + p.applied_position : "");
       document.getElementById("card").style.display = "block"; return;
     }
@@ -2121,6 +2140,7 @@ async function adminLoad() {
       else A.users = await post("/api/admin/users", { q: CLUB.uf.q, filter: CLUB.uf.filter, sort: CLUB.uf.sort, offset: CLUB.uf.off });
     } else if (CLUB.av === "prof") A.prof = await post("/api/admin/professions", {});
     else if (CLUB.av === "missions") A.mst = await post("/api/admin/missions/status", {});
+    else if (CLUB.av === "lineup") { if (!CLUB.lu || !CLUB.lu.dirty) luSet(await post("/api/admin/squad/lineup", {})); }
     else { const [list, ms, apps] = await Promise.all([post("/api/admin/contributions", {}), post("/api/admin/missions", {}), post("/api/admin/applications", { kind: CLUB.appF.kind, status: CLUB.appF.status, position: CLUB.appF.pos, dept: CLUB.appF.dept })]); A.list = list; A.ms = ms; A.apps = apps; }
   } catch (e) { CLUB.admin = null; }
   clubRender();
@@ -2216,13 +2236,63 @@ function profHtml(rows) {
   h += `<div class="sec">🏙 Shahar ishchilari (${ct.length})</div>` + (ct.map(r => line(r, esc(r.role || ""))).join("") || "<small>—</small>");
   return h;
 }
-const adminNav = () => `<div class="apfilt">${[["inbox", "📥 Kelganlar"], ["users", "👥 Foydalanuvchilar"], ["prof", "👷 Kasblar"], ["missions", "🎯 Missiyalar holati"]].map(([k, l]) => `<button data-a="av" data-v="${k}" class="${CLUB.av === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+// line-up editor: the starting eleven on a drawn pitch + the bench; tap a player to change the name and number, or swap two players
+const LU_XY = { LW: [15, 14], ST: [50, 11], RW: [85, 15], CM: [24, 41], CDM: [50, 35], CAM: [76, 43], LB: [15, 62], CB1: [34, 72], CB2: [66, 72], RB: [85, 62], GK: [50, 91] };
+const luShirt = (n, gk) => `<svg viewBox="0 0 64 60"><path d="M20 4 6 12 1 26l10 5 4-7v32h34V24l4 7 10-5-5-14-14-8Q32 14 20 4Z" fill="${gk ? "#2e9e4f" : "#1F4FB8"}" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M20 4Q32 14 44 4" fill="none" stroke="#FFD23F" stroke-width="3.5" stroke-linecap="round"/><text class="n" x="32" y="42" text-anchor="middle" font-size="23" font-weight="900" fill="#fff">${n == null ? "" : n}</text></svg>`;
+const luCur = () => { const U = CLUB.lu, s = U && U.sel; return s ? (s.t === "s" ? U.starters : U.bench)[s.i] : null; };
+function lineupHtml() {
+  const U = CLUB.lu; if (!U) return `<small>…</small>`;
+  const on = (t, i) => U.sel && U.sel.t === t && U.sel.i === i ? " sel" : "", cur = luCur();
+  return `<div class="lu"><div class="lu-h"><small>ZAMIN FK</small><b>JAMOA <i>TARKIBI</i></b></div>
+    <div class="lued">${cur ? `<input class="no" data-lu="number" type="number" inputmode="numeric" min="1" max="99" placeholder="№" value="${cur.number == null ? "" : cur.number}"><input data-lu="name" maxlength="28" placeholder="Ism" value="${esc(cur.name)}">
+      <button class="btn${U.swap ? " on" : ""}" data-a="luswap" title="Almashtirish">⇄</button>${U.sel.t === "b" ? `<button class="btn red" data-a="ludel">🗑</button>` : ""}`
+      : `<small>O‘yinchini bosing — ism va raqamni o‘zgartiring. ⇄ — ikki o‘yinchini almashtirish.</small>`}</div>
+    ${U.swap ? `<small style="display:block;color:#FFD23F;font-weight:800;margin:-2px 6px 8px">⇄ Kim bilan almashtirilsin? O‘yinchini bosing.</small>` : ""}
+    <div class="pitch"><i class="mid"></i><i class="cir"></i><i class="bx t"></i><i class="sm t"></i><i class="bx b"></i><i class="sm b"></i>
+      ${U.starters.map((p, i) => `<button class="pl${p.name ? "" : " empty"}${on("s", i)}" data-a="lusel" data-t="s" data-i="${i}" style="left:${LU_XY[p.slot][0]}%;top:${LU_XY[p.slot][1]}%">${luShirt(p.number, p.slot === "GK")}<span class="nm">${esc(p.name || p.slot.replace(/\d/, ""))}</span></button>`).join("")}</div>
+    <div class="bench"><h4>ZAXIRA</h4><div class="rows">${U.bench.map((p, i) => `<button class="bn${on("b", i)}" data-a="lusel" data-t="b" data-i="${i}"><span class="n">${p.number == null ? "–" : p.number}</span><span class="nm">${esc(p.name || "—")}</span></button>`).join("")}</div>
+      ${U.bench.length < 14 ? `<div class="luact"><button class="btn blue" data-a="luadd">＋ Zaxira qo‘shish</button></div>` : ""}</div>
+    <div class="luact"><button class="btn green" data-a="lusave">💾 Saqlash${U.dirty ? " •" : ""}</button>${U.source === "manual" ? `<button class="btn red" data-a="lureset">↺ Avto tarkib</button>` : ""}</div>
+    <small style="display:block;margin:8px 6px 0;color:#9DB8FF;font-weight:700;font-size:11px">${U.source === "manual" ? "✏️ Qo‘lda tahrirlangan tarkib maydonda ko‘rsatilmoqda." : "Avto tarkib ko‘rsatilmoqda. Saqlasangiz — shu tarkib maydonga chiqadi."}</small></div>`;
+}
+const luSet = d => { CLUB.lu = { starters: d.starters, bench: d.bench, source: d.source, sel: null, swap: false, dirty: false }; };
+function luAct(a, b) {                                     // local edits; returns true when handled
+  const U = CLUB.lu; if (!U) return false;
+  if (a === "lusel") {
+    const t = b.dataset.t, i = +b.dataset.i, same = U.sel && U.sel.t === t && U.sel.i === i;
+    if (U.swap && U.sel && !same) { const x = luCur(), y = (t === "s" ? U.starters : U.bench)[i], n = [x.name, x.number]; x.name = y.name; x.number = y.number; y.name = n[0]; y.number = n[1]; U.swap = false; U.dirty = true; U.sel = { t, i }; haptic("ok"); }
+    else { U.sel = same ? null : { t, i }; U.swap = false; }
+  }
+  else if (a === "luswap") U.swap = !U.swap;
+  else if (a === "luadd") { if (U.bench.length < 14) { U.bench.push({ name: "", number: null }); U.sel = { t: "b", i: U.bench.length - 1 }; U.swap = false; U.dirty = true; } }
+  else if (a === "ludel") { if (U.sel && U.sel.t === "b") { U.bench.splice(U.sel.i, 1); U.sel = null; U.swap = false; U.dirty = true; } }
+  else return false;
+  return true;
+}
+function luInput(el) {                                     // typing updates the draft and the shirt in place (no re-render, so the keyboard stays open)
+  const U = CLUB.lu, cur = luCur(); if (!cur) return;
+  if (el.dataset.lu === "name") cur.name = el.value; else { const n = parseInt(el.value, 10); cur.number = n >= 1 && n <= 99 ? n : null; }
+  U.dirty = true;
+  const node = cbody.querySelector(".pl.sel, .bn.sel"); if (!node) return;
+  node.querySelector(".n").textContent = cur.number == null ? (U.sel.t === "b" ? "–" : "") : cur.number;
+  node.querySelector(".nm").textContent = cur.name || (U.sel.t === "s" ? cur.slot.replace(/\d/, "") : "—");
+  node.classList.toggle("empty", U.sel.t === "s" && !cur.name);
+}
+async function luSave() {
+  const U = CLUB.lu, all = [...U.starters, ...U.bench].filter(p => p.name.trim()), nums = all.map(p => p.number).filter(n => n != null);
+  const dup = nums.find((n, i) => nums.indexOf(n) !== i);
+  if (dup != null) { haptic("bad"); say("⚠️ " + dup + "-raqam ikki marta ishlatilgan"); return; }
+  try { luSet(await post("/api/admin/squad/lineup/save", { starters: U.starters, bench: U.bench.filter(p => p.name.trim()) })); haptic("ok"); say("✅ Tarkib saqlandi"); loadSquad(); }
+  catch (e) { haptic("bad"); say(({ "duplicate number": "⚠️ Raqam takrorlangan", "invalid number": "⚠️ Raqam 1–99 bo‘lishi kerak", "bench too long": "⚠️ Zaxira 14 tadan oshmasin" })[e.message] || T[L].err); }
+}
+const adminNav = () => `<div class="apfilt">${[["inbox", "📥 Kelganlar"], ["users", "👥 Foydalanuvchilar"], ["prof", "👷 Kasblar"], ["missions", "🎯 Missiyalar holati"], ["lineup", "⚽ Tarkib"]].map(([k, l]) => `<button data-a="av" data-v="${k}" class="${CLUB.av === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
 
 function adminHtml(me, m, club) {
   const a = CLUB.admin; if (!a) return `<small>…</small>`;
   if (CLUB.av === "users") return adminNav() + usersHtml();
   if (CLUB.av === "missions") return adminNav() + missionStatusHtml();
   if (CLUB.av === "prof") return adminNav() + profHtml(a.prof);
+  if (CLUB.av === "lineup") return adminNav() + lineupHtml();
   if (!a.apps) return adminNav() + `<small>…</small>`;
   return adminNav() + appsHtml(a.apps) + `<div class="sec">${PT.uz.admPending} (${a.list.length})</div>${a.list.map(c => `<div class="item"><div class="hd"><b>${esc(c.kind)}</b><span class="chip">${esc(c.dept)}</span></div>
       <small>${esc(c.nick)} · ZFK-${String(c.member_no).padStart(5, "0")}</small><p style="margin:6px 0;font-size:13px">${esc(c.body)}</p>${c.link ? `<small>🔗 <a style="color:#FFD23F" href="${esc(c.link)}" target="_blank" rel="noopener">${esc(c.link)}</a></small>` : ""}
@@ -2253,6 +2323,9 @@ function clubBind() {
       else if (a === "donate") { const d = await post("/api/club/donate", { amount: +b.dataset.n }); haptic("ok"); say(PT.uz.donated(b.dataset.n, d.xp)); await fetchMe(); await clubLoad(); }
       else if (a === "decide") { const id = b.dataset.id; await post("/api/admin/contribution/decide", { id: +id, approve: !!b.dataset.ok, xp: +v("ax" + id).value, influence: +v("ai" + id).value, funds: +v("af" + id).value, note: v("an" + id).value }); await adminLoad(); return; }
       else if (a === "msave") { const id = b.dataset.id, k = s => v(s + id); await post("/api/admin/mission/save", { id: id === "new" ? undefined : +id, title: k("mt").value, period: k("mp").value, action: k("ma").value, target: +k("mg").value, xp: +k("mx").value, active: id === "new" ? true : k("mo").checked }); say("✅"); await adminLoad(); return; }
+      else if (luAct(a, b)) {}
+      else if (a === "lusave") await luSave();
+      else if (a === "lureset") { if (!confirm("Qo‘lda kiritilgan tarkib o‘chirilsinmi?")) return; luSet(await post("/api/admin/squad/lineup/reset", {})); say("↺"); loadSquad(); }
       else if (a === "av") { CLUB.av = b.dataset.v; CLUB.ud = null; await adminLoad(); return; }
       else if (a === "uf") { CLUB.uf[b.dataset.k] = b.dataset.v; CLUB.uf.off = 0; await adminLoad(); return; }
       else if (a === "usearch") { CLUB.uf.q = v("uq").value; CLUB.uf.off = 0; await adminLoad(); return; }
@@ -2275,6 +2348,7 @@ function clubBind() {
       clubRender();
     } catch (e) { cErr(e); }
   });
+  cbody.querySelectorAll("[data-lu]").forEach(i => i.oninput = () => luInput(i));
 }
 if (TG) clubLoad();
 

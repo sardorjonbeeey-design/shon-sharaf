@@ -196,3 +196,44 @@ test("remaining reserve places are assigned by descending XP", () => {
   const result = buildSquadProposal(rows);
   assert.deepEqual(result.reserves.map(p => p.name), ["Reserve higher", "Reserve lower"]);
 });
+
+// ---------- manual line-up (Mini App admin panel) ----------
+const { normalizeLineup, lineupFromRoster, lineupFeed, LINEUP_SLOTS } = require("./club");
+const fullLineup = () => ({
+  starters: LINEUP_SLOTS.map((slot, i) => ({ slot, name: "Starter " + slot, number: i + 1 })),
+  bench: [{ name: "Sub One", number: 30 }, { name: "  ", number: 31 }, { name: "Sub Two", number: "" }]
+});
+
+test("manual line-up keeps eleven slots in order and drops empty bench rows", () => {
+  const input = fullLineup(); input.starters.reverse();
+  const out = normalizeLineup(input);
+  assert.deepEqual(out.starters.map(p => p.slot), LINEUP_SLOTS);
+  assert.deepEqual(out.bench, [{ name: "Sub One", number: 30 }, { name: "Sub Two", number: null }]);
+});
+
+test("manual line-up rejects duplicate or out-of-range shirt numbers and unknown slots", () => {
+  const dup = fullLineup(); dup.bench[0].number = 1;
+  assert.throws(() => normalizeLineup(dup), /duplicate number/);
+  const range = fullLineup(); range.starters[0].number = 100;
+  assert.throws(() => normalizeLineup(range), /invalid number/);
+  const slot = fullLineup(); slot.starters[0].slot = "XX";
+  assert.throws(() => normalizeLineup(slot), /invalid slot/);
+  assert.throws(() => normalizeLineup({ starters: [] }), /invalid lineup/);
+});
+
+test("manual line-up feed places both centre-backs and marks the bench as substitutes", () => {
+  const feed = lineupFeed(normalizeLineup(fullLineup()));
+  const starters = feed.filter(p => p.squad_role === "starter");
+  assert.equal(starters.length, 11);
+  assert.deepEqual(starters.filter(p => p.position === "CB").map(p => p.position_rank), [2, 3]);
+  assert.equal(starters[0].number, 1);
+  assert.deepEqual(feed.filter(p => p.squad_role === "substitute").map(p => p.name), ["Sub One", "Sub Two"]);
+});
+
+test("an approved snapshot maps onto the line-up slots", () => {
+  const proposal = buildSquadProposal(players());
+  const lineup = lineupFromRoster(proposal.active);
+  assert.equal(lineup.starters.filter(p => p.name).length, 11);
+  assert.equal(lineup.bench.length, 11);
+  assert.doesNotThrow(() => normalizeLineup(lineup));
+});

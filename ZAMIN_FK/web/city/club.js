@@ -161,6 +161,67 @@ const SQUAD_STADIUM_POSITIONS = Object.freeze({
   FWD: new Set(["LW", "ST", "RW"]),
 });
 
+// Manual line-up edited in the Mini App admin panel: 11 fixed 4-3-3 slots plus a bench.
+// It overrides the approved snapshot on the pitch until an admin resets it.
+const LINEUP_SLOTS = Object.freeze(["GK", "LB", "CB1", "CB2", "RB", "CM", "CDM", "CAM", "LW", "ST", "RW"]);
+const LINEUP_BENCH_LIMIT = 14;
+const lineupPosition = slot => slot === "CB1" || slot === "CB2" ? "CB" : slot;
+const lineupRank = slot => slot === "CB2" ? 3 : slot === "CB1" ? 2 : 1;
+
+// Pure: cleans admin input. Returns { starters, bench } or throws Error with .status = 400.
+function normalizeLineup(input) {
+  const bad = message => Object.assign(new Error(message), { status: 400 });
+  if (!input || typeof input !== "object" || !Array.isArray(input.starters) || !Array.isArray(input.bench)) throw bad("invalid lineup");
+  const used = new Set();
+  const clean = raw => {
+    const name = String(raw && raw.name != null ? raw.name : "").replace(/\s+/g, " ").trim().slice(0, 28);
+    const text = raw && raw.number != null ? String(raw.number).trim() : "";
+    let number = null;
+    if (text !== "") {
+      number = Number(text);
+      if (!Number.isInteger(number) || number < 1 || number > 99) throw bad("invalid number");
+      if (!name) number = null;
+      else { if (used.has(number)) throw bad("duplicate number"); used.add(number); }
+    }
+    return { name, number };
+  };
+  const bySlot = new Map();
+  for (const raw of input.starters) {
+    const slot = String(raw && raw.slot || "");
+    if (!LINEUP_SLOTS.includes(slot) || bySlot.has(slot)) throw bad("invalid slot");
+    bySlot.set(slot, raw);
+  }
+  const starters = LINEUP_SLOTS.map(slot => ({ slot, ...clean(bySlot.get(slot)) }));
+  const bench = input.bench.map(clean).filter(p => p.name);
+  if (bench.length > LINEUP_BENCH_LIMIT) throw bad("bench too long");
+  return { starters, bench };
+}
+
+// Pure: the line-up an approved snapshot (or the legacy accepted-player list) implies, used until an admin saves a manual one.
+function lineupFromRoster(active = []) {
+  const taken = new Map(), bench = [];
+  for (const p of Array.isArray(active) ? active : []) {
+    const name = String(p && p.name || "").trim().slice(0, 28); if (!name) continue;
+    const pos = String(p.stadium_position || p.position || "");
+    let slot = p.squad_role === "starter" ? (pos === "CB" ? (Number(p.position_rank) >= 3 ? "CB2" : "CB1") : pos) : "";
+    if (slot === "CB1" && taken.has("CB1") && !taken.has("CB2")) slot = "CB2";
+    if (LINEUP_SLOTS.includes(slot) && !taken.has(slot)) taken.set(slot, name);
+    else if (bench.length < LINEUP_BENCH_LIMIT) bench.push({ name, number: null });
+  }
+  return { starters: LINEUP_SLOTS.map(slot => ({ slot, name: taken.get(slot) || "", number: null })), bench };
+}
+
+// Pure: line-up -> the player rows the stadium feed serves.
+function lineupFeed(lineup) {
+  const starters = lineup.starters.filter(p => p.name).map((p, i) => ({
+    id: null, kind: "player", name: p.name, number: p.number, position: lineupPosition(p.slot), applied_position: null,
+    squad_role: "starter", squad_order: i + 1, position_rank: lineupRank(p.slot), assigned_group: null, reassigned: false }));
+  const bench = lineup.bench.map((p, i) => ({
+    id: null, kind: "player", name: p.name, number: p.number, position: null, applied_position: null,
+    squad_role: "substitute", squad_order: starters.length + i + 1, position_rank: null, assigned_group: null, reassigned: false }));
+  return [...starters, ...bench];
+}
+
 // Validate the exact snapshot before it can replace the currently approved roster.
 function validateSquadSnapshot(payload) {
   if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves)) return false;
@@ -245,6 +306,12 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       payload jsonb not null,
       approved_by bigint not null,
       approved_at timestamptz not null default now()
+    );
+    create table if not exists squad_lineup (
+      id int primary key default 1 check (id = 1),
+      payload jsonb not null,
+      updated_by bigint not null,
+      updated_at timestamptz not null default now()
     );
   `)).then(async () => {
     for (const [i, [id, emoji, name, desc]] of DEPTS.entries())
@@ -798,6 +865,29 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     return (await db.query("select id, tg_id, username, message, status, created_at from feedback order by id desc limit 200")).rows;
   }, true);
 
+  // Manual line-up (Mini App admin panel): names, shirt numbers and who starts.
+  const parseJson = v => typeof v === "string" ? JSON.parse(v) : v;
+  async function getLineup() {
+    await ready;
+    const manual = await one(db, "select payload, updated_at from squad_lineup where id = 1");
+    if (manual) return { source: "manual", updated_at: manual.updated_at, ...normalizeLineup(parseJson(manual.payload)) };
+    const approved = await one(db, "select payload from squad_approved_roster where id = 1");
+    if (approved) { const payload = parseJson(approved.payload); return { source: "approved", ...lineupFromRoster(payload && payload.active) }; }
+    const legacy = (await db.query(`select coalesce(nullif(a.name,''), m.nick, a.nick) as name
+      from applications a left join members m on m.tg_id = a.tg_id
+      where a.status = 'accepted' and a.kind = 'player' order by a.decided_at, a.id`)).rows;
+    return { source: "legacy", ...lineupFromRoster(legacy) };
+  }
+  route("/api/admin/squad/lineup", async () => getLineup(), true);
+  route("/api/admin/squad/lineup/save", async (user, body) => {
+    await ready;
+    const lineup = normalizeLineup(body);
+    await db.query(`insert into squad_lineup (id, payload, updated_by, updated_at) values (1, $1::jsonb, $2, now())
+      on conflict (id) do update set payload = excluded.payload, updated_by = excluded.updated_by, updated_at = now()`, [JSON.stringify(lineup), String(user.id)]);
+    return getLineup();
+  }, true);
+  route("/api/admin/squad/lineup/reset", async () => { await ready; await db.query("delete from squad_lineup where id = 1"); return getLineup(); }, true);
+
   // Admin squad API delegates to methods also used by the Telegram admin panel.
   route("/api/admin/squad/proposal", async user => createSquadProposal(user), true);
   route("/api/admin/squad/status", async () => getSquadStatus(), true);
@@ -808,9 +898,11 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     res.set("Access-Control-Allow-Origin", "*");
     try {
       await ready;
-      const approved = await one(db, "select payload from squad_approved_roster where id = 1");
+      const manual = await one(db, "select payload from squad_lineup where id = 1");
+      const approved = manual ? null : await one(db, "select payload from squad_approved_roster where id = 1");
       let players;
-      if (approved) {
+      if (manual) players = lineupFeed(normalizeLineup(parseJson(manual.payload)));
+      else if (approved) {
         const payload = typeof approved.payload === "string" ? JSON.parse(approved.payload) : approved.payload;
         players = (Array.isArray(payload && payload.active) ? payload.active : []).map(p => ({
           id: p.application_id || null,
@@ -846,4 +938,4 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId, createSquadProposal, getSquadStatus, decideSquadProposal };
 }
 
-module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, validateSquadSnapshot, SQUAD_GROUPS };
+module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, validateSquadSnapshot, SQUAD_GROUPS, normalizeLineup, lineupFromRoster, lineupFeed, LINEUP_SLOTS };
