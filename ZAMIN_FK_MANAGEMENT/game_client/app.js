@@ -1,7 +1,7 @@
 (() => {
 const root=document.getElementById('app');
 const cfg=window.ZAMIN_GAME_CONFIG||{};
-const state={token:null,user:null,clubs:[],club:null,squad:[],market:[],lineup:null,missions:[],fixtures:[],table:[],tab:'overview',crestData:'',lastMatch:null};
+const state={token:null,user:null,clubs:[],club:null,squad:[],market:[],lineup:null,lineupDraft:[],missions:[],fixtures:[],table:[],tab:'overview',crestData:'',lastMatch:null};
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=(v)=>new Intl.NumberFormat('en-US').format(Number(v||0))+' UZS';
 const $=(s)=>root.querySelector(s);
@@ -33,10 +33,10 @@ function overview(){
 function squadPage(){
  const c=state.club;
  const players=state.squad;
- const starterIds=(state.lineup&&state.lineup.starters)||[];
+ const starterIds=state.lineupDraft.length?state.lineupDraft:((state.lineup&&state.lineup.starters)||[]);
  const cards=players.map(p=>'<article class="player"><div class="player-top"><span class="pill">'+esc(p.quality)+'</span><span class="rating">'+esc(p.overall)+'</span></div><h3>'+esc(p.full_name)+'</h3><div class="meta">'+esc(p.position)+' · '+esc(p.age)+' yrs · Potential '+esc(p.potential)+'</div><div class="bars">'+['pace','shooting','passing','defending','physical','dribbling'].map(k=>'<div><div class="attr">'+k.slice(0,3).toUpperCase()+' '+esc(p.attributes[k])+'</div><div class="bar"><i style="width:'+Math.min(100,Number(p.attributes[k]))+'%"></i></div></div>').join('')+'</div><div class="meta">'+(starterIds.includes(p.id)?'STARTING XI':'SQUAD')+' · Value '+money(p.market_value_uzs)+'</div><div class="actions">'+['pace','shooting','passing','dribbling','defending','physical'].map(k=>'<button class="btn secondary" data-action="upgrade" data-player="'+p.id+'" data-attr="'+k+'">+'+k.slice(0,3)+'</button>').join('')+'<button class="btn danger" data-action="sell" data-player="'+p.id+'">Sell</button></div></article>').join('');
  return pageHead('THE SQUAD','Build your team','Upgrade attributes with Development Points. Potential limits each attribute.')+
- '<section class="panel"><div class="row"><div><h2>Lineup</h2><p>Current formation: '+esc(state.lineup?.formation||'4-3-3')+'</p></div><button class="btn" data-action="auto-lineup">Auto-pick XI</button></div><p class="sub">The strongest available players are selected while keeping the default formation structure.</p></section>'+
+ '<section class="panel"><div class="row"><div><h2>Lineup · '+starterIds.length+'/11 selected</h2><p>Choose your Starting XI and formation.</p></div><button class="btn" data-action="auto-lineup">Auto-pick XI</button></div><div class="field"><label>FORMATION</label><select id="formation-select">'+['4-3-3','4-4-2','4-2-3-1','3-5-2','4-1-4-1'].map(x=>'<option '+((state.lineup?.formation||'4-3-3')===x?'selected':'')+'>'+x+'</option>').join('')+'</select></div><p class="sub">Tap Add to XI or Remove XI on player cards. The lineup saves automatically when 11 players are selected.</p></section>'+
  '<div class="row" style="margin:18px 0 10px"><div class="eyebrow">REGISTERED PLAYERS · '+players.length+'</div><div class="meta">Upgrade cost increases with attribute level</div></div><div class="players">'+(cards||'<div class="empty">No players in the squad yet.</div>')+'</div>';
 }
 function marketPage(){
@@ -82,7 +82,7 @@ async function loadAll(){
  const results=await Promise.all([
   api('/api/clubs/'+id+'/squad'),api('/api/clubs/'+id+'/lineup'),api('/api/clubs/'+id+'/missions'),api('/api/clubs/'+id+'/fixtures'),api('/api/clubs/'+id+'/league'),api('/api/market')
  ]);
- state.squad=results[0].players||[];state.lineup=results[1].lineup;state.missions=results[2].missions||[];state.fixtures=results[3].fixtures||[];state.table=results[4].table||[];state.market=results[5].players||[];
+ state.squad=results[0].players||[];state.lineup=results[1].lineup;state.lineupDraft=state.lineup?.starters?.slice()||[];state.missions=results[2].missions||[];state.fixtures=results[3].fixtures||[];state.table=results[4].table||[];state.market=results[5].players||[];
  render();
 }
 async function uploadCrest(file){
@@ -91,13 +91,13 @@ async function uploadCrest(file){
  const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('Could not read crest image'));reader.readAsDataURL(file);});
  return (await api('/api/uploads/crest',{method:'POST',body:{dataUrl}})).crestUrl;
 }
-function bestXI(){
+function bestXI(formation='4-3-3'){
  const remaining=state.squad.slice(),chosen=[];
  const requirements=[['GK',1],['CB',2],['LB',1],['RB',1],['DM',1],['CM',2],['LW',1],['RW',1],['ST',1]];
  for(const [position,count] of requirements)for(let i=0;i<count;i++){remaining.sort((a,b)=>b.overall-a.overall);const ix=remaining.findIndex(p=>p.position===position);if(ix>=0)chosen.push(remaining.splice(ix,1)[0]);}
  remaining.sort((a,b)=>b.overall-a.overall);
  while(chosen.length<11&&remaining.length)chosen.push(remaining.shift());
- return {starters:chosen.map(p=>p.id),substitutes:remaining.slice(0,7).map(p=>p.id),formation:'4-3-3'};
+ return {starters:chosen.map(p=>p.id),substitutes:remaining.slice(0,7).map(p=>p.id),formation};
 }
 root.addEventListener('click',async e=>{
  const tab=e.target.closest('[data-tab]');if(tab){state.tab=tab.dataset.tab;render();return;}
@@ -106,7 +106,8 @@ root.addEventListener('click',async e=>{
   const action=b.dataset.action;
   if(action==='new-club'){state.club=null;render();return;}
   if(action==='edit-identity'){state.tab='identity';render();return;}
-  if(action==='auto-lineup'){const lineup=bestXI();await api('/api/clubs/'+state.club.id+'/lineup',{method:'POST',body:lineup});toast('Starting XI saved');await loadAll();return;}
+  if(action==='toggle-starter'){const id=b.dataset.player,draft=state.lineupDraft.slice(),index=draft.indexOf(id);if(index>=0)draft.splice(index,1);else{if(draft.length>=11)throw new Error('Your Starting XI already has 11 players. Remove one first.');draft.push(id);}state.lineupDraft=draft;if(draft.length===11){const subs=state.squad.filter(p=>!draft.includes(p.id)).sort((a,b)=>b.overall-a.overall).slice(0,7).map(p=>p.id);await api('/api/clubs/'+state.club.id+'/lineup',{method:'POST',body:{formation:$('#formation-select')?.value||state.lineup?.formation||'4-3-3',starters:draft,substitutes:subs}});toast('Starting XI saved');await loadAll();}else{render();toast(draft.length+' / 11 selected');}return;}
+  if(action==='auto-lineup'){const lineup=bestXI($('#formation-select')?.value||'4-3-3');await api('/api/clubs/'+state.club.id+'/lineup',{method:'POST',body:lineup});toast('Starting XI saved');await loadAll();return;}
   if(action==='upgrade'){await api('/api/clubs/'+state.club.id+'/players/upgrade',{method:'POST',body:{playerId:b.dataset.player,attribute:b.dataset.attr,levels:1}});toast('Player upgraded');await loadAll();return;}
   if(action==='sell'){if(!confirm('Sell this player for 80% of market value?'))return;await api('/api/clubs/'+state.club.id+'/players/sell',{method:'POST',body:{playerId:b.dataset.player}});toast('Player sold');await loadAll();return;}
   if(action==='sign'){await api('/api/clubs/'+state.club.id+'/players/sign',{method:'POST',body:{playerId:b.dataset.player}});toast('Player signed');await loadAll();return;}
