@@ -1,4 +1,7 @@
 import http from 'node:http';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {config} from './config.js';
 import {requireDb,inTransaction} from './db.js';
 import {authenticate,telegramLogin} from './auth.js';
@@ -7,6 +10,10 @@ import {simulateMatch} from './simulation.js';
 import {saveCrest,readCrest} from './uploads.js';
 
 const db=()=>requireDb();
+const clientRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../game_client');
+const staticFiles={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/styles.css':'styles.css','/config.js':'config.js'};
+const staticTypes={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'};
+const pathModule=path;
 const formationPattern=/^(4-3-3|4-4-2|4-2-3-1|3-5-2|4-1-4-1)$/;
 const rateBuckets=new Map();
 function rateLimit(key,limit=60,windowMs=60000){
@@ -122,6 +129,7 @@ async function handle(req,res){
  cors(req,res);
  if(req.method==='OPTIONS'){res.writeHead(204);return res.end();}
  const url=new URL(req.url,'http://localhost'),path=url.pathname;
+ if(req.method==='GET'&&staticFiles[path]){const file=staticFiles[path],bytes=await fs.readFile(path.join(clientRoot,file));res.writeHead(200,{'content-type':staticTypes[pathModule.extname(file)],'cache-control':file==='index.html'?'no-cache':'public,max-age=300','x-content-type-options':'nosniff'});return res.end(bytes);}
  if(req.method==='GET'&&path==='/health')return json(res,200,{ok:true,service:'zamin-fk-game-server'});
  if(req.method==='GET'&&path.startsWith('/uploads/')){const file=await readCrest(path.slice('/uploads/'.length));res.writeHead(200,{'content-type':file.type,'cache-control':'public,max-age=31536000,immutable','x-content-type-options':'nosniff'});return res.end(file.bytes);}
  if(req.method==='POST'&&path==='/api/auth/telegram'){
