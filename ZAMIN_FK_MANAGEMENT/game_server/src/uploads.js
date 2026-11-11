@@ -18,6 +18,8 @@ export async function saveCrest(dataUrl){
  if(!bytes.subarray(0,meta.magic.length).equals(meta.magic))throw new HttpError(400,'Image content does not match its file type');
  if(type==='image/webp'&&bytes.toString('ascii',8,12)!=='WEBP')throw new HttpError(400,'Invalid WEBP image');
  await fs.mkdir(root,{recursive:true});
+ const existing=await fs.readdir(root);let used=0;for(const item of existing){try{used+=(await fs.stat(path.join(root,item))).size;}catch{}}
+ if(used+bytes.length>100*1024*1024)throw new HttpError(507,'Crest storage capacity reached');
  const filename=crypto.randomUUID()+'.'+meta.ext;
  await fs.writeFile(path.join(root,filename),bytes,{flag:'wx',mode:0o644});
  return '/uploads/'+filename;
