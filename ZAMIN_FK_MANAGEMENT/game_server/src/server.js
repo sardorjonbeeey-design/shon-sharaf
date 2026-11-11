@@ -3,7 +3,7 @@ import {config} from './config.js';
 import {requireDb,inTransaction} from './db.js';
 import {authenticate,telegramLogin} from './auth.js';
 import {json,readJson,HttpError,safeString,colour,uuid} from './http.js';
-import {simulateMatch} from './simulation.js';
+import {simulateMatch} from './simulation.js';\nimport {saveCrest,readCrest} from './uploads.js';
 
 const db=()=>requireDb();
 const formationPattern=/^(4-3-3|4-4-2|4-2-3-1|3-5-2|4-1-4-1)$/;
@@ -119,12 +119,12 @@ async function handle(req,res){
  cors(req,res);
  if(req.method==='OPTIONS'){res.writeHead(204);return res.end();}
  const url=new URL(req.url,'http://localhost'),path=url.pathname;
- if(req.method==='GET'&&path==='/health')return json(res,200,{ok:true,service:'zamin-fk-game-server'});
+ if(req.method==='GET'&&path==='/health')return json(res,200,{ok:true,service:'zamin-fk-game-server'});\n if(req.method==='GET'&&path.startsWith('/uploads/')){const file=await readCrest(path.slice('/uploads/'.length));res.writeHead(200,{'content-type':file.type,'cache-control':'public,max-age=31536000,immutable','x-content-type-options':'nosniff'});return res.end(file.bytes);}
  if(req.method==='POST'&&path==='/api/auth/telegram'){
   if(!rateLimit(req.socket.remoteAddress||'unknown',12))throw new HttpError(429,'Too many login attempts');
   const body=await readJson(req);return json(res,200,await telegramLogin(body.initData));
  }
- const user=await authenticate(req);
+ const user=await authenticate(req);\n if(req.method==='POST'&&path==='/api/uploads/crest'){const body=await readJson(req,3_100_000);const crestUrl=await saveCrest(body.dataUrl);return json(res,201,{crestUrl});}
  if(req.method==='GET'&&path==='/api/market'){
   const r=await db().query('SELECT id,full_name,nationality,age,position,quality,overall,potential,market_value_uzs,attributes FROM players WHERE club_id IS NULL ORDER BY overall DESC LIMIT 100');
   return json(res,200,{players:r.rows});
