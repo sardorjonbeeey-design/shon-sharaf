@@ -30,3 +30,9 @@ test('simulation supports a seeded random generator',()=>{
  assert.equal(a.awayGoals,b.awayGoals);
  assert.deepEqual(a.events,b.events);
 });
+
+test('formation fit changes squad strength',()=>{
+ const positions=['GK','CB','CB','LB','RB','DM','CM','CM','LW','RW','ST'];
+ const balanced=positions.map(position=>({position,overall:70,fitness:100}));
+ assert.ok(squadStrength(balanced,'4-3-3')>squadStrength(balanced,'4-4-2'));
+});
