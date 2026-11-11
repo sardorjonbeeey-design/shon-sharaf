@@ -19,3 +19,5 @@
 .event-list div{font-size:9px;color:#bdccc2;background:#22352b;padding:8px;border-radius:8px}
 .event-list span{font-family:'DM Mono',monospace;color:#f0d98b}
 @media(max-width:700px){.pitch{height:160px}.event-list{grid-template-columns:1fr}}
+
+.top-right{display:flex;align-items:center;gap:9px}.top-right select{max-width:210px;background:#182820;border:1px solid #3c5949;border-radius:9px;padding:8px;color:#e7f0e9;font-size:10px}
