@@ -531,7 +531,9 @@ legs.count = arms.count = hands.count = shoes.count = fi * 2;
   const HW = R * ROW_H + 3, DEP = R * ROW_D;                      // existing wall top, bowl depth
   const H1 = HW - 0.8, HM = H1 * 0.52;                            // concourse deck (stays under the LED screen), mid floor
   const DB = 4.8, DF = -(DEP + 0.6), SPAN = DB - DF;              // roof back edge (over the concourse) / front edge (over row 1)
-  const HB = HW + 3.2, RISE = SPAN * 0.14, COS = 1 / Math.hypot(1, 0.14);
+  const UR = 8, URH = 0.62, UD0 = -3.6, UY0 = HW + 0.9, UD1 = UD0 + UR * ROW_D + 0.05;   // upper tier: rows, rise per row, front edge, first-row floor, back wall
+  const UTOP = UY0 + (UR - 1) * URH, uUnder = d => UY0 - 0.5 + (d - UD0) * URH / ROW_D;  // top-row floor, underside of the tier slab
+  const HB = UTOP + 3.4, RISE = SPAN * 0.14, COS = 1 / Math.hypot(1, 0.14);
   const roofY = d => HB + (DB - d) / SPAN * RISE;                 // roof skin; rises gently towards the pitch
   const RAF0 = DB - 0.25, RAF1 = DF + 0.3;                        // rafter ends
   const rafBot = d => roofY(d) - 0.25 - (1.05 - 0.75 * (RAF0 - d) / (RAF0 - RAF1)) / COS;   // underside of the tapered rafter
@@ -585,6 +587,15 @@ legs.count = arms.count = hands.count = shoes.count = fi * 2;
   sweep(O, box(3.9, 4.55, HM - 0.3, HM + 0.2), [0xd9dce0, 0xe4e7eb, 0xd9dce0, CONC]);
   sweep(GL, [[4.12, HM + 0.2], [4.12, H1 - 0.7]], 0xffffff, 0, len, false);
   sweep(O, [[0.4, H1], [3.9, H1 - 0.7], [4.75, H1 - 0.7], [4.75, H1 + 0.5], [4.5, H1 + 0.5], [4.5, H1]], [CONC2, CONC, BLUE, 0xf4f6f9, NAVY, 0x8d9299]);
+  // --- upper tier (stops either side of the LED screen): stepped terrace, soffit, balcony front, back wall with a glazed ribbon
+  { const st = [[UD1, UTOP]];
+    for (let k = UR - 1; k >= 0; k--) { const f = UD0 + k * ROW_D; st.push([f, UY0 + k * URH]); if (k) st.push([f, UY0 + (k - 1) * URH]); }
+    sweep(O, st, [0xeef1f6, 0xdde1e7], sA, sB, false); }
+  sweep(O, [[UD0, uUnder(UD0)], [UD1, uUnder(UD1)]], 0xd3d6db, sA, sB, false);
+  sweep(O, box(UD0 - 0.3, UD0, uUnder(UD0) - 0.15, UY0 + 0.85), [CONC2, 0xdfe3e8, 0xf4f6f9, BLUE], sA, sB);
+  sweep(O, box(UD1, 4.55, H1 + 0.5, UTOP + 1.2), [CONC2, 0xd0d4da, 0xf4f6f9, NAVY], sA, sB);
+  sweep(O, box(UD1 - 0.05, 4.62, UTOP + 1.2, UTOP + 1.36), NAVY, sA, sB);
+  sweep(GL, [[4.57, (H1 + UTOP) / 2 + 0.2], [4.57, (H1 + UTOP) / 2 + 1.7]], 0xffffff, sA, sB, false);
   // --- roof: zinc rear deck with a clean soffit, translucent front sheeting, fascias, purlins, ring beam
   const DM = DB - SPAN * 0.42;
   sweep(O, [[DM, roofY(DM) - 0.2], [DB, HB - 0.2], [DB, HB], [DM, roofY(DM)]], [0xf3f5f8, ZINC, ZINC, ZINC], sA, sB);
@@ -593,7 +604,7 @@ legs.count = arms.count = hands.count = shoes.count = fi * 2;
   sweep(O, box(DF - 0.3, DF + 0.15, roofY(DF) - 0.6, roofY(DF) + 0.12), [STEEL, STEEL, 0xf7f9fb, 0xf7f9fb], sA, sB);   // front edge beam
   sweep(O, box(DF + 0.15, DF + 0.3, roofY(DF) - 0.72, roofY(DF) - 0.6), BLUE, sA, sB);                             // blue edge line
   for (let i = 1; i <= 7; i++) { const d = DB - SPAN * i / 8; sweep(O, box(d - 0.08, d + 0.08, roofY(d) - 0.25, roofY(d) - 0.03), 0xb4bbc5, sA, sB); }
-  sweep(O, box(0.5, 1.0, rafBot(0.75) - 0.5, rafBot(0.75) + 0.05), STEEL, sA, sB);                                // ring beam on the inner columns
+  sweep(O, box(4.05, 4.55, rafBot(4.3) - 0.5, rafBot(4.3) + 0.05), STEEL, sA, sB);                                // ring beam on the roof columns
   const conc = new THREE.Mesh(build(O), new THREE.MeshLambertMaterial({ vertexColors: true, map: grain, side: THREE.DoubleSide, emissive: 0x0b0c0f }));   // faint fill: soffit and steel stay readable at night
   const glass = new THREE.Mesh(build(GL), new THREE.MeshPhongMaterial({ color: 0x1b3552, specular: 0x9fc0e6, shininess: 70, emissive: 0x0a1a2e }));
   const sheet = new THREE.Mesh(build(RT), new THREE.MeshLambertMaterial({ color: 0xdcebff, transparent: true, opacity: 0.34, depthWrite: false, side: THREE.DoubleSide }));
@@ -604,7 +615,7 @@ legs.count = arms.count = hands.count = shoes.count = fi * 2;
   const roofS = Array.from({ length: nb + 1 }, (_, i) => sA + i * bay);
   const pierS = [...roofS, ...Array.from({ length: ng - 1 }, (_, i) => sB + (i + 1) * 2 * GAP / ng)];   // piers also run under the screen
   const nMul = Math.floor(len / 1.6);
-  const boxes = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0xffffff, map: grain }), pierS.length * 5 + roofS.length * 5 + nMul);
+  const boxes = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0xffffff, map: grain }), pierS.length * 5 + roofS.length * 6 + 2 + nMul);
   const rafG = new THREE.BoxGeometry(1, 1, 1); { const p = rafG.attributes.position; for (let i = 0; i < p.count; i++) if (p.getX(i) > 0 && p.getY(i) < 0) p.setY(i, 0.5 - 0.3 / 1.05); rafG.computeVertexNormals(); }
   const rafters = new THREE.InstancedMesh(rafG, new THREE.MeshLambertMaterial({ color: STEEL, emissive: 0x1c1f24 }), roofS.length);
   const X = new THREE.Vector3(), Y = new THREE.Vector3(), Z = new THREE.Vector3(), A = new THREE.Vector3(), B = new THREE.Vector3();
@@ -633,15 +644,31 @@ legs.count = arms.count = hands.count = shoes.count = fi * 2;
     }
   });
   roofS.forEach((s, k) => {
-    member(boxes, bi++, s, 4.3, H1 - 0.7, 4.3, rafBot(4.3) + 0.05, 0.34, 0.34, STEEL);                   // rear column (ties the rafter down)
-    member(boxes, bi++, s, 0.75, H1 - 0.2, 0.75, rafBot(0.75) + 0.05, 0.42, 0.42, STEEL);                // main column behind the back wall
-    const dp = DF * 0.5;
-    member(boxes, bi++, s, 0.75, HW + 0.5, dp, rafBot(dp) + 0.08, 0.22, 0.22, BLUE);                     // raking prop under the cantilever
-    member(boxes, bi++, s, 4.3, H1 + 0.7, 0.75, rafBot(0.75) - 0.5, 0.14, 0.14, BLUE);                   // back brace
+    const MT = HB + SPAN * 0.36;                                                                         // mast head
+    member(boxes, bi++, s, 4.3, H1 - 0.7, 4.3, MT, 0.46, 0.46, STEEL);                                   // roof column, carried up through the roof as a mast
+    member(boxes, bi++, s, 0.75, H1 - 0.2, 0.75, uUnder(0.75) - 0.55, 0.5, 0.5, shade(0xd3d6da, k + 30)); // concrete column under the upper tier
+    member(boxes, bi++, s, UD0 + 0.2, uUnder(UD0 + 0.2) - 0.3, UD1, uUnder(UD1) - 0.3, 0.6, 0.45, shade(0xcfd2d6, k + 60));   // raker beam carrying the upper tier
+    for (const f of [0.45, 0.88]) { const d = DB - SPAN * f; member(boxes, bi++, s, 4.3, MT - 0.2, d, roofY(d) + 0.05, 0.1, 0.1, BLUE); }   // tension rods holding the cantilever
+    if (k === 0 || k === nb) member(boxes, bi++, s, UD0, (uUnder(UD0) + UY0 + 0.85) / 2, UD1, (uUnder(UD1) + UTOP + 1.2) / 2, 1.9, 0.3, NAVY);   // flank wall beside the screen
     member(rafters, k, s, RAF0, roofY(RAF0) - 0.25 - 0.525 / COS, RAF1, roofY(RAF1) - 0.25 - 0.525 / COS, 1.05, 0.3, k === 0 || k === nb ? BLUE : STEEL);
   });
   for (let i = 0; i < nMul; i++) member(boxes, bi++, (i + .5) * len / nMul, 4.16, HM + 0.2, 4.16, H1 - 0.7, 0.1, i % 4 ? 0.07 : 0.16, i % 4 ? 0xaab4c0 : STEEL);   // curtain-wall mullions
   boxes.count = bi;
+  // --- upper-tier seats (instanced, same chair and colours as the lower bowl); aisles line up with every second frame
+  { const sx = 2 * (a - r), sz = 2 * (b - r), segL = q => [sx / 2, q, sz, q, sx, q, sz, q, sx / 2], L0 = segL(Math.PI * r / 2), up = [];
+    for (let k = 0; k < UR; k++) {
+      const d = UD0 + (k + .5) * ROW_D, L = rrLen(a + d, b + d, r + d), n = Math.floor(L / SEAT_W), L1 = segL(Math.PI * (r + d) / 2);
+      for (let i = 0; i < n; i++) {
+        const s = (i + .5) * L / n; if (Math.abs(s - L / 2) < GAP + 0.4) continue;
+        let sb = 0, t = s; for (let j = 0; j < 9; j++) { if (t <= L1[j]) { sb += t / L1[j] * L0[j]; break; } t -= L1[j]; sb += L0[j]; }   // same spot on the wall line
+        const u = (sb < sA ? sb + len : sb) - sA; if (Math.abs(u - Math.round(u / (2 * bay)) * 2 * bay) < 0.62) continue;                  // aisle
+        const [x, z, nx, nz] = rrPoint(a + d, b + d, r + d, s);
+        up.push([x, UY0 + k * URH, z, nx, nz, nz > 0.99 ? NAVY : Math.floor(sb / len * 16) % 4 === 0 ? 0xffffff : BLUE]);
+      }
+    }
+    const upChairs = new THREE.InstancedMesh(seatGeo, chairs.material, up.length);
+    up.forEach(([x, y, z, nx, nz, c], i) => { Q.setFromAxisAngle(UP, Math.atan2(-nx, -nz)); M.compose(V.set(x - nx * 0.15, y + 0.06, z - nz * 0.15), Q, S1); upChairs.setMatrixAt(i, M); upChairs.setColorAt(i, C.set(c)); });
+    upChairs.instanceMatrix.needsUpdate = true; upChairs.instanceColor.needsUpdate = true; scene.add(upChairs); }
   [boxes, rafters].forEach(m => { m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; scene.add(m); });
 }
 // LED screen above the far stand (renovation) — cycles comment of the day / top fan / new fans
