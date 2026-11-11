@@ -18,6 +18,7 @@ const staticTypes={'.html':'text/html; charset=utf-8','.js':'text/javascript; ch
 const pathModule=path;
 const formationPattern=/^(4-3-3|4-4-2|4-2-3-1|3-5-2|4-1-4-1)$/;
 const rateBuckets=new Map();
+function clientIp(req){const forwarded=req.headers['x-forwarded-for'];return (typeof forwarded==='string'?forwarded.split(',')[0].trim():'')||req.socket.remoteAddress||'unknown';}
 function rateLimit(key,limit=60,windowMs=60000){
  const now=Date.now(),entry=rateBuckets.get(key);
  if(!entry||now-entry.start>windowMs){rateBuckets.set(key,{start:now,count:1});return true;}
@@ -135,11 +136,11 @@ async function handle(req,res){
  if(req.method==='GET'&&path==='/ready'){await db().query('SELECT 1');return json(res,200,{ok:true,database:true});}
  if(req.method==='GET'&&path.startsWith('/uploads/')){const file=await readCrest(path.slice('/uploads/'.length));res.writeHead(200,{'content-type':file.type,'cache-control':'public,max-age=31536000,immutable','x-content-type-options':'nosniff'});return res.end(file.bytes);}
  if(req.method==='POST'&&path==='/api/auth/telegram'){
-  if(!rateLimit(req.socket.remoteAddress||'unknown',12))throw new HttpError(429,'Too many login attempts');
+  if(!rateLimit(clientIp(req),12))throw new HttpError(429,'Too many login attempts');
   const body=await readJson(req);return json(res,200,await telegramLogin(body.initData));
  }
  const user=await authenticate(req);
- if(req.method==='POST'&&path==='/api/uploads/crest'){const body=await readJson(req,3_100_000);const crestUrl=await saveCrest(body.dataUrl);return json(res,201,{crestUrl});}
+ if(req.method==='POST'&&path==='/api/uploads/crest'){if(!rateLimit(clientIp(req)+':crest',10))throw new HttpError(429,'Too many crest uploads');const body=await readJson(req,3_100_000);const crestUrl=await saveCrest(body.dataUrl);return json(res,201,{crestUrl});}
  if(req.method==='GET'&&path==='/api/market'){
   const r=await db().query('SELECT id,full_name,nationality,age,position,quality,overall,potential,market_value_uzs,attributes FROM players WHERE club_id IS NULL ORDER BY overall DESC LIMIT 100');
   return json(res,200,{players:r.rows});
@@ -260,7 +261,7 @@ async function handle(req,res){
 }
 const server=http.createServer(async(req,res)=>{
  try{
-  if(req.method!=='GET'&&!rateLimit(req.socket.remoteAddress||'unknown',120))throw new HttpError(429,'Too many requests');
+  if(req.method!=='GET'&&!rateLimit(clientIp(req),120))throw new HttpError(429,'Too many requests');
   await handle(req,res);
  }catch(error){
   const status=Number(error.status)||500;
