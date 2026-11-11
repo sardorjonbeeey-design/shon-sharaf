@@ -131,6 +131,7 @@ async function handle(req,res){
  const url=new URL(req.url,'http://localhost'),path=url.pathname;
  if(req.method==='GET'&&staticFiles[path]){const file=staticFiles[path],bytes=await fs.readFile(path.join(clientRoot,file));res.writeHead(200,{'content-type':staticTypes[pathModule.extname(file)],'cache-control':file==='index.html'?'no-cache':'public,max-age=300','x-content-type-options':'nosniff'});return res.end(bytes);}
  if(req.method==='GET'&&path==='/health')return json(res,200,{ok:true,service:'zamin-fk-game-server'});
+ if(req.method==='GET'&&path==='/ready'){await db().query('SELECT 1');return json(res,200,{ok:true,database:true});}
  if(req.method==='GET'&&path.startsWith('/uploads/')){const file=await readCrest(path.slice('/uploads/'.length));res.writeHead(200,{'content-type':file.type,'cache-control':'public,max-age=31536000,immutable','x-content-type-options':'nosniff'});return res.end(file.bytes);}
  if(req.method==='POST'&&path==='/api/auth/telegram'){
   if(!rateLimit(req.socket.remoteAddress||'unknown',12))throw new HttpError(429,'Too many login attempts');
