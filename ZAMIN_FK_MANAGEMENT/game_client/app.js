@@ -1,9 +1,9 @@
 (() => {
 const root=document.getElementById('app');
 const cfg=window.ZAMIN_GAME_CONFIG||{};
-const state={token:null,user:null,clubs:[],club:null,squad:[],market:[],lineup:null,lineupDraft:[],missions:[],fixtures:[],table:[],tab:'overview',crestData:'',lastMatch:null};
+const state={token:null,user:null,clubs:[],club:null,squad:[],market:[],lineup:null,lineupDraft:[],missions:[],fixtures:[],table:[],ledger:[],tab:'overview',crestData:'',lastMatch:null};
 const esc=(v)=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money=(v)=>new Intl.NumberFormat('en-US').format(Number(v||0))+' UZS';
+const money=(v)=>{try{return new Intl.NumberFormat('en-US').format(BigInt(v||0))+' UZS';}catch{return '0 UZS';}};
 const $=(s)=>root.querySelector(s);
 function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2600);}
 async function api(path,options={}){
@@ -28,7 +28,7 @@ function overview(){
  '<section class="panel club-card">'+crest(c,true)+'<div><div class="eyebrow">CLUB PROFILE</div><h2>'+esc(c.name)+' <span class="muted">· '+esc(c.short_name)+'</span></h2><p>Identity established · '+new Date(c.created_at).toLocaleDateString()+'</p></div></section>'+
  '<div class="stats"><div class="stat"><div class="label">CLUB BUDGET</div><strong>'+money(c.budget_uzs)+'</strong><p>Transfer funds</p></div><div class="stat"><div class="label">DEVELOPMENT POINTS</div><strong>'+esc(c.development_points)+'</strong><p>Player progression</p></div><div class="stat"><div class="label">SQUAD SIZE</div><strong>'+state.squad.length+'</strong><p>Registered players</p></div></div>'+
  '<section class="panel"><div class="row"><div><h2>Club development</h2><p>Choose where to focus next.</p></div></div><div class="grid2"><button class="btn secondary" data-tab="squad">Manage squad →</button><button class="btn secondary" data-tab="market">Explore transfers →</button><button class="btn secondary" data-tab="missions">Complete missions →</button><button class="btn secondary" data-tab="fixtures">View fixtures →</button></div></section>'+
- (state.lastMatch?'<section class="panel"><div class="eyebrow">LATEST MATCH</div><h2>'+esc(state.lastMatch.home_name||'Home')+' '+state.lastMatch.home_goals+' — '+state.lastMatch.away_goals+' '+esc(state.lastMatch.away_name||'Away')+'</h2><p>Match simulation completed.</p></section>':'');
+ (state.lastMatch?'<section class="panel"><div class="eyebrow">LATEST MATCH</div><h2>'+esc(state.lastMatch.home_name||'Home')+' '+state.lastMatch.home_goals+' — '+state.lastMatch.away_goals+' '+esc(state.lastMatch.away_name||'Away')+'</h2><p>Match simulation completed.</p></section>':'')+'<section class="panel"><h2>Recent finances</h2><p>Club money movements in Uzbek so\'m.</p>'+(state.ledger.length?state.ledger.slice(0,6).map(t=>'<div class="fixture"><div><strong>'+esc(t.reason.replaceAll('_',' '))+'</strong><div class="meta">'+new Date(t.created_at).toLocaleDateString()+'</div></div><div class="score">'+(BigInt(t.amount_uzs)>=0n?'+':'')+money(t.amount_uzs)+'</div></div>').join(''):'<div class="empty">No transactions yet.</div>')+'</section>';
 }
 function squadPage(){
  const c=state.club;
@@ -80,9 +80,9 @@ async function loadAll(){
  state.club=state.club?state.clubs.find(x=>x.id===state.club.id)||state.clubs[0]:state.clubs[0];
  const id=state.club.id;
  const results=await Promise.all([
-  api('/api/clubs/'+id+'/squad'),api('/api/clubs/'+id+'/lineup'),api('/api/clubs/'+id+'/missions'),api('/api/clubs/'+id+'/fixtures'),api('/api/clubs/'+id+'/league'),api('/api/market')
+  api('/api/clubs/'+id+'/squad'),api('/api/clubs/'+id+'/lineup'),api('/api/clubs/'+id+'/missions'),api('/api/clubs/'+id+'/fixtures'),api('/api/clubs/'+id+'/league'),api('/api/market'),api('/api/clubs/'+id+'/ledger')
  ]);
- state.squad=results[0].players||[];state.lineup=results[1].lineup;state.lineupDraft=state.lineup?.starters?.slice()||[];state.missions=results[2].missions||[];state.fixtures=results[3].fixtures||[];state.table=results[4].table||[];state.market=results[5].players||[];
+ state.squad=results[0].players||[];state.lineup=results[1].lineup;state.lineupDraft=state.lineup?.starters?.slice()||[];state.missions=results[2].missions||[];state.fixtures=results[3].fixtures||[];state.table=results[4].table||[];state.market=results[5].players||[];state.ledger=results[6].transactions||[];
  render();
 }
 async function uploadCrest(file){
