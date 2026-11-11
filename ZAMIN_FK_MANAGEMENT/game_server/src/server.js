@@ -154,6 +154,15 @@ async function handle(req,res){
   const clubId=uuid(parts[2],'Club ID');
   const club=await ownedClub(db(),clubId,user.id);
   if(req.method==='GET'&&parts.length===3)return json(res,200,{club});
+  if(req.method==='POST'&&parts[3]==='identity'){
+   const body=await readJson(req),name=safeString(body.name,28,'Club name'),shortName=safeString(body.shortName,5,'Short name').toUpperCase();
+   if(!/^[A-Z0-9]{2,5}$/.test(shortName))throw new HttpError(400,'Short name must contain 2–5 letters or numbers');
+   const primary=colour(body.primaryColour,'Primary colour'),secondary=colour(body.secondaryColour,'Secondary colour');
+   const crest=body.crestUrl===undefined?club.crest_url:body.crestUrl;
+   if(crest&&(!((/^https:\/\//i.test(crest)&&crest.length<=500)||/^\/uploads\/[0-9a-f-]{36}\.(png|jpg|webp)$/.test(crest))))throw new HttpError(400,'Crest URL must be HTTPS or an uploaded game crest');
+   const updated=await inTransaction(async client=>{await ownedClub(client,clubId,user.id,true);return (await client.query('UPDATE clubs SET name=$2,short_name=$3,primary_colour=$4,secondary_colour=$5,crest_url=$6 WHERE id=$1 RETURNING *',[clubId,name,shortName,primary,secondary,crest])).rows[0];});
+   return json(res,200,{club:updated});
+  }
   if(req.method==='GET'&&parts[3]==='squad')return json(res,200,{players:await clubSquad(clubId)});
   if(req.method==='GET'&&parts[3]==='lineup'){const r=await db().query('SELECT * FROM lineups WHERE club_id=$1',[clubId]);return json(res,200,{lineup:r.rows[0]||null});}
   if(req.method==='GET'&&parts[3]==='league'){const r=await db().query('SELECT lm.*,c.name,c.short_name,c.primary_colour FROM league_members lm JOIN clubs c ON c.id=lm.club_id WHERE lm.league_id=(SELECT league_id FROM league_members WHERE club_id=$1 ORDER BY league_id DESC LIMIT 1) ORDER BY lm.points DESC,(lm.goals_for-lm.goals_against) DESC,lm.goals_for DESC',[clubId]);return json(res,200,{table:r.rows});}
