@@ -30,7 +30,7 @@ async function makeClub(userId,input){
  const primary=colour(input.primaryColour||'#167A55','Primary colour');
  const secondary=colour(input.secondaryColour||'#F0C75E','Secondary colour');
  const crest=input.crestUrl||null;
- if(crest&&(!/^https:\/\//i.test(crest)||crest.length>500))throw new HttpError(400,'Crest URL must be HTTPS');
+ if(crest&&(!((/^https:\/\//i.test(crest)&&crest.length<=500)||/^\/uploads\/[0-9a-f-]{36}\.(png|jpg|webp)$/.test(crest))))throw new HttpError(400,'Crest URL must be HTTPS or an uploaded game crest');
  return inTransaction(async client=>{
   const c=await client.query('INSERT INTO clubs(owner_user_id,name,short_name,primary_colour,secondary_colour,crest_url,budget_uzs) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',[userId,name,shortName,primary,secondary,crest,config.startingBudgetUzs.toString()]);
   const club=c.rows[0];
