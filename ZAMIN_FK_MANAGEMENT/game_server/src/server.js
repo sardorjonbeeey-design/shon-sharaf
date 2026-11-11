@@ -233,7 +233,9 @@ async function handle(req,res){
     attrs[attribute]=end;
     const avg=Object.values(attrs).reduce((a,b)=>a+Number(b),0)/6;
     const overall=Math.min(Number(p.potential),Math.max(Number(p.overall),Math.round(avg)));
-    await client.query('UPDATE players SET attributes=$2::jsonb,overall=$3 WHERE id=$1',[playerId,JSON.stringify(attrs),overall]);
+    const quality=overall<54?'academy':overall<62?'developing':overall<69?'established':'elite';
+    const marketValue=Math.round(overall*overall*17000);
+    await client.query('UPDATE players SET attributes=$2::jsonb,overall=$3,quality=$4,market_value_uzs=$5 WHERE id=$1',[playerId,JSON.stringify(attrs),overall,quality,marketValue]);
     await client.query('UPDATE clubs SET development_points=development_points-$2 WHERE id=$1',[clubId,cost]);
     return {player:{...p,attributes:attrs,overall},spentDp:cost,remainingDp:Number(c.development_points)-cost};
    });
