@@ -1,6 +1,7 @@
-import {requireDb} from './db.js';
+import {requireDb,assertIsolatedDatabase} from './db.js';
 import {starterPlayers} from './catalog.js';
 const db=requireDb();
+await assertIsolatedDatabase(db);
 for(const p of starterPlayers){
  await db.query('INSERT INTO players(club_id,full_name,nationality,age,position,quality,overall,potential,attributes,market_value_uzs) SELECT NULL,$1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9 WHERE NOT EXISTS(SELECT 1 FROM players WHERE full_name=$1)',
  [p.fullName,p.nationality,p.age,p.position,p.quality,p.overall,p.potential,JSON.stringify(p.attributes),p.marketValueUzs]);
