@@ -93,7 +93,7 @@ async function uploadCrest(file){
 }
 function bestXI(formation='4-3-3'){
  const remaining=state.squad.slice(),chosen=[];
- const layouts={'4-3-3':[['GK',1],['CB',2],['LB',1],['RB',1],['DM',1],['CM',2],['LW',1],['RW',1],['ST',1]],'4-4-2':[['GK',1],['CB',2],['LB',1],['RB',1],['CM',2],['LW',1],['RW',1],['ST',2]],'4-2-3-1':[['GK',1],['CB',2],['LB',1],['RB',1],['DM',2],['AM',1],['LW',1],['RW',1],['ST',1]],'3-5-2':[['GK',1],['CB',3],['DM',1],['CM',2],['AM',1],['LB',1],['RB',1],['ST',2]],'4-1-4-1':[['GK',1],['CB',2],['LB',1],['RB',1],['DM',1],['CM',2],['LW',1],['RW',1],['ST',1]]};
+ const layouts={'4-3-3':[['GK',1],['CB',2],['LB',1],['RB',1],['DM',1],['CM',2],['LW',1],['RW',1],['ST',1]],'4-4-2':[['GK',1],['CB',2],['LB',1],['RB',1],['CM',2],['LW',1],['RW',1],['ST',2]],'4-2-3-1':[['GK',1],['CB',2],['LB',1],['RB',1],['DM',2],['AM',1],['LW',1],['RW',1],['ST',1]],'3-5-2':[['GK',1],['CB',3],['DM',1],['CM',2],['LW',1],['RW',1],['ST',2]],'4-1-4-1':[['GK',1],['CB',2],['LB',1],['RB',1],['DM',1],['CM',2],['LW',1],['RW',1],['ST',1]]};
  const requirements=layouts[formation]||layouts['4-3-3'];
  for(const [position,count] of requirements)for(let i=0;i<count;i++){remaining.sort((a,b)=>b.overall-a.overall);const ix=remaining.findIndex(p=>p.position===position);if(ix>=0)chosen.push(remaining.splice(ix,1)[0]);}
  remaining.sort((a,b)=>b.overall-a.overall);
