@@ -19,7 +19,8 @@ Independent Node.js API and PostgreSQL schema for the management-game candidate.
 Production requests use Telegram Mini App initData sent as JSON to POST /api/auth/telegram. The server validates Telegram's HMAC signature and freshness, then issues a short-lived signed bearer token. Never put the bot token or session secret in browser code. For isolated local testing only, ALLOW_DEV_AUTH=true permits x-dev-user-id; this is rejected outside NODE_ENV=development.
 
 ## API
-- GET /health
+- GET /health (liveness)
+- GET /ready (database readiness)
 - POST /api/auth/telegram
 - GET /api/clubs (clubs owned by the authenticated user)
 - POST /api/uploads/crest (PNG/JPG/WEBP, maximum 2 MB)
@@ -28,6 +29,7 @@ Production requests use Telegram Mini App initData sent as JSON to POST /api/aut
 - GET /api/clubs/:clubId
 - POST /api/clubs/:clubId/identity
 - GET /api/clubs/:clubId/ledger
+- GET /api/clubs/:clubId/development-ledger
 - GET /api/clubs/:clubId/squad
 - GET /api/clubs/:clubId/lineup
 - POST /api/clubs/:clubId/lineup
@@ -40,7 +42,7 @@ Production requests use Telegram Mini App initData sent as JSON to POST /api/aut
 - GET /api/clubs/:clubId/fixtures
 - POST /api/fixtures/:fixtureId/play
 
-The game client is served by the same origin at /, /app.js and /styles.css. Uploaded crest images are stored in the server's persistent uploads directory.
+The game client is served by the same origin at /, /app.js, /styles.css and /config.js. Uploaded crest images are stored in the server's persistent uploads directory.
 
 All mutation routes require authentication and ownership checks. Money and match results are calculated server-side. Transfers and match settlement use database transactions and row locks.
 
