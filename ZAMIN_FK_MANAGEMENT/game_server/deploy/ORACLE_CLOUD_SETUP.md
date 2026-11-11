@@ -4,7 +4,7 @@ This guide is for the owner to complete after the source and tests are ready. No
 
 ## Required resources
 - One Linux VM with a supported Node/Docker runtime; an Oracle Ampere A1 Always Free VM is the first option to check, subject to regional capacity and account eligibility.
-- A separate Neon PostgreSQL project for the game only.
+- A separate Neon PostgreSQL project for the game only, with its database named zamin_game.
 - A domain or subdomain pointed to the VM public IP.
 - Telegram bot token only when the owner approves the isolated Mini App authentication connection.
 
@@ -17,13 +17,14 @@ This guide is for the owner to complete after the source and tests are ready. No
 
 ## Environment
 1. In this directory, copy .env.example to .env.
-2. Set DATABASE_URL to the connection string of the separate Neon project. Keep the password private.
-3. Set GAME_DOMAIN to the chosen hostname.
-4. Set WEB_ORIGIN to https:// followed by the same hostname.
-5. Set SESSION_SECRET to a random secret of at least 32 characters.
-6. Set TELEGRAM_BOT_TOKEN only after the owner explicitly approves connecting this isolated app to a bot.
-7. Keep ALLOW_DEV_AUTH=false in production.
-8. Set STARTING_BUDGET_UZS only after the opening budget has been approved. It currently defaults to zero.
+2. Set DATABASE_URL to the connection string of the separate Neon project, using the zamin_game database name. Keep the password private.
+3. Keep EXPECTED_DATABASE_NAME=zamin_game. The server, migration runner and seed script refuse to proceed if current_database() does not match this isolated name.
+4. Set GAME_DOMAIN to the chosen hostname.
+5. Set WEB_ORIGIN to https:// followed by the same hostname.
+6. Set SESSION_SECRET to a random secret of at least 32 characters.
+7. Set TELEGRAM_BOT_TOKEN only after the owner explicitly approves connecting this isolated app to a bot.
+8. Keep ALLOW_DEV_AUTH=false in production.
+9. Set STARTING_BUDGET_UZS only after the opening budget has been approved. It currently defaults to zero.
 
 ## Launch
 From the game_server directory:
