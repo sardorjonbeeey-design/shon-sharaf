@@ -27,6 +27,7 @@ Production requests use Telegram Mini App initData sent as JSON to POST /api/aut
 - POST /api/clubs
 - GET /api/clubs/:clubId
 - POST /api/clubs/:clubId/identity
+- GET /api/clubs/:clubId/ledger
 - GET /api/clubs/:clubId/squad
 - GET /api/clubs/:clubId/lineup
 - POST /api/clubs/:clubId/lineup
