@@ -18,7 +18,7 @@ export function squadStrength(players,formation='4-3-3') {
  const keys=new Set([...Object.keys(expected),...Object.keys(actual)]);
  const mismatch=[...keys].reduce((sum,key)=>sum+Math.abs((actual[key]||0)-(expected[key]||0)),0);
  const shapeBonus=clamp(4-mismatch*0.75,-4,4);
- return clamp(base*(0.9+fitness/1000)+shape,25,100);
+ return clamp(base*(0.9+fitness/1000)+shapeBonus,25,100);
 }
 function poisson(lambda,rng) {
  const limit=Math.exp(-lambda);let k=0,product=1;
