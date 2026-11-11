@@ -13,7 +13,11 @@ export function squadStrength(players,formation='4-3-3') {
  const starters=players.slice(0,11);
  const base=average(starters.map(p=>Number(p.overall)||40));
  const fitness=average(starters.map(p=>Number(p.fitness??100)));
- const shape=/^\d-\d-\d$/.test(formation)?1.5:0;
+ const expected=shapes[formation]||shapes['4-3-3'];
+ const actual={};for(const p of starters)actual[p.position]=(actual[p.position]||0)+1;
+ const keys=new Set([...Object.keys(expected),...Object.keys(actual)]);
+ const mismatch=[...keys].reduce((sum,key)=>sum+Math.abs((actual[key]||0)-(expected[key]||0)),0);
+ const shapeBonus=clamp(4-mismatch*0.75,-4,4);
  return clamp(base*(0.9+fitness/1000)+shape,25,100);
 }
 function poisson(lambda,rng) {
