@@ -212,6 +212,7 @@ async function handle(req,res){
     if(!p)throw new HttpError(404,'Player not found');
     const count=await client.query('SELECT COUNT(*)::int AS count FROM players WHERE club_id=$1',[clubId]);
     if(Number(count.rows[0].count)<=11)throw new HttpError(400,'A club must keep at least 11 players');
+    if(p.position==='GK'){const keepers=await client.query("SELECT COUNT(*)::int AS count FROM players WHERE club_id=$1 AND position='GK'",[clubId]);if(Number(keepers.rows[0].count)<=1)throw new HttpError(400,'A club must keep at least one goalkeeper');}
     const fee=saleValueUzs(p.market_value_uzs),bal=(BigInt(c.budget_uzs)+fee).toString();
     await client.query('UPDATE players SET club_id=NULL WHERE id=$1',[playerId]);
     await client.query('UPDATE clubs SET budget_uzs=budget_uzs+$2 WHERE id=$1',[clubId,fee.toString()]);
