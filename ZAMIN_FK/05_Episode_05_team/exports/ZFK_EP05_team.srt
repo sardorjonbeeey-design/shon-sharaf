@@ -7,38 +7,54 @@ ZAMIN FK da katta o‘zgarishlar!
 Endi bizda nafaqat klub, balki haqiqiy jamoa ham bor!
 
 3
-00:00:06,384 --> 00:00:10,206
-Yoshlar akademiyamizning birinchi menejeri ham aniqlandi!
+00:00:06,384 --> 00:00:09,833
+Paxtakorning ikkinchi jamoasiga qarshi maydonga tushdik.
 
 4
-00:00:10,206 --> 00:00:12,083
-@yusup_maxamadov, tabriklaymiz!
+00:00:09,833 --> 00:00:11,927
+Afsuski, bu safar mag‘lub bo‘ldik.
 
 5
-00:00:12,303 --> 00:00:15,521
-Mana ular — ZAMIN FK ning haqiqiy tarkibi!
+00:00:12,147 --> 00:00:15,675
+Lekin bu o‘yinda tariximizdagi ilk golimizni ham urdik!
 
 6
-00:00:17,341 --> 00:00:19,357
-Va zaxiradagi o‘yinchilarimiz!
-
-7
-00:00:23,777 --> 00:00:25,119
+00:00:15,675 --> 00:00:16,958
 Bu hali boshlanishi!
 
+7
+00:00:17,178 --> 00:00:20,000
+Yoshlar akademiyamizning birinchi menejeri ham aniqlandi!
+
 8
-00:00:25,119 --> 00:00:27,535
-ZAMIN FK endi birgalikda qurilmoqda.
+00:00:20,000 --> 00:00:22,877
+@yusup_maxamadov, tabriklaymiz!
 
 9
-00:00:27,535 --> 00:00:30,756
-Siz ham bizning tariximizning bir qismi bo‘ling!
+00:00:23,097 --> 00:00:26,314
+Mana ular — ZAMIN FK ning haqiqiy tarkibi!
 
 10
-00:00:30,976 --> 00:00:32,996
-Siz qaysi pozitsiyada o‘ynaysiz?
+00:00:28,134 --> 00:00:30,150
+Va zaxiradagi o‘yinchilarimiz!
 
 11
-00:00:32,996 --> 00:00:33,880
+00:00:34,570 --> 00:00:35,913
+Bu hali boshlanishi!
+
+12
+00:00:35,913 --> 00:00:38,328
+ZAMIN FK endi birgalikda qurilmoqda.
+
+13
+00:00:38,328 --> 00:00:41,549
+Siz ham bizning tariximizning bir qismi bo‘ling!
+
+14
+00:00:41,769 --> 00:00:43,790
+Siz qaysi pozitsiyada o‘ynaysiz?
+
+15
+00:00:43,790 --> 00:00:44,674
 Izohga yozing!
 

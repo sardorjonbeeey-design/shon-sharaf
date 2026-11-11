@@ -1,10 +1,12 @@
 # ZAMIN FK — “Jamoa shakllanmoqda” (haqiqiy tarkib) — yakuniy skript
-> 1080×1920, 30 fps, 36.2 s. Hikoyachi: echki (SARHAD-SIZ Narrator `rwtcHtZgYU6HN2zLNBlf`, ElevenLabs V4; 04/05 fayllari Poyo orqali).
+> 1080×1920, 30 fps, 46.9 s. Hikoyachi: echki (SARHAD-SIZ Narrator `rwtcHtZgYU6HN2zLNBlf`, ElevenLabs V4; 04/05 fayllari Poyo orqali).
 > Dvigatel: tools/anim (Day 2–5 bilan bir xil). Ekranda kun raqami yozilmagan.
 
 | # | Fayl | Ovoz | Ekran |
 |---|---|---|---|
 | 1 HOOK | voice/01_hook.mp3 | ZAMIN FK da katta o‘zgarishlar! Endi bizda nafaqat klub, balki haqiqiy jamoa ham bor! | Gerb · HAQIQIY JAMOA! · KLUB ✅ + JAMOA ✅ · echki |
+| 1b O‘YIN | voice/01b_match.mp3 | Paxtakorning ikkinchi jamoasiga qarshi maydonga tushdik. Afsuski, bu safar mag‘lub bo‘ldik. | ZAMIN FK VS PAXTAKOR II kartasi · MAG‘LUBIYAT 💔 · hisob ko‘rsatilmaydi (loyihada yozilmagan) |
+| 1c ILK GOL | voice/01c_goal.mp3 | Lekin bu o‘yinda tariximizdagi ilk golimizni ham urdik! Bu hali boshlanishi! | REPLAY · GOOOL! · ZAMIN FK — BIRINCHI GOL! · ko‘k forma raqamsiz/ismsiz (gol muallifi yozilmagan) |
 | 2 MENEJER | voice/02_manager.mp3 | Yoshlar akademiyamizning birinchi menejeri ham aniqlandi! @yusup_maxamadov, tabriklaymiz! | RASMIY E’LON kartasi · izoh skrinshoti · @yusup_maxamadov · TABRIKLAYMIZ! |
 | 3 TARKIB | voice/03_squad.mp3, voice/04_bench.mp3 | Mana ular — ZAMIN FK ning haqiqiy tarkibi! / Va zaxiradagi o‘yinchilarimiz! | Bitta taxta: JAMOA TARKIBI — maydonda 11 ta forma (raqam + ism), pastda ZAXIRA (raqam + ism). Pozitsiya yozilmagan |
 | 4 OUTRO | voice/05_outro.mp3 | Bu hali boshlanishi! ZAMIN FK endi birgalikda qurilmoqda. Siz ham bizning tariximizning bir qismi bo‘ling! | BU HALI BOSHLANISHI! · BIRGALIKDA QURAMIZ |

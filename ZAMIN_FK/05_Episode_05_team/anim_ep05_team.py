@@ -28,6 +28,10 @@ show = lambda p: p["name"].replace("_", " ")
 LINES = {
  "hook":    ("01_hook",    [("ZAMIN FK da katta o‘zgarishlar!", [3, 4], None),
                             ("Endi bizda nafaqat klub, balki haqiqiy jamoa ham bor!", [5, 6], None)]),
+ "match":   ("01b_match",  [("Paxtakorning ikkinchi jamoasiga qarshi maydonga tushdik.", [0, 1, 2], None),
+                            ("Afsuski, bu safar mag‘lub bo‘ldik.", [3, 4], None)]),
+ "goal":    ("01c_goal",   [("Lekin bu o‘yinda tariximizdagi ilk golimizni ham urdik!", [4, 5], None),
+                            ("Bu hali boshlanishi!", [2], None)]),
  "manager": ("02_manager", [("Yoshlar akademiyamizning birinchi menejeri ham aniqlandi!", [2, 3], None),
                             (MANAGER + ", tabriklaymiz!", [0], "Yusup Maxamadov tabriklaymiz")]),
  "squad":   ("03_squad",   [("Mana ular — ZAMIN FK ning haqiqiy tarkibi!", [5, 6], None)]),
@@ -51,6 +55,8 @@ def say(key, t):
     B[key] = (t, t + d); SENT[key] = ss
     return t + d + GAP
 t = say("hook", 0.2)
+t = say("match", t)
+t = say("goal", t)
 t = say("manager", t)
 t = say("squad", t)
 t = say("bench", t + 1.6)                               # hold on the starting XI
@@ -122,6 +128,23 @@ BENCHP = (f'<div style="width:{PW}px;box-sizing:border-box;padding:18px 28px 16p
           '<div style="display:grid;grid-template-columns:1.2fr 1fr;grid-auto-flow:column;grid-template-rows:repeat(6,44px);column-gap:20px;text-align:left">'
           + "".join(bench_row(p) for p in BENCH) + '</div></div>')
 
+# ---- the Paxtakor II match: honest result, no score and no scorer (neither is recorded in the project) ----
+MATCH = card_g('<div style="font-size:30px;font-weight:700;letter-spacing:6px;color:#9DB8FF">O‘RTOQLIK O‘YINI</div>'
+               '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px">'
+               f'<div style="width:300px"><img src="{CREST}" style="height:190px"><div style="font-size:44px;font-weight:900;margin-top:8px">ZAMIN FK</div></div>'
+               '<div style="font-size:96px;font-weight:900;color:#FFD23F">VS</div>'
+               '<div style="width:300px"><div style="width:170px;height:170px;margin:10px auto;border-radius:50%;background:#fff;color:#0D2557;font-size:100px;line-height:170px">⚽</div>'
+               '<div style="font-size:44px;font-weight:900;margin-top:8px;line-height:1.02">PAXTAKOR II</div></div></div>', 900)
+KIT = shirt(0, False, 230).replace(">0</div>", "></div>")            # blue kit, no number, no name
+GOALCARD = (f'<div style="width:900px;box-sizing:border-box;padding:24px 26px 28px;border-radius:34px;background:linear-gradient(100deg,#1F4FB8,#0D2557 75%);border:8px solid #FFD23F;'
+            f'color:#fff;text-align:center;box-shadow:0 18px 40px rgba(0,0,0,.6)"><div style="display:flex;align-items:center;justify-content:center;gap:18px">'
+            f'<img src="{CREST}" style="height:110px"><div style="font-size:64px;font-weight:900">ZAMIN FK</div></div>'
+            '<div style="font-size:112px;font-weight:900;line-height:1;color:#FFD23F;margin-top:6px">BIRINCHI GOL!</div></div>')
+REPLAY = ('<div style="display:flex;align-items:center;gap:14px;background:rgba(0,0,0,.72);color:#fff;font-weight:900;font-size:40px;letter-spacing:4px;padding:10px 22px;border-radius:12px;border:3px solid #fff">'
+          '<div style="width:22px;height:22px;border-radius:50%;background:#e63950"></div>REPLAY</div>')
+BARS = ('<div style="position:absolute;left:-540px;top:-960px;width:1080px;height:1920px;'
+        'background:linear-gradient(#000 0,#000 90px,transparent 90px,transparent 1830px,#000 1830px)"></div>')
+
 CTA = ('<div style="width:940px;box-sizing:border-box;padding:30px 30px 34px;border-radius:36px;background:#FFD23F;border:8px solid #0D2557;color:#0D2557;text-align:center;'
        'box-shadow:0 18px 40px rgba(0,0,0,.55)"><div style="font-size:92px;font-weight:900;line-height:1.02">SIZ QAYSI<br>POZITSIYADA<br>O‘YNAYSIZ?</div></div>')
 POSROW = lambda items: '<div style="display:flex;gap:16px">' + "".join(chip(i, False, 38) for i in items) + '</div>'
@@ -130,12 +153,34 @@ SQ0, SQ1 = s("squad"), s("outro")
 POP = [SQ0 + 0.35 + i * 0.24 for i in range(11)]
 scenes = [
  # 1 HOOK: title readable on frame 0, goat narrates
- {"from": 0, "to": s("manager"), "bg": {"src": f"{A1}/S05_stadium_wide.png", "zoom": [1.25, 1.05], "blur": 3}, "items": [
+ {"from": 0, "to": s("match"), "bg": {"src": f"{A1}/S05_stadium_wide.png", "zoom": [1.25, 1.05], "blur": 3}, "items": [
    lab(VIG, 540, 960, -1, enter="none", z=5),
    lab(chip("⚽ KATTA O‘ZGARISHLAR", True, 46), 540, 170, -1, enter="none", z=25),
    lab(HOOK, 540, 520, -1.2, enter="stamp", idle="pulse", z=24),
    lab(chip("KLUB ✅ + JAMOA ✅", False, 50), 540, 900, SENT["hook"][1] + 0.3, enter="stamp", z=25),
    spr("goat_chew", 800, 1880, 680, -0.3, enter="up", enterDur=0.35, idle="talk", z=12),
+ ]},
+ # 1b MATCH RESULT: ZAMIN FK vs PAXTAKOR II, the defeat shown plainly
+ {"from": s("match"), "to": s("goal"), "bg": {"src": f"{A1}/BG_pitch_empty.png", "zoom": [1.0, 1.12], "blur": 7}, "items": [
+   lab(VIG, 540, 960, s("match"), enter="none", z=5),
+   lab(chip("⚽ O‘YIN KUNI", True, 46), 540, 170, s("match", 0.05), enter="stamp", z=25),
+   lab(MATCH, 540, 560, s("match", 0.15), enter="drop", enterDur=0.5, idle="sway", z=23),
+   lab('<div class="title" style="font-size:104px;color:#fff;transform:rotate(-5deg)">MAG‘LUBIYAT 💔</div>', 540, 960, SENT["match"][1] + 0.5, enter="stamp", z=26),
+   lab(chip("BU SAFAR OMAD KELMADI", False, 44), 540, 1110, SENT["match"][1] + 1.0, enter="stamp", z=25),
+   spr("goat_side", 860, 1880, 440, s("match"), enter="peekR", idle="chew", z=12),
+ ]},
+ # 1c FIRST GOAL: replay-style celebration, kit without a number or name
+ {"from": s("goal"), "to": s("manager"), "bg": {"src": f"{A1}/BG_pitch_empty.png", "zoom": [1.35, 1.1], "focus": [0.5, 0.55, 0.5, 0.5], "blur": 3}, "items": [
+   lab(BARS, 540, 960, s("goal"), enter="none", z=6),
+   lab(REPLAY, 190, 170, s("goal", 0.05), enter="slideL", enterDur=0.25, idle="pulse", z=27),
+   lab('<div class="title" style="font-size:210px;color:#FFD23F">GOOOL!</div>', 540, 400, s("goal", 0.2), enter="stamp", idle="shake", to=SENT["goal"][0] + 1.6, z=26),
+   lab('<div style="font-size:150px">⚽</div>', 540, 640, s("goal", 0.1), enter="slideL", enterDur=0.35, idle="hop", to=SENT["goal"][0] + 1.6, z=25),
+   lab(GOALCARD, 540, 470, SENT["goal"][0] + 1.6, enter="stamp", idle="pulse", z=26),
+   lab(KIT, 270, 1010, s("goal", 0.35), enter="up", enterDur=0.3, idle="hop", z=20),
+   lab(KIT, 540, 960, s("goal", 0.25), enter="up", enterDur=0.3, idle="hop", z=21),
+   lab(KIT, 810, 1010, s("goal", 0.45), enter="up", enterDur=0.3, idle="hop", z=20),
+   lab(chip("TARIXIMIZDAGI ILK GOL ⚽", True, 48), 540, 1200, SENT["goal"][0] + 2.0, enter="stamp", z=25),
+   spr("goat_chew", 850, 1880, 500, s("goal"), enter="up", idle="hop", z=12),
  ]},
  # 2 ACADEMY MANAGER: official announcement
  {"from": s("manager"), "to": SQ0, "bg": {"src": f"{A2}/BG_stand_renovated.png", "zoom": [1.05, 1.15], "blur": 9}, "items": [
