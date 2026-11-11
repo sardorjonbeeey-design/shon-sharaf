@@ -12,12 +12,14 @@ for(const file of files){
  const applied=await db.query('SELECT 1 FROM schema_migrations WHERE version=$1',[version]);
  if(applied.rowCount){console.log('Skipped migration '+version);continue;}
  const sql=await fs.readFile(path.join(dir,file),'utf8');
- await db.query('BEGIN');
+ const client=await db.connect();
  try{
-  await db.query(sql);
-  await db.query('INSERT INTO schema_migrations(version) VALUES($1)',[version]);
-  await db.query('COMMIT');
+  await client.query('BEGIN');
+  await client.query(sql);
+  await client.query('INSERT INTO schema_migrations(version) VALUES($1)',[version]);
+  await client.query('COMMIT');
   console.log('Applied migration '+version);
- }catch(error){await db.query('ROLLBACK');throw error;}
+ }catch(error){await client.query('ROLLBACK');throw error;}
+ finally{client.release();}
 }
 await db.end();
