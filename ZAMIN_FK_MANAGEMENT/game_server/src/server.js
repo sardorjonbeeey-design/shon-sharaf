@@ -21,7 +21,7 @@ const rateBuckets=new Map();
 function clientIp(req){const forwarded=req.headers['x-forwarded-for'];return (typeof forwarded==='string'?forwarded.split(',')[0].trim():'')||req.socket.remoteAddress||'unknown';}
 function rateLimit(key,limit=60,windowMs=60000){
  const now=Date.now(),entry=rateBuckets.get(key);
- if(!entry||now-entry.start>windowMs){if(rateBuckets.size>5000){for(const [oldKey,value] of rateBuckets)if(now-value.start>windowMs*2)rateBuckets.delete(oldKey);}rateBuckets.set(key,{start:now,count:1});return true;}
+ if(!entry||now-entry.start>windowMs){if(rateBuckets.size>5000){for(const [oldKey,value] of rateBuckets)if(now-value.start>windowMs*2)rateBuckets.delete(oldKey);if(rateBuckets.size>10000)rateBuckets.delete(rateBuckets.keys().next().value);}rateBuckets.set(key,{start:now,count:1});return true;}
  entry.count++;return entry.count<=limit;
 }
 function cors(req,res){
