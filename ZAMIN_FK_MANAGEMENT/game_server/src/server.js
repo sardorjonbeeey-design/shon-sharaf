@@ -51,6 +51,7 @@ async function makeClub(userId,input){
   for(const [pos,count] of Object.entries(counts)){
    for(let i=0;i<count;i++){const idx=pool.rows.findIndex(p=>p.position===pos);if(idx>=0)selected.push(pool.rows.splice(idx,1)[0]);}
   }
+  if(config.startingSquadSize>11){const backupKeeper=pool.rows.findIndex(p=>p.position==='GK');if(backupKeeper>=0)selected.push(pool.rows.splice(backupKeeper,1)[0]);}
   for(const p of pool.rows){if(selected.length>=config.startingSquadSize)break;selected.push(p);}
   if(selected.length<11)throw new HttpError(503,'Not enough free-agent players are available to create a squad');
   const ids=selected.slice(0,config.startingSquadSize).map(p=>p.id);
