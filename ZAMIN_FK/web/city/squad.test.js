@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildSquadProposal, validateSquadSnapshot } = require("./club");
+const { buildSquadProposal, validateSquadSnapshot, assignSquadNumbers, mergeLineupWithRoster } = require("./club");
 
 const QUOTAS = { GK: 2, DEF: 8, MID: 6, FWD: 6 };
 
@@ -236,4 +236,60 @@ test("an approved snapshot maps onto the line-up slots", () => {
   assert.equal(lineup.starters.filter(p => p.name).length, 11);
   assert.equal(lineup.bench.length, 11);
   assert.doesNotThrow(() => normalizeLineup(lineup));
+});
+
+
+// ---------- automatic shirt-number assignment ----------
+test("shirt numbers reserve 1 and 25 for goalkeepers and 7, 9, 10, 11 for the four main forwards", () => {
+  const rows = players();
+  rows.push(
+    { tg_id: "23", name: "Extra Defender 23", applied_position: "DEF", xp: 30 },
+    { tg_id: "24", name: "Extra Defender 24", applied_position: "DEF", xp: 20 }
+  );
+  const proposal = buildSquadProposal(rows);
+  const numbered = assignSquadNumbers(proposal, {}, () => 0);
+  const all = [...numbered.active, ...numbered.reserves];
+  const keepers = all.filter(p => p.applied_position === "GK").sort((a,b) => a.position_rank-b.position_rank);
+  assert.equal(keepers[0].shirt_number, 1);
+  assert.equal(keepers[1].shirt_number, 25);
+  const forwards = all.filter(p => p.applied_position === "FWD").sort((a,b) => a.position_rank-b.position_rank);
+  assert.deepEqual(forwards.slice(0,4).map(p => p.shirt_number), [7,9,10,11]);
+  const assigned = all.map(p => p.shirt_number);
+  assert.equal(new Set(assigned).size, assigned.length);
+  assert.equal(assigned.every(n => Number.isInteger(n) && n >= 1 && n <= 25), true);
+});
+
+test("existing player shirt numbers remain stable on the next automatic refresh", () => {
+  const proposal = buildSquadProposal(players());
+  const first = assignSquadNumbers(proposal, {}, () => 0.42);
+  const previous = Object.fromEntries([...first.active, ...first.reserves].map(p => [p.tg_id, p.shirt_number]));
+  const second = assignSquadNumbers(proposal, previous, () => 0.99);
+  assert.deepEqual(
+    [...second.active, ...second.reserves].map(p => [p.tg_id, p.shirt_number]),
+    [...first.active, ...first.reserves].map(p => [p.tg_id, p.shirt_number])
+  );
+});
+
+test("automatic lineup reconciliation preserves valid manual selections and fills departed slots", () => {
+  const proposal = assignSquadNumbers(buildSquadProposal(players()), {}, () => 0.2);
+  const original = {
+    starters: LINEUP_SLOTS.map((slot, i) => ({
+      slot,
+      name: proposal.active[i].name,
+      number: proposal.active[i].shirt_number,
+      tg_id: proposal.active[i].tg_id
+    })),
+    bench: proposal.active.slice(11).map(p => ({ name: p.name, number: p.shirt_number, tg_id: p.tg_id }))
+  };
+  const keep = original.starters[0].name;
+  const removedId = original.starters[1].tg_id;
+  const changed = {
+    ...proposal,
+    active: proposal.active.filter(p => p.tg_id !== removedId)
+  };
+  const merged = mergeLineupWithRoster(original, changed);
+  assert.equal(merged.starters[0].name, keep);
+  assert.equal(merged.starters[1].name === original.starters[1].name, false);
+  assert.equal(merged.starters.filter(p => p.name).length, 11);
+  assert.equal(new Set(merged.starters.filter(p => p.tg_id).map(p => p.tg_id)).size, 11);
 });
