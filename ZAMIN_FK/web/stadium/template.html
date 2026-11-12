@@ -358,10 +358,16 @@ const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.c
 const memberIdx = MEMBERS.map(m => standIdx.get(m.ring + ":" + m.j)), takenIdx = new Set(memberIdx);
 const seatByNo = no => { const k = no - 1, i = standIdx.get(Math.floor(k / STAND_W) + ":" + CENTER_OUT[k % STAND_W]); return i == null ? null : seats[i]; };
 let free = seats.map((_, i) => i).filter(i => !takenIdx.has(i)).sort((i, j) => seats[i].cost - seats[j].cost), restIdx;
-if (IG_REST.length <= 300) {            // small crowd: random seat per nick on the two long sides, so fans are easy to see
-  const pool = free.filter(i => { const st = seats[i]; return Math.abs(st.nz) > 0.99 && st.ring < 14; }), used = new Set();
-  restIdx = IG_REST.map(nick => { let k = hash(nick) % pool.length; while (used.has(k)) k = (k + 7) % pool.length; used.add(k); return pool[k]; });
-} else restIdx = free.slice(0, IG_REST.length);
+const pool = free.filter(i => { const st = seats[i]; return Math.abs(st.nz) > 0.99 && st.ring < 14; });
+// Shuffle preferred long-side seats once; Fisher-Yates always terminates.
+for (let i = pool.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [pool[i], pool[j]] = [pool[j], pool[i]];
+}
+// Fill from the preferred area first, then from every other free seat.
+const poolSet = new Set(pool);
+const available = [...pool, ...free.filter(i => !poolSet.has(i))];
+restIdx = available.slice(0, IG_REST.length);
 const restSet = new Set(restIdx);
 const order = [...memberIdx, ...restIdx, ...free.filter(i => !restSet.has(i))];   // first FANS.length entries = occupied seats in FANS order
 const SECTORS = "ABCDEFGHIJKLMNOP";
