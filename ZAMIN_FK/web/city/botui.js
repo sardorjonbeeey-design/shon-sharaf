@@ -113,7 +113,7 @@ function init({ db, bot, club, led }) {
       const png = cards.squadPng(squad);
       const starters = squad.active.filter(p => p.squad_role === "starter").length;
       const bench = squad.active.length - starters;
-      const caption = `⚽ <b>Today's Squad — ZAMIN FK</b>\\n🟢 Starting XI: <b>${starters}</b> · 🪑 Bench: <b>${bench}</b> · 🛟 Reserves: <b>${(squad.reserves || []).length}</b>\\n\\nShirt numbers stay stable between hourly updates.`;
+      const caption = `⚽ <b>Today's Squad — ZAMIN FK</b>\n🟢 Starting XI: <b>${starters}</b> · 🪑 Bench: <b>${bench}</b> · 🛟 Reserves: <b>${(squad.reserves || []).length}</b>\n\nShirt numbers stay stable between hourly updates.`;
       return apiFile("sendPhoto", { chat_id: chatId, caption, parse_mode: "HTML" }, "photo", png);
     } catch (e) {
       console.error("send squad poster", e);
