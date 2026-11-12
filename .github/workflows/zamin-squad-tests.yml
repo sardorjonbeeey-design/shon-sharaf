@@ -16,6 +16,7 @@ on:
       - "ZAMIN_FK/01_Art_Direction/Sprites/**"
       - "ZAMIN_FK/03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"
       - ".github/workflows/zamin-squad-tests.yml"
+      - ".github/workflows/hourly-squad-refresh.yml"
   pull_request:
     paths:
       - "ZAMIN_FK/web/city/club.js"
@@ -27,6 +28,7 @@ on:
       - "ZAMIN_FK/01_Art_Direction/Sprites/**"
       - "ZAMIN_FK/03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"
       - ".github/workflows/zamin-squad-tests.yml"
+      - ".github/workflows/hourly-squad-refresh.yml"
 
 jobs:
   squad-tests:
