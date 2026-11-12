@@ -7,6 +7,8 @@ on:
     paths:
       - "ZAMIN_FK/web/city/club.js"
       - "ZAMIN_FK/web/city/squad.test.js"
+      - "ZAMIN_FK/web/city/botui.js"
+      - "ZAMIN_FK/web/city/cards.js"
       - "ZAMIN_FK/web/city/package.json"
       - "ZAMIN_FK/web/stadium/template.html"
       - "ZAMIN_FK/web/stadium/build.py"
@@ -37,6 +39,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Check server-side JavaScript syntax
+        run: node --check club.js && node --check botui.js && node --check cards.js
       - name: Run squad regression tests
         run: npm test
       - uses: actions/setup-python@v5
