@@ -134,7 +134,7 @@ function squadSvg(d) {
     {pos:"LW",x:185,y:510},{pos:"ST",x:450,y:465},{pos:"RW",x:715,y:510},
     {pos:"CM",x:265,y:700},{pos:"CAM",x:450,y:655},{pos:"CDM",x:635,y:700},
     {pos:"LB",x:115,y:900},{pos:"CB",rank:2,x:335,y:930},{pos:"CB",rank:3,x:565,y:930},{pos:"RB",x:785,y:900},
-    {pos:"GK",x:450,y:1080}
+    {pos:"GK",x:450,y:1030}
   ];
   const placed = slots.map(s => Object.assign({},s,{player:find(s.pos,s.rank || 1)}));
   const used = new Set(placed.filter(s=>s.player).map(s=>s.player));
@@ -181,7 +181,7 @@ function squadSvg(d) {
     '<rect x="700" y="115" width="135" height="56" rx="14" fill="#FFD23F"/><text x="767" y="152" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="27" fill="#071C37">4-3-3</text>',
     '<text x="450" y="235" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="26" letter-spacing="3" fill="#fff">STARTING XI</text>',
     '<rect x="35" y="280" width="830" height="840" rx="28" fill="#188344" stroke="#E8F5EC" stroke-width="4"/>',
-    '<path d="M35 700 H865 M450 550 m-150 150 a150 150 0 1 0 300 0 a150 150 0 1 0 -300 0" fill="none" stroke="#D9F0E1" stroke-opacity=".55" stroke-width="4"/>',
+    '<path d="M35 700 H865" fill="none" stroke="#D9F0E1" stroke-opacity=".55" stroke-width="4"/><circle cx="450" cy="700" r="150" fill="none" stroke="#D9F0E1" stroke-opacity=".55" stroke-width="4"/>',
     '<rect x="260" y="280" width="380" height="145" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/><rect x="370" y="280" width="160" height="70" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/>',
     '<rect x="260" y="975" width="380" height="145" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/><rect x="370" y="1050" width="160" height="70" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/>',
     placed.map(shirt).join(""),
