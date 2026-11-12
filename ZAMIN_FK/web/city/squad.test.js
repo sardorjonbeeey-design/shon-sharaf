@@ -199,6 +199,7 @@ test("remaining reserve places are assigned by descending XP", () => {
 
 // ---------- manual line-up (Mini App admin panel) ----------
 const { normalizeLineup, lineupFromRoster, lineupFeed, LINEUP_SLOTS } = require("./club");
+const cards = require("./cards");
 const fullLineup = () => ({
   starters: LINEUP_SLOTS.map((slot, i) => ({ slot, name: "Starter " + slot, number: i + 1 })),
   bench: [{ name: "Sub One", number: 30 }, { name: "  ", number: 31 }, { name: "Sub Two", number: "" }]
@@ -292,4 +293,29 @@ test("automatic lineup reconciliation preserves valid manual selections and fill
   assert.equal(merged.starters[1].name === original.starters[1].name, false);
   assert.equal(merged.starters.filter(p => p.name).length, 11);
   assert.equal(new Set(merged.starters.filter(p => p.tg_id).map(p => p.tg_id)).size, 11);
+});
+
+
+test("the admin lineup loader preserves automatic shirt numbers and player IDs", () => {
+  const numbered = assignSquadNumbers(buildSquadProposal(players()), {}, () => 0.25);
+  const lineup = lineupFromRoster(numbered.active);
+  const keeper = lineup.starters.find(p => p.slot === "GK");
+  assert.equal(keeper.number, 1);
+  assert.equal(keeper.tg_id, numbered.active.find(p => p.applied_position === "GK").tg_id);
+});
+
+test("Today's Squad SVG template inserts live player names and shirt numbers", () => {
+  const svg = cards.squadSvg({
+    active: [
+      { name: "Poster Test Forward", shirt_number: 9, squad_role: "starter", stadium_position: "ST" },
+      { name: "Poster Test Keeper", shirt_number: 1, squad_role: "starter", stadium_position: "GK" }
+    ],
+    reserves: [{ name: "Poster Reserve", shirt_number: 25, applied_position: "GK" }]
+  });
+  assert.match(svg, /TODAY'S SQUAD/);
+  assert.match(svg, /Poster Test Forward/);
+  assert.match(svg, /Poster Test Keeper/);
+  assert.match(svg, /Poster Reserve/);
+  assert.match(svg, />9</);
+  assert.match(svg, />25</);
 });
