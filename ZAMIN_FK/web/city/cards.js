@@ -151,10 +151,18 @@ function squadSvg(d) {
       '<path d="M'+(s.x-36)+' '+(s.y-34)+' L'+(s.x-62)+' '+(s.y-18)+' L'+(s.x-50)+' '+(s.y+12)+' L'+(s.x-35)+' '+(s.y+4)+' L'+(s.x-35)+' '+(s.y+40)+' L'+(s.x+35)+' '+(s.y+40)+' L'+(s.x+35)+' '+(s.y+4)+' L'+(s.x+50)+' '+(s.y+12)+' L'+(s.x+62)+' '+(s.y-18)+' L'+(s.x+36)+' '+(s.y-34)+' Q'+s.x+' '+(s.y-20)+' '+(s.x-36)+' '+(s.y-34)+' Z" fill="#2458C5" stroke="#fff" stroke-width="4"/>'+
       '<path d="M'+(s.x-22)+' '+(s.y-30)+' Q'+s.x+' '+(s.y-17)+' '+(s.x+22)+' '+(s.y-30)+'" fill="none" stroke="#FFD23F" stroke-width="5"/>'+
       '<path d="M'+(s.x-34)+' '+(s.y+33)+' H'+(s.x+34)+'" stroke="#FFD23F" stroke-width="5"/>'+
-      '<text x="'+s.x+'" y="'+(s.y+7)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="'+(pos.length>3?15:20)+'" fill="#fff">'+esc(pos)+'</text>'+
+      // CHANGE LOG (shirt-number / position hierarchy):
+      // OLD: the position (for example ST or GK) was printed prominently in the centre of
+      //      the shirt, while the shirt number was tiny beneath the player's name.
+      // NEW: the actual shirt number is now large and centred on the shirt; the position
+      //      label moves into the small bottom line beneath the player's name.
+      // WHY: the shirt should identify the player by their squad number first, with their
+      //      tactical position as secondary information. This swaps only these two labels;
+      //      player placement, names, squad data, number assignment and bench rows stay intact.
+      '<text x="'+s.x+'" y="'+(s.y+14)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="34" fill="#fff">'+esc(num)+'</text>'+
       '<rect x="'+(s.x-width/2)+'" y="'+(s.y+57)+'" width="'+width+'" height="45" rx="11" fill="#071C37" stroke="#FFD23F" stroke-width="2"/>'+
       '<text x="'+s.x+'" y="'+(s.y+76)+'" text-anchor="middle" font-family="Montserrat" font-weight="800" font-size="14" fill="#fff">'+esc(name)+'</text>'+
-      '<text x="'+s.x+'" y="'+(s.y+94)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="12" fill="#FFD23F">#'+esc(num)+'</text></g>';
+      '<text x="'+s.x+'" y="'+(s.y+94)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="12" fill="#FFD23F">'+esc(pos)+'</text></g>';
   };
   const benchRow=(p,i,x,y)=>{
     const num=p.shirt_number==null?"—":String(p.shirt_number);

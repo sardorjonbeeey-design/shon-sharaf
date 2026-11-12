@@ -304,14 +304,12 @@ test("the admin lineup loader preserves automatic shirt numbers and player IDs",
   assert.equal(keeper.tg_id, numbered.active.find(p => p.applied_position === "GK").tg_id);
 });
 
-// CHANGE LOG:
- // OLD: this test expected the Starting XI shirt number as plain text (">9<"), but the
- //      poster intentionally prefixes shirt numbers with "#" (">#9<") on the pitch shirts.
- // NEW: assert the exact visible shirt-number format for the starter, while retaining the
- //      reserve-row assertion for its plain number label.
- // WHY: the test must match the poster's real visual output; no renderer or squad logic
- //      needs to change for this formatting-only test correction.
-test("Today's Squad SVG template inserts live player names and shirt numbers", () => {
+// CHANGE LOG (poster label hierarchy test):
+ // OLD: the poster test expected a small "#9" below the name and did not verify the position label.
+ // NEW: verify that shirt number 9 is the large text on the shirt and ST is the small label
+ //      beneath the player's name; keep the reserve number check because bench rows are unchanged.
+ // WHY: this guards the requested number-first visual hierarchy without changing roster logic.
+test("Today's Squad SVG template inserts live player names, shirt numbers and positions", () => {
   const svg = cards.squadSvg({
     active: [
       { name: "Poster Forward", shirt_number: 9, squad_role: "starter", stadium_position: "ST" },
@@ -325,6 +323,7 @@ test("Today's Squad SVG template inserts live player names and shirt numbers", (
   assert.match(svg, /Poster Forward/);
   assert.match(svg, /Poster Keeper/);
   assert.match(svg, /Poster Reserve/);
-  assert.match(svg, />#9</);
+  assert.match(svg, /font-size="34" fill="#fff">9<\/text>/);
+  assert.match(svg, /font-size="12" fill="#FFD23F">ST<\/text>/);
   assert.match(svg, />25</);
 });
