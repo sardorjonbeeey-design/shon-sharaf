@@ -230,6 +230,21 @@ function mergeLineupWithRoster(existing, payload) {
   return {starters,bench:bench.map(p=>({name:p.name,number:p.shirt_number,tg_id:String(p.tg_id)}))};
 }
 
+// Convert a saved admin lineup into safe input for automatic reconciliation.
+// OLD: direct normalization could reject player choices because of duplicate/stale
+// manual shirt numbers. NEW: discard only old number values (the club registry is
+// authoritative), retain valid slot/name/player-ID choices, and fill missing slots.
+// This prevents stale manual numbers from blocking an otherwise valid hourly refresh.
+function lineupForAutomaticSync(input) {
+  const source = input && typeof input === "object" ? input : {};
+  const starters = (Array.isArray(source.starters) ? source.starters : [])
+    .filter(p => p && LINEUP_SLOTS.includes(String(p.slot || "")))
+    .map(p => ({ ...p, number: null }));
+  const bench = (Array.isArray(source.bench) ? source.bench : [])
+    .slice(0, LINEUP_BENCH_LIMIT).map(p => ({ ...p, number: null }));
+  return normalizeLineup({ starters, bench });
+}
+
 // Pure: cleans admin input. Returns { starters, bench } or throws Error with .status = 400.
 function normalizeLineup(input) {
   const bad = message => Object.assign(new Error(message), { status: 400 });
@@ -457,7 +472,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       const manual=await one(client,"select payload from squad_lineup where id=1 for update");
       if(manual){
         const old=typeof manual.payload==="string"?JSON.parse(manual.payload):manual.payload;
-        const merged=mergeLineupWithRoster(normalizeLineup(old),proposal);
+        const merged=mergeLineupWithRoster(lineupForAutomaticSync(old),proposal);
         await client.query("update squad_lineup set payload=$1::jsonb,updated_by=0,updated_at=now() where id=1",[JSON.stringify(merged)]);
       }
       return {ok:true,proposal_id:Number(saved.id),active_count:proposal.active_count,reserve_count:proposal.reserve_count};
@@ -519,7 +534,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
         const manual = await one(client, "select payload from squad_lineup where id = 1 for update");
         if (manual) {
           const oldLineup = typeof manual.payload === "string" ? JSON.parse(manual.payload) : manual.payload;
-          const merged = mergeLineupWithRoster(normalizeLineup(oldLineup), numbered);
+          const merged = mergeLineupWithRoster(lineupForAutomaticSync(oldLineup), numbered);
           await client.query("update squad_lineup set payload = $1::jsonb, updated_by = 0, updated_at = now() where id = 1", [JSON.stringify(merged)]);
         }
         await client.query(`insert into squad_approved_roster (id, proposal_id, payload, approved_by, approved_at)
