@@ -412,6 +412,17 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       assigned_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
     );
+    -- PERMANENT DISPLAY-NAME OVERRIDES:
+    -- OLD: squad refresh rebuilt display names from application/member records.
+    -- NEW: an admin-edited name is stored by Telegram ID and is never auto-expired.
+    -- WHY: short names must survive hourly refreshes and leaving/rejoining the squad.
+    -- Shirt numbers are deliberately excluded; they remain governed by automatic rules.
+    create table if not exists squad_player_display_names (
+      tg_id bigint primary key,
+      display_name text not null check (length(trim(display_name)) between 1 and 28),
+      updated_by bigint,
+      updated_at timestamptz not null default now()
+    );
   `)).then(async () => {
     for (const [i, [id, emoji, name, desc]] of DEPTS.entries())
       await db.query("insert into departments (id, emoji, name, description, sort) values ($1,$2,$3,$4,$5) on conflict (id) do nothing", [id, emoji, name, desc, i]);
@@ -451,10 +462,15 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   async function refreshSquadAutomatically() {
     return tx(async client => {
       await client.query("select pg_advisory_xact_lock(7710003)");
+      // OLD: refresh always selected the latest application/member name.
+      // NEW: overlay the permanent admin display name by Telegram ID before roster creation.
+      // WHY: a later application update must not restore the player's original long name.
       const rows=(await client.query(`select distinct on (a.tg_id)
-          a.id as application_id,a.tg_id,coalesce(nullif(a.name,''),m.nick,a.nick) as name,
+          a.id as application_id,a.tg_id,
+          coalesce(nullif(trim(d.display_name),''),nullif(a.name,''),m.nick,a.nick) as name,
           a.position as applied_position,m.xp,a.created_at,a.decided_at
         from applications a join members m on m.tg_id=a.tg_id
+        left join squad_player_display_names d on d.tg_id=a.tg_id
         where a.kind='player' and a.status='accepted' and a.position=any($1::text[])
         order by a.tg_id,a.decided_at desc nulls last,a.id desc`,[SQUAD_APPLIED_POSITIONS])).rows;
       const raw=buildSquadProposal(rows);
@@ -1064,6 +1080,20 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   route("/api/admin/squad/lineup/save", async (user, body) => {
     await ready;
     const requested = normalizeLineup(body);
+    // PERMANENT NAME SAVE:
+    // OLD: shortened names were kept only in the current lineup/roster JSON and got lost
+    //      when hourly refresh rebuilt the roster from application records.
+    // NEW: every named player explicitly saved by the admin is upserted by Telegram ID.
+    // WHY: manual display-name edits are permanent; the registry is never pruned on exit.
+    // Shirt numbers are not saved here, so the automatic reserved-number policy stays intact.
+    for (const player of [...requested.starters, ...requested.bench]) {
+      if (player.tg_id && player.name) {
+        await db.query(`insert into squad_player_display_names(tg_id,display_name,updated_by,updated_at)
+          values($1,$2,$3,now()) on conflict(tg_id) do update
+          set display_name=excluded.display_name,updated_by=excluded.updated_by,updated_at=now()`,
+          [String(player.tg_id),player.name,String(user.id)]);
+      }
+    }
     // OLD: admin saves wrote whatever shirt numbers came from the Mini App directly.
     // NEW: when an official roster exists, preserve the manager's selected players and
     // formation but reattach the club-assigned numbers from the approved snapshot. This
