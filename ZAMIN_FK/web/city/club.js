@@ -468,7 +468,16 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     await ready;
     let row=await one(db,"select payload,approved_at from squad_approved_roster where id=1");
     if(!row){const result=await refreshSquadAutomatically();if(!result.ok)return null;row=await one(db,"select payload,approved_at from squad_approved_roster where id=1");}
-    const payload=typeof row.payload==="string"?JSON.parse(row.payload):row.payload;
+    let payload=typeof row.payload==="string"?JSON.parse(row.payload):row.payload;
+    // Backfill older approved snapshots created before shirt numbers existed. Without
+    // this check, /squad could show a blank number until the next scheduled hourly run.
+    if((payload.active||[]).some(p=>!p.shirt_number)){
+      const result=await refreshSquadAutomatically();
+      if(result.ok){
+        row=await one(db,"select payload,approved_at from squad_approved_roster where id=1");
+        payload=typeof row.payload==="string"?JSON.parse(row.payload):row.payload;
+      }
+    }
     return {...payload,updated_at:row.approved_at};
   }
 
@@ -1076,6 +1085,13 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   });
 
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
+  // Startup backfill: the first deployment of this feature should not wait up to an
+  // hour for GitHub Actions. Run once after the DB schema is ready; later updates are
+  // driven by the authenticated hourly workflow. Failure is logged and leaves the
+  // last approved roster intact.
+  ready.then(() => refreshSquadAutomatically()).then(result => {
+    if (result && result.ok) console.log("initial squad sync", result);
+  }).catch(e => console.error("initial squad sync", e.message));
   return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId,
     createSquadProposal, getSquadStatus, decideSquadProposal, refreshSquadAutomatically, getCurrentSquad };
 }
