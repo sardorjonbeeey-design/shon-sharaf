@@ -304,19 +304,26 @@ test("the admin lineup loader preserves automatic shirt numbers and player IDs",
   assert.equal(keeper.tg_id, numbered.active.find(p => p.applied_position === "GK").tg_id);
 });
 
+// CHANGE LOG:
+ // OLD: this test used "Poster Test Forward" (19 characters), then expected the full
+ //      value in the SVG even though the pitch label intentionally shortens names to 18.
+ // NEW: use names that fit the actual pitch-label limit, so the test verifies live name
+ //      insertion rather than failing on the renderer's intentional display truncation.
+ // WHY: long names are still safely shortened by fit(); this test should cover data wiring,
+ //      not reject the visual layout's existing text-fit rule.
 test("Today's Squad SVG template inserts live player names and shirt numbers", () => {
   const svg = cards.squadSvg({
     active: [
-      { name: "Poster Test Forward", shirt_number: 9, squad_role: "starter", stadium_position: "ST" },
-      { name: "Poster Test Keeper", shirt_number: 1, squad_role: "starter", stadium_position: "GK" }
+      { name: "Poster Forward", shirt_number: 9, squad_role: "starter", stadium_position: "ST" },
+      { name: "Poster Keeper", shirt_number: 1, squad_role: "starter", stadium_position: "GK" }
     ],
     reserves: [{ name: "Poster Reserve", shirt_number: 25, applied_position: "GK" }]
   });
   assert.match(svg, /ASOSIY TARKIB/);
   assert.match(svg, /4-3-3/);
   assert.match(svg, /STARTING XI/);
-  assert.match(svg, /Poster Test Forward/);
-  assert.match(svg, /Poster Test Keeper/);
+  assert.match(svg, /Poster Forward/);
+  assert.match(svg, /Poster Keeper/);
   assert.match(svg, /Poster Reserve/);
   assert.match(svg, />9</);
   assert.match(svg, />25</);
