@@ -1018,7 +1018,14 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   route("/api/admin/squad/lineup", async () => getLineup(), true);
   route("/api/admin/squad/lineup/save", async (user, body) => {
     await ready;
-    const lineup = normalizeLineup(body);
+    const requested = normalizeLineup(body);
+    // OLD: admin saves wrote whatever shirt numbers came from the Mini App directly.
+    // NEW: when an official roster exists, preserve the manager's selected players and
+    // formation but reattach the club-assigned numbers from the approved snapshot. This
+    // stops a manual save from accidentally undoing #1/#25 and the reserved forward IDs.
+    const approved = await one(db, "select payload from squad_approved_roster where id = 1");
+    const snapshot = approved ? parseJson(approved.payload) : null;
+    const lineup = snapshot ? mergeLineupWithRoster(requested, snapshot) : requested;
     await db.query(`insert into squad_lineup (id, payload, updated_by, updated_at) values (1, $1::jsonb, $2, now())
       on conflict (id) do update set payload = excluded.payload, updated_by = excluded.updated_by, updated_at = now()`, [JSON.stringify(lineup), String(user.id)]);
     return getLineup();
