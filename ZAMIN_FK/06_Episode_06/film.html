@@ -1,0 +1,174 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: M; font-weight: 600; src: url(../web/city/assets/fonts/Montserrat_600SemiBold.ttf); }
+@font-face { font-family: M; font-weight: 700; src: url(../web/city/assets/fonts/Montserrat_700Bold.ttf); }
+@font-face { font-family: M; font-weight: 800; src: url(../web/city/assets/fonts/Montserrat_800ExtraBold.ttf); }
+@font-face { font-family: M; font-weight: 900; src: url(../web/city/assets/fonts/Montserrat_900Black.ttf); }
+html, body { margin: 0; background: #000; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #02040c; font-family: M, sans-serif; color: #fff; }
+.shot { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform, opacity; }
+.shot img { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; }
+.fx { position: absolute; inset: 0; pointer-events: none; }
+#vig { background: radial-gradient(ellipse 75% 62% at 50% 46%, rgba(0,0,0,0) 55%, rgba(0,3,14,.62) 100%); }
+#grade { background: linear-gradient(180deg, rgba(6,18,58,.30) 0%, rgba(6,18,58,0) 24%, rgba(2,6,22,0) 60%, rgba(2,6,22,.62) 100%); }
+#grain { width: 1080px; height: 1920px; mix-blend-mode: overlay; opacity: .12; image-rendering: auto; }
+#dust { width: 1080px; height: 1920px; mix-blend-mode: screen; }
+#flash { background: radial-gradient(circle at 50% 46%, #dbe9ff 0%, #6ea2ff 38%, rgba(31,79,184,0) 78%); mix-blend-mode: screen; opacity: 0; }
+#bloom { background: radial-gradient(circle at 50% 50%, rgba(170,205,255,.95) 0%, rgba(60,120,255,.55) 22%, rgba(31,79,184,0) 55%); mix-blend-mode: screen; opacity: 0; }
+#black { background: #01030a; opacity: 0; }
+.title { position: absolute; left: 70px; right: 70px; text-align: center; font-weight: 900; line-height: 1.06; letter-spacing: .5px; white-space: nowrap;
+  text-shadow: 0 0 34px rgba(46,110,255,.85), 0 0 90px rgba(31,79,184,.7), 0 6px 22px rgba(0,0,0,.75); }
+.title .w { display: inline-block; white-space: pre; will-change: transform, opacity, filter; }
+.title .hl { color: #7fb2ff; }
+.sub { position: absolute; left: 90px; right: 150px; top: 1440px; text-align: center; font-weight: 700; font-size: 46px; line-height: 1.24;
+  text-shadow: 0 2px 4px rgba(0,0,0,.95), 0 0 18px rgba(0,0,0,.9), 0 0 40px rgba(0,0,0,.6); }
+.sub span { transition: none; }
+#n500 { position: absolute; left: 0; right: 0; top: 250px; text-align: center; font-weight: 900; font-size: 430px; line-height: 1; letter-spacing: -6px;
+  background: linear-gradient(180deg, #ffffff 18%, #bcd6ff 55%, #4d8dff 100%); -webkit-background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 40px rgba(60,125,255,.95)) drop-shadow(0 0 120px rgba(31,79,184,.9)) drop-shadow(0 10px 26px rgba(0,0,0,.6)); }
+#crest { position: absolute; left: 50%; top: 0; transform-origin: 50% 50%; filter: drop-shadow(0 0 46px rgba(70,130,255,.85)) drop-shadow(0 14px 30px rgba(0,0,0,.65)); }
+#cta { position: absolute; left: 0; right: 0; top: 1205px; display: flex; justify-content: center; gap: 30px; }
+.btn { width: 400px; padding: 26px 0 22px; border-radius: 34px; text-align: center; font-weight: 900; font-size: 50px; letter-spacing: 1px; box-shadow: 0 14px 36px rgba(0,0,0,.55), 0 0 44px rgba(46,110,255,.55); }
+.btn small { display: block; font-size: 25px; font-weight: 700; letter-spacing: 6px; opacity: .78; margin-top: 4px; }
+.b1 { background: linear-gradient(180deg, #3f7bff, #1F4FB8); color: #fff; border: 4px solid rgba(255,255,255,.9); }
+.b2 { background: #fff; color: #173f96; border: 4px solid #fff; }
+#plus { position: absolute; top: 1228px; left: 50%; transform: translateX(-50%); font-weight: 900; font-size: 60px; text-shadow: 0 4px 14px rgba(0,0,0,.8); display: none; }
+.heart { display: inline-block; width: .92em; height: .86em; vertical-align: -.08em; margin-left: .12em; filter: drop-shadow(0 0 16px rgba(70,130,255,.95)); }
+</style>
+<div id="stage">
+  <div id="shots"></div>
+  <div class="fx" id="grade"></div>
+  <canvas class="fx" id="dust" width="540" height="960"></canvas>
+  <div class="fx" id="bloom"></div>
+  <div class="fx" id="vig"></div>
+  <div class="fx" id="black"></div>
+  <div class="fx" id="flash"></div>
+  <div id="n500">500</div>
+  <img id="crest" src="../03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png">
+  <div id="titles"></div>
+  <div id="cta"><div class="btn b1">KUZATING<small>FOLLOW</small></div><div class="btn b2">ULASHING<small>SHARE</small></div></div>
+  <div class="sub" id="sub"></div>
+  <canvas class="fx" id="grain" width="270" height="480"></canvas>
+</div>
+<script>
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, p) => a + (b - a) * p;
+const ss = p => { p = clamp(p); return p * p * (3 - 2 * p); };               // smoothstep
+const eo = p => 1 - Math.pow(1 - clamp(p), 3);
+const back = p => { p = clamp(p); const c = 1.6; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const ramp = (t, a, b) => clamp((t - a) / (b - a));
+const HEART = '<svg class="heart" viewBox="0 0 24 22"><path fill="#3f86ff" d="M12 21.5C5 15.8 1 12.3 1 7.6 1 4 3.8 1.2 7.3 1.2c1.9 0 3.6.9 4.7 2.3 1.1-1.4 2.8-2.3 4.7-2.3C20.2 1.2 23 4 23 7.6c0 4.7-4 8.2-11 13.9z"/></svg>';
+let EP, shotEls = [], titleEls = [];
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+window.ready = async () => {
+  EP = window.EP;
+  const S = document.getElementById('shots');
+  for (const sh of EP.shots) {
+    const d = document.createElement('div'); d.className = 'shot';
+    sh.imgs = sh.layers.map(l => { const i = document.createElement('img'); i.src = 'assets/' + l.src + '.png'; d.appendChild(i); return i; });
+    S.appendChild(d); shotEls.push(d);
+  }
+  const T = document.getElementById('titles');
+  for (const ti of EP.titles) {
+    const d = document.createElement('div'); d.className = 'title'; d.style.top = ti.y + 'px'; d.style.fontSize = ti.size + 'px';
+    d.innerHTML = ti.lines.map(line => line.split(' ').map(w => { const hl = w.startsWith('*'); w = w.replace('*', '').replace('{h}', HEART); return `<span class="w${hl ? ' hl' : ''}">${w}</span>`; }).join('<span class="w"> </span>')).join('<br>');
+    T.appendChild(d); titleEls.push(d);
+  }
+  await document.fonts.ready;
+  await Promise.all([...document.images].map(i => i.decode ? i.decode().catch(() => {}) : 0));
+};
+
+function kf(keys, t) {                     // keys: [[t, ...vals]] eased between neighbours
+  if (t <= keys[0][0]) return keys[0].slice(1);
+  for (let i = 1; i < keys.length; i++) if (t <= keys[i][0]) { const a = keys[i - 1], b = keys[i], p = ss((t - a[0]) / (b[0] - a[0])); return a.slice(1).map((v, j) => lerp(v, b[j + 1], p)); }
+  return keys[keys.length - 1].slice(1);
+}
+
+const dust = document.getElementById('dust'), dctx = dust.getContext('2d');
+const grain = document.getElementById('grain'), gctx = grain.getContext('2d');
+const P = (() => { const r = mulberry(7); return Array.from({ length: 70 }, () => ({ x: r(), y: r(), s: .6 + r() * 2.2, v: .012 + r() * .03, ph: r() * 6.28, a: .25 + r() * .6 })); })();
+
+window.renderAt = t => {
+  // ---- shots
+  EP.shots.forEach((sh, i) => {
+    const el = shotEls[i], nx = EP.shots[i + 1];
+    const end = nx ? nx.a + (nx.fi || 0) : EP.total;
+    if (t < sh.a || t >= end) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.style.opacity = sh.fi ? ss((t - sh.a) / sh.fi) : 1;
+    let [s, x, y] = kf(sh.cam, t);
+    x += Math.sin(t * .9 + i) * 3 + Math.sin(t * 2.3 + i * 2) * 1.2; y += Math.cos(t * .7 + i) * 3;      // breathing handheld drift
+    let rot = Math.sin(t * .5 + i) * .12, br = 1;
+    if (sh.shake) { const k = sh.shake; x += Math.sin(t * 17) * k; y += Math.cos(t * 13) * k; }
+    if (sh.bright) br = kf(sh.bright, t)[0];
+    el.style.transform = `translate(${x.toFixed(2)}px,${y.toFixed(2)}px) scale(${s.toFixed(4)}) rotate(${rot.toFixed(3)}deg)`;
+    el.style.filter = br !== 1 ? `brightness(${br.toFixed(3)})` : '';
+    sh.layers.forEach((l, j) => { sh.imgs[j].style.opacity = l.o ? kf(l.o, t)[0] : 1; });
+  });
+  // ---- overlays
+  const ev = (name, f) => { let v = 0; for (const e of EP[name]) v = Math.max(v, f(e)); return v; };
+  document.getElementById('flash').style.opacity = ev('flashes', e => t < e.t ? ramp(t, e.t - .12, e.t) * e.k : (1 - ramp(t, e.t, e.t + e.d)) ** 2 * e.k);
+  const bl = document.getElementById('bloom'); let bo = 0;
+  for (const e of EP.blooms) { const o = t < e.t ? ss(ramp(t, e.t - e.i, e.t)) : 1 - ss(ramp(t, e.t, e.t + e.d)); if (o * e.k > bo) { bo = o * e.k; bl.style.background = `radial-gradient(circle at ${e.x}% ${e.y}%, rgba(190,218,255,.95) 0%, rgba(60,120,255,.5) ${e.r * .4}%, rgba(31,79,184,0) ${e.r}%)`; } }
+  bl.style.opacity = bo;
+  document.getElementById('black').style.opacity = Math.max(1 - ss(ramp(t, 0, 1.3)), kf(EP.dim, t)[0]);
+  // dust motes (only where asked)
+  dctx.clearRect(0, 0, 540, 960);
+  const da = kf(EP.dust, t)[0];
+  if (da > 0) for (const p of P) {
+    const y = ((p.y - t * p.v) % 1 + 1) % 1, x = p.x + Math.sin(t * .6 + p.ph) * .02, tw = .55 + .45 * Math.sin(t * 2.2 + p.ph * 3);
+    const g = dctx.createRadialGradient(x * 540, y * 960, 0, x * 540, y * 960, p.s * 3);
+    g.addColorStop(0, `rgba(200,225,255,${(p.a * tw * da).toFixed(3)})`); g.addColorStop(1, 'rgba(120,170,255,0)');
+    dctx.fillStyle = g; dctx.fillRect(x * 540 - 8, y * 960 - 8, 16, 16);
+  }
+  // film grain
+  const r = mulberry(Math.round(t * 30) + 1), id = gctx.createImageData(270, 480), d = id.data;
+  for (let i = 0; i < d.length; i += 4) { const v = 128 + (r() - .5) * 150; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+  gctx.putImageData(id, 0, 0);
+  // ---- titles: words rise out of blur one after another
+  EP.titles.forEach((ti, i) => {
+    const el = titleEls[i];
+    if (t < ti.a || t > ti.b) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    const out = 1 - ss(ramp(t, ti.b - .45, ti.b));
+    const ws = [...el.querySelectorAll('.w')].filter(w => w.textContent.trim() || w.querySelector('svg'));
+    ws.forEach((w, k) => { const p = eo(ramp(t, ti.a + k * (ti.stag ?? .13), ti.a + k * (ti.stag ?? .13) + .55));
+      w.style.opacity = p * out; w.style.transform = `translateY(${(1 - p) * 34}px) scale(${lerp(1.12, 1, p)})`; w.style.filter = p < 1 ? `blur(${((1 - p) * 10).toFixed(1)}px)` : ''; });
+    el.style.transform = `scale(${(1 + (t - ti.a) * .006).toFixed(4)})`;
+  });
+  // ---- 500
+  const n = document.getElementById('n500'), q = EP.n500;
+  if (t < q.a || t > q.b) n.style.display = 'none'; else {
+    n.style.display = 'block'; const p = ramp(t, q.a, q.a + .5), out = 1 - ss(ramp(t, q.b - .4, q.b));
+    n.style.opacity = Math.min(1, p * 2.5) * out;
+    n.style.transform = `scale(${(lerp(2.6, 1, eo(p)) * (1 + (t - q.a) * .008) * (1 + Math.sin((t - q.a) * 3.2) * .006)).toFixed(4)})`;
+  }
+  // ---- crest
+  const c = document.getElementById('crest'); let shown = false;
+  for (const k of EP.crest) if (t >= k.a && t <= k.b) {
+    shown = true; const p = ramp(t, k.a, k.a + .6), out = 1 - ss(ramp(t, k.b - (k.out ?? .35), k.b));
+    c.style.display = 'block'; c.style.height = k.h + 'px'; c.style.marginLeft = (-k.h / 2) + 'px'; c.style.top = k.y + 'px';
+    c.style.opacity = Math.min(1, p * 2) * out; c.style.transform = `scale(${(back(p) * (1 + (t - k.a) * .006)).toFixed(4)})`;
+  }
+  if (!shown) c.style.display = 'none';
+  // ---- CTA buttons
+  const cta = document.getElementById('cta'), ca = EP.cta;
+  if (t < ca.a) cta.style.display = 'none'; else {
+    cta.style.display = 'flex';
+    [...cta.children].forEach((b, k) => { const p = ramp(t, ca.a + k * .22, ca.a + k * .22 + .5);
+      b.style.opacity = Math.min(1, p * 2.5); b.style.transform = `translateY(${(1 - eo(p)) * 70}px) scale(${(back(p) * (1 + Math.max(0, Math.sin((t - ca.a - k * .5) * 4.2)) * .035)).toFixed(4)})`; });
+  }
+  // ---- narration subtitles (word-by-word brightening)
+  const sub = document.getElementById('sub'); let cap = null;
+  for (const cp of EP.captions) if (t >= cp.a && t < cp.b) cap = cp;
+  if (!cap) sub.style.display = 'none'; else {
+    sub.style.display = 'block';
+    if (sub.dataset.k !== String(cap.a)) { sub.dataset.k = cap.a; sub.innerHTML = cap.words.map(w => `<span>${w}</span>`).join(' '); }
+    const o = Math.min(ramp(t, cap.a, cap.a + .2), 1 - ramp(t, cap.b - .2, cap.b));
+    sub.style.opacity = o;
+    [...sub.children].forEach((sp, k) => { const on = ramp(t, cap.wt[k] - .04, cap.wt[k] + .14); sp.style.opacity = lerp(.6, 1, on); });
+  }
+};
+</script>
