@@ -36,6 +36,10 @@ Each episode folder: `assets/` (images), `voice/` (narration per line), `sfx/`, 
 - Video generation: NOT available (Poyo key blocks all video and music models; ElevenLabs video needs a paid plan). Use stills + motion.
 - Fonts: `web/city/assets/fonts/Montserrat_*.ttf`. Headless Chromium can't reach CDNs; route three.js from a local npm copy if rendering the 3D stadium.
 
+## Stories
+- Secret-project teaser ("SIZGA BIR LAVOZIM TAYYOR…"): `07_Story_secret_teaser/exports/ZFK_story_secret_teaser.png`; editable source `story.html` + `node render.js`; background `assets/bg_manager_chair_v2.png`. The project is a Football Manager game in the Telegram Mini App — still SECRET: never name it, show UI or give a date in public content.
+- Day 2 stories: `02_Episode_02/exports/*.png`.
+
 ## Other content
 - Art direction and prompts: `01_Art_Direction/` (`ZFK_PROMPT_PACK_V01.md`, crest spec, sprites). Drafts: `04_Revision_Assets/`. Stadium concepts: `../concepts/`.
 - Virtual stadium page (followers' seats): `web/stadium/` (`fans_instagram.json`, `build.py`), `/add` skill adds followers.
