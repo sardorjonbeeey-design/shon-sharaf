@@ -209,9 +209,17 @@ function mergeLineupWithRoster(existing, payload) {
   const used=new Set();
   const groupFor=slot=>slot==="GK"?"GK":["LB","CB1","CB2","RB"].includes(slot)?"DEF":
     ["CDM","CM","CAM"].includes(slot)?"MID":"FWD";
+  // Existing bench choices are protected during replacement selection. A bench
+  // player is promoted only when no other eligible player can fill the empty slot.
+  const protectedBench=new Set((existing&&existing.bench||[]).map(p=>{
+    if(p.tg_id)return String(p.tg_id);
+    const match=byName.get(String(p.name||"").trim().toLowerCase());
+    return match?String(match.tg_id):"";
+  }).filter(Boolean));
   const choose=(preferred,slot)=>{
     if(preferred&&!used.has(String(preferred.tg_id))){used.add(String(preferred.tg_id));return preferred;}
-    const group=groupFor(slot), candidate=roster.find(p=>!used.has(String(p.tg_id))&&(p.assigned_group===group||p.applied_position===group));
+    const group=groupFor(slot), candidates=roster.filter(p=>!used.has(String(p.tg_id))&&(p.assigned_group===group||p.applied_position===group));
+    const candidate=candidates.find(p=>!protectedBench.has(String(p.tg_id)))||candidates[0];
     if(candidate){used.add(String(candidate.tg_id));return candidate;} return null;
   };
   const old=new Map((existing&&existing.starters||[]).map(p=>[p.slot,p]));
