@@ -11,7 +11,7 @@ hali bo‘sh joylar bo‘ladi.
 Ammo bu stadionda siz uchun ham joy bor.
 
 4
-00:00:13,400 --> 00:00:15,860
+00:00:13,400 --> 00:00:15,760
 ZAMIN FK’ni biz birgalikda quramiz.
 
 5
@@ -27,7 +27,7 @@ Har bir muxlis — bu stadiondagi yana bir o‘rin.
 Va unutmang — ZAMIN FK’da o‘ynash mutlaqo bepul!
 
 8
-00:00:31,400 --> 00:00:33,767
+00:00:31,400 --> 00:00:33,667
 Bu stadionda sizning ham joyingiz bor.
 
 9
