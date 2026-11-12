@@ -56,7 +56,7 @@ const SQUAD_GROUPS = Object.freeze({
 const SQUAD_GROUP_ORDER = ["GK", "DEF", "MID", "FWD"];
 const SQUAD_APPLIED_POSITIONS = SQUAD_GROUP_ORDER;
 const SQUAD_ACTIVE_LIMIT = 22;
-const SQUAD_RESERVE_LIMIT = 2;
+const SQUAD_PRIORITY_RESERVE_LIMIT = 2; // First 2 reserves complete the 24-player priority group; later reserves are unlimited.
 
 function squadXpRank(a, b) {
   const xp = (Number(b.xp) || 0) - (Number(a.xp) || 0);
@@ -134,15 +134,20 @@ function buildSquadProposal(input = []) {
   ].filter(Boolean);
   const active = [...starters, ...substitutes].slice(0, SQUAD_ACTIVE_LIMIT)
     .map((player, index) => ({ ...player, squad_order: index + 1, squad_role: index < starters.length ? "starter" : "substitute" }));
-  const reserves = overflow.slice(0, SQUAD_RESERVE_LIMIT).map((player, index) => ({
+  // OLD: only two players beyond the active 22 were kept as reserves.
+  // NEW: keep every remaining eligible player, sorted by XP, in the reserve queue.
+  // WHY: ranks 23–24 are the priority reserves; rank 25 onward remains unlimited.
+  const reserves = overflow.map((player, index) => ({
     ...player, assigned_group: null, stadium_position: null, squad_role: "reserve",
     reserve_rank: index + 1, reassigned: false,
-    reason: "Outside the active 22; highest remaining XP reserve.",
+    reason: index < SQUAD_PRIORITY_RESERVE_LIMIT
+      ? "Priority reserve within the top 24."
+      : "Unlimited reserve queue, ordered by XP.",
   }));
 
   return {
     rules: { group_quotas: Object.fromEntries(SQUAD_GROUP_ORDER.map(g => [g, SQUAD_GROUPS[g].quota])),
-      active_limit: SQUAD_ACTIVE_LIMIT, reserve_limit: SQUAD_RESERVE_LIMIT,
+      active_limit: SQUAD_ACTIVE_LIMIT, priority_reserve_limit: SQUAD_PRIORITY_RESERVE_LIMIT, reserve_limit: null,
       xp_source: "members.xp", priority: "applied_position_then_xp" },
     eligible_count: unique.size,
     active_count: active.length,
@@ -175,7 +180,11 @@ const lineupRank = slot => slot === "CB2" ? 3 : slot === "CB1" ? 2 : 1;
 function assignSquadNumbers(payload, previous = {}, random = Math.random) {
   const active = Array.isArray(payload && payload.active) ? payload.active : [];
   const reserves = Array.isArray(payload && payload.reserves) ? payload.reserves : [];
-  const players = [...active, ...reserves], numbers = new Map(), used = new Set();
+  // OLD: all reserves competed for the finite 1–25 shirt-number pool.
+  // NEW: only the first two XP-ranked reserves (priority ranks 23–24) receive numbers.
+  // WHY: ranks 25 onward are unlimited and must not consume or duplicate shirt numbers.
+  const numberedReserves = reserves.slice(0, SQUAD_PRIORITY_RESERVE_LIMIT);
+  const players = [...active, ...numberedReserves], numbers = new Map(), used = new Set();
   const set = (p, n) => { if (p && n && !used.has(n)) { numbers.set(String(p.tg_id), n); used.add(n); } };
   const keepers = players.filter(p => p.assigned_group === "GK" || p.applied_position === "GK")
     .sort((a,b) => (Number(a.position_rank)||99)-(Number(b.position_rank)||99));
@@ -197,7 +206,10 @@ function assignSquadNumbers(payload, previous = {}, random = Math.random) {
     set(p, choices[index]);
   }
   const attach = list => list.map(p=>({...p, shirt_number:numbers.get(String(p.tg_id))||null}));
-  return {...payload, active:attach(active), reserves:attach(reserves)};
+  return {...payload, active:attach(active), reserves:[
+    ...attach(numberedReserves),
+    ...reserves.slice(SQUAD_PRIORITY_RESERVE_LIMIT).map(p=>({...p,shirt_number:null}))
+  ]};
 }
 
 // Reconcile a saved manual 4-3-3 with a refreshed roster. Keep selected players
@@ -316,7 +328,7 @@ function lineupFeed(lineup) {
 // Validate the exact snapshot before it can replace the currently approved roster.
 function validateSquadSnapshot(payload) {
   if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves)) return false;
-  if (payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT) return false;
+  if (payload.active.length > SQUAD_ACTIVE_LIMIT) return false;
   if (Number(payload.active_count) !== payload.active.length || Number(payload.reserve_count) !== payload.reserves.length) return false;
   if (Number(payload.shortfall) !== Math.max(0, SQUAD_ACTIVE_LIMIT - payload.active.length)) return false;
 
@@ -423,6 +435,18 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       updated_by bigint,
       updated_at timestamptz not null default now()
     );
+    -- ACADEMY PROMOTION CHANGE LOG:
+    -- OLD: no durable state existed for a 100-XP Academy promotion or player onboarding.
+    -- NEW: persist each promotion through position selection, shirt-name entry and completion.
+    -- WHY: invitations must be sent once, and players must choose both details before senior entry.
+    create table if not exists academy_promotions (
+      tg_id bigint primary key,
+      status text not null check (status in ('pending_position','pending_name','completed')),
+      position text check (position in ('GK','DEF','MID','FWD')),
+      shirt_name text check (shirt_name is null or length(trim(shirt_name)) between 1 and 28),
+      invited_at timestamptz not null default now(),
+      completed_at timestamptz
+    );
   `)).then(async () => {
     for (const [i, [id, emoji, name, desc]] of DEPTS.entries())
       await db.query("insert into departments (id, emoji, name, description, sort) values ($1,$2,$3,$4,$5) on conflict (id) do nothing", [id, emoji, name, desc, i]);
@@ -459,7 +483,59 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   // Advisory locking prevents concurrent cron jobs; an empty/invalid result never
   // replaces the last known-good roster. Shirt numbers and manual lineup reconciliation
   // happen in this same transaction, so the stadium cannot see a half-updated state.
+  // Sweep on startup/hourly refresh so all XP sources trigger the same 100-XP promotion.
+  async function notifyAcademyPromotions() {
+    await ready;
+    const candidates=(await db.query(`select m.tg_id from members m
+      where m.dept='academy' and m.xp>=100
+        and not exists(select 1 from academy_promotions ap where ap.tg_id=m.tg_id)
+      order by m.xp desc,m.tg_id`)).rows;
+    for (const p of candidates) {
+      const inserted=await db.query(`insert into academy_promotions(tg_id,status)
+        values($1,'pending_position') on conflict(tg_id) do nothing returning tg_id`,[String(p.tg_id)]);
+      if (!inserted.rowCount) continue;
+      try { await bot.api("sendMessage",{chat_id:String(p.tg_id),parse_mode:"HTML",
+        text:"🎓 <b>Yoshlar Akademiyasi — 100 XP!</b>\\n\\nSiz endi asosiy jamoaning 24 kishilik ustuvor tarkibiga kirish uchun kurashishingiz mumkin. Avval futbol pozitsiyangizni tanlang:",
+        reply_markup:{inline_keyboard:[
+          [{text:"🧤 GK — Darvozabon",callback_data:"academy:pos:GK"}],
+          [{text:"🛡 DEF — Himoyachi",callback_data:"academy:pos:DEF"}],
+          [{text:"🎯 MID — Yarim himoyachi",callback_data:"academy:pos:MID"}],
+          [{text:"⚡ FWD — Hujumchi",callback_data:"academy:pos:FWD"}]
+        ]}}); } catch(e) { console.error("academy promotion message",e.message); }
+    }
+  }
+  async function setAcademyPromotionPosition(tgId,position) {
+    if (!SQUAD_GROUPS[position]) throw fail(400,"position");
+    const r=await db.query(`update academy_promotions ap set position=$2,status='pending_name'
+      from members m where ap.tg_id=$1 and m.tg_id=ap.tg_id and m.xp>=100
+      and ap.status in ('pending_position','pending_name') returning ap.tg_id`,[String(tgId),position]);
+    if (!r.rowCount) throw fail(409,"promotion not pending");
+  }
+  async function completeAcademyPromotion(tgId,shirtName) {
+    const name=String(shirtName||"").replace(/\s+/g," ").trim();
+    if (!name || name.length>28) throw fail(400,"shirt name must be 1–28 characters");
+    return tx(async client=>{
+      const p=await one(client,`select ap.position,ap.status,m.nick,m.xp from academy_promotions ap
+        join members m on m.tg_id=ap.tg_id where ap.tg_id=$1 for update of ap,m`,[String(tgId)]);
+      if (!p || p.status!=="pending_name" || !p.position || Number(p.xp)<100) throw fail(409,"promotion not ready");
+      const existing=await one(client,`select id from applications where tg_id=$1 and kind='player' order by id desc limit 1 for update`,[String(tgId)]);
+      if(existing) await client.query(`update applications set status='accepted',position=$2,name=$3,role=$3,dept='academy',decided_at=now(),decided_by=0 where id=$1`,[existing.id,p.position,name]);
+      else await client.query(`insert into applications(tg_id,nick,role,kind,name,position,dept,status,decided_at,decided_by)
+        values($1,$2,$3,'player',$3,$4,'academy','accepted',now(),0)`,[String(tgId),p.nick,name,p.position]);
+      await client.query(`insert into squad_player_display_names(tg_id,display_name,updated_by,updated_at)
+        values($1,$2,0,now()) on conflict(tg_id) do update set display_name=excluded.display_name,updated_by=0,updated_at=now()`,[String(tgId),name]);
+      await client.query(`update academy_promotions set shirt_name=$2,status='completed',completed_at=now() where tg_id=$1`,[String(tgId),name]);
+      return {position:p.position,name};
+    });
+  }
+  async function getAcademyPromotion(tgId) {
+    await ready;
+    return (await db.query("select status from academy_promotions where tg_id=$1",[String(tgId)])).rows[0]||null;
+  }
+
   async function refreshSquadAutomatically() {
+    // Every scheduled refresh also checks the 100-XP threshold, regardless of which XP source awarded it.
+    await notifyAcademyPromotions();
     return tx(async client => {
       await client.query("select pg_advisory_xact_lock(7710003)");
       // OLD: refresh always selected the latest application/member name.
@@ -472,13 +548,18 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
         from applications a join members m on m.tg_id=a.tg_id
         left join squad_player_display_names d on d.tg_id=a.tg_id
         where a.kind='player' and a.status='accepted' and a.position=any($1::text[])
+          and (coalesce(m.dept,'') <> 'academy' or exists (
+            select 1 from academy_promotions ap where ap.tg_id=a.tg_id and ap.status='completed'))
         order by a.tg_id,a.decided_at desc nulls last,a.id desc`,[SQUAD_APPLIED_POSITIONS])).rows;
       const raw=buildSquadProposal(rows);
       if(!raw.active_count||!validateSquadSnapshot(raw))return {ok:false,skipped:true,reason:"no_valid_players"};
       const oldRows=(await client.query("select tg_id,shirt_number from squad_shirt_numbers")).rows;
       const previous=Object.fromEntries(oldRows.map(x=>[String(x.tg_id),Number(x.shirt_number)]));
       const proposal=assignSquadNumbers(raw,previous);
-      const all=[...proposal.active,...proposal.reserves], ids=all.map(p=>String(p.tg_id));
+      // OLD: persist shirt numbers for every reserve, which fails once the queue is unlimited.
+      // NEW: persist only active 22 plus the first two priority reserves.
+      // WHY: later reserve ranks remain eligible but are intentionally unnumbered until promotion.
+      const all=[...proposal.active,...proposal.reserves.slice(0,SQUAD_PRIORITY_RESERVE_LIMIT)], ids=all.map(p=>String(p.tg_id));
       await client.query("delete from squad_shirt_numbers where not (tg_id=any($1::bigint[]))",[ids]);
       for(const p of all){
         if(!p.shirt_number)throw fail(409,"shirt number capacity exceeded");
@@ -911,8 +992,11 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     // tell the applicant in Telegram (after commit; a failed message never blocks the decision)
     if (a.tg_id) {
       const what = a.kind === "player" ? "futbolchi" : a.kind === "staff" ? "klub xodimi" : (a.role || "ish");
+      const academyAccepted = status === "accepted" && (bodyDept || a.dept) === "academy";
       const text = status === "accepted"
-        ? `✅ <b>Tabriklaymiz!</b> Zamin FK ga ${what} sifatida qabul qilindingiz.` + (a.kind === "player" ? "\n⚽ Endi siz jamoa tarkibidasiz — stadionda mashg‘ulotda ko‘rinasiz!" : "") + (body.note ? "\n\n" + String(body.note).slice(0, 200) : "")
+        ? academyAccepted
+          ? "🎓 <b>Tabriklaymiz!</b> Siz ZAMIN FK Yoshlar Akademiyasiga qabul qilindingiz.\\n\\n⭐ 100 XP ga yetganingizdan so‘ng asosiy jamoaning 24 kishilik ustuvor tarkibi uchun kurashish imkoniyatiga ega bo‘lasiz. Bot sizga pozitsiya va futbolka ismini tanlash xabarini avtomatik yuboradi." + (body.note ? "\\n\\n" + String(body.note).slice(0, 200) : "")
+          : `✅ <b>Tabriklaymiz!</b> Zamin FK ga ${what} sifatida qabul qilindingiz.` + (a.kind === "player" ? "\n⚽ Endi siz jamoa tarkibidasiz — stadionda mashg‘ulotda ko‘rinasiz!" : "") + (body.note ? "\n\n" + String(body.note).slice(0, 200) : "")
         : `ℹ️ Arizangiz ko‘rib chiqildi: bu safar qabul qilinmadi.` + (body.note ? "\n" + String(body.note).slice(0, 200) : "") + "\nKeyingi imkoniyatlarni kuzatib boring!";
       setTimeout(() => bot.api("sendMessage", { chat_id: String(a.tg_id), text, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)), 0);
     }
@@ -1175,7 +1259,8 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     if (result && result.ok) console.log("initial squad sync", result);
   }).catch(e => console.error("initial squad sync", e.message));
   return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId,
-    createSquadProposal, getSquadStatus, decideSquadProposal, refreshSquadAutomatically, getCurrentSquad };
+    createSquadProposal, getSquadStatus, decideSquadProposal, refreshSquadAutomatically, getCurrentSquad,
+    notifyAcademyPromotions, setAcademyPromotionPosition, completeAcademyPromotion, getAcademyPromotion };
 }
 
 module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, validateSquadSnapshot,

@@ -56,7 +56,8 @@ test("24 eligible players produce 22 active players and 2 reserves", () => {
   assert.deepEqual(result.reserves.map(p => p.tg_id), ["23", "24"]);
 });
 
-test("more than 24 eligible players never exceed the active and reserve limits", () => {
+// CHANGE LOG: OLD: reserve list was capped at two players. NEW: all extra players remain ranked reserves. WHY: only the first 24 are priority; reserve rank 25 onward is unlimited.
+test("more than 24 eligible players remain in the unlimited XP-ranked reserve queue", () => {
   const rows = players();
   for (let i = 23; i <= 30; i++) {
     rows.push({ tg_id: String(i), name: "Extra " + i, applied_position: "DEF", xp: 100 - i });
@@ -64,8 +65,9 @@ test("more than 24 eligible players never exceed the active and reserve limits",
   const result = buildSquadProposal(rows);
   assert.equal(result.eligible_count, 30);
   assert.equal(result.active_count, 22);
-  assert.equal(result.reserve_count, 2);
-  assert.equal(result.active.length + result.reserves.length, 24);
+  assert.equal(result.reserve_count, 8);
+  assert.equal(result.active.length + result.reserves.length, 30);
+  assert.deepEqual(result.reserves.map(p => p.xp), [...result.reserves.map(p => p.xp)].sort((a,b) => b-a));
 });
 
 test("shortage is reported instead of inventing players", () => {
@@ -249,7 +251,7 @@ test("shirt numbers reserve 1 and 25 for goalkeepers and 7, 9, 10, 11 for the fo
   );
   const proposal = buildSquadProposal(rows);
   const numbered = assignSquadNumbers(proposal, {}, () => 0);
-  const all = [...numbered.active, ...numbered.reserves];
+  const all = [...numbered.active, ...numbered.reserves.slice(0, 2)];
   const keepers = all.filter(p => p.applied_position === "GK").sort((a,b) => a.position_rank-b.position_rank);
   assert.equal(keepers[0].shirt_number, 1);
   assert.equal(keepers[1].shirt_number, 25);
@@ -258,6 +260,7 @@ test("shirt numbers reserve 1 and 25 for goalkeepers and 7, 9, 10, 11 for the fo
   const assigned = all.map(p => p.shirt_number);
   assert.equal(new Set(assigned).size, assigned.length);
   assert.equal(assigned.every(n => Number.isInteger(n) && n >= 1 && n <= 25), true);
+  assert.equal(numbered.reserves.slice(2).every(p => p.shirt_number === null), true);
 });
 
 test("existing player shirt numbers remain stable on the next automatic refresh", () => {

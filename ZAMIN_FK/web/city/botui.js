@@ -202,7 +202,7 @@ function init({ db, bot, club, led }) {
   async function generateAndShowSquad(chat, user) {
     const saved = await club.createSquadProposal(user);
     const p = saved.proposal;
-    const header = "⚽ <b>Squad proposal #" + saved.id + "</b>\n" + p.active_count + "/22 active · " + p.reserve_count + "/2 reserves · " + p.eligible_count + " eligible\n\n";
+    const header = "⚽ <b>Squad proposal #" + saved.id + "</b>\n" + p.active_count + "/22 active · " + p.reserve_count + " reserves (unlimited) · " + p.eligible_count + " eligible\n\n";
     const groups = [
       ["🟢 <b>STARTING XI</b>", p.active.filter(x => x.squad_role === "starter")],
       ["🪑 <b>SUBSTITUTES</b>", p.active.filter(x => x.squad_role === "substitute")],
@@ -232,7 +232,7 @@ function init({ db, bot, club, led }) {
     else lines.push("\n📝 Pending proposal: yo‘q");
     if (status.approved) {
       const payload = typeof status.approved.payload === "string" ? JSON.parse(status.approved.payload) : status.approved.payload;
-      lines.push("\n✅ Approved: <b>#" + status.approved.proposal_id + "</b> · " + payload.active_count + "/22 active · " + payload.reserve_count + "/2 reserves\nTasdiqlangan vaqt: " + status.approved.approved_at);
+      lines.push("\n✅ Approved: <b>#" + status.approved.proposal_id + "</b> · " + payload.active_count + "/22 active · " + payload.reserve_count + " reserves (unlimited)\nTasdiqlangan vaqt: " + status.approved.approved_at);
     } else lines.push("\n✅ Approved roster: hali yo‘q");
     return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: lines.join("\n"),
       reply_markup: { inline_keyboard: [[{ text: "🔄 Yangilash", callback_data: "adm:squad:status" }, { text: "⬅️ Tarkib paneli", callback_data: "adm:squad" }]] } });
@@ -370,6 +370,18 @@ function init({ db, bot, club, led }) {
     const msg = update && update.message, cb = update && update.callback_query;
     if (msg && msg.from && msg.chat && msg.chat.type === "private") {
       const t = String(msg.text || "").trim();
+      if (t && !t.startsWith("/")) return async () => {
+        const state=await club.getAcademyPromotion(msg.from.id).catch(()=>null);
+        if(state && state.status==="pending_name"){
+          try {
+            const saved=await club.completeAcademyPromotion(msg.from.id,t);
+            await api("sendMessage",{chat_id:msg.chat.id,parse_mode:"HTML",
+              text:`✅ <b>Ma’lumotlaringiz saqlandi!</b>\\nPozitsiya: <b>${esc(saved.position)}</b>\\nFutbolka nomi: <b>${esc(saved.name)}</b>\\n\\nSiz senior XP reytingiga kiritildingiz. 22 ta aktiv joydan tashqaridagi futbolchilar cheksiz zaxira ro‘yxatida XP bo‘yicha saralanadi.`});
+            await club.refreshSquadAutomatically();
+          } catch(e) { await api("sendMessage",{chat_id:msg.chat.id,text:"Futbolka ismini 1–28 belgi bilan yuboring."}); }
+          return;
+        }
+      };
       if (/^\/squad(@\w+)?$/i.test(t)) return () => sendSquad(msg.chat.id);
       if (/^\/(karta|card)(@\w+)?$/i.test(t)) return () => sendCard(msg.chat.id, msg.from);
       if (/^\/(reyting|top)(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: await topText(msg.from) });
@@ -403,6 +415,12 @@ function init({ db, bot, club, led }) {
       return async () => {
         let answered = false;
         try {
+          if (/^academy:pos:(GK|DEF|MID|FWD)$/.test(data)) {
+            await api("answerCallbackQuery",{callback_query_id:cb.id});answered=true;
+            await club.setAcademyPromotionPosition(cb.from.id,data.split(":")[2]);
+            return api("sendMessage",{chat_id:cb.message.chat.id,parse_mode:"HTML",
+              text:"✍️ <b>Futbolka ustida ko‘rinadigan ismingizni yuboring.</b>\\n1–28 belgi. Ism yoki qisqa futbolchi nomini kiriting."});
+          }
           if (data === "card:re" || data === "card:new") {
             await api("answerCallbackQuery", { callback_query_id: cb.id, text: data === "card:re" ? "Yangilanmoqda…" : "" }); answered = true;
             return data === "card:re" ? await refreshCard(cb) : await sendCard(cb.message.chat.id, cb.from);
