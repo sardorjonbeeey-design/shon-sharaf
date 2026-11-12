@@ -7,6 +7,8 @@ on:
     paths:
       - "ZAMIN_FK/web/city/club.js"
       - "ZAMIN_FK/web/city/squad.test.js"
+      - "ZAMIN_FK/web/city/botui.js"
+      - "ZAMIN_FK/web/city/cards.js"
       - "ZAMIN_FK/web/city/package.json"
       - "ZAMIN_FK/web/stadium/template.html"
       - "ZAMIN_FK/web/stadium/build.py"
@@ -14,6 +16,7 @@ on:
       - "ZAMIN_FK/01_Art_Direction/Sprites/**"
       - "ZAMIN_FK/03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"
       - ".github/workflows/zamin-squad-tests.yml"
+      - ".github/workflows/hourly-squad-refresh.yml"
   pull_request:
     paths:
       - "ZAMIN_FK/web/city/club.js"
@@ -25,6 +28,7 @@ on:
       - "ZAMIN_FK/01_Art_Direction/Sprites/**"
       - "ZAMIN_FK/03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"
       - ".github/workflows/zamin-squad-tests.yml"
+      - ".github/workflows/hourly-squad-refresh.yml"
 
 jobs:
   squad-tests:
@@ -37,6 +41,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Check server-side JavaScript syntax
+        run: node --check club.js && node --check botui.js && node --check cards.js
       - name: Run squad regression tests
         run: npm test
       - uses: actions/setup-python@v5

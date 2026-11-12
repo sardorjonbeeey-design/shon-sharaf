@@ -98,6 +98,29 @@ function init({ db, bot, club, led }) {
     const c = await cardFor(user);
     return apiFile("sendPhoto", { chat_id: chatId, caption: c.caption, parse_mode: "HTML", reply_markup: cardKb }, "photo", c.png);
   }
+  // /squad (new): before this change the bot had player/VIP cards only. This
+  // command reads the latest approved squad snapshot and renders the shared poster
+  // template in cards.js; names and shirt numbers are live data, not baked into an image.
+  // If no approved snapshot exists yet, club.getCurrentSquad performs one safe initial
+  // refresh. If rendering/data is unavailable, the command sends a clear text fallback.
+  async function sendSquad(chatId) {
+    try {
+      const squad = await club.getCurrentSquad();
+      if (!squad || !Array.isArray(squad.active) || !squad.active.length)
+        return api("sendMessage", { chat_id: chatId, text: "⚽ Hozircha tasdiqlangan tarkib mavjud emas." });
+      if (!cards.ok() || !cards.squadPng)
+        return api("sendMessage", { chat_id: chatId, text: "⚽ Tarkib mavjud, lekin poster renderer hozircha ishlamayapti." });
+      const png = cards.squadPng(squad);
+      const starters = squad.active.filter(p => p.squad_role === "starter").length;
+      const bench = squad.active.length - starters;
+      const caption = `⚽ <b>Today's Squad — ZAMIN FK</b>\n🟢 Starting XI: <b>${starters}</b> · 🪑 Bench: <b>${bench}</b> · 🛟 Reserves: <b>${(squad.reserves || []).length}</b>\n\nShirt numbers stay stable between hourly updates.`;
+      return apiFile("sendPhoto", { chat_id: chatId, caption, parse_mode: "HTML" }, "photo", png);
+    } catch (e) {
+      console.error("send squad poster", e);
+      return api("sendMessage", { chat_id: chatId, text: "⚠️ Tarkib rasmini tayyorlashda xatolik yuz berdi. Keyinroq qayta urinib ko‘ring." });
+    }
+  }
+
   async function refreshCard(cb) {
     const c = await cardFor(cb.from);
     await apiFile("editMessageMedia", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, reply_markup: cardKb,
@@ -347,6 +370,7 @@ function init({ db, bot, club, led }) {
     const msg = update && update.message, cb = update && update.callback_query;
     if (msg && msg.from && msg.chat && msg.chat.type === "private") {
       const t = String(msg.text || "").trim();
+      if (/^\/squad(@\w+)?$/i.test(t)) return () => sendSquad(msg.chat.id);
       if (/^\/(karta|card)(@\w+)?$/i.test(t)) return () => sendCard(msg.chat.id, msg.from);
       if (/^\/(reyting|top)(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: await topText(msg.from) });
       if (/^\/xabar(@\w+)?\s+[\s\S]{10,}$/i.test(t)) return async () => {

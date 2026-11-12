@@ -1631,7 +1631,17 @@ function animateSquad(t) {
     }
   }
 }
-function squadLabels(place) { for (const s of SQUAD) if (s.p.kind === "player" && s.p.squad_role === "starter") place(s.g.position.x, 4.4, s.g.position.z, "tag hero", s.p.name); }
+// STADIUM CHANGE: previously player labels showed only names, so the newly
+// assigned shirt numbers were invisible in the 3D view. Keep the same label placement
+// and styling, but prepend the live number supplied by /api/squad. The existing
+// 60-second feed poll is intentionally retained: it refreshes the view quickly after
+// the hourly backend sync without adding any new server-side timer or database load.
+function squadLabels(place) {
+  for (const s of SQUAD) if (s.p.kind === "player" && s.p.squad_role === "starter") {
+    const label = s.p.number ? "#" + s.p.number + " " + s.p.name : s.p.name;
+    place(s.g.position.x, 4.4, s.g.position.z, "tag hero", label);
+  }
+}
 function animateTeam(t) {
   animateSquad(t);
   const bek = H("bekzod"), az = H("aziz"), jas = H("jasur"), rus = H("rustam"), goat = H("echki");
