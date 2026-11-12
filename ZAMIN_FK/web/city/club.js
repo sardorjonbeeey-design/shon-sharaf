@@ -500,10 +500,32 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       if (action === "approve") {
         const payload = typeof proposal.payload === "string" ? JSON.parse(proposal.payload) : proposal.payload;
         if (!validateSquadSnapshot(payload)) throw fail(409, "invalid proposal snapshot");
+        // Keep the legacy manual-approval button compatible with automatic numbering:
+        // OLD: approving a proposal replaced the roster without assigning shirt numbers.
+        // NEW: every approved snapshot passes through the same persistent number policy,
+        // and a saved stadium lineup is reconciled before the transaction commits.
+        const oldNumbers = (await client.query("select tg_id, shirt_number from squad_shirt_numbers")).rows;
+        const previous = Object.fromEntries(oldNumbers.map(x => [String(x.tg_id), Number(x.shirt_number)]));
+        const numbered = assignSquadNumbers(payload, previous);
+        const allPlayers = [...numbered.active, ...numbered.reserves];
+        const playerIds = allPlayers.map(p => String(p.tg_id));
+        await client.query("delete from squad_shirt_numbers where not (tg_id = any($1::bigint[]))", [playerIds]);
+        for (const player of allPlayers) {
+          if (!player.shirt_number) throw fail(409, "shirt number capacity exceeded");
+          await client.query(`insert into squad_shirt_numbers (tg_id, shirt_number, assigned_at, updated_at)
+            values ($1, $2, now(), now()) on conflict (tg_id) do update
+            set shirt_number = excluded.shirt_number, updated_at = now()`, [String(player.tg_id), player.shirt_number]);
+        }
+        const manual = await one(client, "select payload from squad_lineup where id = 1 for update");
+        if (manual) {
+          const oldLineup = typeof manual.payload === "string" ? JSON.parse(manual.payload) : manual.payload;
+          const merged = mergeLineupWithRoster(normalizeLineup(oldLineup), numbered);
+          await client.query("update squad_lineup set payload = $1::jsonb, updated_by = 0, updated_at = now() where id = 1", [JSON.stringify(merged)]);
+        }
         await client.query(`insert into squad_approved_roster (id, proposal_id, payload, approved_by, approved_at)
           values (1, $1, $2::jsonb, $3, now())
           on conflict (id) do update set proposal_id = excluded.proposal_id, payload = excluded.payload, approved_by = excluded.approved_by, approved_at = excluded.approved_at`,
-          [id, JSON.stringify(payload), String(user.id)]);
+          [id, JSON.stringify(numbered), String(user.id)]);
         await client.query("update squad_proposals set status = 'rejected', decided_by = $2, decided_at = now() where status = 'pending' and id <> $1", [id, String(user.id)]);
       }
       await client.query("update squad_proposals set status = $2, decided_by = $3, decided_at = now() where id = $1", [id, action === "approve" ? "approved" : "rejected", String(user.id)]);
