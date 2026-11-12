@@ -312,7 +312,9 @@ test("Today's Squad SVG template inserts live player names and shirt numbers", (
     ],
     reserves: [{ name: "Poster Reserve", shirt_number: 25, applied_position: "GK" }]
   });
-  assert.match(svg, /TODAY'S SQUAD/);
+  assert.match(svg, /ASOSIY TARKIB/);
+  assert.match(svg, /4-3-3/);
+  assert.match(svg, /STARTING XI/);
   assert.match(svg, /Poster Test Forward/);
   assert.match(svg, /Poster Test Keeper/);
   assert.match(svg, /Poster Reserve/);

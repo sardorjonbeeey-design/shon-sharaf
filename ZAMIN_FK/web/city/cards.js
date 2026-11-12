@@ -115,46 +115,82 @@ function vipSvg(d) {
  // typography, colors and club identity are rendered from this one SVG template.
  // This avoids generating a new background image every hour and keeps the poster free.
 function squadSvg(d) {
-  const W=1080,H=1350;
-  const active=Array.isArray(d.active)?d.active:[];
-  const starters=active.filter(p=>p.squad_role==="starter");
-  const bench=active.filter(p=>p.squad_role!=="starter");
-  const reserves=Array.isArray(d.reserves)?d.reserves:[];
-  const right=[...bench,...reserves];
-  const row=(p,i,x,y,w)=>{
-    const number=p.shirt_number==null?"—":String(p.shirt_number);
-    const pos=p.stadium_position||p.applied_position||"";
-    return `<rect x="${x}" y="${y-34}" width="${w}" height="48" rx="12" fill="#fff" fill-opacity="${i%2 ? ".045" : ".085"}"/>
-      <rect x="${x+10}" y="${y-25}" width="42" height="30" rx="8" fill="#D8B45A"/>
-      <text x="${x+31}" y="${y-4}" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="18" fill="#101B35">${esc(number)}</text>
-      <text x="${x+66}" y="${y-4}" font-family="Montserrat" font-weight="800" font-size="19" fill="#fff">${esc(fit(p.name||"Player",22))}</text>
-      <text x="${x+w-12}" y="${y-4}" text-anchor="end" font-family="Montserrat" font-weight="700" font-size="15" fill="#AFC5F4">${esc(pos)}</text>`;
+  // CHANGE LOG:
+  // OLD: the Telegram /squad poster rendered the Starting XI and bench as two text-only columns.
+  // NEW: the Starting XI is drawn as shirt icons on a green 4-3-3 pitch; substitutes/reserves
+  //      appear in a compact list below the pitch, matching the club's preferred lineup reference.
+  // WHY: supporters should see the actual formation at a glance, not just read a roster list.
+  //      This remains one reusable SVG template: only live player data changes on each /squad request.
+  // SAFETY: no squad-selection, shirt-number, hourly-refresh, API or stadium logic is changed here.
+  const W = 900, H = 1700;
+  const active = Array.isArray(d.active) ? d.active : [];
+  const starters = active.filter(p => p.squad_role === "starter").slice(0, 11);
+  const bench = active.filter(p => p.squad_role !== "starter").concat(Array.isArray(d.reserves) ? d.reserves : []);
+  const find = (pos, rank) => starters.find(p =>
+    (p.stadium_position || p.applied_position) === pos &&
+    (pos !== "CB" || Number(p.position_rank || 1) === rank)
+  );
+  const slots = [
+    {pos:"LW",x:185,y:510},{pos:"ST",x:450,y:465},{pos:"RW",x:715,y:510},
+    {pos:"CM",x:265,y:700},{pos:"CAM",x:450,y:655},{pos:"CDM",x:635,y:700},
+    {pos:"LB",x:115,y:900},{pos:"CB",rank:2,x:335,y:930},{pos:"CB",rank:3,x:565,y:930},{pos:"RB",x:785,y:900},
+    {pos:"GK",x:450,y:1030}
+  ];
+  const placed = slots.map(s => Object.assign({},s,{player:find(s.pos,s.rank || 1)}));
+  const used = new Set(placed.filter(s=>s.player).map(s=>s.player));
+  const remaining = starters.filter(p=>!used.has(p));
+  placed.forEach(s=>{if(!s.player && remaining.length)s.player=remaining.shift();});
+  const shirt = s => {
+    const p=s.player;
+    if(!p)return "";
+    const num=p.shirt_number==null?"—":String(p.shirt_number);
+    const pos=s.pos || p.stadium_position || p.applied_position || "";
+    const name=fit(p.name||"Player",18);
+    const width=Math.min(210,Math.max(112,name.length*10+28));
+    return '<g filter="url(#shadow)">'+
+      '<path d="M'+(s.x-36)+' '+(s.y-34)+' L'+(s.x-62)+' '+(s.y-18)+' L'+(s.x-50)+' '+(s.y+12)+' L'+(s.x-35)+' '+(s.y+4)+' L'+(s.x-35)+' '+(s.y+40)+' L'+(s.x+35)+' '+(s.y+40)+' L'+(s.x+35)+' '+(s.y+4)+' L'+(s.x+50)+' '+(s.y+12)+' L'+(s.x+62)+' '+(s.y-18)+' L'+(s.x+36)+' '+(s.y-34)+' Q'+s.x+' '+(s.y-20)+' '+(s.x-36)+' '+(s.y-34)+' Z" fill="#2458C5" stroke="#fff" stroke-width="4"/>'+
+      '<path d="M'+(s.x-22)+' '+(s.y-30)+' Q'+s.x+' '+(s.y-17)+' '+(s.x+22)+' '+(s.y-30)+'" fill="none" stroke="#FFD23F" stroke-width="5"/>'+
+      '<path d="M'+(s.x-34)+' '+(s.y+33)+' H'+(s.x+34)+'" stroke="#FFD23F" stroke-width="5"/>'+
+      '<text x="'+s.x+'" y="'+(s.y+7)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="'+(pos.length>3?15:20)+'" fill="#fff">'+esc(pos)+'</text>'+
+      '<rect x="'+(s.x-width/2)+'" y="'+(s.y+57)+'" width="'+width+'" height="45" rx="11" fill="#071C37" stroke="#FFD23F" stroke-width="2"/>'+
+      '<text x="'+s.x+'" y="'+(s.y+76)+'" text-anchor="middle" font-family="Montserrat" font-weight="800" font-size="14" fill="#fff">'+esc(name)+'</text>'+
+      '<text x="'+s.x+'" y="'+(s.y+94)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="12" fill="#FFD23F">#'+esc(num)+'</text></g>';
   };
-  const leftRows=starters.slice(0,11).map((p,i)=>row(p,i,58,352+i*70,462)).join("");
-  const rightRows=right.slice(0,13).map((p,i)=>row(p,i,560,352+i*58,462)).join("");
+  const benchRow=(p,i,x,y)=>{
+    const num=p.shirt_number==null?"—":String(p.shirt_number);
+    const pos=p.stadium_position||p.applied_position||"";
+    return '<rect x="'+x+'" y="'+(y-23)+'" width="390" height="37" rx="9" fill="#fff" fill-opacity="'+(i%2?".06":".10")+'"/>'+
+      '<rect x="'+(x+8)+'" y="'+(y-17)+'" width="34" height="26" rx="7" fill="#FFD23F"/>'+
+      '<text x="'+(x+25)+'" y="'+(y+1)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="14" fill="#071C37">'+esc(num)+'</text>'+
+      '<text x="'+(x+52)+'" y="'+(y+1)+'" font-family="Montserrat" font-weight="800" font-size="14" fill="#fff">'+esc(fit(p.name||"Player",24))+'</text>'+
+      '<text x="'+(x+378)+'" y="'+(y+1)+'" text-anchor="end" font-family="Montserrat" font-weight="700" font-size="12" fill="#AFC5F4">'+esc(pos)+'</text>';
+  };
+  const left=bench.slice(0,7).map((p,i)=>benchRow(p,i,55,1315+i*43)).join("");
+  const right=bench.slice(7,14).map((p,i)=>benchRow(p,i,455,1315+i*43)).join("");
   const updated=d.updated_at?new Date(d.updated_at).toLocaleString("en-GB",{timeZone:"Asia/Tashkent",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Latest squad";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#102B62"/><stop offset=".55" stop-color="#081735"/><stop offset="1" stop-color="#030917"/></linearGradient>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6D98A"/><stop offset="1" stop-color="#B78A32"/></linearGradient>
-    <radialGradient id="glow"><stop offset="0" stop-color="#2B66C8" stop-opacity=".42"/><stop offset="1" stop-color="#2B66C8" stop-opacity="0"/></radialGradient>
-    <pattern id="lines" width="44" height="44" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0V44" stroke="#fff" stroke-opacity=".035" stroke-width="14"/></pattern>
-  </defs>
-  <rect width="1080" height="1350" fill="url(#bg)"/><rect width="1080" height="1350" fill="url(#glow)"/><rect width="1080" height="1350" fill="url(#lines)"/>
-  <rect x="30" y="30" width="1020" height="1290" rx="34" fill="none" stroke="url(#gold)" stroke-width="3"/>
-  ${CREST?`<image href="${CREST}" x="82" y="70" width="92" height="92"/>`:""}
-  <text x="195" y="116" font-family="Montserrat" font-weight="900" font-size="36" letter-spacing="5" fill="#fff">ZAMIN FK</text>
-  <text x="195" y="151" font-family="Montserrat" font-weight="700" font-size="18" letter-spacing="5" fill="#AFC5F4">OFFICIAL FIRST TEAM</text>
-  <rect x="80" y="190" width="920" height="2" fill="url(#gold)" opacity=".65"/>
-  <text x="540" y="260" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="58" letter-spacing="2" fill="#fff">TODAY'S SQUAD</text>
-  <text x="540" y="300" text-anchor="middle" font-family="Montserrat" font-weight="700" font-size="19" letter-spacing="3" fill="#D8B45A">STARTING XI · SUBSTITUTES · RESERVES</text>
-  <rect x="58" y="315" width="462" height="4" rx="2" fill="url(#gold)"/><rect x="560" y="315" width="462" height="4" rx="2" fill="#6D91D7"/>
-  <text x="76" y="340" font-family="Montserrat" font-weight="900" font-size="18" letter-spacing="2" fill="#F6D98A">STARTING XI</text>
-  <text x="578" y="340" font-family="Montserrat" font-weight="900" font-size="18" letter-spacing="2" fill="#AFC5F4">BENCH / ROTATION</text>
-  ${leftRows}${rightRows}
-  <text x="540" y="1240" text-anchor="middle" font-family="Montserrat" font-weight="700" font-size="18" fill="#AFC5F4">UPDATED ${esc(updated)} · SHIRT NUMBERS ARE ASSIGNED BY CLUB RULES</text>
-  <text x="540" y="1285" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="22" letter-spacing="6" fill="#D8B45A">ZAMIN FK</text>
-  </svg>`;
+  return [
+    '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1700" viewBox="0 0 900 1700"><defs>',
+    '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#102B62"/><stop offset=".55" stop-color="#081735"/><stop offset="1" stop-color="#030917"/></linearGradient>',
+    '<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6D98A"/><stop offset="1" stop-color="#B78A32"/></linearGradient>',
+    '<pattern id="lines" width="44" height="44" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0V44" stroke="#fff" stroke-opacity=".035" stroke-width="14"/></pattern>',
+    '<filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#020814" flood-opacity=".45"/></filter></defs>',
+    '<rect width="900" height="1700" fill="url(#bg)"/><rect width="900" height="1700" fill="url(#lines)"/><rect x="24" y="24" width="852" height="1652" rx="30" fill="none" stroke="url(#gold)" stroke-width="3"/>',
+    CREST?'<image href="'+CREST+'" x="55" y="55" width="120" height="120"/>':"",
+    '<text x="205" y="95" font-family="Montserrat" font-weight="700" font-size="22" letter-spacing="6" fill="#FFD23F">ZAMIN FK</text>',
+    '<text x="205" y="160" font-family="Montserrat" font-weight="900" font-size="64" fill="#fff">ASOSIY TARKIB</text>',
+    '<rect x="700" y="115" width="135" height="56" rx="14" fill="#FFD23F"/><text x="767" y="152" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="27" fill="#071C37">4-3-3</text>',
+    '<text x="450" y="235" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="26" letter-spacing="3" fill="#fff">STARTING XI</text>',
+    '<rect x="35" y="280" width="830" height="840" rx="28" fill="#188344" stroke="#E8F5EC" stroke-width="4"/>',
+    '<path d="M35 700 H865" fill="none" stroke="#D9F0E1" stroke-opacity=".55" stroke-width="4"/><circle cx="450" cy="700" r="150" fill="none" stroke="#D9F0E1" stroke-opacity=".55" stroke-width="4"/>',
+    '<rect x="260" y="280" width="380" height="145" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/><rect x="370" y="280" width="160" height="70" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/>',
+    '<rect x="260" y="975" width="380" height="145" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/><rect x="370" y="1050" width="160" height="70" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/>',
+    placed.map(shirt).join(""),
+    '<text x="450" y="1200" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="24" letter-spacing="3" fill="#FFD23F">ZAXIRA · SUBSTITUTES / RESERVES</text>',
+    '<rect x="42" y="1230" width="816" height="335" rx="22" fill="#fff" fill-opacity=".035" stroke="#fff" stroke-opacity=".15" stroke-width="2"/>',
+    left,right,
+    '<text x="450" y="1620" text-anchor="middle" font-family="Montserrat" font-weight="700" font-size="16" fill="#AFC5F4">UPDATED '+esc(updated)+' · CLUB-ASSIGNED SHIRT NUMBERS</text>',
+    '<text x="450" y="1655" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="20" letter-spacing="5" fill="#FFD23F">ZAMIN FK</text></svg>'
+  ].join("");
 }
 
 const render = (svg, width) => new Resvg(svg, { font: { fontFiles: FONTS, loadSystemFonts: false, defaultFontFamily: "Montserrat" }, fitTo: { mode: "width", value: width } }).render().asPng();
