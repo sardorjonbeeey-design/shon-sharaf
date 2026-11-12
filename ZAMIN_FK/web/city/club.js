@@ -180,7 +180,11 @@ const lineupRank = slot => slot === "CB2" ? 3 : slot === "CB1" ? 2 : 1;
 function assignSquadNumbers(payload, previous = {}, random = Math.random) {
   const active = Array.isArray(payload && payload.active) ? payload.active : [];
   const reserves = Array.isArray(payload && payload.reserves) ? payload.reserves : [];
-  const players = [...active, ...reserves], numbers = new Map(), used = new Set();
+  // OLD: all reserves competed for the finite 1–25 shirt-number pool.
+  // NEW: only the first two XP-ranked reserves (priority ranks 23–24) receive numbers.
+  // WHY: ranks 25 onward are unlimited and must not consume or duplicate shirt numbers.
+  const numberedReserves = reserves.slice(0, SQUAD_PRIORITY_RESERVE_LIMIT);
+  const players = [...active, ...numberedReserves], numbers = new Map(), used = new Set();
   const set = (p, n) => { if (p && n && !used.has(n)) { numbers.set(String(p.tg_id), n); used.add(n); } };
   const keepers = players.filter(p => p.assigned_group === "GK" || p.applied_position === "GK")
     .sort((a,b) => (Number(a.position_rank)||99)-(Number(b.position_rank)||99));
@@ -202,7 +206,10 @@ function assignSquadNumbers(payload, previous = {}, random = Math.random) {
     set(p, choices[index]);
   }
   const attach = list => list.map(p=>({...p, shirt_number:numbers.get(String(p.tg_id))||null}));
-  return {...payload, active:attach(active), reserves:attach(reserves)};
+  return {...payload, active:attach(active), reserves:[
+    ...attach(numberedReserves),
+    ...reserves.slice(SQUAD_PRIORITY_RESERVE_LIMIT).map(p=>({...p,shirt_number:null}))
+  ]};
 }
 
 // Reconcile a saved manual 4-3-3 with a refreshed roster. Keep selected players
@@ -505,7 +512,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     if (!r.rowCount) throw fail(409,"promotion not pending");
   }
   async function completeAcademyPromotion(tgId,shirtName) {
-    const name=String(shirtName||"").replace(/\\s+/g," ").trim();
+    const name=String(shirtName||"").replace(/\s+/g," ").trim();
     if (!name || name.length>28) throw fail(400,"shirt name must be 1–28 characters");
     return tx(async client=>{
       const p=await one(client,`select ap.position,ap.status,m.nick,m.xp from academy_promotions ap
@@ -527,6 +534,8 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   }
 
   async function refreshSquadAutomatically() {
+    // Every scheduled refresh also checks the 100-XP threshold, regardless of which XP source awarded it.
+    await notifyAcademyPromotions();
     return tx(async client => {
       await client.query("select pg_advisory_xact_lock(7710003)");
       // OLD: refresh always selected the latest application/member name.
@@ -547,7 +556,10 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       const oldRows=(await client.query("select tg_id,shirt_number from squad_shirt_numbers")).rows;
       const previous=Object.fromEntries(oldRows.map(x=>[String(x.tg_id),Number(x.shirt_number)]));
       const proposal=assignSquadNumbers(raw,previous);
-      const all=[...proposal.active,...proposal.reserves], ids=all.map(p=>String(p.tg_id));
+      // OLD: persist shirt numbers for every reserve, which fails once the queue is unlimited.
+      // NEW: persist only active 22 plus the first two priority reserves.
+      // WHY: later reserve ranks remain eligible but are intentionally unnumbered until promotion.
+      const all=[...proposal.active,...proposal.reserves.slice(0,SQUAD_PRIORITY_RESERVE_LIMIT)], ids=all.map(p=>String(p.tg_id));
       await client.query("delete from squad_shirt_numbers where not (tg_id=any($1::bigint[]))",[ids]);
       for(const p of all){
         if(!p.shirt_number)throw fail(409,"shirt number capacity exceeded");
