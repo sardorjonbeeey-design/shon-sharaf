@@ -260,7 +260,11 @@ function normalizeLineup(input) {
   return { starters, bench };
 }
 
-// Pure: the line-up an approved snapshot (or the legacy accepted-player list) implies, used until an admin saves a manual one.
+// Pure: an approved roster -> the 4-3-3 line-up shown in the admin panel.
+// OLD: this conversion kept only player names and wrote null shirt numbers, so a
+// manager opening and re-saving the lineup could accidentally erase assigned numbers.
+// NEW: preserve each player's Telegram ID and shirt number through this conversion;
+// this makes the admin edit flow safe after automatic numbering is enabled.
 function lineupFromRoster(active = []) {
   const taken = new Map(), bench = [];
   for (const p of Array.isArray(active) ? active : []) {
@@ -268,10 +272,11 @@ function lineupFromRoster(active = []) {
     const pos = String(p.stadium_position || p.position || "");
     let slot = p.squad_role === "starter" ? (pos === "CB" ? (Number(p.position_rank) >= 3 ? "CB2" : "CB1") : pos) : "";
     if (slot === "CB1" && taken.has("CB1") && !taken.has("CB2")) slot = "CB2";
-    if (LINEUP_SLOTS.includes(slot) && !taken.has(slot)) taken.set(slot, name);
-    else if (bench.length < LINEUP_BENCH_LIMIT) bench.push({ name, number: p.shirt_number || null, ...(p.tg_id ? { tg_id: String(p.tg_id) } : {}) });
+    const player = { name, number: p.shirt_number || null, ...(p.tg_id ? { tg_id: String(p.tg_id) } : {}) };
+    if (LINEUP_SLOTS.includes(slot) && !taken.has(slot)) taken.set(slot, player);
+    else if (bench.length < LINEUP_BENCH_LIMIT) bench.push(player);
   }
-  return { starters: LINEUP_SLOTS.map(slot => ({ slot, name: taken.get(slot) || "", number: null })), bench };
+  return { starters: LINEUP_SLOTS.map(slot => ({ slot, ...(taken.get(slot) || { name: "", number: null }) })), bench };
 }
 
 // Pure: line-up -> the player rows the stadium feed serves.
