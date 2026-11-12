@@ -370,6 +370,18 @@ function init({ db, bot, club, led }) {
     const msg = update && update.message, cb = update && update.callback_query;
     if (msg && msg.from && msg.chat && msg.chat.type === "private") {
       const t = String(msg.text || "").trim();
+      if (t && !t.startsWith("/")) return async () => {
+        const state=await club.getAcademyPromotion(msg.from.id).catch(()=>null);
+        if(state && state.status==="pending_name"){
+          try {
+            const saved=await club.completeAcademyPromotion(msg.from.id,t);
+            await api("sendMessage",{chat_id:msg.chat.id,parse_mode:"HTML",
+              text:`✅ <b>Ma’lumotlaringiz saqlandi!</b>\\nPozitsiya: <b>${esc(saved.position)}</b>\\nFutbolka nomi: <b>${esc(saved.name)}</b>\\n\\nSiz senior XP reytingiga kiritildingiz. 22 ta aktiv joydan tashqaridagi futbolchilar cheksiz zaxira ro‘yxatida XP bo‘yicha saralanadi.`});
+            await club.refreshSquadAutomatically();
+          } catch(e) { await api("sendMessage",{chat_id:msg.chat.id,text:"Futbolka ismini 1–28 belgi bilan yuboring."}); }
+          return;
+        }
+      };
       if (/^\/squad(@\w+)?$/i.test(t)) return () => sendSquad(msg.chat.id);
       if (/^\/(karta|card)(@\w+)?$/i.test(t)) return () => sendCard(msg.chat.id, msg.from);
       if (/^\/(reyting|top)(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: await topText(msg.from) });
@@ -403,6 +415,12 @@ function init({ db, bot, club, led }) {
       return async () => {
         let answered = false;
         try {
+          if (/^academy:pos:(GK|DEF|MID|FWD)$/.test(data)) {
+            await api("answerCallbackQuery",{callback_query_id:cb.id});answered=true;
+            await club.setAcademyPromotionPosition(cb.from.id,data.split(":")[2]);
+            return api("sendMessage",{chat_id:cb.message.chat.id,parse_mode:"HTML",
+              text:"✍️ <b>Futbolka ustida ko‘rinadigan ismingizni yuboring.</b>\\n1–28 belgi. Ism yoki qisqa futbolchi nomini kiriting."});
+          }
           if (data === "card:re" || data === "card:new") {
             await api("answerCallbackQuery", { callback_query_id: cb.id, text: data === "card:re" ? "Yangilanmoqda…" : "" }); answered = true;
             return data === "card:re" ? await refreshCard(cb) : await sendCard(cb.message.chat.id, cb.from);
