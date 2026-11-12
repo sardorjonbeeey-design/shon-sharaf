@@ -124,7 +124,7 @@ function squadSvg(d) {
   const row=(p,i,x,y,w)=>{
     const number=p.shirt_number==null?"—":String(p.shirt_number);
     const pos=p.stadium_position||p.applied_position||"";
-    return `<rect x="${x}" y="${y-34}" width="${w}" height="48" rx="12" fill="#fff" fill-opacity="${i%2?".045":".085}"/>
+    return `<rect x="${x}" y="${y-34}" width="${w}" height="48" rx="12" fill="#fff" fill-opacity="${i%2 ? ".045" : ".085"}"/>
       <rect x="${x+10}" y="${y-25}" width="42" height="30" rx="8" fill="#D8B45A"/>
       <text x="${x+31}" y="${y-4}" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="18" fill="#101B35">${esc(number)}</text>
       <text x="${x+66}" y="${y-4}" font-family="Montserrat" font-weight="800" font-size="19" fill="#fff">${esc(fit(p.name||"Player",22))}</text>
