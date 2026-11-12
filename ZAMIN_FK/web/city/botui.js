@@ -202,7 +202,7 @@ function init({ db, bot, club, led }) {
   async function generateAndShowSquad(chat, user) {
     const saved = await club.createSquadProposal(user);
     const p = saved.proposal;
-    const header = "⚽ <b>Squad proposal #" + saved.id + "</b>\n" + p.active_count + "/22 active · " + p.reserve_count + "/2 reserves · " + p.eligible_count + " eligible\n\n";
+    const header = "⚽ <b>Squad proposal #" + saved.id + "</b>\n" + p.active_count + "/22 active · " + p.reserve_count + " reserves (unlimited) · " + p.eligible_count + " eligible\n\n";
     const groups = [
       ["🟢 <b>STARTING XI</b>", p.active.filter(x => x.squad_role === "starter")],
       ["🪑 <b>SUBSTITUTES</b>", p.active.filter(x => x.squad_role === "substitute")],
@@ -232,7 +232,7 @@ function init({ db, bot, club, led }) {
     else lines.push("\n📝 Pending proposal: yo‘q");
     if (status.approved) {
       const payload = typeof status.approved.payload === "string" ? JSON.parse(status.approved.payload) : status.approved.payload;
-      lines.push("\n✅ Approved: <b>#" + status.approved.proposal_id + "</b> · " + payload.active_count + "/22 active · " + payload.reserve_count + "/2 reserves\nTasdiqlangan vaqt: " + status.approved.approved_at);
+      lines.push("\n✅ Approved: <b>#" + status.approved.proposal_id + "</b> · " + payload.active_count + "/22 active · " + payload.reserve_count + " reserves (unlimited)\nTasdiqlangan vaqt: " + status.approved.approved_at);
     } else lines.push("\n✅ Approved roster: hali yo‘q");
     return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: lines.join("\n"),
       reply_markup: { inline_keyboard: [[{ text: "🔄 Yangilash", callback_data: "adm:squad:status" }, { text: "⬅️ Tarkib paneli", callback_data: "adm:squad" }]] } });
