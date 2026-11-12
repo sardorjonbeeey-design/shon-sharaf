@@ -357,23 +357,11 @@ for (let ring = 0; ring < MIN_RINGS || ring <= MAX_MEMBER_RING || seats.length <
 const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
 const memberIdx = MEMBERS.map(m => standIdx.get(m.ring + ":" + m.j)), takenIdx = new Set(memberIdx);
 const seatByNo = no => { const k = no - 1, i = standIdx.get(Math.floor(k / STAND_W) + ":" + CENTER_OUT[k % STAND_W]); return i == null ? null : seats[i]; };
-const free = seats.map((_, i) => i).filter(i => !takenIdx.has(i));
-const restIdx = [];
-// Spread non-member fans around all four stands and corners, across several rows.
-// Stable hash-based ordering keeps each fan's seat consistent between visits.
-const crowdPool = free.filter(i => seats[i].ring < Math.min(24, MIN_RINGS));
-const crowdOrder = [...IG_REST].sort((a, b) => hash(a) - hash(b) || a.localeCompare(b));
-const used = new Set();
-for (let n = 0; n < crowdOrder.length && crowdPool.length; n++) {
-  const nick = crowdOrder[n];
-  // Evenly sample the whole bowl, then use the fan hash to vary the exact seat.
-  const band = Math.floor(n * crowdPool.length / crowdOrder.length);
-  const span = Math.max(1, Math.floor(crowdPool.length / crowdOrder.length));
-  let k = (band + hash(nick) % span) % crowdPool.length;
-  while (used.has(crowdPool[k])) k = (k + 1) % crowdPool.length;
-  used.add(crowdPool[k]);
-  restIdx.push(crowdPool[k]);
-}
+let free = seats.map((_, i) => i).filter(i => !takenIdx.has(i)).sort((i, j) => seats[i].cost - seats[j].cost), restIdx;
+if (IG_REST.length <= 300) {            // small crowd: random seat per nick on the two long sides, so fans are easy to see
+  const pool = free.filter(i => { const st = seats[i]; return Math.abs(st.nz) > 0.99 && st.ring < 14; }), used = new Set();
+  restIdx = IG_REST.map(nick => { let k = hash(nick) % pool.length; while (used.has(k)) k = (k + 7) % pool.length; used.add(k); return pool[k]; });
+} else restIdx = free.slice(0, IG_REST.length);
 const restSet = new Set(restIdx);
 const order = [...memberIdx, ...restIdx, ...free.filter(i => !restSet.has(i))];   // first FANS.length entries = occupied seats in FANS order
 const SECTORS = "ABCDEFGHIJKLMNOP";
