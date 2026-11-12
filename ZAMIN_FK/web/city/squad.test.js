@@ -305,12 +305,12 @@ test("the admin lineup loader preserves automatic shirt numbers and player IDs",
 });
 
 // CHANGE LOG:
- // OLD: this test used "Poster Test Forward" (19 characters), then expected the full
- //      value in the SVG even though the pitch label intentionally shortens names to 18.
- // NEW: use names that fit the actual pitch-label limit, so the test verifies live name
- //      insertion rather than failing on the renderer's intentional display truncation.
- // WHY: long names are still safely shortened by fit(); this test should cover data wiring,
- //      not reject the visual layout's existing text-fit rule.
+ // OLD: this test expected the Starting XI shirt number as plain text (">9<"), but the
+ //      poster intentionally prefixes shirt numbers with "#" (">#9<") on the pitch shirts.
+ // NEW: assert the exact visible shirt-number format for the starter, while retaining the
+ //      reserve-row assertion for its plain number label.
+ // WHY: the test must match the poster's real visual output; no renderer or squad logic
+ //      needs to change for this formatting-only test correction.
 test("Today's Squad SVG template inserts live player names and shirt numbers", () => {
   const svg = cards.squadSvg({
     active: [
@@ -325,6 +325,6 @@ test("Today's Squad SVG template inserts live player names and shirt numbers", (
   assert.match(svg, /Poster Forward/);
   assert.match(svg, /Poster Keeper/);
   assert.match(svg, /Poster Reserve/);
-  assert.match(svg, />9</);
+  assert.match(svg, />#9</);
   assert.match(svg, />25</);
 });
