@@ -185,7 +185,7 @@ function assignSquadNumbers(payload, previous = {}, random = Math.random) {
   // WHY: ranks 25 onward are unlimited and must not consume or duplicate shirt numbers.
   const numberedReserves = reserves.slice(0, SQUAD_PRIORITY_RESERVE_LIMIT);
   const players = [...active, ...numberedReserves], numbers = new Map(), used = new Set();
-  const set = (p, n) => { if (p && n && !used.has(n)) { numbers.set(String(p.tg_id), n); used.add(n); } };
+  const set = (p, n) => { if (p && n && !used.has(n) && !numbers.has(String(p.tg_id))) { numbers.set(String(p.tg_id), n); used.add(n); } };
   const keepers = players.filter(p => p.assigned_group === "GK" || p.applied_position === "GK")
     .sort((a,b) => (Number(a.position_rank)||99)-(Number(b.position_rank)||99));
   if (keepers[0]) set(keepers[0], 1);
@@ -462,6 +462,22 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   }
   const one = async (c, sql, a) => (await c.query(sql, a)).rows[0];
   const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
+  // Persist shirt numbers. Rows that are not an exact (tg_id, number) match of the new
+  // assignment are deleted first, so a number moving between two retained players cannot
+  // hit the unique(shirt_number) constraint mid-loop. Exact matches keep their row and assigned_at.
+  async function saveShirtNumbers(client, players) {
+    const ids = [], nums = [];
+    for (const p of players) {
+      if (!p.shirt_number) throw fail(409, "shirt number capacity exceeded");
+      ids.push(String(p.tg_id)); nums.push(p.shirt_number);
+    }
+    await client.query(`delete from squad_shirt_numbers s where not exists (
+      select 1 from unnest($1::bigint[], $2::int[]) n(tg_id, num)
+      where n.tg_id = s.tg_id and n.num = s.shirt_number)`, [ids, nums]);
+    for (let i = 0; i < ids.length; i++)
+      await client.query(`insert into squad_shirt_numbers(tg_id,shirt_number,assigned_at,updated_at)
+        values($1,$2,now(),now()) on conflict(tg_id) do nothing`, [ids[i], nums[i]]);
+  }
   async function createSquadProposal(user) {
     return tx(async client => {
       await client.query("select pg_advisory_xact_lock(7710003)");
@@ -559,14 +575,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       // OLD: persist shirt numbers for every reserve, which fails once the queue is unlimited.
       // NEW: persist only active 22 plus the first two priority reserves.
       // WHY: later reserve ranks remain eligible but are intentionally unnumbered until promotion.
-      const all=[...proposal.active,...proposal.reserves.slice(0,SQUAD_PRIORITY_RESERVE_LIMIT)], ids=all.map(p=>String(p.tg_id));
-      await client.query("delete from squad_shirt_numbers where not (tg_id=any($1::bigint[]))",[ids]);
-      for(const p of all){
-        if(!p.shirt_number)throw fail(409,"shirt number capacity exceeded");
-        await client.query(`insert into squad_shirt_numbers(tg_id,shirt_number,assigned_at,updated_at)
-          values($1,$2,now(),now()) on conflict(tg_id) do update
-          set shirt_number=excluded.shirt_number,updated_at=now()`,[String(p.tg_id),p.shirt_number]);
-      }
+      await saveShirtNumbers(client,[...proposal.active,...proposal.reserves.slice(0,SQUAD_PRIORITY_RESERVE_LIMIT)]);
       const saved=await one(client,`insert into squad_proposals(status,payload,created_by,decided_by,decided_at)
         values('approved',$1::jsonb,0,0,now()) returning id`,[JSON.stringify(proposal)]);
       await client.query(`insert into squad_approved_roster(id,proposal_id,payload,approved_by,approved_at)
@@ -627,15 +636,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
         const oldNumbers = (await client.query("select tg_id, shirt_number from squad_shirt_numbers")).rows;
         const previous = Object.fromEntries(oldNumbers.map(x => [String(x.tg_id), Number(x.shirt_number)]));
         const numbered = assignSquadNumbers(payload, previous);
-        const allPlayers = [...numbered.active, ...numbered.reserves];
-        const playerIds = allPlayers.map(p => String(p.tg_id));
-        await client.query("delete from squad_shirt_numbers where not (tg_id = any($1::bigint[]))", [playerIds]);
-        for (const player of allPlayers) {
-          if (!player.shirt_number) throw fail(409, "shirt number capacity exceeded");
-          await client.query(`insert into squad_shirt_numbers (tg_id, shirt_number, assigned_at, updated_at)
-            values ($1, $2, now(), now()) on conflict (tg_id) do update
-            set shirt_number = excluded.shirt_number, updated_at = now()`, [String(player.tg_id), player.shirt_number]);
-        }
+        await saveShirtNumbers(client, [...numbered.active, ...numbered.reserves.slice(0, SQUAD_PRIORITY_RESERVE_LIMIT)]);
         const manual = await one(client, "select payload from squad_lineup where id = 1 for update");
         if (manual) {
           const oldLineup = typeof manual.payload === "string" ? JSON.parse(manual.payload) : manual.payload;
