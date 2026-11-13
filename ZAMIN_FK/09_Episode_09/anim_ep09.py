@@ -74,7 +74,7 @@ for k in STORY:
 for gi in range(4):
     k = f"G{gi+1}"
     for text, a, b in sentences(k):
-        st = FIN[gi][0] + GOALS[gi]["tgoal"] + .2
+        st = FIN[gi][0] + GOALS[gi]["tgoal"] - .25
         srt.append((st + a, st + b, text))
 srt.sort()
 
@@ -215,7 +215,7 @@ def add(path, at, vol=1.0, pre=""):
 HAVE_VO = all(os.path.exists(vfile(k_)) for k_, _, _ in BLOCKS)     # a half-narrated film is worse than none: mix the voice only when every block exists
 for key, _, _ in BLOCKS:
     if not HAVE_VO: break
-    if key.startswith("G"): gi = int(key[1]) - 1; add(vfile(key), FIN[gi][0] + GOALS[gi]["tgoal"] + .2, 1.15)
+    if key.startswith("G"): gi = int(key[1]) - 1; add(vfile(key), FIN[gi][0] + GOALS[gi]["tgoal"] - .25, 1.15)
     else: add(vfile(key), FIN[key][0] + LEAD)
 wh = os.path.join(Z, "03_Episode_03", "sfx", "whistle.wav")
 for at in (FIN[0][0] + .05, FIN["C"][0] + .05, FIN["E1"][0] + .05): add(wh, at, .5)
@@ -232,7 +232,7 @@ music = os.path.join(Z, "06_Episode_06", "sfx", "music.mp3")
 if os.path.exists(music):
     st = FIN["E1"][0]; k += 1; inputs += ["-i", music]
     fc.append(f"[{k}:a]aresample=48000,atrim=0:{TOTAL-st:.2f},volume=0.16,afade=t=in:d=1.5,afade=t=out:st={TOTAL-st-1.5:.2f}:d=1.5,adelay={int(st*1000)}|{int(st*1000)}[a{k}]"); mix.append(f"[a{k}]")
-fc.append("".join(mix) + f"amix=inputs={len(mix)}:normalize=0,apad,atrim=0:{TOTAL:.3f},loudnorm=I=-14:TP=-1.5[aout]")
+fc.append("".join(mix) + f"amix=inputs={len(mix)}:normalize=0,apad,atrim=0:{TOTAL:.3f},loudnorm=I=-14:TP=-1.5:LRA=11[aout]")
 out = os.path.join(EXP, "ZFK_EP09_match.mp4")
 subprocess.run(["ffmpeg", "-loglevel", "error", "-y", *inputs, "-filter_complex", ";".join(fc), "-map", "0:v", "-map", "[aout]",
                 "-c:v", "copy", "-ac", "1", "-ar", "48000", "-c:a", "aac", "-b:a", "192k", "-t", f"{TOTAL:.3f}", "-movflags", "+faststart", out], check=True)
