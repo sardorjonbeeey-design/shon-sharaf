@@ -21,6 +21,7 @@ One place for everything content-related: where files live, how videos are made,
 | 5 | — | — | nothing in repo |
 | 6 | `06_Episode_06/` | `exports/ZFK_EP06_day6.mp4` (+ `.srt`, `caption.txt`) | "Sizning joyingiz kutmoqda" — empty seat → fan → full stadium → 500 → free → CTA. Build: `make_ep06.py` + `film.html` |
 | 8 | `08_Episode_08/` | `exports/ZFK_EP08_day8.mp4` (+ `.srt`, `caption.txt`, 2 story PNGs) | "Stadion tayyor, tribuna bo‘sh" vs STAR BOYS; renovated stand + fan sprites on a seat grid (fans glued to the camera via `world:true`). Build: `anim_ep08.py` (`--frames t1,t2`, `--stories`, `--audio-only`); `script.md`. No fund/follower numbers (ledger only has Day 1). |
+| 9 | `09_Episode_09/` | `exports/ZFK_EP09_match.mp4` (+ `.srt`, `caption.txt`) | ZAMIN FK 2–2 STAR BOYS match film + "yangi menejer" comment CTA. Story scenes: cartoon engine over plates of the 3D stadium; the four goals: 3D clips. Build: `goals3d/render_goals.js` (`video`, `stills`, `preview N`, `frames N t1,t2`) then `anim_ep09.py` (`--frames`, `--keep-story`, `--audio-only`); `script.md`. |
 
 Each episode folder: `assets/` (images), `voice/` (narration per line), `sfx/`, `exports/` (deliverables), `build/` (temp, ignored).
 
@@ -29,10 +30,17 @@ Each episode folder: `assets/` (images), `voice/` (narration per line), `sfx/`, 
 - Music `sfx/music.mp3` (40 s, accents at 6/12/18 s, final chord 30 s). Crowd bed: `03_Episode_03/sfx/crowd_bed.wav`.
 - `film.html` = cinematic engine (camera keyframes, layer crossfades, bloom, dust, grain, titles, word-by-word subtitles, 500 graphic, crest, CTA buttons). `make_ep06.py` holds the timeline and the audio mix; `python3 make_ep06.py 7.9 10.9` renders check frames, `ZFK=--audio-only` remixes without re-rendering (full render ≈ 7 min).
 
+## Day 9 reusable pieces: 3D match clips from the real stadium
+- `09_Episode_09/goals3d/harness.js` loads `web/stadium/dist/index.html` (the upgraded stadium: upper tier + raised roof) in headless Chromium, routes three.js r128 to a local npm copy (`cd 09_Episode_09/build && npm i three@0.128.0`), stops the page's own loop and exposes its scene. `director.js` adds 22 rigged players (`models/player/player.glb`, names/numbers via the page's shirt printer, kits recoloured from the baked texture), nets, ball, cameras, scorebug / GOOOL / scorer card, and puts the score on the stadium LED screen. `scenarios.js` = the plays (paths, passes, shots, dives, cameras) as data.
+- The page parks the town's cars and walkers at the pitch centre until its city loop runs; `director.js` hides them. Pitch/track planes are re-tessellated there too (depth flicker in software GL).
+- Lineups: ZAMIN FK from the club poster (`09_Episode_09/assets/zamin_lineup_2026-11-13.jpg`); STAR BOYS from the owner's list (in `director.js`). STAR BOYS kit colour is a placeholder (red) — one line in `director.js` (`const red = kitMaterial(...)`).
+- Speed: ~2 s per 1080×1920 frame (≈ 8 min per 8 s clip). `preview N` gives a low-res contact sheet in ~40 s.
+
 ## Tools that work / don't (checked 2026-11-12)
 - Images: Poyo `gpt-image-2.6-fixed`, `version: sunburst`, `size: 9:16`. Output is always ~941×1672 whatever `resolution` says, so use `1K` (1.7 credits). Edits (`image_urls`) keep the frame almost pixel-aligned — good for before/after pairs. Results: `https://cdn.doculator.org/images/<task_id>/<task_id>.png`.
 - Style block used for Day 6: "Cinematic realistic 3D animated-film style … small-town football stadium in Uzbekistan … royal-blue (#1F4FB8) plastic bucket seats … plain shirts and scarves, no text, no logos".
 - Voice: Poyo `elevenlabs-v4-tts`, `voice: rwtcHtZgYU6HN2zLNBlf`, `language_code: uz`, no audio tags; write numbers as words ("besh yuzta") and "Zamin FK". ~1 credit per line.
+- 2026-11-13: Poyo generation calls returned "Invalid API key" (account lookup still worked) and ElevenLabs disabled the free tier for the account, so Day 9 has no narration yet. When a voice tool works again: save one mp3 per block as `09_Episode_09/voice/<KEY>.mp3` (keys and texts in `script.md`; `A.mp3` exists), then `python3 anim_ep09.py` (story timing follows the audio).
 - Music / SFX: ElevenLabs flow tools (`eleven_music_v2_5` works; free tier runs one generation at a time — never fire in parallel). ElevenLabs SFX returned only 1 s — synthesize or reuse the crowd bed.
 - Video generation: NOT available (Poyo key blocks all video and music models; ElevenLabs video needs a paid plan). Use stills + motion.
 - Fonts: `web/city/assets/fonts/Montserrat_*.ttf`. Headless Chromium can't reach CDNs; route three.js from a local npm copy if rendering the 3D stadium.
