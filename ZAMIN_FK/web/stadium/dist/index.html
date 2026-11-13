@@ -1902,7 +1902,7 @@ const T2 = {
     bizSoon: "🏪 Biznes ochish (do‘kon, kafe) — keyingi bosqichda", bought: n => `${n} uyingiz oldida! 🚗`, poor: n => `Yetmaydi: yana ${n} 🪙 kerak`,
     up: (n, c) => `⬆️ ${n} — ${c} 🪙`, bonus: n => `🎁 Kunlik bonus: +${n} 🪙`, bonusOk: n => `+${n} 🪙 kunlik bonus! Ertaga ham kiring 🔥`, linkIg: "🎟 Instagram nikni bog‘lash",
     wRole: "Kofexona sotuvchisi", wHint: "Oldingi mijoz nima so‘rayapti? To‘g‘ri tugmani bosing!", wWait: "Mijozlar kutilmoqda…", wWrong: "❌ Noto‘g‘ri buyurtma", wLeft: "😤 Mijoz ketib qoldi",
-    wDone: "Smena tugadi! ☕", wSum: (n, c) => `${n} ta mijozga xizmat qildingiz.<br>Ishlab topdingiz: <b>${c} 🪙</b>`, wBack: "Shaharga qaytish", wLeave: "⏸ Chiqish (smena davom etadi)",
+    wDone: "Smena tugadi!", wSum: (n, c) => `${n} ta mijozga xizmat qildingiz.<br>Ishlab topdingiz: <b>${c} 🪙</b>`, wBack: "Shaharga qaytish", wLeave: "⏸ Chiqish (smena davom etadi)",
     jobNames: { coffee: "☕ Kofexona sotuvchisi", taxi: "🚕 Taksi haydovchisi", bakery: "🥖 Novvoy", builder: "🧱 Quruvchi" } },
   ru: { bShop: "🛒 Базар", jobsH: "💼 Работа", jobsP: "Зарабатывайте монеты 🪙. Смены ограничены в день — возвращайтесь каждый день!",
     toApply: "📝 Вступить в команду (заявка)", start: "Начать", cont: "Продолжить", soon: "Скоро", shiftInfo: (m, d, n) => `Смена ${m} мин · сегодня ${d}/${n}`,
@@ -1910,7 +1910,7 @@ const T2 = {
     bizSoon: "🏪 Открыть бизнес (магазин, кафе) — на следующем этапе", bought: n => `${n} у вашего дома! 🚗`, poor: n => `Не хватает ${n} 🪙`,
     up: (n, c) => `⬆️ ${n} — ${c} 🪙`, bonus: n => `🎁 Ежедневный бонус: +${n} 🪙`, bonusOk: n => `+${n} 🪙 бонус! Заходите и завтра 🔥`, linkIg: "🎟 Привязать ник Instagram",
     wRole: "Бариста", wHint: "Что просит первый клиент? Нажмите нужную кнопку!", wWait: "Ждём клиентов…", wWrong: "❌ Не тот заказ", wLeft: "😤 Клиент ушёл",
-    wDone: "Смена окончена! ☕", wSum: (n, c) => `Вы обслужили ${n} клиентов.<br>Заработано: <b>${c} 🪙</b>`, wBack: "Вернуться в город", wLeave: "⏸ Выйти (смена идёт)",
+    wDone: "Смена окончена!", wSum: (n, c) => `Вы обслужили ${n} клиентов.<br>Заработано: <b>${c} 🪙</b>`, wBack: "Вернуться в город", wLeave: "⏸ Выйти (смена идёт)",
     jobNames: { coffee: "☕ Бариста", taxi: "🚕 Таксист", bakery: "🥖 Пекарь", builder: "🧱 Строитель" } },
   en: { bShop: "🛒 Market", jobsH: "💼 Jobs", jobsP: "Earn coins 🪙. Shifts are limited per day — come back every day!",
     toApply: "📝 Join our team (apply)", start: "Start", cont: "Continue", soon: "Soon", shiftInfo: (m, d, n) => `${m}-min shift · today ${d}/${n}`,
@@ -1918,7 +1918,7 @@ const T2 = {
     bizSoon: "🏪 Open a business (shop, café) — next stage", bought: n => `${n} is at your home! 🚗`, poor: n => `You need ${n} more 🪙`,
     up: (n, c) => `⬆️ ${n} — ${c} 🪙`, bonus: n => `🎁 Daily bonus: +${n} 🪙`, bonusOk: n => `+${n} 🪙 daily bonus! Come back tomorrow 🔥`, linkIg: "🎟 Link Instagram nick",
     wRole: "Barista", wHint: "What does the first customer want? Tap the right item!", wWait: "Waiting for customers…", wWrong: "❌ Wrong order", wLeft: "😤 Customer left",
-    wDone: "Shift over! ☕", wSum: (n, c) => `You served ${n} customers.<br>Earned: <b>${c} 🪙</b>`, wBack: "Back to the city", wLeave: "⏸ Leave (shift keeps running)",
+    wDone: "Shift over!", wSum: (n, c) => `You served ${n} customers.<br>Earned: <b>${c} 🪙</b>`, wBack: "Back to the city", wLeave: "⏸ Leave (shift keeps running)",
     jobNames: { coffee: "☕ Barista", taxi: "🚕 Taxi driver", bakery: "🥖 Baker", builder: "🧱 Builder" } },
 };
 for (const k in T2) Object.assign(T[k], T2[k]);
@@ -2002,18 +2002,18 @@ document.getElementById("homeBonus").onclick = async () => { try { const d = awa
 document.getElementById("homeVisit").onclick = () => { const m = myHome(); if (!m) return; document.getElementById("sHome").style.display = "none"; if (MODE !== "city") setMode("city", false); goHome(m); };
 
 // jobs list
-const LOCKED_JOBS = ["taxi", "bakery", "builder"];
+const JOB_IC = id => (T[L].jobNames[id] || "💼").split(" ")[0];
 function renderJobs() {
   const el = document.getElementById("jobList"); el.innerHTML = "";
   const jobs = ME ? ME.catalog.jobs : [];
   for (const j of jobs) {
-    const active = ME.shift && ME.shift.job === j.id, left = j.shiftsPerDay - ME.shiftsToday;
+    const active = ME.shift && ME.shift.job === j.id, busy = ME.shift && !active, left = j.shiftsPerDay - ME.shiftsToday;   // the daily shift limit is shared by all jobs
     const c = document.createElement("div"); c.className = "card";
-    c.innerHTML = `<div class="ic">☕</div><div class="tx"><b>${T[L].jobNames[j.id] || j.name}</b><small>${T[L].shiftInfo(j.shiftSec / 60, Math.min(ME.shiftsToday, j.shiftsPerDay), j.shiftsPerDay)}</small></div>`;
-    const b = document.createElement("button"); b.textContent = active ? T[L].cont : T[L].start; b.disabled = !active && left <= 0;
+    c.innerHTML = `<div class="ic">${JOB_IC(j.id)}</div><div class="tx"><b>${T[L].jobNames[j.id] || j.name}</b><small>${T[L].shiftInfo(j.shiftSec / 60, Math.min(ME.shiftsToday, j.shiftsPerDay), j.shiftsPerDay)}</small></div>`;
+    const b = document.createElement("button"); b.textContent = active ? T[L].cont : T[L].start; b.disabled = busy || (!active && left <= 0);
     b.onclick = () => startJob(j.id); c.appendChild(b); el.appendChild(c);
   }
-  for (const id of LOCKED_JOBS) { const c = document.createElement("div"); c.className = "card lock"; c.innerHTML = `<div class="ic">${T[L].jobNames[id].split(" ")[0]}</div><div class="tx"><b>${T[L].jobNames[id]}</b><small>${T[L].soon}</small></div>`; el.appendChild(c); }
+  for (const id of Object.keys(T[L].jobNames).filter(id => !jobs.some(j => j.id === id))) { const c = document.createElement("div"); c.className = "card lock"; c.innerHTML = `<div class="ic">${T[L].jobNames[id].split(" ")[0]}</div><div class="tx"><b>${T[L].jobNames[id]}</b><small>${T[L].soon}</small></div>`; el.appendChild(c); }
 }
 document.getElementById("bJob").onclick = needTg(async () => { await fetchMe(); renderJobs(); open("sJobs"); });
 // ---------- applications: city work (free choice) or club (player / staff); everything goes to the admin ----------
@@ -2083,7 +2083,8 @@ document.getElementById("sGo").onclick = async () => {
   await sendApp({ kind: "staff", name: document.getElementById("sName").value, age: document.getElementById("sAge").value, dept: APP.dept, note: document.getElementById("sNote").value });
 };
 
-// ---------- roleplay shift: coffee-shop counter ----------
+// ---------- roleplay shift: serve the queue (coffee shop, taxi, bakery, building yard) ----------
+const WORK_BG = { taxi: "linear-gradient(#f2c230 0%, #d9a514 38%, #3a3f4a 38%, #23262d 100%)", bakery: "linear-gradient(#8a4b1c 0%, #b8742f 38%, #e2b77a 38%, #f4e2c0 100%)", builder: "linear-gradient(#4a5a6a 0%, #6f8296 38%, #c46a3a 38%, #e09a6a 100%)" };
 const FACES = ["👨", "👩", "🧔", "👵", "👴", "👦", "👧", "👨‍🦱", "👩‍🦰", "🧕", "👨‍🦳", "👱‍♀️"];
 const h32 = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };   // same as server
 const custOf = (job, seed, k) => { const r = h32(`${seed}:${k}`); return { k, at: k * job.everySec + (r % (job.jitterSec + 1)), order: (r >>> 8) % job.menu.length, face: (r >>> 16) % 12 }; };
@@ -2094,7 +2095,7 @@ async function startJob(id) {
     if (!d.shift) return;
     sheets.forEach(s => s.style.display = "none");
     W.job = d.catalog.jobs.find(j => j.id === d.shift.job); W.shift = d.shift; W.served = new Set(d.shift.served); W.earned = d.shift.earned; W.n = d.shift.served.length;
-    document.getElementById("wPlace").textContent = W.job.place; document.getElementById("wRole").textContent = T[L].wRole;
+    document.getElementById("wPlace").textContent = W.job.place; document.getElementById("wRole").textContent = (T[L].jobNames[W.job.id] || W.job.name).replace(/^\S+\s/, ""); W.el.style.background = WORK_BG[W.job.id] || "";
     const menu = document.getElementById("menu"); menu.innerHTML = "";
     W.job.menu.forEach((m, i) => { const b = document.createElement("button"); b.textContent = m; b.onclick = () => serve(i); menu.appendChild(b); });
     document.getElementById("wEnd").classList.remove("on"); W.el.classList.add("on");
@@ -2133,6 +2134,7 @@ async function serve(item) {
 }
 function endWork() {
   clearInterval(W.timer);
+  document.querySelector("#wEnd h2").textContent = T[L].wDone + " " + JOB_IC(W.job.id);
   document.getElementById("wSum").innerHTML = T[L].wSum(W.n, W.earned); document.getElementById("wEnd").classList.add("on"); fetchMe();
 }
 document.getElementById("wClose").onclick = () => { clearInterval(W.timer); W.el.classList.remove("on"); fetchMe(); };

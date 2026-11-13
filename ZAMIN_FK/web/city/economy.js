@@ -31,6 +31,26 @@ const JOBS = {
     minGapSec: 2,             // no machine-gun serving
     shiftsPerDay: 3,
   },
+  // Same queue mechanic, different pace. shiftsPerDay is one shared daily limit (shifts of every job count),
+  // and each job pays about the same per shift, so the economy above does not change.
+  taxi: {
+    id: "taxi", name: "Taksi haydovchisi", place: "Zamin Taksi",
+    menu: ["🏟 Stadion", "🛒 Bozor", "🏥 Shifoxona", "🚉 Vokzal"],
+    shiftSec: 480, everySec: 30, jitterSec: 10, patienceSec: 40,      // fewer passengers, bigger fares (≈ 14 per shift)
+    pay: 6, tipFast: 3, tipSlow: 1, fastSec: 12, minGapSec: 2, shiftsPerDay: 3,
+  },
+  bakery: {
+    id: "bakery", name: "Novvoy", place: "Zamin Novvoyxonasi",
+    menu: ["🍞 Non", "🥟 Somsa", "🥖 Baton", "🥧 Pirog"],
+    shiftSec: 480, everySec: 25, jitterSec: 10, patienceSec: 45,
+    pay: 5, tipFast: 3, tipSlow: 1, fastSec: 15, minGapSec: 2, shiftsPerDay: 3,
+  },
+  builder: {
+    id: "builder", name: "Quruvchi", place: "Zamin Qurilish",
+    menu: ["🧱 G‘isht", "🔨 Bolg‘a", "🎨 Bo‘yoq", "🚪 Eshik"],
+    shiftSec: 480, everySec: 20, jitterSec: 8, patienceSec: 35,       // fast orders, small pay (≈ 21 per shift)
+    pay: 4, tipFast: 2, tipSlow: 1, fastSec: 10, minGapSec: 2, shiftsPerDay: 3,
+  },
 };
 const BONUS = streak => Math.min(50, 20 + 5 * Math.max(0, streak - 1));   // 20, 25, 30 ... up to 50 a day
 const MAX_LEVEL = 7;
