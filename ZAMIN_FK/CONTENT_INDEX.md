@@ -20,6 +20,7 @@ One place for everything content-related: where files live, how videos are made,
 | 4 | `04_Episode_04/` | — | `script.md` only, not produced |
 | 5 | — | — | nothing in repo |
 | 6 | `06_Episode_06/` | `exports/ZFK_EP06_day6.mp4` (+ `.srt`, `caption.txt`) | "Sizning joyingiz kutmoqda" — empty seat → fan → full stadium → 500 → free → CTA. Build: `make_ep06.py` + `film.html` |
+| 8 | `08_Episode_08/` | `exports/ZFK_EP08_day8.mp4` (+ `.srt`, `caption.txt`, 2 story PNGs) | "Stadion tayyor, tribuna bo‘sh" vs STAR BOYS; renovated stand + fan sprites on a seat grid (fans glued to the camera via `world:true`). Build: `anim_ep08.py` (`--frames t1,t2`, `--stories`, `--audio-only`); `script.md`. No fund/follower numbers (ledger only has Day 1). |
 
 Each episode folder: `assets/` (images), `voice/` (narration per line), `sfx/`, `exports/` (deliverables), `build/` (temp, ignored).
 

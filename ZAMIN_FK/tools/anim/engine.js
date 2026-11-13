@@ -23,6 +23,7 @@ function enterXform(kind, p) {
     case 'up': return { dx: 0, dy: lerp(500, 0, easeOut(q)), s: 1, o: 1, r: 0 };
     case 'drop': { const b = q < 1 ? Math.abs(Math.cos(q * Math.PI * 1.5)) * (1 - q) : 0; return { dx: 0, dy: -lerp(700, 0, easeOut(q)) - b * 80, s: 1, o: 1, r: 0 }; }
     case 'stamp': return { dx: 0, dy: 0, s: lerp(2.2, 1, easeOut(q)), o: Math.min(1, q * 2), r: lerp(-14, -4, q) };
+    case 'rise': return { dx: 0, dy: lerp(30, -70, easeOut(q)), s: 1, o: Math.min(1, q * 4), r: 0 };
     case 'peekR': return { dx: lerp(420, 0, easeOut(q)), dy: 0, s: 1, o: 1, r: lerp(10, 0, q) };
     default: return { dx: 0, dy: 0, s: 1, o: Math.min(1, q * 4), r: 0 };
   }
@@ -35,16 +36,25 @@ function idleXform(kind, t) {
     case 'hop': return { dy: -Math.abs(Math.sin(t * 7)) * 34, s: 1, r: Math.sin(t * 7) * 3 };
     case 'shake': return { dy: 0, s: 1, r: Math.sin(t * 22) * 2.5 };
     case 'pulse': return { dy: 0, s: 1 + Math.sin(t * 7) * 0.04, r: 0 };
+    case 'tiny': return { dy: Math.sin(t * 4.2) * 2, s: 1, r: Math.sin(t * 3) * 0.8 };
     case 'sway': return { dy: Math.sin(t * 3) * 4, s: 1, r: Math.sin(t * 3) * 2 };
     default: return { dy: 0, s: 1, r: 0 };
   }
 }
 
-function drawItem(it, key, t, sceneOn) {
+function camOf(sc, t) {
+  const p = clamp((t - sc.from) / (sc.to - sc.from), 0, 1);
+  const [z0, z1] = sc.bg.zoom || [1, 1.06];
+  const [fx0, fy0, fx1, fy1] = sc.bg.focus || [0.5, 0.5, 0.5, 0.5];
+  const z = lerp(z0, z1, p), fx = lerp(fx0, fx1, p), fy = lerp(fy0, fy1, p);
+  return { z, tx: clamp(540 - fx * 1080 * z, 1080 - 1080 * z, 0), ty: clamp(960 - fy * 1920 * z, 1920 - 1920 * z, 0) };
+}
+function drawItem(it, key, t, sceneOn, sc) {
   const on = sceneOn && t >= it.at && t < (it.to ?? 1e9);
   const node = el(key, () => {
     const d = document.createElement(it.type === 'sprite' ? 'img' : 'div');
     d.className = it.type === 'sprite' ? 'spr' : 'lab';
+    if (it.filter) d.style.filter = it.filter;
     if (it.type === 'sprite') { d.src = it.src; if (it.h) d.style.height = it.h + 'px'; if (it.w) d.style.width = it.w + 'px'; }
     else d.innerHTML = it.html;
     return d;
@@ -60,11 +70,14 @@ function drawItem(it, key, t, sceneOn) {
   if (txt != null) { const b = node.querySelector('b'); if (b) b.textContent = txt; }
   const w = node.offsetWidth, h = node.offsetHeight;
   // anchor: sprites bottom-centre at (x,y); labels centre at (x,y)
-  const ax = it.x - w / 2, ay = it.type === 'sprite' ? it.y - h : it.y - h / 2;
+  // it.world: position/scale follow the scene camera (attached to the background)
+  let wx = it.x, wy = it.y, wz = 1;
+  if (it.world && sc) { const c = camOf(sc, t); wx = it.x * c.z + c.tx; wy = it.y * c.z + c.ty; wz = c.z; }
+  const ax = wx - w / 2, ay = it.type === 'sprite' ? wy - h : wy - h / 2;
   const flip = it.flip ? -1 : 1;
   node.style.left = ax + 'px'; node.style.top = ay + 'px';
   node.style.opacity = o;
-  node.style.transform = `translate(${en.dx}px, ${en.dy + id.dy}px) rotate(${en.r + id.r}deg) scale(${en.s * id.s * flip}, ${en.s * id.s})`;
+  node.style.transform = `translate(${en.dx}px, ${en.dy + id.dy}px) rotate(${en.r + id.r}deg) scale(${en.s * id.s * flip * wz}, ${en.s * id.s * wz})`;
   node.style.zIndex = it.z ?? (it.type === 'sprite' ? 10 : 20);
 }
 
@@ -95,6 +108,8 @@ function drawCaption(t) {
   const c = (EP.captions || []).find(c => t >= c.a && t < c.b);
   if (!c) { node.style.display = 'none'; return; }
   node.style.display = 'block';
+  node.style.bottom = (c.bottom ?? 430) + 'px';
+  node.style.fontSize = (c.size ?? 70) + 'px';
   const key = c.a.toFixed(3);
   if (node.dataset.k !== key) {
     node.dataset.k = key;
@@ -126,7 +141,7 @@ function drawRain(t) {
 window.renderAt = function (t) {
   EP.scenes.forEach((sc, i) => {
     drawBg(sc, i, t);
-    (sc.items || []).forEach((it, j) => drawItem(it, `s${i}i${j}`, t, t >= sc.from && t < sc.to));
+    (sc.items || []).forEach((it, j) => drawItem(it, `s${i}i${j}`, t, t >= sc.from && t < sc.to, sc));
   });
   (EP.globals || []).forEach((it, j) => drawItem(it, `g${j}`, t, true));
   drawCaption(t);
