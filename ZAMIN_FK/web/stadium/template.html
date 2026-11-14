@@ -1796,7 +1796,7 @@ let me = null;
 function tag(i) { if (!pool[i]) { const d = document.createElement("div"); d.className = "tag"; labelsEl.appendChild(d); pool[i] = d; } return pool[i]; }
 const P = new THREE.Vector3();
 function project(x, y, z) { P.set(x, y, z).project(camera); return [(P.x + 1) / 2 * innerWidth, (1 - P.y) / 2 * innerHeight, P.z]; }
-let lastLabel = 0, used = 0;
+let lastLabel = 0, used = 0, shownFans = new Set();
 function updateLabels(now) {
   if (now - lastLabel < 120 && !fly) return; lastLabel = now;
   used = 0;
@@ -1822,10 +1822,12 @@ function updateLabels(now) {
   if (near) {
     // Legacy demo sprites are not roster players; only the approved starting XI receive pitch nameplates.
     const cand = [], step = Math.max(1, Math.floor(fans / 3000));
-    for (let k = 0; k < fans; k += step) { const st = seats[order[k]]; cand.push([(st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2, st]); }
+    for (let k = 0; k < fans; k += step) { const st = seats[order[k]], d = (st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2; cand.push([shownFans.has(st) ? d * .5 : d, st]); }   // names already on screen keep their place
     cand.sort((a, b) => a[0] - b[0]);
-    let shown = 0; const LIM = fans <= 60 ? 60 : 22;
-    for (const [, st] of cand) { if (shown >= LIM) break; if (st !== me && place(st, "tag fan", "@" + st.fan)) shown++; }
+    const LIM = fans <= 60 ? 60 : camR < 110 ? 22 : camR < 180 ? 12 : 6;                                       // fewer names when zoomed out
+    const nowShown = new Set();
+    for (const [, st] of cand) { if (nowShown.size >= LIM) break; if (st !== me && place(st, "tag fan", "@" + st.fan)) nowShown.add(st); }
+    shownFans = nowShown;
   } else {
     if (PLAZA) placeAt(PLAZA.x, 24, PLAZA.z - 30, "tag lot", T[L].plaza, true);
     const tg = controls.target, ml = MAP_LABELS.map(l => [(l[1] - tg.x) ** 2 + (l[2] - tg.z) ** 2, l]).sort((a, b) => a[0] - b[0]).slice(0, 10);
