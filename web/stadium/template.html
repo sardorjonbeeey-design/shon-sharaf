@@ -672,7 +672,9 @@ function buildRealTown(map) {
       // sides only, giving every block 6 equally spaced plots while preserving
       // the original map IDs used by existing home ownership records.
       const blockX = Math.round(h.x / 114) * 114, blockZ = Math.round(h.z / 114) * 114;
-      if (Math.abs(h.x - blockX) <= 25 && Math.abs(h.z - blockZ) > 25) houses.push(h);
+      const selected = Math.abs(h.x - blockX) <= 25 && Math.abs(h.z - blockZ) > 25;
+      const alreadyOwned = (STATE.homes || []).some(home => Number(home.lot) === id);
+      if (selected || alreadyOwned) houses.push(h);
     } else other.push([kind, lv, ring]);
   });
   // empty lots: every real house is only its exact footprint drawn on the ground, with a "+" where a fan can build
