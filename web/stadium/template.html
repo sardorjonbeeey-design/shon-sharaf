@@ -992,16 +992,16 @@ function makeHome(h) { return mergeGroup(buildHome(h)); }
 // CHANGE LOG (old -> new): built-in homes had a shared 12.4m plinth / 11.8m
 // lawn, while custom house models had no private plot base. Both now receive
 // their own green lawn and a marked 2.8m x 4.8m parking bay on the same plot.
-function addHomeGarden(g) {
+function addHomeGarden(g, front = 2.4) {                  // front = z of the house front edge (built-in 2.4, custom model 4.0)
   const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
-  box(SHADOW, 15, .01, 15, .6, .01, .6);
-  box(LM.plinth, 12.4, .3, 12.4, 0, .15, 0);
-  box(LM.grass, 11.8, .1, 11.8, 0, .35, 0);
-  box(LM.path, 1.8, .12, 3.2, -.9, .37, 4.4);
-  // Dedicated parking bay, kept inside the private lawn.
-  box(LM.path, 2.8, .12, 4.8, 4.2, .41, -3.2);
-  box(LM.frame, .12, .05, 4.6, 2.8, .5, -3.2);
-  box(LM.frame, .12, .05, 4.6, 5.6, .5, -3.2);
+  box(SHADOW, 15, .01, 15, 0, .01, 0);
+  box(LM.plinth, 14.8, .3, 14.8, 0, .15, 0);
+  box(LM.grass, 14.4, .1, 14.4, 0, .35, 0);
+  box(LM.path, 1.8, .12, 6 - front, -.9, .37, (front + 6) / 2);   // entrance path: from the house front to the lawn edge
+  // Dedicated parking bay (2.8 x 4.8 m), outside the house footprint and inside the lawn.
+  box(LM.path, 2.8, .12, 4.8, 5.6, .41, -3.2);
+  box(LM.frame, .12, .05, 4.6, 4.2, .5, -3.2);
+  box(LM.frame, .12, .05, 4.6, 7.0, .5, -3.2);
 }
 function buildHome(h) {
   const g = new THREE.Group(), L = Math.max(1, Math.min(7, h.level || 1)), acc = accM[h.color] || accM[0];
@@ -1139,9 +1139,9 @@ function modelHome(h) {                                    // picked model (styl
   const src = MODELS[key]; if (!src) { loadModel(key).then(m => m && relayoutSoon()); return null; }
   const obj = src.clone(true);
   if (key.startsWith("kn:")) obj.traverse(m => { if (m.isMesh && m.material && m.material.map) { m.material = m.material.clone(); m.material.map = roofTex(src.children.length ? m.material.map : m.material.map, h.color); } });
-  const g = new THREE.Group(); addHomeGarden(g); g.add(fitModel(obj, 11.5, 40));
+  const g = new THREE.Group(); addHomeGarden(g, 4.0); g.add(fitModel(obj, 8.0, 40));
   const ck = h.car && CAR_MODEL[h.car];
-  if (ck) { const cm = MODELS[ck.includes(":") ? ck : "kn:" + ck]; if (cm) { const c = fitModel(cm.clone(), 2.0, 1.6); c.position.set(4.2, 0, -3.2); c.rotation.y = 0; g.add(c); }
+  if (ck) { const cm = MODELS[ck.includes(":") ? ck : "kn:" + ck]; if (cm) { const c = fitModel(cm.clone(), 2.0, 1.6); c.position.set(5.6, 0, -3.2); c.rotation.y = 0; g.add(c); }
     else loadModel(ck.includes(":") ? ck : "kn:" + ck).then(m => m && relayoutSoon()); }
   return g;
 }
