@@ -932,6 +932,20 @@ for (let gx = -GRID; gx <= GRID; gx++) for (let gz = -GRID; gz <= GRID; gz++) {
 }
 plots.sort((a, b) => a.d - b.d); plots.forEach((p, i) => p.id = i);
 
+// warm halo around every street lamp; fades in after dark (DN sets window.STREET_GLOW.opacity)
+function lampHalo(items) {
+  if (!items.length) return null;
+  const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d");
+  const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, "rgba(255,240,200,1)"); r.addColorStop(.3, "rgba(255,214,140,.55)"); r.addColorStop(1, "rgba(255,200,120,0)");
+  g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+  const pos = new Float32Array(items.length * 3);
+  items.forEach((it, i) => { pos[i * 3] = it[0]; pos[i * 3 + 1] = it[1] + .3; pos[i * 3 + 2] = it[2]; });
+  const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({ size: 14, map: new THREE.CanvasTexture(c), color: 0xffe2a0, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+  const pts = new THREE.Points(geo, mat); pts.frustumCulled = false; scene.add(pts);
+  return mat;
+}
 // ---------- streets: asphalt, sidewalks, aryk canal, poplar rows, street lights, zebra crossings ----------
 {
   const walk = [], asph = [], aryk = [], dash = [], zebra = [], poplars = [], trunks = [], poles = [], heads = [];
@@ -972,6 +986,7 @@ plots.sort((a, b) => a.d - b.d); plots.forEach((p, i) => p.id = i);
   instanced(popG, lamC(0xffffff), poplars, poplars.map(() => choose([0x3e6b2c, 0x46772f, 0x37602a, 0x52813a])));
   instanced(new THREE.CylinderGeometry(.5, .5, 1, 5), lamC(0x6b5236), trunks);
   instanced(CBOX, lamC(0x6f747b), poles); instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xfff1c4 }), heads);
+  window.STREET_GLOW = lampHalo(heads);
 }
 
 // ---------- undeveloped land: orchards near town, fields further out. Homes replace them plot by plot ----------
@@ -1725,6 +1740,7 @@ const DN = (() => {
     for (const g of glow) g.mt.color.copy(mix3(g.night, DAYGLASS, day * .85));
     if (bloom) { bloom.strength = .12 + (1 - day) * 1.05; bloom.threshold = .55 + day * .35; }
     document.documentElement.dataset.night = day < .5 ? "1" : "0";
+    if (window.STREET_GLOW) window.STREET_GLOW.opacity = (1 - day) * .9;     // street lamps glow after dark
   }
   return {
     tick(now) { if (now - lastCollect > 4000) { lastCollect = now; const n = glow.length; collect(); if (glow.length !== n) state = null; } update(false); },
