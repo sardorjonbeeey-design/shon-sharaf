@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZAMIN layout editor</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;height:100vh;display:grid;grid-template-columns:210px 1fr 270px;grid-template-rows:auto 1fr;font:13px system-ui,sans-serif;background:#1b2330;color:#e6ebf5}
+header{grid-column:1/4;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 8px;background:#0d2557}
+header b{margin-right:6px}
+button{background:#23406f;color:#fff;border:0;border-radius:6px;padding:6px 9px;cursor:pointer;font:inherit}
+button:hover{background:#2f5395}
+button.on{background:#ffd23f;color:#0d2557}
+aside{overflow:auto;padding:8px;background:#141b26}
+h4{margin:10px 0 6px;color:#ffd23f;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+canvas{width:100%;height:100%;display:block;background:#8fbf5a;touch-action:none}
+.pal button{display:block;width:100%;text-align:left;margin:3px 0;background:#1c2738}
+.pal button.on{background:#ffd23f;color:#0d2557}
+.layer{padding:5px 7px;border-radius:5px;cursor:pointer;background:#1c2738;margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.layer.sel{background:#3b5b9c}
+.row{display:flex;gap:6px;align-items:center;margin:5px 0}
+.row label{width:72px;color:#9fb3d6}
+.row input{flex:1;min-width:0;background:#0f1622;color:#fff;border:1px solid #2b3a55;border-radius:4px;padding:4px}
+.row button{flex:1}
+#hint{margin-left:auto;color:#9fb3d6}
+.note{color:#9fb3d6;font-size:12px;line-height:1.4}
+</style>
+</head>
+<body>
+<header>
+  <b>ZAMIN layout</b>
+  <button id="undo">Undo</button>
+  <button id="redo">Redo</button>
+  <button id="dup">Duplicate</button>
+  <button id="del">Delete</button>
+  <button id="rot">Rotate 15°</button>
+  <button id="snap">Snap 0.5 m: on</button>
+  <button id="fit">Fit view</button>
+  <button id="std">Reset to standard square</button>
+  <button id="exp">Export JSON</button>
+  <button id="imp">Import JSON</button>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+  <span id="hint"></span>
+</header>
+<aside>
+  <h4>Add (then click the plan)</h4>
+  <div class="pal" id="pal"></div>
+  <h4>Layers (top = front)</h4>
+  <div id="layers"></div>
+  <p class="note">Mouse: click to select, drag to move, drag a handle to resize, drag empty space to pan, wheel to zoom.<br>Keys: Del delete, Ctrl+Z / Ctrl+Y undo / redo, Ctrl+D duplicate, R rotate, arrows nudge (Shift = 5 m), Esc cancel.</p>
+</aside>
+<canvas id="cv"></canvas>
+<aside>
+  <h4>Selected</h4>
+  <div id="insp"></div>
+</aside>
+
+<script>
+// Layout units: metres. X to the right, Z down the screen (north = top).
+const TYPES = {
+  property: { name: 'Property plot 38x57', fill: '#7cb342', line: '#6b4a2e', w: 38, d: 57 },
+  house:    { name: 'House', fill: '#f3ead9', line: '#5a5f6b', w: 24, d: 30, floors: 2 },
+  driveway: { name: 'Driveway', fill: '#cfc8b8', line: '#8c8577', w: 7, d: 24 },
+  walk:     { name: 'Entrance walk', fill: '#e6dfcf', line: '#8c8577', w: 2.4, d: 24 },
+  car:      { name: 'Car', fill: '#b8bcc2', line: '#2f3540', w: 2, d: 4.2 },
+  patio:    { name: 'Patio', fill: '#cfc8b8', line: '#8c8577', w: 14, d: 5.5 },
+  hedge:    { name: 'Hedge', fill: '#2e7d32', line: '#1b5e20', w: 14, d: .8 },
+  tree:     { name: 'Tree', fill: '#4caf50', line: '#1b5e20', r: 1.5 },
+  square:   { name: 'Square boundary 114x114', fill: null, line: '#2b3a55', w: 114, d: 114 },
+};
+const KEY = 'zamin-layout-v1';
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+const view = { cx: 0, cz: 0, s: 5 };
+let items = [], selId = null, tool = 'select', hist = [], redoSt = [], snapOn = true, drag = null;
+
+const uid = () => 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const sel = () => items.find(i => i.id === selId) || null;
+const r2 = v => Math.round(v * 100) / 100;
+const snapV = v => Math.max(.5, Math.round(v * 2) / 2);
+const snapPt = (x, z) => snapOn ? [Math.round(x * 2) / 2, Math.round(z * 2) / 2] : [x, z];
+const toScr = (x, z) => [W / 2 + (x - view.cx) * view.s, H / 2 + (z - view.cz) * view.s];
+const toWorld = (sx, sy) => [(sx - W / 2) / view.s + view.cx, (sy - H / 2) / view.s + view.cz];
+const rad = it => (it.rot || 0) * Math.PI / 180;
+const localToWorld = (it, lx, lz) => { const c = Math.cos(rad(it)), s = Math.sin(rad(it)); return [it.x + lx * c - lz * s, it.z + lx * s + lz * c]; };
+const worldToLocal = (it, x, z) => { const dx = x - it.x, dz = z - it.z, c = Math.cos(rad(it)), s = Math.sin(rad(it)); return [dx * c + dz * s, -dx * s + dz * c]; };
+
+// ---------- the standard square: six 38 x 57 m plots, rows face their outer street ----------
+function standardSquare() {
+  const out = [], add = (type, o) => out.push({ id: uid(), type, rot: 0, ...o });
+  add('square', { x: 0, z: 0, w: 114, d: 114 });
+  for (const cx of [-38, 0, 38]) for (const cz of [-28.5, 28.5]) {
+    const s = cz < 0 ? -1 : 1, Z = oz => cz + s * oz;
+    add('property', { x: cx, z: cz, w: 38, d: 57 });
+    add('house', { x: cx + 2, z: Z(-6), w: 24, d: 30, floors: 2 });
+    add('driveway', { x: cx - 14.5, z: Z(16.5), w: 7, d: 24 });
+    add('walk', { x: cx + .5, z: Z(16.5), w: 2.4, d: 24 });
+    add('car', { x: cx - 14.5, z: Z(18), w: 2, d: 4.2 });
+    add('tree', { x: cx + 12, z: Z(17), r: 1.6 });
+    add('hedge', { x: cx + 12, z: Z(28.2), w: 14, d: .8 });
+    add('patio', { x: cx, z: Z(-25), w: 14, d: 5.5 });
+    add('hedge', { x: cx, z: Z(-28.2), w: 37.4, d: .5 });
+    add('hedge', { x: cx - 18.7, z: cz, w: .5, d: 55 });
+    add('hedge', { x: cx + 18.7, z: cz, w: .5, d: 55 });
+    add('tree', { x: cx - 16.5, z: Z(-12), r: 1.5 });
+    add('tree', { x: cx + 16.5, z: Z(-12), r: 1.5 });
+    add('tree', { x: cx - 16.5, z: Z(-22), r: 1.5 });
+    add('tree', { x: cx + 16.5, z: Z(-22), r: 1.5 });
+  }
+  return out;
+}
+
+// ---------- history, storage ----------
+function save() { localStorage.setItem(KEY, JSON.stringify(items)); }
+function commit(before) {
+  if (before !== undefined) {
+    if (before === JSON.stringify(items)) return;
+    hist.push(before); if (hist.length > 300) hist.shift(); redoSt = [];
+  }
+  if (selId && !sel()) selId = null;
+  save(); renderAll();
+}
+function mutate(fn) { const b = JSON.stringify(items); fn(); commit(b); }
+function undo() { if (!hist.length) return; redoSt.push(JSON.stringify(items)); items = JSON.parse(hist.pop()); commit(); }
+function redo() { if (!redoSt.length) return; hist.push(JSON.stringify(items)); items = JSON.parse(redoSt.pop()); commit(); }
+
+// ---------- editing actions ----------
+function addItem(type, x, z) {
+  const T = TYPES[type], it = { id: uid(), type, x, z, rot: 0 };
+  if (T.r) it.r = T.r; else { it.w = T.w; it.d = T.d; }
+  if (type === 'house') it.floors = 2;
+  mutate(() => { items.push(it); selId = it.id; });
+}
+function removeSel() { if (!sel()) return; mutate(() => { items = items.filter(i => i.id !== selId); selId = null; }); }
+function duplicateSel() {
+  const it = sel(); if (!it) return;
+  mutate(() => { const c = { ...it, id: uid(), x: it.x + 2, z: it.z + 2 }; items.push(c); selId = c.id; });
+}
+function rotateSel(deg) { const it = sel(); if (!it || it.type === 'tree') return; mutate(() => { it.rot = ((it.rot || 0) + deg + 360) % 360; }); }
+function nudgeSel(dx, dz) { const it = sel(); if (!it) return; mutate(() => { it.x += dx; it.z += dz; }); }
+function moveLayer(dir) {
+  const i = items.findIndex(x => x.id === selId); if (i < 0) return;
+  const j = dir > 0 ? items.length - 1 : 0; mutate(() => { const [it] = items.splice(i, 1); items.splice(j, 0, it); });
+}
+
+// ---------- geometry ----------
+function handlesOf(it) {
+  if (it.type === 'tree') return [{ k: 'r', tree: true, lx: it.r, lz: 0 }];
+  const hw = it.w / 2, hd = it.d / 2, out = [];
+  for (const hx of [-1, 0, 1]) for (const hz of [-1, 0, 1]) if (hx || hz) out.push({ k: hx + ',' + hz, hx, hz, lx: hx * hw, lz: hz * hd });
+  return out;
+}
+function hitHandle(it, sx, sy) {
+  for (const h of handlesOf(it)) { const [wx, wz] = localToWorld(it, h.lx, h.lz), [hx, hy] = toScr(wx, wz); if (Math.hypot(hx - sx, hy - sy) <= 9) return h; }
+  return null;
+}
+function hitItem(x, z) {
+  const tol = 5 / view.s;
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i];
+    if (it.type === 'tree') { if (Math.hypot(x - it.x, z - it.z) <= it.r + tol) return it; continue; }
+    const [lx, lz] = worldToLocal(it, x, z);
+    if (Math.abs(lx) <= it.w / 2 + tol && Math.abs(lz) <= it.d / 2 + tol) return it;
+  }
+  return null;
+}
+function resizeItem(it, d, x, z) {
+  const o = d.orig;
+  if (d.h.tree) { it.r = Math.max(.5, snapOn ? snapV(Math.hypot(x - o.x, z - o.z)) : Math.hypot(x - o.x, z - o.z)); return; }
+  const [px, pz] = worldToLocal(o, x, z), { hx, hz } = d.h;
+  const ax = hx ? -hx * o.w / 2 : 0, az = hz ? -hz * o.d / 2 : 0;
+  let ew = hx ? Math.max(.5, Math.abs(px - ax)) : o.w, ed = hz ? Math.max(.5, Math.abs(pz - az)) : o.d;
+  const cl = hx ? (px + ax) / 2 : 0, cz = hz ? (pz + az) / 2 : 0;
+  let [nx, nz] = localToWorld(o, cl, cz);
+  if (snapOn) { if (hx) ew = snapV(ew); if (hz) ed = snapV(ed); [nx, nz] = snapPt(nx, nz); }
+  it.w = ew; it.d = ed; it.x = nx; it.z = nz;
+}
+
+// ---------- drawing ----------
+function resize() {
+  DPR = window.devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = W * DPR; cv.height = H * DPR; draw();
+}
+function draw() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#8fbf5a'; ctx.fillRect(0, 0, W, H);
+  const step = view.s < 3 ? 20 : view.s < 8 ? 10 : 5;
+  const [x0, z0] = toWorld(0, 0), [x1, z1] = toWorld(W, H);
+  ctx.strokeStyle = 'rgba(0,0,0,.08)'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let x = Math.floor(x0 / step) * step; x <= x1; x += step) { const [sx] = toScr(x, 0); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); }
+  for (let z = Math.floor(z0 / step) * step; z <= z1; z += step) { const [, sy] = toScr(0, z); ctx.moveTo(0, sy); ctx.lineTo(W, sy); }
+  ctx.stroke();
+  for (const it of items) drawItem(it);
+  const s = sel(); if (s) drawHandles(s);
+  // origin cross
+  const [ox, oy] = toScr(0, 0); ctx.strokeStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(ox - 6, oy); ctx.lineTo(ox + 6, oy); ctx.moveTo(ox, oy - 6); ctx.lineTo(ox, oy + 6); ctx.stroke();
+}
+function drawItem(it) {
+  const T = TYPES[it.type], [sx, sy] = toScr(it.x, it.z), s = view.s;
+  ctx.save(); ctx.translate(sx, sy); ctx.rotate(rad(it));
+  if (it.type === 'tree') {
+    ctx.beginPath(); ctx.arc(0, 0, it.r * s, 0, Math.PI * 2); ctx.fillStyle = T.fill; ctx.fill(); ctx.strokeStyle = T.line; ctx.lineWidth = 1.5; ctx.stroke();
+  } else {
+    const w = it.w * s, d = it.d * s;
+    if (T.fill) { ctx.fillStyle = T.fill; ctx.fillRect(-w / 2, -d / 2, w, d); }
+    ctx.strokeStyle = T.line; ctx.lineWidth = it.type === 'property' || it.type === 'square' ? 2 : 1;
+    if (it.type === 'square') ctx.setLineDash([8, 6]);
+    ctx.strokeRect(-w / 2, -d / 2, w, d); ctx.setLineDash([]);
+    if (it.type === 'house' && s > 2) { ctx.fillStyle = '#0d2557'; ctx.font = `${Math.max(10, s * 1.6)}px system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(it.floors + ' floor' + (it.floors > 1 ? 's' : ''), 0, 0); }
+  }
+  ctx.restore();
+}
+function drawHandles(it) {
+  ctx.save(); ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+  ctx.beginPath(); const [cx, cy] = toScr(it.x, it.z), rr = it.type === 'tree' ? it.r * view.s : 0;
+  if (it.type === 'tree') ctx.arc(cx, cy, rr, 0, Math.PI * 2);
+  else { const [a, b] = toScr(...localToWorld(it, -it.w / 2, -it.d / 2)), [c, d] = toScr(...localToWorld(it, it.w / 2, -it.d / 2)), [e, f] = toScr(...localToWorld(it, it.w / 2, it.d / 2)), [g, h] = toScr(...localToWorld(it, -it.w / 2, it.d / 2)); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.lineTo(e, f); ctx.lineTo(g, h); ctx.closePath(); }
+  ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#ffd23f'; ctx.strokeStyle = '#0d2557';
+  for (const h of handlesOf(it)) { const [wx, wz] = localToWorld(it, h.lx, h.lz), [hx, hy] = toScr(wx, wz); ctx.beginPath(); ctx.rect(hx - 5, hy - 5, 10, 10); ctx.fill(); ctx.stroke(); }
+  ctx.restore();
+}
+
+// ---------- pointer ----------
+cv.addEventListener('pointerdown', e => {
+  const [x, z] = toWorld(e.offsetX, e.offsetY);
+  if (tool.startsWith('add:')) { const t = tool.slice(4); tool = 'select'; addItem(t, ...snapPt(x, z)); updatePal(); return; }
+  const s = sel();
+  if (s) { const h = hitHandle(s, e.offsetX, e.offsetY); if (h) { drag = { mode: 'resize', h, orig: { ...s }, before: JSON.stringify(items), id: s.id }; cv.setPointerCapture(e.pointerId); return; } }
+  const hit = hitItem(x, z);
+  if (hit) { selId = hit.id; drag = { mode: 'move', id: hit.id, sx: x, sz: z, ox: hit.x, oz: hit.z, before: JSON.stringify(items) }; }
+  else { selId = null; drag = { mode: 'pan', sx: e.offsetX, sy: e.offsetY, cx: view.cx, cz: view.cz }; }
+  cv.setPointerCapture(e.pointerId); renderAll();
+});
+cv.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (drag.mode === 'pan') { view.cx = drag.cx - (e.offsetX - drag.sx) / view.s; view.cz = drag.cz - (e.offsetY - drag.sy) / view.s; draw(); return; }
+  const [x, z] = toWorld(e.offsetX, e.offsetY), it = items.find(i => i.id === drag.id); if (!it) return;
+  if (drag.mode === 'move') { const [nx, nz] = snapPt(drag.ox + (x - drag.sx), drag.oz + (z - drag.sz)); it.x = nx; it.z = nz; }
+  else resizeItem(it, drag, x, z);
+  draw(); updateInsp();
+});
+cv.addEventListener('pointerup', () => { if (drag && drag.mode !== 'pan') commit(drag.before); drag = null; });
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  const [wx, wz] = toWorld(e.offsetX, e.offsetY);
+  view.s = Math.min(60, Math.max(1, view.s * (e.deltaY < 0 ? 1.12 : 1 / 1.12)));
+  view.cx = wx - (e.offsetX - W / 2) / view.s; view.cz = wz - (e.offsetY - H / 2) / view.s; draw();
+}, { passive: false });
+
+// ---------- keys ----------
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) { undo(); e.preventDefault(); }
+  else if (mod && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { redo(); e.preventDefault(); }
+  else if (mod && e.key.toLowerCase() === 'd') { duplicateSel(); e.preventDefault(); }
+  else if (e.key === 'Delete' || e.key === 'Backspace') { removeSel(); }
+  else if (e.key === 'r' || e.key === 'R') { rotateSel(e.shiftKey ? -15 : 15); }
+  else if (e.key === 'Escape') { selId = null; tool = 'select'; renderAll(); updatePal(); }
+  else if (e.key.startsWith('Arrow')) {
+    const st = e.shiftKey ? 5 : .5, dx = { ArrowLeft: -st, ArrowRight: st }[e.key] || 0, dz = { ArrowUp: -st, ArrowDown: st }[e.key] || 0;
+    nudgeSel(dx, dz); e.preventDefault();
+  }
+});
+
+// ---------- panels ----------
+function renderAll() { draw(); renderLayers(); updateInsp(); updateHeader(); }
+function renderLayers() {
+  const el = document.getElementById('layers'); el.innerHTML = '';
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i], d = document.createElement('div');
+    d.className = 'layer' + (it.id === selId ? ' sel' : '');
+    d.textContent = TYPES[it.type].name + (it.type === 'house' ? ` (${it.floors} fl)` : '') + ` @ ${r2(it.x)}, ${r2(it.z)}`;
+    d.onclick = () => { selId = it.id; renderAll(); };
+    el.appendChild(d);
+  }
+}
+function updateInsp() {
+  const it = sel(), el = document.getElementById('insp');
+  if (!it) { el.innerHTML = '<p class="note">Select an object on the plan or in the layer list.</p>'; return; }
+  const f = (lbl, key, step = .5) => `<div class="row"><label>${lbl}</label><input type="number" step="${step}" data-k="${key}" value="${r2(it[key] ?? 0)}"></div>`;
+  el.innerHTML = `<div><b>${TYPES[it.type].name}</b></div>` + f('X (m)', 'x') + f('Z (m)', 'z') +
+    (it.type === 'tree' ? f('Radius (m)', 'r') : f('Width (m)', 'w') + f('Depth (m)', 'd')) +
+    (it.type === 'tree' ? '' : f('Rotation °', 'rot', 15)) +
+    (it.type === 'house' ? f('Floors', 'floors', 1) : '') +
+    `<div class="row"><button data-act="front">Bring to front</button><button data-act="back">Send to back</button></div>` +
+    `<div class="row"><button data-act="dup">Duplicate</button><button data-act="del">Delete</button></div>`;
+}
+document.getElementById('insp').addEventListener('change', e => {
+  const it = sel(); if (!it || !e.target.dataset.k) return;
+  const k = e.target.dataset.k, v = parseFloat(e.target.value); if (isNaN(v)) return;
+  mutate(() => { it[k] = k === 'w' || k === 'd' || k === 'r' ? Math.max(.5, v) : k === 'floors' ? Math.max(1, Math.round(v)) : v; });
+});
+document.getElementById('insp').addEventListener('click', e => {
+  const a = e.target.dataset.act; if (!a) return;
+  if (a === 'front') moveLayer(1); else if (a === 'back') moveLayer(-1); else if (a === 'dup') duplicateSel(); else if (a === 'del') removeSel();
+});
+function buildPalette() {
+  const el = document.getElementById('pal');
+  for (const [k, T] of Object.entries(TYPES)) {
+    if (k === 'square') continue;
+    const b = document.createElement('button'); b.dataset.t = k; b.textContent = T.name;
+    b.onclick = () => { tool = tool === 'add:' + k ? 'select' : 'add:' + k; updatePal(); };
+    el.appendChild(b);
+  }
+}
+function updatePal() {
+  for (const b of document.querySelectorAll('#pal button')) b.classList.toggle('on', tool === 'add:' + b.dataset.t);
+  updateHeader();
+}
+function updateHeader() {
+  document.getElementById('hint').textContent = tool.startsWith('add:') ? `Click the plan to place: ${TYPES[tool.slice(4)].name}` : `${items.length} objects`;
+  document.getElementById('snap').textContent = 'Snap 0.5 m: ' + (snapOn ? 'on' : 'off');
+  document.getElementById('snap').classList.toggle('on', snapOn);
+  document.getElementById('undo').disabled = !hist.length; document.getElementById('redo').disabled = !redoSt.length;
+}
+function fitView() {
+  if (!items.length) return;
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+  for (const it of items) { const r = it.type === 'tree' ? it.r : Math.max(it.w, it.d) / 2; x0 = Math.min(x0, it.x - r); x1 = Math.max(x1, it.x + r); z0 = Math.min(z0, it.z - r); z1 = Math.max(z1, it.z + r); }
+  view.cx = (x0 + x1) / 2; view.cz = (z0 + z1) / 2;
+  view.s = Math.max(1, Math.min(W / (x1 - x0 + 10), H / (z1 - z0 + 10)));
+  draw();
+}
+
+// ---------- header buttons, import / export ----------
+document.getElementById('undo').onclick = undo;
+document.getElementById('redo').onclick = redo;
+document.getElementById('dup').onclick = duplicateSel;
+document.getElementById('del').onclick = removeSel;
+document.getElementById('rot').onclick = () => rotateSel(15);
+document.getElementById('snap').onclick = () => { snapOn = !snapOn; updateHeader(); };
+document.getElementById('fit').onclick = fitView;
+document.getElementById('std').onclick = () => { if (confirm('Replace the whole layout with the standard square?')) { mutate(() => { items = standardSquare(); selId = null; }); fitView(); } };
+document.getElementById('exp').onclick = () => {
+  const blob = new Blob([JSON.stringify({ format: 'zamin-layout', version: 1, unit: 'm', items }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'zamin-layout.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+document.getElementById('imp').onclick = () => document.getElementById('file').click();
+document.getElementById('file').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text()), arr = Array.isArray(d) ? d : d.items;
+    if (!Array.isArray(arr) || !arr.every(i => TYPES[i.type] && i.id && isFinite(i.x) && isFinite(i.z))) throw new Error('not a layout file');
+    mutate(() => { items = arr; selId = null; }); fitView();
+  } catch (err) { alert('Import failed: ' + err.message); }
+  e.target.value = '';
+};
+
+// ---------- start ----------
+buildPalette();
+try { const saved = JSON.parse(localStorage.getItem(KEY) || 'null'); items = Array.isArray(saved) && saved.length ? saved : standardSquare(); }
+catch { items = standardSquare(); }
+addEventListener('resize', resize);
+resize(); fitView(); renderAll(); updatePal();
+</script>
+</body>
+</html>
