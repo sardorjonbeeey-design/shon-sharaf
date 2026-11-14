@@ -1534,7 +1534,7 @@ function printGeo(mesh, o) {              // a patch laid on the shirt and skinn
   g.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(si, 4)); g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(sw, 4));
   return g;
 }
-function makeRig(name, num) {             // clone the hierarchy; geometry, material and textures stay shared
+function makeRig(name, num, still) {             // clone the hierarchy; geometry, material and textures stay shared
   const src = RIG.base, root = src.clone(), a = [], b = []; src.traverse(o => a.push(o)); root.traverse(o => b.push(o));
   const mesh = b[a.indexOf(RIG.mesh)];
   mesh.skeleton = new THREE.Skeleton(RIG.mesh.skeleton.bones.map(bn => b[a.indexOf(bn)]), RIG.mesh.skeleton.boneInverses); mesh.bind(mesh.skeleton, RIG.mesh.bindMatrix);
@@ -1549,13 +1549,15 @@ function makeRig(name, num) {             // clone the hierarchy; geometry, mate
     m.frustumCulled = false; mesh.parent.add(m); m.bind(mesh.skeleton, mesh.bindMatrix);
   });
   const mx = new THREE.AnimationMixer(root), run = mx.clipAction(RIG.run), walk = mx.clipAction(RIG.walk);
-  run.play(); walk.play(); walk.setEffectiveWeight(0); mx.setTime(Math.random() * 2);
-  return { root, mx, run, walk, tex, last: 0 };
+  if (still) { run.play(); run.paused = true; walk.setEffectiveWeight(0); mx.update(0); }   // substitutes: player.glb in a fixed pose, no walk animation
+  else { run.play(); walk.play(); walk.setEffectiveWeight(0); mx.setTime(Math.random() * 2); }
+  return { root, mx, run, walk, tex, last: 0, still: !!still };
 }
 function wearRig(s, i) {
   if (!RIG.base) return loadRig();
   const name = String(s.p.name || "").toUpperCase().slice(0, 12), num = String(s.p.number || (s.p.position === "CB" && Number(s.p.position_rank) >= 3 ? 5 : SHIRT_NO[s.p.position]) || i + 1), key = i + "|" + name + "|" + num;
-  let r = RIG.pool.get(key); if (!r) RIG.pool.set(key, r = makeRig(name, num));
+  const still = s.p.squad_role === "substitute", rk = (still ? "s|" : "r|") + key;
+  let r = RIG.pool.get(rk); if (!r) RIG.pool.set(rk, r = makeRig(name, num, still));
   if (r.root.parent) r.root.parent.remove(r.root);
   s.g.children.forEach(o => o.visible = false); s.g.add(r.root); s.rig = r;
 }
@@ -1607,7 +1609,7 @@ async function loadSquad() {
   try {
     const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
     const list = await r.json(); SQUAD.forEach(s => scene.remove(s.g)); SQUAD.length = 0;
-    list.filter(p => p.kind !== "player" || p.squad_role === "starter").forEach((p, i) => {
+    list.forEach((p, i) => {                                   // starters and substitutes all use the same player.glb model
       const s = makeSquadPlayer(p, i); s.g.userData.squadPlayer = s; SQUAD.push(s);
     });
     sweepRigs();
@@ -1621,7 +1623,8 @@ function animateSquad(t) {
     const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
     s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
     const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
-    if (s.rig && s.rig.mx) {                                  // rigged model: blend walk and run by how fast it is moving
+    if (s.rig && s.rig.mx && s.rig.still) { /* substitutes stay in their fixed pose */ }
+    else if (s.rig && s.rig.mx) {                             // rigged model: blend walk and run by how fast it is moving
       const R = s.rig, v = Math.hypot(Math.cos(k) * 5.4, Math.cos(k * .7) * 2.52), w = Math.min(1, Math.max(0, (v - 2) / 2.2));
       R.run.setEffectiveWeight(w); R.walk.setEffectiveWeight(1 - w);
       R.run.timeScale = Math.min(1.15, Math.max(.6, v / 6.2)); R.walk.timeScale = Math.min(1.4, Math.max(.35, v / 2.6));
