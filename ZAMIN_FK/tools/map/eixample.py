@@ -45,10 +45,9 @@ for k in range(-N, N + 1):
         cls = 2 if k in (-1, 0) else 3
         a, b = (s, -ext), (s, ext)
         roads.append([cls, flat([a, b] if vertical else [(a[1], a[0]), (b[1], b[0])])])
-# Diagonal avenue (class 1) across the whole grid, skipping the stadium area
-roads.append([1, flat([(-ext, ext * .55), (-STADIUM[0] - 40, STADIUM[1] + 40)])])
-roads.append([1, flat([(STADIUM[0] + 40, -STADIUM[1] - 40), (ext, -ext * .55)])])
-labels += [["Amir Temur xiyoboni", -ext * .45, ext * .4, "road"], ["Zamin ko‘chasi", P / 2, -ext * .6, "road"],
+# CHANGE LOG (old -> new): two diagonal avenues (class 1) crossed 12 residential properties each.
+# WHY: residential squares must have no internal roads; they were removed (the grid streets stay).
+labels += [["Zamin ko‘chasi", P / 2, -ext * .6, "road"],
            ["Muxlislar ko‘chasi", -ext * .6, P / 2, "road"]]
 
 def park_block(i, j):

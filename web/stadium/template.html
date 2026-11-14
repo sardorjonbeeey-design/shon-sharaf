@@ -662,31 +662,20 @@ function buildRealTown(map) {
     const lm = (l0 + l1) / 2, wm = (w0 + w1) / 2;
     return { x: cx + ux * lm - uz * wm, z: cz + uz * lm + ux * wm, len: l1 - l0, wid: w1 - w0, ang };
   };
-  const houses = [], other = [], lotBlocks = new Map();
+  // CHANGE LOG (old -> new): the map used to hold 12 lots per 92 m block and this code kept 6 of
+  // them by pairs on a 114 m grid. The new map has exactly six 38 x 57 m properties per 114 m square
+  // on a 136 m pitch, so every house entry is kept. WHY: keep all six properties; no lot is dropped.
+  const PITCH = 136, houses = [], other = [];
   map.buildings.forEach(([kind, lv, f], id) => {               // id = index in the map file: stable lot number
     const ring = pts(f); if (ring.some(([x, z]) => CLR(x, z))) return;
     if (kind === "house" && lv <= 2) {
       const h = { ...rect(ring), lv, ring, id };
-      // CHANGE LOG (old -> new): each 114m Barcelona-style block had 12 house
-      // plots (3 on each of its 4 sides). Keep 3 opposite-side pairs (6 plots)
-      // per block, prioritising pairs with existing owners and preserving IDs.
-      const blockX = Math.round(h.x / 114) * 114, blockZ = Math.round(h.z / 114) * 114;
-      const side = Math.abs(h.x - blockX) <= 25 ? "NS" : "EW";
-      const offset = side === "NS" ? Math.round((h.x - blockX) / 21) : Math.round((h.z - blockZ) / 21);
-      const blockKey = blockX + "," + blockZ;
-      if (!lotBlocks.has(blockKey)) lotBlocks.set(blockKey, new Map());
-      const pairs = lotBlocks.get(blockKey), pairKey = side + ":" + offset;
-      if (!pairs.has(pairKey)) pairs.set(pairKey, []);
-      pairs.get(pairKey).push(h);
+      // the driveway faces the perimeter street on the square's north or south edge (rows face their street)
+      const bz = Math.round(h.z / PITCH) * PITCH;
+      h.out = [0, h.z >= bz ? 1 : -1];
+      houses.push(h);
     } else other.push([kind, lv, ring]);
   });
-  const ownedLots = new Set((STATE.homes || []).filter(home => home.lot != null).map(home => Number(home.lot)));
-  for (const pairs of lotBlocks.values()) {
-    const preferred = ["NS:-1", "NS:0", "NS:1", "EW:-1", "EW:0", "EW:1"];
-    const ownedPairs = preferred.filter(key => (pairs.get(key) || []).some(h => ownedLots.has(h.id)));
-    const chosen = [...ownedPairs, ...preferred.filter(key => !ownedPairs.includes(key))].slice(0, 3);
-    for (const key of chosen) houses.push(...(pairs.get(key) || []));
-  }
   // empty lots: every real house is only its exact footprint drawn on the ground, with a "+" where a fan can build
   { const lp = [], ln = [], fp = [], fn = [], FENCE = [], POSTS = [];
     for (const h of houses) {
@@ -989,24 +978,33 @@ function mergeGroup(g) {
   return out;
 }
 function makeHome(h) { return mergeGroup(buildHome(h)); }
-// CHANGE LOG (old -> new): built-in homes had a shared 12.4m plinth / 11.8m
-// lawn, while custom house models had no private plot base. Both now receive
-// their own green lawn and a marked 2.8m x 4.8m parking bay on the same plot.
+// CHANGE LOG (old -> new): each home had an 11.8 m lawn and one 2.8 x 4.8 m bay.
+// WHY: the residential square is now six private 38 x 57 m properties (3 x 2 per 114 m square),
+// each with its own driveway to the perimeter street, two-car parking, front and back gardens,
+// patio, hedges and side trees. Local origin = property centre; the front (driveway) is at +z.
+const PROP_W = 38, PROP_D = 57, PROP_HALF_D = 28.5, PARK_Z = 12, HOUSE_Z = -8;   // house sits in the back half
 function addHomeGarden(g) {
   const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
-  box(SHADOW, 15, .01, 15, .6, .01, .6);
-  box(LM.plinth, 12.4, .3, 12.4, 0, .15, 0);
-  box(LM.grass, 11.8, .1, 11.8, 0, .35, 0);
-  box(LM.path, 1.8, .12, 3.2, -.9, .37, 4.4);
-  // Dedicated parking bay, kept inside the private lawn.
-  box(LM.path, 2.8, .12, 4.8, 4.2, .41, -3.2);
-  box(LM.frame, .12, .05, 4.6, 2.8, .5, -3.2);
-  box(LM.frame, .12, .05, 4.6, 5.6, .5, -3.2);
+  const tree = (x, z, s = 1) => { const t = new THREE.Mesh(CYL, LM.trunk); t.scale.set(.18 * s, 1.6 * s, .18 * s); t.position.set(x, .8 * s + .4, z); g.add(t);
+    const c = new THREE.Mesh(ICO, s > 1 ? LM.leaf : LM.leaf2); c.scale.set(1.25 * s, 1.4 * s, 1.25 * s); c.position.set(x, 2.6 * s + .4, z); g.add(c); };
+  box(SHADOW, PROP_W + .4, .01, PROP_D + .4, 0, .01, 0);
+  box(LM.grass, PROP_W, .1, PROP_D, 0, .35, 0);                                  // private lawn (front and back)
+  box(LM.path, 6.4, .14, 22.5, 0, .42, 17.25);                                   // driveway: from the street edge (+28.5) inwards
+  for (const x of [-1.6, 1.6]) {                                                  // two marked 2.8 x 4.8 m parking bays
+    box(LM.frame, 2.8, .05, .12, x, .5, PARK_Z - 2.4); box(LM.frame, 2.8, .05, .12, x, .5, PARK_Z + 2.4);
+    box(LM.frame, .12, .05, 4.8, x - 1.4, .5, PARK_Z); box(LM.frame, .12, .05, 4.8, x + 1.4, .5, PARK_Z); }
+  box(LM.path, 9, .14, 5.5, 0, .42, -21);                                        // back patio (outdoor seating)
+  box(LM.bush, PROP_W - .6, .9, .5, 0, .8, -PROP_HALF_D + .3);                   // rear privacy hedge
+  box(LM.bush, .5, .9, PROP_D - 2, -PROP_W / 2 + .3, .8, 0); box(LM.bush, .5, .9, PROP_D - 2, PROP_W / 2 - .3, .8, 0);   // side privacy hedges
+  box(LM.bush, 8, .7, .4, -11, .75, PROP_HALF_D - .3); box(LM.bush, 8, .7, .4, 11, .75, PROP_HALF_D - .3);   // front hedges, gap left for the driveway
+  for (const [x, z] of [[-15, 22], [15, 22], [-15, -6], [15, -6], [-15, -24], [15, -24]]) tree(x, z, 1.05);   // side landscaping
+  box(LM.bush, 3, .6, 2, -10, .75, 3); box(LM.bush, 3, .6, 2, 10, .75, 3);       // front green beds
 }
 function buildHome(h) {
   const g = new THREE.Group(), L = Math.max(1, Math.min(7, h.level || 1)), acc = accM[h.color] || accM[0];
-  const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
-  const mesh = (geo, m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); g.add(o); return o; };
+  const house = new THREE.Group(); house.position.z = HOUSE_Z; g.add(house);     // house body sits in the back half of the lot
+  const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); house.add(o); return o; };
+  const mesh = (geo, m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); house.add(o); return o; };
   // windows on the front (+z) or right side (+x) face of a block centred at (cx, cz) with half sizes (hw, hd)
   const win = (face, cx, cz, hw, hd, u, y, w = 1.3, hh = 1.5) => {
     if (face === "z") { box(LM.frame, w + .25, hh + .25, .1, cx + u, y, cz + hd + .02); box(LM.lit, w, hh, .12, cx + u, y, cz + hd + .04); }
@@ -1069,10 +1067,10 @@ function buildHome(h) {
   const ckey = h.car && CAR_MODEL[h.car] ? (CAR_MODEL[h.car].includes(":") ? CAR_MODEL[h.car] : "kn:" + CAR_MODEL[h.car]) : null;
   if (ckey && !MODELS[ckey]) loadModel(ckey).then(m => m && relayoutSoon());
   if (ckey && MODELS[ckey]) {                               // parked car model
-    const c = fitModel(MODELS[ckey].clone(), 2.0, 1.6); c.position.set(4.2, G, -3.2); c.rotation.y = 0; g.add(c);
+    const c = fitModel(MODELS[ckey].clone(), 2.0, 1.6); c.position.set(1.6, G, PARK_Z); c.rotation.y = 0; g.add(c);
   } else if (h.car) {                                       // car parked on the lawn (bought in the market), simple fallback
     const cc = [0, 0xf2f2f2, 0xb8bcc2, 0x2a4f8a, 0x1d1f24][h.car] || 0xf2f2f2, cm = lamC(cc), van = h.car === 1, big = h.car === 3;
-    const cx = 4.2, cz = -3.2, bh = van ? 1.7 : big ? 1.3 : 1.05;
+    const cx = 1.6, cz = PARK_Z - HOUSE_Z, bh = van ? 1.7 : big ? 1.3 : 1.05;   // house helpers are offset by HOUSE_Z
     box(cm, 2, bh, 4.2, cx, G + .35 + bh / 2, cz); box(LM.glass, 1.8, .7, van ? 3.6 : 2.2, cx, G + .35 + bh + .3, cz - (van ? .1 : .2));
     if (!van) box(cm, 1.85, .12, 2.3, cx, G + .35 + bh + .7, cz - .2);
     for (const [wx, wz] of [[-1, -1.3], [1, -1.3], [-1, 1.3], [1, 1.3]]) mesh(CYL, LM.rail, .42, .3, .42, cx + wx * .95, G + .42, cz + wz).rotation.z = Math.PI / 2;
@@ -1089,7 +1087,8 @@ function layoutHomes(list) {
     let p = h.lot != null ? byId.get(h.lot) : null;
     if (!p) { while (k < plots.length && used.has(plots[k].id)) k++; p = plots[k]; if (!p) return; used.add(p.id); }
     const o = modelHome(h) || makeHome(h); o.position.set(p.x, 0, p.z);
-    if (p.len) {                                          // real lot: align to its footprint, front towards the stadium
+    if (p.out) { o.rotation.y = Math.atan2(p.out[0], p.out[1]); o.scale.setScalar(1); }   // property: driveway faces its perimeter street
+    else if (p.len) {                                     // real lot: align to its footprint, front towards the stadium
       const want = Math.atan2(-p.x, -p.z); let best = p.ry, bd = 9;
       for (let q = 0; q < 4; q++) { const r = p.ry + q * Math.PI / 2, d = Math.abs(Math.atan2(Math.sin(r - want), Math.cos(r - want))); if (d < bd) { bd = d; best = r; } }
       o.rotation.y = best; o.scale.setScalar(Math.max(.6, Math.min(1.25, Math.min(p.len, p.wid) / 11)));
@@ -1139,9 +1138,9 @@ function modelHome(h) {                                    // picked model (styl
   const src = MODELS[key]; if (!src) { loadModel(key).then(m => m && relayoutSoon()); return null; }
   const obj = src.clone(true);
   if (key.startsWith("kn:")) obj.traverse(m => { if (m.isMesh && m.material && m.material.map) { m.material = m.material.clone(); m.material.map = roofTex(src.children.length ? m.material.map : m.material.map, h.color); } });
-  const g = new THREE.Group(); addHomeGarden(g); g.add(fitModel(obj, 11.5, 40));
+  const g = new THREE.Group(); addHomeGarden(g); const hw = new THREE.Group(); hw.position.z = HOUSE_Z; hw.add(fitModel(obj, 8.0, 40)); g.add(hw);
   const ck = h.car && CAR_MODEL[h.car];
-  if (ck) { const cm = MODELS[ck.includes(":") ? ck : "kn:" + ck]; if (cm) { const c = fitModel(cm.clone(), 2.0, 1.6); c.position.set(4.2, 0, -3.2); c.rotation.y = 0; g.add(c); }
+  if (ck) { const cm = MODELS[ck.includes(":") ? ck : "kn:" + ck]; if (cm) { const c = fitModel(cm.clone(), 2.0, 1.6); c.position.set(1.6, 0, PARK_Z); c.rotation.y = 0; g.add(c); }
     else loadModel(ck.includes(":") ? ck : "kn:" + ck).then(m => m && relayoutSoon()); }
   return g;
 }
