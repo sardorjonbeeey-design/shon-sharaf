@@ -1821,7 +1821,7 @@ function updateLabels(now) {
     const labelDistance = Math.hypot(x - camPos.x, y - camPos.y, z - camPos.z);
     const labelScale = cls === "tag big"
       ? Math.max(0.72, Math.min(1.4, 180 / Math.max(1, labelDistance)))
-      : Math.max(0.22, Math.min(1, 105 / Math.max(1, labelDistance)));
+      : Math.max(0.22, Math.min(cls === "tag fan" ? 0.6 : 1, 105 / Math.max(1, labelDistance)));   // fan names stay small up close
     const w = (txt.length * (cls === "tag big" ? 12 : 6) + (cls === "tag big" ? 34 : 16)) * labelScale, h = (cls === "tag big" ? 34 : 17) * labelScale;
     if (!force && boxes.some(b => Math.abs(b[0] - sx) < (b[2] + w) / 2 && Math.abs(b[1] - sy) < h)) return false;
     boxes.push([sx, sy, w]);
@@ -1837,7 +1837,7 @@ function updateLabels(now) {
     const cand = [], step = Math.max(1, Math.floor(fans / 3000));
     for (let k = 0; k < fans; k += step) { const st = seats[order[k]], d = (st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2; cand.push([shownFans.has(st) ? d * .5 : d, st]); }   // names already on screen keep their place
     cand.sort((a, b) => a[0] - b[0]);
-    const LIM = fans <= 60 ? 60 : camR < 110 ? 22 : camR < 180 ? 12 : 6;                                       // fewer names when zoomed out
+    const LIM = fans <= 60 ? 60 : camR < 110 ? 8 : camR < 180 ? 12 : 6;                                       // fewer names when zoomed out
     const nowShown = new Set();
     for (const [, st] of cand) { if (nowShown.size >= LIM) break; if (st !== me && place(st, "tag fan", "@" + st.fan)) nowShown.add(st); }
     shownFans = nowShown;
