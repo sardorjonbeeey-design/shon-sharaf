@@ -1217,11 +1217,12 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       const manual = await one(db, "select payload from squad_lineup where id = 1");
       const approved = manual ? null : await one(db, "select payload from squad_approved_roster where id = 1");
       let players;
-      if (manual) players = lineupFeed(normalizeLineup(parseJson(manual.payload)));
+      if (manual) players = lineupFeed(normalizeLineup(parseJson(manual.payload))).map(p => ({ ...p, tg_id: p.id ? String(p.id) : null }));
       else if (approved) {
         const payload = typeof approved.payload === "string" ? JSON.parse(approved.payload) : approved.payload;
-        players = (Array.isArray(payload && payload.active) ? payload.active : []).map(p => ({
-          id: p.application_id || null,
+        // the 24 playing players: 22 active + the 2 priority reserves (used by the stadium to keep them off the fan seats)
+        players = [...(Array.isArray(payload && payload.active) ? payload.active : []), ...(Array.isArray(payload && payload.reserves) ? payload.reserves.slice(0, 2) : [])].map(p => ({
+          id: p.application_id || null, tg_id: p.tg_id ? String(p.tg_id) : null,
           kind: "player",
           name: String(p.name || "Player"),
           number: p.shirt_number || null,

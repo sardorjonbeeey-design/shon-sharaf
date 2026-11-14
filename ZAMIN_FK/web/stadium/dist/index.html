@@ -292,7 +292,13 @@ async function getMap() {
   if (!MAP_FILE || new URLSearchParams(location.search).get("map") === "0") return null;
   try { const r = await fetch(MAP_FILE); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
-const [STATE0, MAP] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap()]);
+async function getSquad(ms) {
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+  try { const r = await fetch(API + "/api/squad", { cache: "no-store", signal: ctl.signal }); return r.ok ? await r.json() : null; } catch (e) { return null; } finally { clearTimeout(t); }
+}
+const [STATE0, MAP, SQUAD0] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap(), getSquad(2500)]);
+// the 24 players on the squad are on the pitch / bench, never in the fan seats (matched by Telegram id, so no duplicates)
+const PLAYING = new Set((Array.isArray(SQUAD0) ? SQUAD0 : []).filter(p => p && p.kind === "player" && p.tg_id).map(p => String(p.tg_id)));
 let STATE = STATE0 || { seats: [], homes: [], miniapp: "" };
 const FAN_META = new Map();       // nick -> { tg: telegram username or null }
 // Club members sit in the Supporters' Stand (main-stand straight). Their seat number comes from the server and never moves.
@@ -300,6 +306,7 @@ const STAND_W = 160;
 const CENTER_OUT = Array.from({ length: STAND_W }, (_, j) => j).sort((p, q) => Math.abs(p - 79.5) - Math.abs(q - 79.5) || p - q);
 const MEMBERS = [], memberNicks = new Set(), extraFans = [];
 for (const s of STATE.seats || []) {
+  if (PLAYING.has(String(s.tg_id))) continue;     // playing squad members do not take a fan seat
   const ig = norm(s.instagram), nick = ig || norm(s.nick);
   if (!nick) continue;
   FAN_META.set(nick, { tg: s.tg_username || null, ig: !!ig, member: s.seat_no > 0 });
