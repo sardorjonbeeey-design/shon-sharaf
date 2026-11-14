@@ -673,7 +673,7 @@ function buildRealTown(map) {
       // the original map IDs used by existing home ownership records.
       const blockX = Math.round(h.x / 114) * 114, blockZ = Math.round(h.z / 114) * 114;
       const selected = Math.abs(h.x - blockX) <= 25 && Math.abs(h.z - blockZ) > 25;
-      const alreadyOwned = (STATE.homes || []).some(home => Number(home.lot) === id);
+      const alreadyOwned = (STATE.homes || []).some(home => home.lot != null && Number(home.lot) === id);
       if (selected || alreadyOwned) houses.push(h);
     } else other.push([kind, lv, ring]);
   });
