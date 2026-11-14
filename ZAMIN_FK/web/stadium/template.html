@@ -2576,7 +2576,7 @@ function loop(now) {
     if (cx || cz) { t.x += cx; t.z += cz; camera.position.x += cx; camera.position.z += cz; }
   }
   controls.update();
-  if (LOT_PLUS) LOT_PLUS.visible = controls.getDistance() < 330;      // "+" build markers only when zoomed in
+  if (LOT_PLUS) LOT_PLUS.visible = camera.position.distanceTo(controls.target) < 330;      // "+" build markers only when zoomed in
   sky.position.copy(camera.position);
   try { animateTeam(now / 1000); } catch (e) { console.error("animateTeam failed:", e); }
   try { cityTick(dt); walkersTick(dt, now / 1000); residentsTick(dt, now / 1000); } catch (e) { console.error("city/walkers tick failed:", e); }
