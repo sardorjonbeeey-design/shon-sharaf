@@ -1770,7 +1770,7 @@ controls.enablePan = true; controls.screenSpacePanning = false; controls.panSpee
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 const VIEWS = {
   stadium: { pos: new THREE.Vector3(95, 75, 105), tgt: new THREE.Vector3(0, 2, 0) },
-  city: { pos: new THREE.Vector3(260, 300, 400), tgt: new THREE.Vector3(0, 0, 0) },
+  city: { pos: new THREE.Vector3(0, 210, 170), tgt: new THREE.Vector3(0, 0, 0) },   // first view: above the stadium
 };
 camera.position.copy(VIEWS[MODE].pos); controls.target.copy(VIEWS[MODE].tgt);
 let fly = null;
@@ -1831,7 +1831,7 @@ function updateLabels(now) {
   const place = (st, cls, txt) => placeAt(st.x, st.y + 1.3, st.z, cls, txt, cls === "tag me");
   if (me) place(me, "tag me", "@" + me.fan);
   const near = camR < 260;                       // inside the stadium: people; far away: the city
-  placeAt(0, OUT_R * ROW_H + 14, 0, "tag big", T[L].stad, true);
+  if (camR >= 260) placeAt(0, OUT_R * ROW_H + 14, 0, "tag big", T[L].stad, true);   // stadium name only when far away
   if (near) {
     // Legacy demo sprites are not roster players; only the approved starting XI receive pitch nameplates.
     const cand = [], step = Math.max(1, Math.floor(fans / 3000));
@@ -2626,7 +2626,7 @@ if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, c
   if (gs) { const st = seatByNo(+gs); if (st && st.fan) setTimeout(() => goTo(st), 700); }
   const st = go && byNick.get(norm(go));
   if (st) setTimeout(() => { goTo(st); say(T[L].seatOk(T[L].seat(st))); }, 700);
-  else if (MODE === "city") { const m = HOMES.find(h => h.id === myId); if (m) setTimeout(() => goHome(m), 900); }
+  else if (MODE === "city") { setTimeout(() => flyTo(VIEWS.city.pos.clone(), VIEWS.city.tgt.clone(), 1.6), 900); }   // start above the stadium, not at home
   let nh = null; try { nh = sessionStorage.getItem("zfk_newhome"); sessionStorage.removeItem("zfk_newhome"); } catch (e) {}
   if (nh) { const m = HOMES.find(h => h.id === myId); if (m) setTimeout(() => say(T[L].homeOk + " " + m.nick + " 🎟"), 1200); }
 }
