@@ -64,16 +64,11 @@ for i in range(-N, N + 1):
         # whole block is green; square, equal fan lots around the edge (grass between them), courtyard garden inside
         areas.append(["garden", flat(octagon(cx, cz, h, C))])
         if max(abs(i), abs(j)) > 6: continue                      # outer blocks stay green (future growth)
-        # CHANGE LOG (old -> new):
-        # Old: LOT=16, GAP=5 and range(4) made 12 plots (3 on all four sides).
-        # New: LOT_W=18, LOT_D=DEPTH (24), GAP=3 and sides (0, 2) make 6
-        # equal 18x24m plots in two opposite rows. This leaves a shared central
-        # courtyard while giving every home enough private garden/parking space.
-        LOT_W, GAP, LOT_D = 18, 3, DEPTH
-        for sd in (0, 2):
+        LOT, GAP = 16, 5
+        for sd in range(4):
             for k in (-1, 0, 1):
-                a0 = k * (LOT_W + GAP) - LOT_W / 2; d0 = -h + 3
-                rect = [(a0, d0), (a0 + LOT_W, d0), (a0 + LOT_W, d0 + LOT_D), (a0, d0 + LOT_D)]
+                a0 = k * (LOT + GAP) - LOT / 2; d0 = -h + 3
+                rect = [(a0, d0), (a0 + LOT, d0), (a0 + LOT, d0 + LOT), (a0, d0 + LOT)]
                 pts = []
                 for (x, z) in rect:
                     X, Z = [(x, z), (-z, x), (-x, -z), (z, -x)][sd]
