@@ -22,6 +22,7 @@ One place for everything content-related: where files live, how videos are made,
 | 6 | `06_Episode_06/` | `exports/ZFK_EP06_day6.mp4` (+ `.srt`, `caption.txt`) | "Sizning joyingiz kutmoqda" — empty seat → fan → full stadium → 500 → free → CTA. Build: `make_ep06.py` + `film.html` |
 | 8 | `08_Episode_08/` | `exports/ZFK_EP08_day8.mp4` (+ `.srt`, `caption.txt`, 2 story PNGs) | "Stadion tayyor, tribuna bo‘sh" vs STAR BOYS; renovated stand + fan sprites on a seat grid (fans glued to the camera via `world:true`). Build: `anim_ep08.py` (`--frames t1,t2`, `--stories`, `--audio-only`); `script.md`. No fund/follower numbers (ledger only has Day 1). |
 | 9 | `09_Episode_09/` | `exports/ZFK_EP09_match.mp4` (+ `.srt`, `caption.txt`) | ZAMIN FK 2–2 STAR BOYS match film + "yangi menejer" comment CTA. Story scenes: cartoon engine over plates of the 3D stadium; the four goals: 3D clips. Build: `goals3d/render_goals.js` (`video`, `stills`, `preview N`, `frames N t1,t2`) then `anim_ep09.py` (`--frames`, `--keep-story`, `--audio-only`); `script.md`. |
+| Reel | `10_Reel_Trial15/` | `exports/ZFK_REEL_trial15.mp4` (+ `.srt`) | 15 s trial Reel «Klubni SIZ boshqarasiz»: 3D stadium reveal → new player ("SIZ ?" shirt) → old→new stadium wipe → goat into the lens → end card. 3D via Day 9 harness (`render3d.js`), overlays `overlay.html`, voice `prep_voice.py`, mix `assemble.py`; `script.md`. |
 
 Each episode folder: `assets/` (images), `voice/` (narration per line), `sfx/`, `exports/` (deliverables), `build/` (temp, ignored).
 

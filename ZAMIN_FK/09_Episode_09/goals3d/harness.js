@@ -1,7 +1,7 @@
 // Serves the real 3D stadium page (web/stadium/dist) to headless Chromium, with the CDN three.js files routed to a
 // local npm copy, the page's own render loop switched off and its internals exposed as window.__Z for director.js.
 const http = require("http"), fs = require("fs"), path = require("path"), { chromium } = require("playwright");
-const DIST = path.resolve(__dirname, "../../web/stadium/dist");
+const DIST = process.env.ZFK_DIST || path.resolve(__dirname, "../../web/stadium/dist");
 const THREE_DIR = process.env.THREE_DIR || path.resolve(__dirname, "../build/node_modules/three");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".glb": "model/gltf-binary", ".png": "image/png", ".jpg": "image/jpeg", ".ttf": "font/ttf" };
 function patched() {

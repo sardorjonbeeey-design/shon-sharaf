@@ -196,7 +196,7 @@ const D = window.D = {
     Z.RIG.mesh.material.emissive.setScalar(.6);
     for (const o of Z.scene.children) if (o.isGroup && o.position.lengthSq() < 1e-6) { const b = new T.Box3().setFromObject(o); if (!b.isEmpty() && b.getSize(new T.Vector3()).x < 8) o.visible = false; }   // city cars / walkers parked at the origin while the town is not simulated
     const red = kitMaterial((r, g, b) => [Math.min(255, b * 1.0), r * .55, r * .6]), gkZ = kitMaterial((r, g, b) => [r, Math.min(255, b * .86), g * .55]), gkS = kitMaterial((r, g, b) => [Math.min(255, b * 1.25), Math.min(255, b * 1.08), r]);
-    addTeam(ZAMIN, "Z", kitMaterial((r, g, b) => [Math.min(255, r * 1.25 + 14), Math.min(255, g * 1.5 + 34), Math.min(255, b * 1.55 + 60)]), gkZ); addTeam(STAR, "S", red, gkS); nets(); ballSkin(); shadows(); hud(); await document.fonts.load("900 40px MZ"); await document.fonts.load("700 40px MZ");
+    D.kitZ = kitMaterial((r, g, b) => [Math.min(255, r * 1.25 + 14), Math.min(255, g * 1.5 + 34), Math.min(255, b * 1.55 + 60)]); addTeam(ZAMIN, "Z", D.kitZ, gkZ); addTeam(STAR, "S", red, gkS); nets(); ballSkin(); shadows(); hud(); await document.fonts.load("900 40px MZ"); await document.fonts.load("700 40px MZ");
   },
   frame(gi, t) {                    // sequential playback is O(1); seeking re-simulates from 0
     const G = GOALS[gi]; if (S.goal !== gi || t < S.t - 1e-6) reset(gi);
@@ -210,6 +210,10 @@ const D = window.D = {
     for (const p of P) p.g.visible = !opt.empty; Z.ball.visible = D.ballShadow.visible = !opt.empty;
     if (opt.score && window.__SC) { S.scr = null; const x = __SC.scv.getContext("2d"); x.fillStyle = "#FFD23F"; x.fillRect(312, 440, 400, 64); x.fillStyle = "#06122c"; x.textAlign = "center"; x.font = "900 50px MZ, sans-serif"; x.fillText(opt.score, 512, 490); __SC.scTex.needsUpdate = true; }
     Z.camera.fov = fov; Z.camera.updateProjectionMatrix(); Z.camera.position.set(...pos); Z.camera.lookAt(...look); Z.sky.position.copy(Z.camera.position); Z.DN.render();
+  },
+  extra(name, num) {   // one more ZAMIN-kit rig outside the lineups (Reel: "SIZ" shirt); caller drives r.mx / r.run / r.walk itself
+    const r = Z.makeRig(name, num); r.root.traverse(o => { if (o.isSkinnedMesh && o.material === Z.RIG.mesh.material) o.material = D.kitZ; o.frustumCulled = false; });
+    const g = new T.Group(); g.add(r.root); Z.scene.add(g); r.mx.setTime(0); return { g, r };
   },
   pose(fn) { fn(P, rot); Z.DN.render(); },
 };

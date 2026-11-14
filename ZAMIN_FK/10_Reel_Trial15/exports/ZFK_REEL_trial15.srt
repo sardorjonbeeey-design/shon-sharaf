@@ -1,0 +1,20 @@
+1
+00:00:00,080 --> 00:00:03,060
+Tasavvur qiling: butun bir futbol klubini SIZ boshqarasiz!
+
+2
+00:00:03,080 --> 00:00:05,660
+Qaysi futbolchi keladi? SIZ hal qilasiz!
+
+3
+00:00:06,080 --> 00:00:08,826
+Klub qanday rivojlanadi? SIZ tanlaysiz!
+
+4
+00:00:09,080 --> 00:00:11,618
+Bu yerda siz shunchaki muxlis emassiz!
+
+5
+00:00:12,080 --> 00:00:15,000
+Obuna bo‘ling. Zamin FK boshqaruviga qo‘shiling!
+
