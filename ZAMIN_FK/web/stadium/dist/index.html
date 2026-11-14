@@ -1747,7 +1747,7 @@ const DN = (() => {
     scene.fog.color.copy(fogc); scene.background = fogc.clone();
     hemi.intensity = .3 + .45 * day; hemi.color.copy(mix3(C(0x6f86c9), C(0xdfeaff), day));
     hemi.groundColor.copy(mix3(C(0x101820), C(0x3a5a2a), day));
-    sun.intensity = .12 + .62 * day; pitchLight.intensity = (1 - day) * 1.6; sun.color.copy(mix3(C(0x9fb4ff), C(0xfff0d8), day).lerp(C(0xffa060), dusk * .7));
+    sun.intensity = .12 + .62 * day; pitchLight.intensity = 0;   // no light inside the stadium at night (it washed out the stands) sun.color.copy(mix3(C(0x9fb4ff), C(0xfff0d8), day).lerp(C(0xffa060), dusk * .7));
     const ang = ((h - SUNRISE) / (SUNSET - SUNRISE)) * Math.PI;            // sun arc east -> west; moonlight from above at night
     sun.position.set(Math.cos(ang) * -300, day > .05 ? Math.max(40, Math.sin(ang) * 400) : 260, 120);
     for (const g of glow) g.mt.color.copy(mix3(g.night, DAYGLASS, day * .85));
