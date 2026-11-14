@@ -1003,8 +1003,8 @@ function addHomeGarden(g) {
 function buildHome(h) {
   const g = new THREE.Group(), L = Math.max(1, Math.min(7, h.level || 1)), acc = accM[h.color] || accM[0];
   const house = new THREE.Group(); house.position.z = HOUSE_Z; g.add(house);
-  const fa = L <= 1 ? 42 : L === 2 ? 39.6 : L <= 6 ? 51.7 : 54.8, hs = Math.sqrt(HOUSE_AREA / fa); house.scale.set(hs, 1, hs);   // footprint scaled to HOUSE_AREA (horizontal only)
-  const gm = (geo, m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x * hs, y, z * hs + HOUSE_Z); g.add(o); return o; };     // house body sits in the back half of the lot
+  const fa = L <= 1 ? 42 : L === 2 ? 39.6 : L <= 6 ? 51.7 : 54.8, hs = Math.sqrt(HOUSE_AREA / fa); house.scale.setScalar(hs);   // whole house (walls, roof, windows, door) scaled so the footprint is HOUSE_AREA
+  const gm = (geo, m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x * hs, y, z * hs + HOUSE_Z); g.add(o); return o; };   // garden trees/bushes keep their size     // house body sits in the back half of the lot
   const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); house.add(o); return o; };
   const mesh = (geo, m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); house.add(o); return o; };
   // windows on the front (+z) or right side (+x) face of a block centred at (cx, cz) with half sizes (hw, hd)
@@ -1141,7 +1141,7 @@ function modelHome(h) {                                    // picked model (styl
   const src = MODELS[key]; if (!src) { loadModel(key).then(m => m && relayoutSoon()); return null; }
   const obj = src.clone(true);
   if (key.startsWith("kn:")) obj.traverse(m => { if (m.isMesh && m.material && m.material.map) { m.material = m.material.clone(); m.material.map = roofTex(src.children.length ? m.material.map : m.material.map, h.color); } });
-  const g = new THREE.Group(); addHomeGarden(g); const hw = new THREE.Group(); hw.position.z = HOUSE_Z; hw.add(fitModel(obj, 8.0, 40)); const mk = Math.sqrt(HOUSE_AREA / 64); hw.scale.set(mk, 1, mk); g.add(hw);
+  const g = new THREE.Group(); addHomeGarden(g); const hw = new THREE.Group(); hw.position.z = HOUSE_Z; hw.add(fitModel(obj, 8.0, 40)); const mk = Math.sqrt(HOUSE_AREA / 64); hw.scale.setScalar(mk); g.add(hw);
   const ck = h.car && CAR_MODEL[h.car];
   if (ck) { const cm = MODELS[ck.includes(":") ? ck : "kn:" + ck]; if (cm) { const c = fitModel(cm.clone(), 2.0, 1.6); c.position.set(CAR_X, 0, CAR_Z); c.rotation.y = 0; g.add(c); }
     else loadModel(ck.includes(":") ? ck : "kn:" + ck).then(m => m && relayoutSoon()); }
