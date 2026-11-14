@@ -820,7 +820,7 @@ function buildRealTown(map) {
           for (const sd of [-1, 1]) { const px = x - uz * off * sd, pz = z + ux * off * sd; if (CLR(px, pz)) continue;
             if (rr() < .55) { const h = 10 + rr() * 6; pop.push([px, h / 2 + 1.4, pz, 1.7, h, 1.7]); trunk.push([px, 1, pz, .3, 2, .3]); }
             else { const k = 1.6 + rr() * .9; round.push([px, 2.4 + k, pz, k * 1.5, k * 1.35, k * 1.5, rr() * 6]); rtrunk.push([px, 1.3, pz, .35, 2.6, .35]); } }
-          if ((s | 0) % 36 < 9) { const px = x + uz * (off - 1.5), pz = z - ux * (off - 1.5); pole.push([px, 2.6, pz, .22, 5.2, .22]); head.push([px, 5.5, pz, .7, .9, .7]); }
+          if ((s | 0) % 36 < 9 && !inStadiumZone(x + uz * (off - 1.5), z - ux * (off - 1.5))) { const px = x + uz * (off - 1.5), pz = z - ux * (off - 1.5); pole.push([px, 2.6, pz, .22, 5.2, .22]); head.push([px, 5.5, pz, .7, .9, .7]); }
           if ((s | 0) % 54 >= 18 && (s | 0) % 54 < 27) { const bx = x - uz * (off - 1.2), bz = z + ux * (off - 1.2);
             if (!CLR(bx, bz)) { bench.push([bx, .75, bz, 2.2, .18, .7, ry + Math.PI / 2], [bx - uz * .3, 1.15, bz + ux * .3, 2.2, .5, .1, ry + Math.PI / 2]);
               legs.push([bx, .35, bz, 1.9, .7, .5, ry + Math.PI / 2]); bin.push([bx + ux * 2, .55, bz + uz * 2, .55, 1.1, .55]); } }
