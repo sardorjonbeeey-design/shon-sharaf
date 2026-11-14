@@ -1346,7 +1346,7 @@ function spawnWalkers() {
     scene.add(o); const L0 = cum[cum.length - 1]; WALKERS.push({ o, ps, cum, L: L0, s: fan ? rr() * L0 : Math.max(0, Math.min(L0, L0 / 2 + (rr() - .5) * 700)), dir: rr() < .5 ? 1 : -1, sp, side, loop: fan });
   };
   const streets = carPaths.filter(ps => ps.length > 1).sort((a, b) => Math.hypot(...a[0]) - Math.hypot(...b[0]));
-  for (let i = 0; i < 70 && streets.length; i++) mk(streets[i % Math.min(streets.length, 24)], (rr() < .5 ? -1 : 1) * 8.5, 1.1 + rr() * .6, false);
+  for (let i = 0; i < 36 && streets.length; i++) mk(streets[i % Math.min(streets.length, 24)], (rr() < .5 ? -1 : 1) * 8.5, 1.1 + rr() * .6, false);
   const A = OUT_A + 22, B = OUT_B + 18, loop = [[-A, -B], [A, -B], [A, B], [-A, B], [-A, -B]];
   for (let i = 0; i < 40; i++) mk(loop, (rr() - .5) * 8, 1 + rr() * .7, true);
 }
@@ -1825,7 +1825,8 @@ function updateLabels(now) {
     residentLabels(placeAt, camPos);
   }
   const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]);
-  for (const [, o] of hs) if (o !== mine) placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick);
+  const HOME_LIM = near ? 60 : 14; let homeTags = 0;      // overview: only the nearest few homes get a name tag
+  for (const [, o] of hs) { if (homeTags >= HOME_LIM) break; if (o !== mine && placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick)) homeTags++; }
   for (let k = used; k < pool.length; k++) pool[k].style.display = "none";
 }
 
@@ -2575,6 +2576,7 @@ function loop(now) {
     if (cx || cz) { t.x += cx; t.z += cz; camera.position.x += cx; camera.position.z += cz; }
   }
   controls.update();
+  if (LOT_PLUS) LOT_PLUS.visible = controls.getDistance() < 330;      // "+" build markers only when zoomed in
   sky.position.copy(camera.position);
   try { animateTeam(now / 1000); } catch (e) { console.error("animateTeam failed:", e); }
   try { cityTick(dt); walkersTick(dt, now / 1000); residentsTick(dt, now / 1000); } catch (e) { console.error("city/walkers tick failed:", e); }
