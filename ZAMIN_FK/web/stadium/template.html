@@ -287,7 +287,7 @@ async function getState(ms) {
 }
 const norm = s => String(s || "").trim().toLowerCase().replace(/^@/, "");
 // real town from OpenStreetMap; ?map=0 (or a missing file) falls back to the generated town
-const MAP_FILE = __MAP__;
+const MAP_FILE = __MAP__ + "?v=2";   // cache-bust: phones keep the old map for up to a day
 async function getMap() {
   if (!MAP_FILE || new URLSearchParams(location.search).get("map") === "0") return null;
   try { const r = await fetch(MAP_FILE); return r.ok ? await r.json() : null; } catch (e) { return null; }
