@@ -662,21 +662,31 @@ function buildRealTown(map) {
     const lm = (l0 + l1) / 2, wm = (w0 + w1) / 2;
     return { x: cx + ux * lm - uz * wm, z: cz + uz * lm + ux * wm, len: l1 - l0, wid: w1 - w0, ang };
   };
-  const houses = [], other = [];
+  const houses = [], other = [], lotBlocks = new Map();
   map.buildings.forEach(([kind, lv, f], id) => {               // id = index in the map file: stable lot number
     const ring = pts(f); if (ring.some(([x, z]) => CLR(x, z))) return;
     if (kind === "house" && lv <= 2) {
       const h = { ...rect(ring), lv, ring, id };
       // CHANGE LOG (old -> new): each 114m Barcelona-style block had 12 house
-      // plots (3 on each of its 4 sides). Keep the 3 plots on each of 2 opposite
-      // sides only, giving every block 6 equally spaced plots while preserving
-      // the original map IDs used by existing home ownership records.
+      // plots (3 on each of its 4 sides). Keep 3 opposite-side pairs (6 plots)
+      // per block, prioritising pairs with existing owners and preserving IDs.
       const blockX = Math.round(h.x / 114) * 114, blockZ = Math.round(h.z / 114) * 114;
-      const selected = Math.abs(h.x - blockX) <= 25 && Math.abs(h.z - blockZ) > 25;
-      const alreadyOwned = (STATE.homes || []).some(home => home.lot != null && Number(home.lot) === id);
-      if (selected || alreadyOwned) houses.push(h);
+      const side = Math.abs(h.x - blockX) <= 25 ? "NS" : "EW";
+      const offset = side === "NS" ? Math.round((h.x - blockX) / 21) : Math.round((h.z - blockZ) / 21);
+      const blockKey = blockX + "," + blockZ;
+      if (!lotBlocks.has(blockKey)) lotBlocks.set(blockKey, new Map());
+      const pairs = lotBlocks.get(blockKey), pairKey = side + ":" + offset;
+      if (!pairs.has(pairKey)) pairs.set(pairKey, []);
+      pairs.get(pairKey).push(h);
     } else other.push([kind, lv, ring]);
   });
+  const ownedLots = new Set((STATE.homes || []).filter(home => home.lot != null).map(home => Number(home.lot)));
+  for (const pairs of lotBlocks.values()) {
+    const preferred = ["NS:-1", "NS:0", "NS:1", "EW:-1", "EW:0", "EW:1"];
+    const ownedPairs = preferred.filter(key => (pairs.get(key) || []).some(h => ownedLots.has(h.id)));
+    const chosen = [...ownedPairs, ...preferred.filter(key => !ownedPairs.includes(key))].slice(0, 3);
+    for (const key of chosen) houses.push(...(pairs.get(key) || []));
+  }
   // empty lots: every real house is only its exact footprint drawn on the ground, with a "+" where a fan can build
   { const lp = [], ln = [], fp = [], fn = [], FENCE = [], POSTS = [];
     for (const h of houses) {
