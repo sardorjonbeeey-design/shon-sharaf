@@ -1525,6 +1525,44 @@ function layoutHQ() {
 }
 layoutHQ();
 KENNEY_READY.then(() => { HQ_SIG = ""; layoutHQ(); });
+
+// ---------- CITY LANDMARKS built by the community: winning idea of 15 Nov (@islom.muhammadov7, 35 likes): "SHAHARGA MEGA MARKET VA UZUN BINO QURAYLIK" ----------
+const LANDMARK_OBJS = [];
+(function buildLandmarks() {
+  const grp = new THREE.Group(); scene.add(grp);
+  const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); grp.add(o); return o; };
+  const inst = (mat, items, colors) => { const m = instanced(BOX, mat, items, colors); return m; };
+  const sgn = (txt, w, h, x, y, z, ry, color) => { const c = document.createElement("canvas"); c.width = 1024; c.height = Math.round(1024 * h / w); const g = c.getContext("2d");
+    g.fillStyle = "#0D2557"; g.fillRect(0, 0, c.width, c.height); g.fillStyle = "#" + color.toString(16).padStart(6, "0"); g.fillRect(0, c.height - 24, c.width, 24);
+    g.fillStyle = "#fff"; g.font = "900 " + Math.round(c.height * .52) + "px Montserrat, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, c.width / 2, c.height * .46, c.width - 40);
+    const o = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) })); o.position.set(x, y, z); o.rotation.y = ry; grp.add(o); return o; };
+  // ---- MEGA MARKET: wide low hall, club-blue roof band, glass front, big sign, parking with cars ----
+  { const cx = 0, cz = -140, W = 70, D = 34, H = 11;
+    box(LM.path, W + 16, .3, D + 40, cx, .15, cz + 12);                                                  // forecourt + parking asphalt
+    box(lamC(0xf6f3ee), W, H, D, cx, H / 2 + .3, cz);
+    box(lamC(0x1F4FB8), W + .6, 1.6, D + .6, cx, H + 1.1, cz); box(lamC(0xffd23f), W + .8, .5, D + .8, cx, H + 2.1, cz);
+    box(LM.glass, W - 12, 6, .3, cx, 3.8, cz + D / 2 + .2); for (let k = -W / 2 + 8; k <= W / 2 - 8; k += 3) box(LM.glassLit, 2.2, 4.6, .32, k, 3.8, cz + D / 2 + .25);
+    box(lamC(0xd94848), 22, .6, 7, cx, 7.6, cz + D / 2 + 3.5);                                         // entrance canopy
+    for (const x of [-10, 10]) box(LM.rail, .6, 7.3, .6, x, 4, cz + D / 2 + 6.5);
+    sgn("🛒 MEGA MARKET", 42, 8.4, cx, H + 6, cz + D / 2 + .3, 0, 0xd94848);
+    box(LM.rail, .8, 9, .8, cx - 38, 5, cz + D / 2 + 20); sgn("MEGA MARKET", 10, 3.2, cx - 38, 10.6, cz + D / 2 + 20, 0, 0xffd23f);   // road pylon
+    const lines = [], pc = [], pcc = [];
+    for (let i = -30; i <= 30; i += 5) { lines.push([cx + i, .34, cz + D / 2 + 14, .35, .05, 8], [cx + i, .34, cz + D / 2 + 28, .35, .05, 8]); }
+    for (let i = -27.5; i <= 27.5; i += 5) for (const zz of [cz + D / 2 + 14, cz + D / 2 + 28]) if (rr() < .62) { pc.push([cx + i, .9, zz, 1.9, 1.2, 4.2]); pcc.push(rr() < .6 ? 0xf2f2f2 : choose([0xb8bcc2, 0x1d1f24, 0x8a1c1c, 0x2a4f8a, 0xf0a030])); }
+    inst(new THREE.MeshBasicMaterial({ color: 0xffffff }), lines); inst(lamC(0xffffff), pc, pcc); inst(lamC(0x2b3440), pc.map(t => [t[0], 1.65, t[2] + .2, 1.7, .75, 2.3]));
+    const o = new THREE.Group(); o.position.set(cx, 0, cz); o.userData = { h: H + 11, info: { emoji: "🛒", name: "MEGA MARKET" } }; scene.add(o); LANDMARK_OBJS.push(o); }
+  // ---- UZUN BINO: one long residential/office block with window rows and a rooftop ----
+  { const cx = 88, cz = -118, W = 17, D = 78, H = 28;
+    box(LM.path, W + 14, .3, D + 8, cx, .15, cz);
+    box(lamC(0xe8ecf7), W, H, D, cx, H / 2 + .3, cz); box(lamC(0x1F4FB8), W + .6, 1.4, D + .6, cx, H + 1, cz); box(LM.flat, W + 1, .6, D + 1, cx, H + 1.9, cz);
+    const win = [], winl = []; for (let f = 0; f < 7; f++) for (let k = -D / 2 + 3; k <= D / 2 - 3; k += 3.4) for (const sx of [-1, 1]) { const t = [cx + sx * (W / 2 + .06), 3.6 + f * 3.7, cz + k, .1, 2, 2.2]; (rr() < .55 ? winl : win).push(t); }
+    inst(LM.glass, win); inst(LM.glassLit, winl);
+    box(LM.glass, .3, 3.2, 14, cx - W / 2 - .05, 1.9, cz); box(lamC(0xd94848), 3, .5, 16, cx - W / 2 - 1.5, 3.6, cz);
+    for (const z of [-D / 2 + 6, D / 2 - 6]) { box(LM.white, 6, 4, 6, cx, H + 4.2, cz + z); box(LM.rail, .2, 7, .2, cx + 2, H + 7.5, cz + z); }
+    sgn("UZUN BINO", 30, 5, cx - W / 2 - .3, H - 3.2, cz, -Math.PI / 2, 0xffd23f);
+    for (let z = -D / 2; z <= D / 2; z += 13) { const t = new THREE.Mesh(ICO, LM.leaf); t.scale.set(2, 2.4, 2); t.position.set(cx - W / 2 - 4.5, 3, cz + z); grp.add(t); }
+    const o = new THREE.Group(); o.position.set(cx, 0, cz); o.userData = { h: H + 9, info: { emoji: "🏢", name: "UZUN BINO" } }; scene.add(o); LANDMARK_OBJS.push(o); }
+})();
 // =============== end CITY ===============
 
 // heroes on the pitch (billboard sprites)
@@ -1853,6 +1891,7 @@ function updateLabels(now) {
   if (!near || MODE === "city") {
     for (const l of LOTS) placeAt(l.x, l.park ? 2 : 8, l.z, "tag lot", (l.park ? "" : T[L].soon) + T[L].lots[l.i]);
     for (const o of HQ_OBJS) { const d = o.userData.info; const distance = o.position.distanceTo(camPos); const label = distance > 180 ? d.emoji : `${d.emoji} ${d.name} · ${d.level ? d.level + "-daraja" : "qurilmoqda"}`; placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", label, true); }
+    for (const o of LANDMARK_OBJS) { const d = o.userData.info; const distance = o.position.distanceTo(camPos); placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", distance > 180 ? d.emoji : `${d.emoji} ${d.name}`, true); }
     residentLabels(placeAt, camPos);
   }
   const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]);
