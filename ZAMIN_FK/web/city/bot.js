@@ -22,9 +22,9 @@ function welcome(user) {
   const name = esc(user && (user.first_name || user.username) || "do‘stim");
   return `Assalomu alaykum, <b>${name}</b>! 👋\n\n` +
     `<b>ZAMIN FK</b> shahriga xush kelibsiz! ⚽🏟\n\n` +
-    `🎟 <b>Stadion:</b> Instagram nikingizni bog‘lab, o‘rindiq oling\n` +
+    `🎟 Instagram nikingizni bog‘lab, o‘rindiq oling\n` +
     `⚽ <b>Asosiy 22 talik:</b> XP qancha ko‘p bo‘lsa, asosiy tarkibga tushish ehtimoli shuncha yuqori\n` +
-    `🏠 <b>Uy:</b> shaharda uy oling va yaxshilang\n` +
+    `🏠 Shaharda uy oling va yaxshilang\n` +
     `🏆 /reyting — XP reytingi\n` +
     `🏟 /squad — joriy tarkib\n` +
     `📝 /feedback — taklif yoki muammo\n` +
