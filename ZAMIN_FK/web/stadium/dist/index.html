@@ -1532,7 +1532,7 @@ KENNEY_READY.then(() => { HQ_SIG = ""; layoutHQ(); });
 const LANDMARK_OBJS = [];
 (function buildLandmarks() {
   const BLUE = 0x1F4FB8, NAVY = 0x0D2557, STEEL = 0xe6eaf0, CREAM = 0xd3d6da, STONE = 0xd9d4c8;
-  const grp = new THREE.Group(); scene.add(grp);
+  let grp; const newGrp = (x, z) => { grp = new THREE.Group(); grp.position.set(x, 0, z); grp.rotation.y = Math.PI; scene.add(grp); return grp; };   // local +z (the entrance) faces the street to the north
   // textures: stone cladding with panel joints (like the stadium's), paving tiles
   const joint = (c, w, h) => { const cv = document.createElement("canvas"); cv.width = cv.height = 128; const x = cv.getContext("2d"); x.fillStyle = c; x.fillRect(0, 0, 128, 128);
     for (let i = 0; i < 900; i++) { const g = 205 + Math.floor(rr() * 45); x.fillStyle = `rgb(${g},${g - 2},${g - 6})`; x.globalAlpha = .35; x.fillRect(rr() * 128, rr() * 128, 1 + rr() * 3, 1 + rr() * 3); }
@@ -1549,7 +1549,7 @@ const LANDMARK_OBJS = [];
   const mB = c => new THREE.MeshLambertMaterial({ color: c }), mBasic = c => new THREE.MeshBasicMaterial({ color: c });
   const box = (m, sx, sy, sz, x, y, z, ry = 0) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.rotation.y = ry; grp.add(o); return o; };
   const cyl = (m, r, h, x, y, z, seg = 28) => { const o = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), m); o.position.set(x, y, z); grp.add(o); return o; };
-  const inst = (mat, items, colors) => instanced(BOX, mat, items, colors);
+  const inst = (mat, items, colors) => { const m = instanced(BOX, mat, items, colors); grp.add(m); return m; };
   const sign = (txt, w, h, x, y, z, ry, accent = BLUE) => { const c = document.createElement("canvas"); c.width = 1024; c.height = Math.round(1024 * h / w); const g = c.getContext("2d");
     g.fillStyle = "#0D2557"; g.fillRect(0, 0, c.width, c.height); g.fillStyle = "#" + accent.toString(16).padStart(6, "0"); g.fillRect(0, c.height - 22, c.width, 22);
     g.fillStyle = "#fff"; g.font = "900 " + Math.round(c.height * .5) + "px Montserrat, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, c.width / 2, c.height * .47, c.width - 50);
@@ -1562,8 +1562,8 @@ const LANDMARK_OBJS = [];
   const planter = (x, z, w, d) => { box(stone(STONE, 1, 1), w, .8, d, x, .4, z); box(mB(0x4f9a3c), w - .5, .3, d - .5, x, .85, z); };
 
   // ================= MEGA MARKET =================
-  { const cx = 0, cz = -137, W = 100, D = 44, F = cz + D / 2, H1 = 7.2, H2 = 15.2;
-    box(pave(W / 8, 2), W + 6, .3, 20, cx, .15, F + 8);                                                      // paved forecourt
+  { newGrp(0, -126); const cx = 0, cz = 0, W = 100, D = 38, F = cz + D / 2, H1 = 7.2, H2 = 15.2;
+    box(pave(W / 8, 2), W + 6, .3, 16, cx, .15, F + 7);                                                      // paved forecourt
     box(stone(STONE, 14, 1), W + 2, 1, D + 2, cx, .5, cz);                                                    // plinth
     box(stone(0xdcd7cb, W / 8, 1), W, 3.4, D, cx, 1 + 1.7, cz);                                              // cladding base
     glassWall(W - .4, H1 - 4.3, D - .4, cx, 4.4 + (H1 - 4.3) / 2, cz);                                      // ground-floor glass (front)
@@ -1579,10 +1579,10 @@ const LANDMARK_OBJS = [];
     litPanes(F + .2, -W / 2 + 5, W / 2 - 4, 6, [[5.9, 2.3], [11.6, 4.4]], 4.6, 0, .55, cx);
     for (const sx of [-1, 1]) for (let i = -D / 2 + 3; i <= D / 2 - 3; i += 6) box(mB(CREAM), .8, H2 - .6, .9, cx + sx * (W / 2 + .2), H2 / 2 + .4, cz + i);
     // grand atrium: all-glass volume with big mullions, blue canopy and navy sign plaque
-    { const aw = 34, ad = 12, ah = 24; glassWall(aw, ah, ad, cx, ah / 2 + .6, F + ad / 2 - 1); box(mB(BLUE), aw + .8, 1.4, ad + .8, cx, ah + .9, F + ad / 2 - 1); box(mB(0xf4f6f9), aw + 1, .3, ad + 1, cx, ah + 1.7, F + ad / 2 - 1);
+    { const aw = 34, ad = 8, ah = 24; glassWall(aw, ah, ad, cx, ah / 2 + .6, F + ad / 2 - 1); box(mB(BLUE), aw + .8, 1.4, ad + .8, cx, ah + .9, F + ad / 2 - 1); box(mB(0xf4f6f9), aw + 1, .3, ad + 1, cx, ah + 1.7, F + ad / 2 - 1);
       const am = []; for (let i = -aw / 2; i <= aw / 2; i += 2.8) am.push([cx + i, ah / 2 + .6, F + ad - .9, .3, ah, .4]); for (let y = 6; y < ah; y += 6) am.push([cx, y + .6, F + ad - .9, aw, .25, .35]);
       inst(mB(CREAM), am); litPanes(F + ad - .72, -aw / 2 + 1.4, aw / 2 - 1, 2.8, [[3.6, 4.8], [9.6, 4.8], [15.6, 4.8], [21.6, 4.8]], 2.4, 0, .8, cx);
-      box(mB(BLUE), aw + 10, .5, 9, cx, 6.4, F + ad + 3.5); for (const sx of [-1, 1]) for (const zz of [F + ad + 6.5]) box(mB(CREAM), .9, 6, .9, cx + sx * (aw / 2 + 3), 3.4, zz);
+      box(mB(BLUE), aw + 10, .5, 6, cx, 6.4, F + ad + 2); for (const sx of [-1, 1]) for (const zz of [F + ad + 4.5]) box(mB(CREAM), .9, 6, .9, cx + sx * (aw / 2 + 3), 3.4, zz);
       for (let k = 0; k < 4; k++) box(mB(0x18222f), 4.2, 5, .2, cx - 6.3 + k * 4.2, 3.1, F + ad - .85);
       sign("MEGA MARKET", 28, 5.4, cx, ah - 3, F + ad - .3, 0); }
     // corner drums: the rounded corners echo the stadium bowl
@@ -1593,18 +1593,16 @@ const LANDMARK_OBJS = [];
       const g = new THREE.BufferGeometry().setFromPoints(pts.map(q => new THREE.Vector3(...q))); grp.add(new THREE.Line(g, rodMat)); box(mB(BLUE), .8, .8, .8, cx + i, H2 + 10.5, F - 3); }
     box(mB(0xa9adb3), 16, 2.2, 10, cx - 20, H2 + 2.8, cz - 6); box(mB(0xa9adb3), 12, 2.2, 8, cx + 24, H2 + 2.8, cz - 8);
     // plaza: planters, fountain, flags, lamps, cars
-    for (const sx of [-1, 1]) { planter(cx + sx * 26, F + 15, 14, 3); planter(cx + sx * 42, F + 9, 8, 6); }
-    cyl(mB(0xd9d4c8), 6, .9, cx, .55, F + 20); cyl(new THREE.MeshPhongMaterial({ color: 0x2f7fd0, specular: 0xffffff, shininess: 90, emissive: 0x0b2f66 }), 5.3, 1, cx, .6, F + 20); cyl(mB(0xf4f6f9), .9, 3, cx, 2, F + 20, 12);
-    for (let i = -2; i <= 2; i++) flag(cx + i * 9 + (i < 0 ? -22 : i > 0 ? 22 : 0), F + 14, 13, BLUE);
-    for (const x of [-48, -30, 30, 48]) lamp(cx + x, F + 17);
-    for (const x of [-46, -38, 38, 46]) tree(cx + x, F + 3, 1.1);
-    const cp = []; for (let i = -44; i <= 44; i += 5.5) if (rr() < .55 && Math.abs(i) > 20) cp.push([cx + i, F + 25, 0]); cars(cp);
-    const o = new THREE.Group(); o.position.set(cx, 0, cz); o.userData = { h: H2 + 15, info: { emoji: "🛒", name: "MEGA MARKET" } }; scene.add(o); LANDMARK_OBJS.push(o); }
+    for (const sx of [-1, 1]) { planter(cx + sx * 26, F + 11.5, 14, 3); planter(cx + sx * 42, F + 7, 8, 6); }
+    for (let i = -2; i <= 2; i++) flag(cx + i * 9 + (i < 0 ? -22 : i > 0 ? 22 : 0), F + 12.5, 13, BLUE);
+    for (const x of [-48, -30, 30, 48]) lamp(cx + x, F + 13);
+    for (const x of [-46, -38, 38, 46]) tree(cx + x, F + 2.5, 1.1);
+    const o = new THREE.Group(); o.position.set(0, 0, -126); o.userData = { h: H2 + 15, info: { emoji: "🛒", name: "MEGA MARKET" } }; scene.add(o); LANDMARK_OBJS.push(o); }
 
   // ================= UZUN BINO: tall hotel tower =================
-  { const cx = 110, cz = -136, PW2 = 56, PD = 40, PH2 = 14.5, TW = 26, TD = 22, TH = 92, ty = PH2 + .8, F = cz + PD / 2;
-    box(pave(PW2 / 8, 3), PW2 + 10, .3, 28, cx, .15, F + 12);                                                // forecourt / drive
-    box(mB(0x3a3f48), 30, .32, 22, cx, .2, F + 14); cyl(mB(0xdad7cf), 5.2, .5, cx, .46, F + 16); cyl(mB(0x4f9a3c), 3.6, .6, cx, .52, F + 16, 20);   // asphalt drop-off + roundabout
+  { newGrp(110, -126); const cx = 0, cz = 0, PW2 = 56, PD = 36, PH2 = 14.5, TW = 26, TD = 22, TH = 92, ty = PH2 + .8, F = cz + PD / 2;
+    box(pave(PW2 / 8, 3), PW2 + 10, .3, 16, cx, .15, F + 7);                                                // forecourt / drive
+    box(mB(0x3a3f48), 30, .32, 12, cx, .2, F + 7);   // asphalt drop-off + roundabout
     box(stone(STONE, 8, 1), PW2 + 2, 1, PD + 2, cx, .5, cz);
     box(stone(0xdcd7cb, PW2 / 8, 1), PW2, 3.6, PD, cx, 1 + 1.8, cz);                                         // podium base
     glassWall(PW2 - .4, PH2 - 6.2, PD - .4, cx, 5 + (PH2 - 6.2) / 2 + .6, cz);                              // podium glass
@@ -1613,7 +1611,7 @@ const LANDMARK_OBJS = [];
     const pp = []; for (let i = -PW2 / 2 + 2; i <= PW2 / 2 - 2; i += 4) pp.push([cx + i, PH2 / 2 + .4, F + .2, .8, PH2 - .8, .7], [cx + i, PH2 / 2 + .4, cz - PD / 2 - .2, .8, PH2 - .8, .7]);
     inst(mB(CREAM), pp); litPanes(F + .2, -PW2 / 2 + 4, PW2 / 2 - 3, 4, [[6.6, 3.4], [11.4, 4.2]], 3.2, 0, .6, cx);
     // porte-cochere: blue canopy on cream columns
-    box(mB(BLUE), 28, .6, 10, cx, 6.6, F + 5); box(mB(0xf4f6f9), 28.4, .25, 10.4, cx, 7, F + 5); for (const sx of [-1, 1]) for (const zz of [F + 8.5]) box(mB(CREAM), .9, 6.4, .9, cx + sx * 12.5, 3.6, zz);
+    box(mB(BLUE), 28, .6, 8, cx, 6.6, F + 4); box(mB(0xf4f6f9), 28.4, .25, 8.4, cx, 7, F + 4); for (const sx of [-1, 1]) for (const zz of [F + 7]) box(mB(CREAM), .9, 6.4, .9, cx + sx * 12.5, 3.6, zz);
     for (let k = 0; k < 4; k++) box(mB(0x18222f), 3.6, 4.4, .2, cx - 5.4 + k * 3.6, 2.8, F + .15);
     sign("UZUN BINO", 22, 4.4, cx, 10.6, F + .5, 0);
     // tower: glass body, cream vertical fins, spandrel bands, blue accent floors
@@ -1629,12 +1627,12 @@ const LANDMARK_OBJS = [];
     box(mBasic(0x4a86ff), TW - 10.6, .5, TD - 9.6, cx, ty + TH + 13.1, cz - 2); box(mB(STEEL), .5, 14, .5, cx, ty + TH + 20, cz - 2); box(mBasic(0xff5050), .9, .9, .9, cx, ty + TH + 27.2, cz - 2);
     for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(mBasic(0x4a86ff), .5, TH, .5, cx + sx * (TW / 2 + .1), ty + TH / 2, cz - 2 + sz * (TD / 2 + .1));   // blue corner light lines
     // forecourt: planters, flags, lamps, trees, cars
-    for (const sx of [-1, 1]) { planter(cx + sx * 23, F + 12, 6, 14); }
-    for (let i = -1; i <= 1; i++) flag(cx + i * 7.5, F + 22, 12, BLUE);
-    for (const x of [-26, -14, 14, 26]) lamp(cx + x, F + 20);
+    for (const sx of [-1, 1]) { planter(cx + sx * 23, F + 7, 6, 10); }
+    for (let i = -1; i <= 1; i++) flag(cx + i * 7.5, F + 13, 12, BLUE);
+    for (const x of [-26, -14, 14, 26]) lamp(cx + x, F + 13);
     for (const x of [-28, -22, 22, 28]) tree(cx + x, F + 3, 1.1);
-    cars([[cx - 8, F + 12, 1], [cx + 9, F + 14, 1], [cx + 17, F + 9, 1]]);
-    const o = new THREE.Group(); o.position.set(cx, 0, cz); o.userData = { h: ty + TH + 32, info: { emoji: "🏨", name: "UZUN BINO" } }; scene.add(o); LANDMARK_OBJS.push(o); }
+    cars([[cx - 8, F + 8, 1], [cx + 9, F + 9, 1], [cx + 17, F + 8, 1]]);
+    const o = new THREE.Group(); o.position.set(110, 0, -126); o.userData = { h: ty + TH + 32, info: { emoji: "🏨", name: "UZUN BINO" } }; scene.add(o); LANDMARK_OBJS.push(o); }
 })();
 // =============== end CITY ===============
 
