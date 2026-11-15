@@ -1,0 +1,64 @@
+1
+00:00:00,250 --> 00:00:01,522
+Siz tanladingiz!
+
+2
+00:00:01,542 --> 00:00:04,367
+Zamin FKning yangi menejeri aniqlandi!
+
+3
+00:00:04,387 --> 00:00:05,475
+Tabriklaymiz!
+
+4
+00:00:05,495 --> 00:00:07,991
+Endi klubimizda yangi menejer bor!
+
+5
+00:00:08,011 --> 00:00:12,213
+Lekin endi faqat menejer emas, siz ham qaror qabul qilasiz!
+
+6
+00:00:12,233 --> 00:00:15,644
+Chunki bizda futbol klubi ham bor, o‘z shahrimiz ham!
+
+7
+00:00:15,664 --> 00:00:17,112
+Klubga nima qo‘shamiz?
+
+8
+00:00:17,132 --> 00:00:18,552
+Shaharda nima quramiz?
+
+9
+00:00:18,572 --> 00:00:22,472
+Nimani o‘zgartiramiz yoki qanday yangi imkoniyat yaratamiz?
+
+10
+00:00:22,492 --> 00:00:24,366
+Bu safar g‘oya sizdan!
+
+11
+00:00:24,386 --> 00:00:26,243
+Izohga o‘z g‘oyangizni yozing!
+
+12
+00:00:26,363 --> 00:00:29,503
+Klub uchunmi yoki shahar uchunmi farqi yo‘q!
+
+13
+00:00:29,523 --> 00:00:32,783
+Eng ko‘p layk olgan izohdagi g‘oyani amalga oshiramiz!
+
+14
+00:00:32,803 --> 00:00:34,263
+Yigirma to‘rt soat!
+
+15
+00:00:34,283 --> 00:00:36,614
+Keyingi o‘zgarish sizning qo‘lingizda!
+
+16
+00:00:36,634 --> 00:00:39,194
+Zamin FKni birgalikda quramiz!
+
