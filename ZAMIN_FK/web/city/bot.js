@@ -22,15 +22,13 @@ function welcome(user) {
   const name = esc(user && (user.first_name || user.username) || "do‘stim");
   return `Assalomu alaykum, <b>${name}</b>! 👋\n\n` +
     `<b>ZAMIN FK</b> shahriga xush kelibsiz! ⚽🏟\n\n` +
-    `Bu yerda siz:\n` +
-    `🏠 Shaharda o‘z uyingizni olasiz va 7 darajagacha yaxshilaysiz\n` +
-    `🪙 Kofexonada ishlab tanga topasiz, kunlik bonus olasiz\n` +
-    `🛒 Bozordan mashina sotib olasiz\n` +
-    `⚽ Klub portalida a’zolik kartasi, Fan XP, bo‘limlar va missiyalar\n` +
-    `🎟 Stadionda o‘z o‘rindig‘ingiz bor\n` +
-    `💼 Klub jamoasiga (futbolchi yoki xodim) yoki shahar ishlariga ariza berasiz!\n` +
-    `🪪 Kartangiz: /karta\n` +
-    `📝 Taklif yoki muammo bo‘lsa: /feedback\n\n` +
+    `🎟 <b>Stadion:</b> Instagram nikingizni bog‘lab, o‘rindiq oling\n` +
+    `⚽ <b>Asosiy 22 talik:</b> XP qancha ko‘p bo‘lsa, asosiy tarkibga tushish ehtimoli shuncha yuqori\n` +
+    `🏠 <b>Uy:</b> shaharda uy oling va yaxshilang\n` +
+    `🏆 /reyting — XP reytingi\n` +
+    `🏟 /squad — joriy tarkib\n` +
+    `📝 /feedback — taklif yoki muammo\n` +
+    `📖 /yordam — batafsil yo‘riqnoma\n\n` +
     `Boshlash uchun pastdagi tugmani bosing 👇`;
 }
 const isStart = text => /^\/start(@\w+)?(\s|$)/i.test(String(text || "").trim());

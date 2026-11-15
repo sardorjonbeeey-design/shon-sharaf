@@ -98,6 +98,33 @@ function init({ db, bot, club, led }) {
     const c = await cardFor(user);
     return apiFile("sendPhoto", { chat_id: chatId, caption: c.caption, parse_mode: "HTML", reply_markup: cardKb }, "photo", c.png);
   }
+  // /yordam: detailed guide, answers the questions players ask most.
+  const HELP_TEXT = [
+    "📖 <b>ZAMIN FK — yo‘riqnoma</b>",
+    "",
+    "<b>1. Stadion o‘rindig‘i</b>",
+    "Ilovada «Stadion»ni oching va Instagram nikingizni bog‘lang — o‘rindiq raqamingiz beriladi.",
+    "",
+    "<b>2. Asosiy 22 talik</b>",
+    "Tarkib XP bo‘yicha tuziladi: XP qancha ko‘p bo‘lsa, asosiy 22 taliga tushish ehtimoli shuncha yuqori. Qolganlar zaxirada (ko‘pi bilan 12 tasi /squad da ko‘rinadi).",
+    "",
+    "<b>3. XP qanday olinadi?</b>",
+    "Ilovada ishlash, missiyalar, hissalar va do‘st taklif qilish orqali.",
+    "",
+    "<b>4. Uy, ish va bozor</b>",
+    "🏠 Ilovada uy oling va 7 darajagacha yaxshilang.",
+    "🪙 Ishlar: Kofexona, Taksi, Novvoy, Quruvchi. Mijozlarga to‘g‘ri buyurtma bering, tanga oling. Kuniga jami 3 smena.",
+    "🎁 Kunlik bonus: har kuni bosing — seriya oshgani sari ko‘proq tanga.",
+    "🛒 Bozor: mashina sotib oling, u uyingiz oldida turadi.",
+    "",
+    "<b>5. Buyruqlar</b>",
+    "/start — bosh menyu",
+    "/reyting — XP reytingi va o‘rningiz",
+    "/squad — joriy tarkib",
+    "/feedback — taklif yoki muammo",
+    "/yordam — shu yo‘riqnoma",
+  ].join("\n");
+
   // /squad (new): before this change the bot had player/VIP cards only. This
   // command reads the latest approved squad snapshot and renders the shared poster
   // template in cards.js; names and shirt numbers are live data, not baked into an image.
@@ -384,6 +411,7 @@ function init({ db, bot, club, led }) {
       };
       if (/^\/squad(@\w+)?$/i.test(t)) return () => sendSquad(msg.chat.id);
       if (/^\/(karta|card)(@\w+)?$/i.test(t)) return () => sendCard(msg.chat.id, msg.from);
+      if (/^\/yordam(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: HELP_TEXT });
       if (/^\/(reyting|top)(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: await topText(msg.from) });
       if (/^\/xabar(@\w+)?\s+[\s\S]{10,}$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
