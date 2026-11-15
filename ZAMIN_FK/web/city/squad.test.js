@@ -56,7 +56,7 @@ test("24 eligible players produce 22 active players and 2 reserves", () => {
   assert.deepEqual(result.reserves.map(p => p.tg_id), ["23", "24"]);
 });
 
-test("reserve team is capped at 12; extra eligible players are left out of the squad", () => {
+test("all extra eligible players stay in the reserve queue (public /squad caps display separately)", () => {
   const rows = players();
   for (let i = 23; i <= 40; i++) {
     rows.push({ tg_id: String(i), name: "Extra " + i, applied_position: "DEF", xp: 100 - i });
@@ -64,9 +64,9 @@ test("reserve team is capped at 12; extra eligible players are left out of the s
   const result = buildSquadProposal(rows);
   assert.equal(result.eligible_count, 40);
   assert.equal(result.active_count, 22);
-  assert.equal(result.reserve_count, 12);
-  assert.equal(result.reserves.length, 12);
-  assert.equal(result.active.length + result.reserves.length, 34);
+  assert.equal(result.reserve_count, 18);
+  assert.equal(result.reserves.length, 18);
+  assert.equal(result.active.length + result.reserves.length, 40);
   assert.deepEqual(result.reserves.map(p => p.xp), [...result.reserves.map(p => p.xp)].sort((a,b) => b-a));
 });
 

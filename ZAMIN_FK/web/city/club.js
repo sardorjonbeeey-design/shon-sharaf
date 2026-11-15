@@ -135,14 +135,14 @@ function buildSquadProposal(input = []) {
   ].filter(Boolean);
   const active = [...starters, ...substitutes].slice(0, SQUAD_ACTIVE_LIMIT)
     .map((player, index) => ({ ...player, squad_order: index + 1, squad_role: index < starters.length ? "starter" : "substitute" }));
-  // OLD: reserve queue was unlimited.
-  // NEW: the reserve team holds at most SQUAD_RESERVE_LIMIT players, ranked by XP; the rest are not in the squad.
-  const reserves = overflow.slice(0, SQUAD_RESERVE_LIMIT).map((player, index) => ({
+  // Every remaining eligible player stays in the ranked reserve queue; only the first
+  // SQUAD_RESERVE_LIMIT are shown publicly (see getCurrentSquad).
+  const reserves = overflow.map((player, index) => ({
     ...player, assigned_group: null, stadium_position: null, squad_role: "reserve",
     reserve_rank: index + 1, reassigned: false,
     reason: index < SQUAD_PRIORITY_RESERVE_LIMIT
       ? "Priority reserve within the top 24."
-      : "Reserve team (max " + SQUAD_RESERVE_LIMIT + "), ordered by XP.",
+      : "Unlimited reserve queue, ordered by XP.",
   }));
 
   return {
@@ -328,7 +328,7 @@ function lineupFeed(lineup) {
 // Validate the exact snapshot before it can replace the currently approved roster.
 function validateSquadSnapshot(payload) {
   if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves)) return false;
-  if (payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT) return false;
+  if (payload.active.length > SQUAD_ACTIVE_LIMIT) return false;
   if (Number(payload.active_count) !== payload.active.length || Number(payload.reserve_count) !== payload.reserves.length) return false;
   if (Number(payload.shortfall) !== Math.max(0, SQUAD_ACTIVE_LIMIT - payload.active.length)) return false;
 
@@ -607,7 +607,8 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
         payload=typeof row.payload==="string"?JSON.parse(row.payload):row.payload;
       }
     }
-    return {...payload,updated_at:row.approved_at};
+    // Public /squad shows at most SQUAD_RESERVE_LIMIT reserves; the full queue stays stored.
+    return {...payload,reserves:(payload.reserves||[]).slice(0,SQUAD_RESERVE_LIMIT),updated_at:row.approved_at};
   }
 
   async function getSquadStatus() {
