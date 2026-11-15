@@ -2,6 +2,8 @@
 
 One place for everything content-related: where files live, how videos are made, what works. Update it whenever content is added.
 
+> **Videos are not stored in the repo** (`*.mp4/.mov/.webm/.mkv` are git-ignored; local copies stay in each `exports/`). The repo keeps only the inputs (assets, voice, sfx, scripts, captions, SRT, story images) plus the rebuild commands in each episode's `script.md`. If a video must be shared, compress it first (`ffmpeg -i in.mp4 -c:v libx264 -crf 28 -vf scale=540:-2 out.mp4`) and put it in a release/artifact, not in git.
+
 ## Canon
 - Club ZAMIN FK, town Qoratepa, royal blue `#1F4FB8` + white. Crest locked: `03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png`.
 - All content text in Uzbek (Latin), apostrophes as `o‘ g‘ ’`. Chat with the user in English, very short.

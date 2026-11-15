@@ -1,0 +1,6 @@
+
+# rendered videos are not stored in the repo (rebuild with the episode scripts; see CONTENT_INDEX.md)
+*.mp4
+*.mov
+*.webm
+*.mkv
