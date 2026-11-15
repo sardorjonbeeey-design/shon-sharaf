@@ -56,8 +56,21 @@ test("24 eligible players produce 22 active players and 2 reserves", () => {
   assert.deepEqual(result.reserves.map(p => p.tg_id), ["23", "24"]);
 });
 
-// CHANGE LOG: OLD: reserve list was capped at two players. NEW: all extra players remain ranked reserves. WHY: only the first 24 are priority; reserve rank 25 onward is unlimited.
-test("more than 24 eligible players remain in the unlimited XP-ranked reserve queue", () => {
+test("reserve team is capped at 12; extra eligible players are left out of the squad", () => {
+  const rows = players();
+  for (let i = 23; i <= 40; i++) {
+    rows.push({ tg_id: String(i), name: "Extra " + i, applied_position: "DEF", xp: 100 - i });
+  }
+  const result = buildSquadProposal(rows);
+  assert.equal(result.eligible_count, 40);
+  assert.equal(result.active_count, 22);
+  assert.equal(result.reserve_count, 12);
+  assert.equal(result.reserves.length, 12);
+  assert.equal(result.active.length + result.reserves.length, 34);
+  assert.deepEqual(result.reserves.map(p => p.xp), [...result.reserves.map(p => p.xp)].sort((a,b) => b-a));
+});
+
+test("more than 24 eligible players fill reserves in XP order up to the cap", () => {
   const rows = players();
   for (let i = 23; i <= 30; i++) {
     rows.push({ tg_id: String(i), name: "Extra " + i, applied_position: "DEF", xp: 100 - i });

@@ -56,7 +56,8 @@ const SQUAD_GROUPS = Object.freeze({
 const SQUAD_GROUP_ORDER = ["GK", "DEF", "MID", "FWD"];
 const SQUAD_APPLIED_POSITIONS = SQUAD_GROUP_ORDER;
 const SQUAD_ACTIVE_LIMIT = 22;
-const SQUAD_PRIORITY_RESERVE_LIMIT = 2; // First 2 reserves complete the 24-player priority group; later reserves are unlimited.
+const SQUAD_PRIORITY_RESERVE_LIMIT = 2; // First 2 reserves complete the 24-player priority group.
+const SQUAD_RESERVE_LIMIT = 12; // Reserve team cap: 22 active + up to 12 reserves.
 
 function squadXpRank(a, b) {
   const xp = (Number(b.xp) || 0) - (Number(a.xp) || 0);
@@ -134,20 +135,19 @@ function buildSquadProposal(input = []) {
   ].filter(Boolean);
   const active = [...starters, ...substitutes].slice(0, SQUAD_ACTIVE_LIMIT)
     .map((player, index) => ({ ...player, squad_order: index + 1, squad_role: index < starters.length ? "starter" : "substitute" }));
-  // OLD: only two players beyond the active 22 were kept as reserves.
-  // NEW: keep every remaining eligible player, sorted by XP, in the reserve queue.
-  // WHY: ranks 23–24 are the priority reserves; rank 25 onward remains unlimited.
-  const reserves = overflow.map((player, index) => ({
+  // OLD: reserve queue was unlimited.
+  // NEW: the reserve team holds at most SQUAD_RESERVE_LIMIT players, ranked by XP; the rest are not in the squad.
+  const reserves = overflow.slice(0, SQUAD_RESERVE_LIMIT).map((player, index) => ({
     ...player, assigned_group: null, stadium_position: null, squad_role: "reserve",
     reserve_rank: index + 1, reassigned: false,
     reason: index < SQUAD_PRIORITY_RESERVE_LIMIT
       ? "Priority reserve within the top 24."
-      : "Unlimited reserve queue, ordered by XP.",
+      : "Reserve team (max " + SQUAD_RESERVE_LIMIT + "), ordered by XP.",
   }));
 
   return {
     rules: { group_quotas: Object.fromEntries(SQUAD_GROUP_ORDER.map(g => [g, SQUAD_GROUPS[g].quota])),
-      active_limit: SQUAD_ACTIVE_LIMIT, priority_reserve_limit: SQUAD_PRIORITY_RESERVE_LIMIT, reserve_limit: null,
+      active_limit: SQUAD_ACTIVE_LIMIT, priority_reserve_limit: SQUAD_PRIORITY_RESERVE_LIMIT, reserve_limit: SQUAD_RESERVE_LIMIT,
       xp_source: "members.xp", priority: "applied_position_then_xp" },
     eligible_count: unique.size,
     active_count: active.length,
@@ -328,7 +328,7 @@ function lineupFeed(lineup) {
 // Validate the exact snapshot before it can replace the currently approved roster.
 function validateSquadSnapshot(payload) {
   if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves)) return false;
-  if (payload.active.length > SQUAD_ACTIVE_LIMIT) return false;
+  if (payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT) return false;
   if (Number(payload.active_count) !== payload.active.length || Number(payload.reserve_count) !== payload.reserves.length) return false;
   if (Number(payload.shortfall) !== Math.max(0, SQUAD_ACTIVE_LIMIT - payload.active.length)) return false;
 
