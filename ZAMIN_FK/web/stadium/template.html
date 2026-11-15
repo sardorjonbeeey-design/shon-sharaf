@@ -1527,41 +1527,114 @@ layoutHQ();
 KENNEY_READY.then(() => { HQ_SIG = ""; layoutHQ(); });
 
 // ---------- CITY LANDMARKS built by the community: winning idea of 15 Nov (@islom.muhammadov7, 35 likes): "SHAHARGA MEGA MARKET VA UZUN BINO QURAYLIK" ----------
+// Same architectural language as the stadium: limestone cladding with panel joints, royal-blue fascia bands, blue-tinted glass between cream piers,
+// cable-stayed roof masts, light paved plazas. MEGA MARKET: a premium two-level shopping centre; UZUN BINO: a tall hotel tower (Hilton Tashkent type).
 const LANDMARK_OBJS = [];
 (function buildLandmarks() {
+  const BLUE = 0x1F4FB8, NAVY = 0x0D2557, STEEL = 0xe6eaf0, CREAM = 0xd3d6da, STONE = 0xd9d4c8;
   const grp = new THREE.Group(); scene.add(grp);
-  const box = (m, sx, sy, sz, x, y, z) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); grp.add(o); return o; };
-  const inst = (mat, items, colors) => { const m = instanced(BOX, mat, items, colors); return m; };
-  const sgn = (txt, w, h, x, y, z, ry, color) => { const c = document.createElement("canvas"); c.width = 1024; c.height = Math.round(1024 * h / w); const g = c.getContext("2d");
-    g.fillStyle = "#0D2557"; g.fillRect(0, 0, c.width, c.height); g.fillStyle = "#" + color.toString(16).padStart(6, "0"); g.fillRect(0, c.height - 24, c.width, 24);
-    g.fillStyle = "#fff"; g.font = "900 " + Math.round(c.height * .52) + "px Montserrat, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, c.width / 2, c.height * .46, c.width - 40);
+  // textures: stone cladding with panel joints (like the stadium's), paving tiles
+  const joint = (c, w, h) => { const cv = document.createElement("canvas"); cv.width = cv.height = 128; const x = cv.getContext("2d"); x.fillStyle = c; x.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 900; i++) { const g = 205 + Math.floor(rr() * 45); x.fillStyle = `rgb(${g},${g - 2},${g - 6})`; x.globalAlpha = .35; x.fillRect(rr() * 128, rr() * 128, 1 + rr() * 3, 1 + rr() * 3); }
+    x.globalAlpha = 1; x.fillStyle = "rgba(60,66,78,.28)"; for (let i = 0; i < 128; i += 128 / w) x.fillRect(i, 0, 1.5, 128); for (let j = 0; j < 128; j += 128 / h) x.fillRect(0, j, 128, 1.5);
+    const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; };
+  const STONE_T = joint("#e6e1d6", 2, 2), PAVE_T = joint("#dad7cf", 4, 4);
+  const stone = (color, rx, ry) => { const t = STONE_T.clone(); t.needsUpdate = true; t.repeat.set(rx, ry); return new THREE.MeshLambertMaterial({ color, map: t }); };
+  const pave = (rx, ry) => { const t = PAVE_T.clone(); t.needsUpdate = true; t.repeat.set(rx, ry); return new THREE.MeshLambertMaterial({ map: t }); };
+  const GLASS = new THREE.MeshPhongMaterial({ color: 0x1b3552, specular: 0x9fc0e6, shininess: 70, emissive: 0x0a1a2e });
+  const GLASS_T = new THREE.MeshPhongMaterial({ color: 0x24456b, specular: 0xb5d2f0, shininess: 80, emissive: 0x0a1a2e, transparent: true, opacity: .62, depthWrite: false });
+  const GLOW = new THREE.MeshBasicMaterial({ color: 0xffdca0 });
+  const glassWall = (sx, sy, sz, x, y, z) => box(GLASS, sx, sy, sz, x, y, z);
+  const litPanes = (z, x0, x1, step, rows, pw, ph, prob, cx) => { const a = []; for (let x = x0; x <= x1; x += step) for (const [y, h] of rows) if (rr() < prob) a.push([cx + x, y, z, pw, h || ph, .12]); inst(GLOW, a); };
+  const mB = c => new THREE.MeshLambertMaterial({ color: c }), mBasic = c => new THREE.MeshBasicMaterial({ color: c });
+  const box = (m, sx, sy, sz, x, y, z, ry = 0) => { const o = new THREE.Mesh(BOX, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.rotation.y = ry; grp.add(o); return o; };
+  const cyl = (m, r, h, x, y, z, seg = 28) => { const o = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), m); o.position.set(x, y, z); grp.add(o); return o; };
+  const inst = (mat, items, colors) => instanced(BOX, mat, items, colors);
+  const sign = (txt, w, h, x, y, z, ry, accent = BLUE) => { const c = document.createElement("canvas"); c.width = 1024; c.height = Math.round(1024 * h / w); const g = c.getContext("2d");
+    g.fillStyle = "#0D2557"; g.fillRect(0, 0, c.width, c.height); g.fillStyle = "#" + accent.toString(16).padStart(6, "0"); g.fillRect(0, c.height - 22, c.width, 22);
+    g.fillStyle = "#fff"; g.font = "900 " + Math.round(c.height * .5) + "px Montserrat, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, c.width / 2, c.height * .47, c.width - 50);
     const o = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) })); o.position.set(x, y, z); o.rotation.y = ry; grp.add(o); return o; };
-  // ---- MEGA MARKET: wide low hall, club-blue roof band, glass front, big sign, parking with cars ----
-  { const cx = 0, cz = -140, W = 70, D = 34, H = 11;
-    box(LM.path, W + 16, .3, D + 40, cx, .15, cz + 12);                                                  // forecourt + parking asphalt
-    box(lamC(0xf6f3ee), W, H, D, cx, H / 2 + .3, cz);
-    box(lamC(0x1F4FB8), W + .6, 1.6, D + .6, cx, H + 1.1, cz); box(lamC(0xffd23f), W + .8, .5, D + .8, cx, H + 2.1, cz);
-    box(LM.glass, W - 12, 6, .3, cx, 3.8, cz + D / 2 + .2); for (let k = -W / 2 + 8; k <= W / 2 - 8; k += 3) box(LM.glassLit, 2.2, 4.6, .32, k, 3.8, cz + D / 2 + .25);
-    box(lamC(0xd94848), 22, .6, 7, cx, 7.6, cz + D / 2 + 3.5);                                         // entrance canopy
-    for (const x of [-10, 10]) box(LM.rail, .6, 7.3, .6, x, 4, cz + D / 2 + 6.5);
-    sgn("🛒 MEGA MARKET", 42, 8.4, cx, H + 6, cz + D / 2 + .3, 0, 0xd94848);
-    box(LM.rail, .8, 9, .8, cx - 38, 5, cz + D / 2 + 20); sgn("MEGA MARKET", 10, 3.2, cx - 38, 10.6, cz + D / 2 + 20, 0, 0xffd23f);   // road pylon
-    const lines = [], pc = [], pcc = [];
-    for (let i = -30; i <= 30; i += 5) { lines.push([cx + i, .34, cz + D / 2 + 14, .35, .05, 8], [cx + i, .34, cz + D / 2 + 28, .35, .05, 8]); }
-    for (let i = -27.5; i <= 27.5; i += 5) for (const zz of [cz + D / 2 + 14, cz + D / 2 + 28]) if (rr() < .62) { pc.push([cx + i, .9, zz, 1.9, 1.2, 4.2]); pcc.push(rr() < .6 ? 0xf2f2f2 : choose([0xb8bcc2, 0x1d1f24, 0x8a1c1c, 0x2a4f8a, 0xf0a030])); }
-    inst(new THREE.MeshBasicMaterial({ color: 0xffffff }), lines); inst(lamC(0xffffff), pc, pcc); inst(lamC(0x2b3440), pc.map(t => [t[0], 1.65, t[2] + .2, 1.7, .75, 2.3]));
-    const o = new THREE.Group(); o.position.set(cx, 0, cz); o.userData = { h: H + 11, info: { emoji: "🛒", name: "MEGA MARKET" } }; scene.add(o); LANDMARK_OBJS.push(o); }
-  // ---- UZUN BINO: one long residential/office block with window rows and a rooftop ----
-  { const cx = 88, cz = -118, W = 17, D = 78, H = 28;
-    box(LM.path, W + 14, .3, D + 8, cx, .15, cz);
-    box(lamC(0xe8ecf7), W, H, D, cx, H / 2 + .3, cz); box(lamC(0x1F4FB8), W + .6, 1.4, D + .6, cx, H + 1, cz); box(LM.flat, W + 1, .6, D + 1, cx, H + 1.9, cz);
-    const win = [], winl = []; for (let f = 0; f < 7; f++) for (let k = -D / 2 + 3; k <= D / 2 - 3; k += 3.4) for (const sx of [-1, 1]) { const t = [cx + sx * (W / 2 + .06), 3.6 + f * 3.7, cz + k, .1, 2, 2.2]; (rr() < .55 ? winl : win).push(t); }
-    inst(LM.glass, win); inst(LM.glassLit, winl);
-    box(LM.glass, .3, 3.2, 14, cx - W / 2 - .05, 1.9, cz); box(lamC(0xd94848), 3, .5, 16, cx - W / 2 - 1.5, 3.6, cz);
-    for (const z of [-D / 2 + 6, D / 2 - 6]) { box(LM.white, 6, 4, 6, cx, H + 4.2, cz + z); box(LM.rail, .2, 7, .2, cx + 2, H + 7.5, cz + z); }
-    sgn("UZUN BINO", 30, 5, cx - W / 2 - .3, H - 3.2, cz, -Math.PI / 2, 0xffd23f);
-    for (let z = -D / 2; z <= D / 2; z += 13) { const t = new THREE.Mesh(ICO, LM.leaf); t.scale.set(2, 2.4, 2); t.position.set(cx - W / 2 - 4.5, 3, cz + z); grp.add(t); }
-    const o = new THREE.Group(); o.position.set(cx, 0, cz); o.userData = { h: H + 9, info: { emoji: "🏢", name: "UZUN BINO" } }; scene.add(o); LANDMARK_OBJS.push(o); }
+  const flag = (x, z, h, col) => { box(mB(STEEL), .25, h, .25, x, h / 2, z); const f = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.8), new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide })); f.position.set(x + 1.7, h - 1.2, z); grp.add(f); const st = new THREE.Mesh(new THREE.PlaneGeometry(3.2, .5), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })); st.position.set(x + 1.7, h - 1.2, z + .01); grp.add(st); };
+  const lamp = (x, z) => { box(mB(0x2f3540), .22, 7, .22, x, 3.5, z); box(mBasic(0xfff3cf), .9, .25, .5, x, 7.1, z); };
+  const tree = (x, z, k = 1) => { const t = new THREE.Mesh(CYL, LM.trunk); t.scale.set(.25 * k, 1.8 * k, .25 * k); t.position.set(x, .9 * k, z); grp.add(t); const l = new THREE.Mesh(ICO, LM.leaf); l.scale.set(1.7 * k, 2 * k, 1.7 * k); l.position.set(x, 3 * k, z); grp.add(l); };
+  const cars = (pts) => { const pc = [], pcc = []; pts.forEach(([x, z, ry]) => { pc.push([x, .85, z, ry ? 4.2 : 1.9, 1.15, ry ? 1.9 : 4.2]); pcc.push(rr() < .6 ? 0xf2f2f2 : choose([0xb8bcc2, 0x1d1f24, 0x8a1c1c, 0x2a4f8a, 0x14171c])); });
+    inst(mB(0xffffff), pc, pcc); inst(mB(0x2b3440), pc.map(t => [t[0], 1.6, t[2], t[3] * .9, .7, t[5] * .55])); };
+  const planter = (x, z, w, d) => { box(stone(STONE, 1, 1), w, .8, d, x, .4, z); box(mB(0x4f9a3c), w - .5, .3, d - .5, x, .85, z); };
+
+  // ================= MEGA MARKET =================
+  { const cx = 0, cz = -137, W = 100, D = 44, F = cz + D / 2, H1 = 7.2, H2 = 15.2;
+    box(pave(W / 8, 2), W + 6, .3, 20, cx, .15, F + 8);                                                      // paved forecourt
+    box(stone(STONE, 14, 1), W + 2, 1, D + 2, cx, .5, cz);                                                    // plinth
+    box(stone(0xdcd7cb, W / 8, 1), W, 3.4, D, cx, 1 + 1.7, cz);                                              // cladding base
+    glassWall(W - .4, H1 - 4.3, D - .4, cx, 4.4 + (H1 - 4.3) / 2, cz);                                      // ground-floor glass (front)
+    box(stone(CREAM, 14, 1), W + .4, .9, D + .4, cx, H1 + .45, cz);                                          // floor slab
+    box(mB(BLUE), W + .5, .5, .3, cx, H1 + .5, F + .3);                                                      // blue deck fascia
+    glassWall(W - .4, H2 - H1 - 1.9, D - .4, cx, H1 + .9 + (H2 - H1 - 1.9) / 2, cz);                        // first-floor glass
+    box(mB(BLUE), W + .6, 1.5, D + .6, cx, H2 + .1, cz); box(mB(0xf4f6f9), W + .8, .35, D + .8, cx, H2 + 1, cz);   // blue roof fascia + white edge
+    box(stone(0xc9ccd1, 10, 1), W - 1, .5, D - 1, cx, H2 + 1.4, cz);                                          // roof slab
+    // cream piers + mullions along both long faces, ribbon on the short faces
+    const piers = [], mull = []; for (let i = -W / 2 + 2; i <= W / 2 - 2; i += 6) piers.push([cx + i, H2 / 2 + .4, F + .25, .9, H2 - .6, .8], [cx + i, H2 / 2 + .4, cz - D / 2 - .25, .9, H2 - .6, .8]);
+    for (let i = -W / 2 + 3.5; i <= W / 2 - 2; i += 1.5) mull.push([cx + i, H1 / 2 + 1.2, F + .1, .08, H1 - 2.6, .12], [cx + i, (H1 + H2) / 2 + .4, F + .1, .08, H2 - H1 - 1.6, .12]);
+    inst(mB(CREAM), piers); inst(mB(0xaab4c0), mull);
+    litPanes(F + .2, -W / 2 + 5, W / 2 - 4, 6, [[5.9, 2.3], [11.6, 4.4]], 4.6, 0, .55, cx);
+    for (const sx of [-1, 1]) for (let i = -D / 2 + 3; i <= D / 2 - 3; i += 6) box(mB(CREAM), .8, H2 - .6, .9, cx + sx * (W / 2 + .2), H2 / 2 + .4, cz + i);
+    // grand atrium: all-glass volume with big mullions, blue canopy and navy sign plaque
+    { const aw = 34, ad = 12, ah = 24; glassWall(aw, ah, ad, cx, ah / 2 + .6, F + ad / 2 - 1); box(mB(BLUE), aw + .8, 1.4, ad + .8, cx, ah + .9, F + ad / 2 - 1); box(mB(0xf4f6f9), aw + 1, .3, ad + 1, cx, ah + 1.7, F + ad / 2 - 1);
+      const am = []; for (let i = -aw / 2; i <= aw / 2; i += 2.8) am.push([cx + i, ah / 2 + .6, F + ad - .9, .3, ah, .4]); for (let y = 6; y < ah; y += 6) am.push([cx, y + .6, F + ad - .9, aw, .25, .35]);
+      inst(mB(CREAM), am); litPanes(F + ad - .72, -aw / 2 + 1.4, aw / 2 - 1, 2.8, [[3.6, 4.8], [9.6, 4.8], [15.6, 4.8], [21.6, 4.8]], 2.4, 0, .8, cx);
+      box(mB(BLUE), aw + 10, .5, 9, cx, 6.4, F + ad + 3.5); for (const sx of [-1, 1]) for (const zz of [F + ad + 6.5]) box(mB(CREAM), .9, 6, .9, cx + sx * (aw / 2 + 3), 3.4, zz);
+      for (let k = 0; k < 4; k++) box(mB(0x18222f), 4.2, 5, .2, cx - 6.3 + k * 4.2, 3.1, F + ad - .85);
+      sign("MEGA MARKET", 28, 5.4, cx, ah - 3, F + ad - .3, 0); }
+    // corner drums: the rounded corners echo the stadium bowl
+    for (const sx of [-1, 1]) { const x = cx + sx * (W / 2 - 4), z = F - 4; cyl(stone(0xdcd7cb, 6, 1), 9, H1 + .6, x, (H1 + .6) / 2 + .6, z); cyl(GLASS, 9.1, H2 - H1 - .6, x, H1 + .6 + (H2 - H1 - .6) / 2 + .6, z); cyl(mB(BLUE), 9.3, 1.5, x, H2 + .1, z); }
+    // roof: cable-stayed masts like the stadium roof + service boxes
+    const rodMat = new THREE.LineBasicMaterial({ color: BLUE });
+    for (let i = -W / 2 + 8; i <= W / 2 - 8; i += 14) { box(mB(STEEL), .5, 9, .5, cx + i, H2 + 1.6 + 4.5, F - 3); const pts = [[cx + i, H2 + 10.3, F - 3], [cx + i - 8, H2 + 1.7, F - 3], [cx + i, H2 + 10.3, F - 3], [cx + i + 8, H2 + 1.7, F - 3]];
+      const g = new THREE.BufferGeometry().setFromPoints(pts.map(q => new THREE.Vector3(...q))); grp.add(new THREE.Line(g, rodMat)); box(mB(BLUE), .8, .8, .8, cx + i, H2 + 10.5, F - 3); }
+    box(mB(0xa9adb3), 16, 2.2, 10, cx - 20, H2 + 2.8, cz - 6); box(mB(0xa9adb3), 12, 2.2, 8, cx + 24, H2 + 2.8, cz - 8);
+    // plaza: planters, fountain, flags, lamps, cars
+    for (const sx of [-1, 1]) { planter(cx + sx * 26, F + 15, 14, 3); planter(cx + sx * 42, F + 9, 8, 6); }
+    cyl(mB(0xd9d4c8), 6, .9, cx, .55, F + 20); cyl(new THREE.MeshPhongMaterial({ color: 0x2f7fd0, specular: 0xffffff, shininess: 90, emissive: 0x0b2f66 }), 5.3, 1, cx, .6, F + 20); cyl(mB(0xf4f6f9), .9, 3, cx, 2, F + 20, 12);
+    for (let i = -2; i <= 2; i++) flag(cx + i * 9 + (i < 0 ? -22 : i > 0 ? 22 : 0), F + 14, 13, BLUE);
+    for (const x of [-48, -30, 30, 48]) lamp(cx + x, F + 17);
+    for (const x of [-46, -38, 38, 46]) tree(cx + x, F + 3, 1.1);
+    const cp = []; for (let i = -44; i <= 44; i += 5.5) if (rr() < .55 && Math.abs(i) > 20) cp.push([cx + i, F + 25, 0]); cars(cp);
+    const o = new THREE.Group(); o.position.set(cx, 0, cz); o.userData = { h: H2 + 15, info: { emoji: "🛒", name: "MEGA MARKET" } }; scene.add(o); LANDMARK_OBJS.push(o); }
+
+  // ================= UZUN BINO: tall hotel tower =================
+  { const cx = 110, cz = -136, PW2 = 56, PD = 40, PH2 = 14.5, TW = 26, TD = 22, TH = 92, ty = PH2 + .8, F = cz + PD / 2;
+    box(pave(PW2 / 8, 3), PW2 + 10, .3, 28, cx, .15, F + 12);                                                // forecourt / drive
+    box(mB(0x3a3f48), 30, .32, 22, cx, .2, F + 14); cyl(mB(0xdad7cf), 5.2, .5, cx, .46, F + 16); cyl(mB(0x4f9a3c), 3.6, .6, cx, .52, F + 16, 20);   // asphalt drop-off + roundabout
+    box(stone(STONE, 8, 1), PW2 + 2, 1, PD + 2, cx, .5, cz);
+    box(stone(0xdcd7cb, PW2 / 8, 1), PW2, 3.6, PD, cx, 1 + 1.8, cz);                                         // podium base
+    glassWall(PW2 - .4, PH2 - 6.2, PD - .4, cx, 5 + (PH2 - 6.2) / 2 + .6, cz);                              // podium glass
+    box(stone(CREAM, 8, 1), PW2 + .4, .9, PD + .4, cx, 8.4, cz);                                             // mezzanine slab
+    box(mB(BLUE), PW2 + .6, 1.4, PD + .6, cx, PH2 + .2, cz); box(mB(0xf4f6f9), PW2 + .8, .35, PD + .8, cx, PH2 + 1.1, cz);
+    const pp = []; for (let i = -PW2 / 2 + 2; i <= PW2 / 2 - 2; i += 4) pp.push([cx + i, PH2 / 2 + .4, F + .2, .8, PH2 - .8, .7], [cx + i, PH2 / 2 + .4, cz - PD / 2 - .2, .8, PH2 - .8, .7]);
+    inst(mB(CREAM), pp); litPanes(F + .2, -PW2 / 2 + 4, PW2 / 2 - 3, 4, [[6.6, 3.4], [11.4, 4.2]], 3.2, 0, .6, cx);
+    // porte-cochere: blue canopy on cream columns
+    box(mB(BLUE), 28, .6, 10, cx, 6.6, F + 5); box(mB(0xf4f6f9), 28.4, .25, 10.4, cx, 7, F + 5); for (const sx of [-1, 1]) for (const zz of [F + 8.5]) box(mB(CREAM), .9, 6.4, .9, cx + sx * 12.5, 3.6, zz);
+    for (let k = 0; k < 4; k++) box(mB(0x18222f), 3.6, 4.4, .2, cx - 5.4 + k * 3.6, 2.8, F + .15);
+    sign("UZUN BINO", 22, 4.4, cx, 10.6, F + .5, 0);
+    // tower: glass body, cream vertical fins, spandrel bands, blue accent floors
+    box(GLASS, TW, TH, TD, cx, ty + TH / 2, cz - 2);
+    const fins = [], band = [], bandB = [], lit = [];
+    for (let i = -TW / 2 + 1.4; i <= TW / 2 - 1; i += 2.8) fins.push([cx + i, ty + TH / 2, cz - 2 + TD / 2 + .25, .55, TH, .55], [cx + i, ty + TH / 2, cz - 2 - TD / 2 - .25, .55, TH, .55]);
+    for (let i = -TD / 2 + 1.4; i <= TD / 2 - 1; i += 2.8) fins.push([cx + TW / 2 + .25, ty + TH / 2, cz - 2 + i, .55, TH, .55], [cx - TW / 2 - .25, ty + TH / 2, cz - 2 + i, .55, TH, .55]);
+    for (let f = 1; f <= 25; f++) { const y = ty + f * 3.5, bb = f % 5 === 0; (bb ? bandB : band).push([cx, y, cz - 2 + TD / 2 + .12, TW + .3, bb ? .5 : .3, .25], [cx, y, cz - 2 - TD / 2 - .12, TW + .3, bb ? .5 : .3, .25], [cx + TW / 2 + .12, y, cz - 2, .25, bb ? .5 : .3, TD + .3], [cx - TW / 2 - .12, y, cz - 2, .25, bb ? .5 : .3, TD + .3]); }
+    for (let f = 0; f < 25; f++) for (let i = -TW / 2 + 2.8; i <= TW / 2 - 2; i += 2.8) if (rr() < .16) lit.push([cx + i, ty + 1.6 + f * 3.5 + .9, cz - 2 + TD / 2 + .05, 1.5, 1.7, .1]);
+    inst(mB(CREAM), fins); inst(mB(0xaab4c0), band); inst(mB(BLUE), bandB); inst(mBasic(0xffe3a0), lit);
+    // stepped crown with blue light band and mast
+    box(GLASS, TW - 5, 7, TD - 5, cx, ty + TH + 3.5, cz - 2); box(mB(BLUE), TW - 4.4, 1.1, TD - 4.4, cx, ty + TH + 7.3, cz - 2); box(GLASS, TW - 11, 5, TD - 10, cx, ty + TH + 10.4, cz - 2);
+    box(mBasic(0x4a86ff), TW - 10.6, .5, TD - 9.6, cx, ty + TH + 13.1, cz - 2); box(mB(STEEL), .5, 14, .5, cx, ty + TH + 20, cz - 2); box(mBasic(0xff5050), .9, .9, .9, cx, ty + TH + 27.2, cz - 2);
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(mBasic(0x4a86ff), .5, TH, .5, cx + sx * (TW / 2 + .1), ty + TH / 2, cz - 2 + sz * (TD / 2 + .1));   // blue corner light lines
+    // forecourt: planters, flags, lamps, trees, cars
+    for (const sx of [-1, 1]) { planter(cx + sx * 23, F + 12, 6, 14); }
+    for (let i = -1; i <= 1; i++) flag(cx + i * 7.5, F + 22, 12, BLUE);
+    for (const x of [-26, -14, 14, 26]) lamp(cx + x, F + 20);
+    for (const x of [-28, -22, 22, 28]) tree(cx + x, F + 3, 1.1);
+    cars([[cx - 8, F + 12, 1], [cx + 9, F + 14, 1], [cx + 17, F + 9, 1]]);
+    const o = new THREE.Group(); o.position.set(cx, 0, cz); o.userData = { h: ty + TH + 32, info: { emoji: "🏨", name: "UZUN BINO" } }; scene.add(o); LANDMARK_OBJS.push(o); }
 })();
 // =============== end CITY ===============
 
