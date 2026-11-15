@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildSquadProposal, validateSquadSnapshot } = require("./club");
+const { buildSquadProposal, validateSquadSnapshot, assignSquadNumbers, mergeLineupWithRoster } = require("./club");
 
 const QUOTAS = { GK: 2, DEF: 8, MID: 6, FWD: 6 };
 
@@ -56,7 +56,21 @@ test("24 eligible players produce 22 active players and 2 reserves", () => {
   assert.deepEqual(result.reserves.map(p => p.tg_id), ["23", "24"]);
 });
 
-test("more than 24 eligible players never exceed the active and reserve limits", () => {
+test("all extra eligible players stay in the reserve queue (public /squad caps display separately)", () => {
+  const rows = players();
+  for (let i = 23; i <= 40; i++) {
+    rows.push({ tg_id: String(i), name: "Extra " + i, applied_position: "DEF", xp: 100 - i });
+  }
+  const result = buildSquadProposal(rows);
+  assert.equal(result.eligible_count, 40);
+  assert.equal(result.active_count, 22);
+  assert.equal(result.reserve_count, 18);
+  assert.equal(result.reserves.length, 18);
+  assert.equal(result.active.length + result.reserves.length, 40);
+  assert.deepEqual(result.reserves.map(p => p.xp), [...result.reserves.map(p => p.xp)].sort((a,b) => b-a));
+});
+
+test("more than 24 eligible players fill reserves in XP order up to the cap", () => {
   const rows = players();
   for (let i = 23; i <= 30; i++) {
     rows.push({ tg_id: String(i), name: "Extra " + i, applied_position: "DEF", xp: 100 - i });
@@ -64,8 +78,9 @@ test("more than 24 eligible players never exceed the active and reserve limits",
   const result = buildSquadProposal(rows);
   assert.equal(result.eligible_count, 30);
   assert.equal(result.active_count, 22);
-  assert.equal(result.reserve_count, 2);
-  assert.equal(result.active.length + result.reserves.length, 24);
+  assert.equal(result.reserve_count, 8);
+  assert.equal(result.active.length + result.reserves.length, 30);
+  assert.deepEqual(result.reserves.map(p => p.xp), [...result.reserves.map(p => p.xp)].sort((a,b) => b-a));
 });
 
 test("shortage is reported instead of inventing players", () => {
@@ -199,6 +214,7 @@ test("remaining reserve places are assigned by descending XP", () => {
 
 // ---------- manual line-up (Mini App admin panel) ----------
 const { normalizeLineup, lineupFromRoster, lineupFeed, LINEUP_SLOTS } = require("./club");
+const cards = require("./cards");
 const fullLineup = () => ({
   starters: LINEUP_SLOTS.map((slot, i) => ({ slot, name: "Starter " + slot, number: i + 1 })),
   bench: [{ name: "Sub One", number: 30 }, { name: "  ", number: 31 }, { name: "Sub Two", number: "" }]
@@ -236,4 +252,94 @@ test("an approved snapshot maps onto the line-up slots", () => {
   assert.equal(lineup.starters.filter(p => p.name).length, 11);
   assert.equal(lineup.bench.length, 11);
   assert.doesNotThrow(() => normalizeLineup(lineup));
+});
+
+
+// ---------- automatic shirt-number assignment ----------
+test("shirt numbers reserve 1 and 25 for goalkeepers and 7, 9, 10, 11 for the four main forwards", () => {
+  const rows = players();
+  rows.push(
+    { tg_id: "23", name: "Extra Defender 23", applied_position: "DEF", xp: 30 },
+    { tg_id: "24", name: "Extra Defender 24", applied_position: "DEF", xp: 20 }
+  );
+  const proposal = buildSquadProposal(rows);
+  const numbered = assignSquadNumbers(proposal, {}, () => 0);
+  const all = [...numbered.active, ...numbered.reserves.slice(0, 2)];
+  const keepers = all.filter(p => p.applied_position === "GK").sort((a,b) => a.position_rank-b.position_rank);
+  assert.equal(keepers[0].shirt_number, 1);
+  assert.equal(keepers[1].shirt_number, 25);
+  const forwards = all.filter(p => p.applied_position === "FWD").sort((a,b) => a.position_rank-b.position_rank);
+  assert.deepEqual(forwards.slice(0,4).map(p => p.shirt_number), [7,9,10,11]);
+  const assigned = all.map(p => p.shirt_number);
+  assert.equal(new Set(assigned).size, assigned.length);
+  assert.equal(assigned.every(n => Number.isInteger(n) && n >= 1 && n <= 25), true);
+  assert.equal(numbered.reserves.slice(2).every(p => p.shirt_number === null), true);
+});
+
+test("existing player shirt numbers remain stable on the next automatic refresh", () => {
+  const proposal = buildSquadProposal(players());
+  const first = assignSquadNumbers(proposal, {}, () => 0.42);
+  const previous = Object.fromEntries([...first.active, ...first.reserves].map(p => [p.tg_id, p.shirt_number]));
+  const second = assignSquadNumbers(proposal, previous, () => 0.99);
+  assert.deepEqual(
+    [...second.active, ...second.reserves].map(p => [p.tg_id, p.shirt_number]),
+    [...first.active, ...first.reserves].map(p => [p.tg_id, p.shirt_number])
+  );
+});
+
+test("automatic lineup reconciliation preserves valid manual selections and fills departed slots", () => {
+  const proposal = assignSquadNumbers(buildSquadProposal(players()), {}, () => 0.2);
+  const original = {
+    starters: LINEUP_SLOTS.map((slot, i) => ({
+      slot,
+      name: proposal.active[i].name,
+      number: proposal.active[i].shirt_number,
+      tg_id: proposal.active[i].tg_id
+    })),
+    bench: proposal.active.slice(11).map(p => ({ name: p.name, number: p.shirt_number, tg_id: p.tg_id }))
+  };
+  const keep = original.starters[0].name;
+  const removedId = original.starters[1].tg_id;
+  const changed = {
+    ...proposal,
+    active: proposal.active.filter(p => p.tg_id !== removedId)
+  };
+  const merged = mergeLineupWithRoster(original, changed);
+  assert.equal(merged.starters[0].name, keep);
+  assert.equal(merged.starters[1].name === original.starters[1].name, false);
+  assert.equal(merged.starters.filter(p => p.name).length, 11);
+  assert.equal(new Set(merged.starters.filter(p => p.tg_id).map(p => p.tg_id)).size, 11);
+});
+
+
+test("the admin lineup loader preserves automatic shirt numbers and player IDs", () => {
+  const numbered = assignSquadNumbers(buildSquadProposal(players()), {}, () => 0.25);
+  const lineup = lineupFromRoster(numbered.active);
+  const keeper = lineup.starters.find(p => p.slot === "GK");
+  assert.equal(keeper.number, 1);
+  assert.equal(keeper.tg_id, numbered.active.find(p => p.applied_position === "GK").tg_id);
+});
+
+// CHANGE LOG (poster label hierarchy test):
+ // OLD: the poster test expected a small "#9" below the name and did not verify the position label.
+ // NEW: verify that shirt number 9 is the large text on the shirt and ST is the small label
+ //      beneath the player's name; keep the reserve number check because bench rows are unchanged.
+ // WHY: this guards the requested number-first visual hierarchy without changing roster logic.
+test("Today's Squad SVG template inserts live player names, shirt numbers and positions", () => {
+  const svg = cards.squadSvg({
+    active: [
+      { name: "Poster Forward", shirt_number: 9, squad_role: "starter", stadium_position: "ST" },
+      { name: "Poster Keeper", shirt_number: 1, squad_role: "starter", stadium_position: "GK" }
+    ],
+    reserves: [{ name: "Poster Reserve", shirt_number: 25, applied_position: "GK" }]
+  });
+  assert.match(svg, /ASOSIY TARKIB/);
+  assert.match(svg, /4-3-3/);
+  assert.match(svg, /STARTING XI/);
+  assert.match(svg, /Poster Forward/);
+  assert.match(svg, /Poster Keeper/);
+  assert.match(svg, /Poster Reserve/);
+  assert.match(svg, /font-size="34" fill="#fff">9<\/text>/);
+  assert.match(svg, /font-size="12" fill="#FFD23F">ST<\/text>/);
+  assert.match(svg, />25</);
 });

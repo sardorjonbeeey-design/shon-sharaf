@@ -111,6 +111,97 @@ function vipSvg(d) {
 </svg>`;
 }
 
+// Reusable "Today's Squad" poster template. Only roster data changes; the layout,
+ // typography, colors and club identity are rendered from this one SVG template.
+ // This avoids generating a new background image every hour and keeps the poster free.
+function squadSvg(d) {
+  // CHANGE LOG:
+  // OLD: the Telegram /squad poster rendered the Starting XI and bench as two text-only columns.
+  // NEW: the Starting XI is drawn as shirt icons on a green 4-3-3 pitch; substitutes/reserves
+  //      appear in a compact list below the pitch, matching the club's preferred lineup reference.
+  // WHY: supporters should see the actual formation at a glance, not just read a roster list.
+  //      This remains one reusable SVG template: only live player data changes on each /squad request.
+  // SAFETY: no squad-selection, shirt-number, hourly-refresh, API or stadium logic is changed here.
+  const W = 900, H = 1700;
+  const active = Array.isArray(d.active) ? d.active : [];
+  const starters = active.filter(p => p.squad_role === "starter").slice(0, 11);
+  const bench = active.filter(p => p.squad_role !== "starter").concat(Array.isArray(d.reserves) ? d.reserves : []);
+  const find = (pos, rank) => starters.find(p =>
+    (p.stadium_position || p.applied_position) === pos &&
+    (pos !== "CB" || Number(p.position_rank || 1) === rank)
+  );
+  const slots = [
+    {pos:"LW",x:185,y:510},{pos:"ST",x:450,y:465},{pos:"RW",x:715,y:510},
+    {pos:"CM",x:265,y:700},{pos:"CAM",x:450,y:655},{pos:"CDM",x:635,y:700},
+    {pos:"LB",x:115,y:900},{pos:"CB",rank:2,x:335,y:930},{pos:"CB",rank:3,x:565,y:930},{pos:"RB",x:785,y:900},
+    {pos:"GK",x:450,y:1030}
+  ];
+  const placed = slots.map(s => Object.assign({},s,{player:find(s.pos,s.rank || 1)}));
+  const used = new Set(placed.filter(s=>s.player).map(s=>s.player));
+  const remaining = starters.filter(p=>!used.has(p));
+  placed.forEach(s=>{if(!s.player && remaining.length)s.player=remaining.shift();});
+  const shirt = s => {
+    const p=s.player;
+    if(!p)return "";
+    const num=p.shirt_number==null?"—":String(p.shirt_number);
+    const pos=s.pos || p.stadium_position || p.applied_position || "";
+    const name=fit(p.name||"Player",18);
+    const width=Math.min(210,Math.max(112,name.length*10+28));
+    return '<g filter="url(#shadow)">'+
+      '<path d="M'+(s.x-36)+' '+(s.y-34)+' L'+(s.x-62)+' '+(s.y-18)+' L'+(s.x-50)+' '+(s.y+12)+' L'+(s.x-35)+' '+(s.y+4)+' L'+(s.x-35)+' '+(s.y+40)+' L'+(s.x+35)+' '+(s.y+40)+' L'+(s.x+35)+' '+(s.y+4)+' L'+(s.x+50)+' '+(s.y+12)+' L'+(s.x+62)+' '+(s.y-18)+' L'+(s.x+36)+' '+(s.y-34)+' Q'+s.x+' '+(s.y-20)+' '+(s.x-36)+' '+(s.y-34)+' Z" fill="#2458C5" stroke="#fff" stroke-width="4"/>'+
+      '<path d="M'+(s.x-22)+' '+(s.y-30)+' Q'+s.x+' '+(s.y-17)+' '+(s.x+22)+' '+(s.y-30)+'" fill="none" stroke="#FFD23F" stroke-width="5"/>'+
+      '<path d="M'+(s.x-34)+' '+(s.y+33)+' H'+(s.x+34)+'" stroke="#FFD23F" stroke-width="5"/>'+
+      // CHANGE LOG (shirt-number / position hierarchy):
+      // OLD: the position (for example ST or GK) was printed prominently in the centre of
+      //      the shirt, while the shirt number was tiny beneath the player's name.
+      // NEW: the actual shirt number is now large and centred on the shirt; the position
+      //      label moves into the small bottom line beneath the player's name.
+      // WHY: the shirt should identify the player by their squad number first, with their
+      //      tactical position as secondary information. This swaps only these two labels;
+      //      player placement, names, squad data, number assignment and bench rows stay intact.
+      '<text x="'+s.x+'" y="'+(s.y+14)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="34" fill="#fff">'+esc(num)+'</text>'+
+      '<rect x="'+(s.x-width/2)+'" y="'+(s.y+57)+'" width="'+width+'" height="45" rx="11" fill="#071C37" stroke="#FFD23F" stroke-width="2"/>'+
+      '<text x="'+s.x+'" y="'+(s.y+76)+'" text-anchor="middle" font-family="Montserrat" font-weight="800" font-size="14" fill="#fff">'+esc(name)+'</text>'+
+      '<text x="'+s.x+'" y="'+(s.y+94)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="12" fill="#FFD23F">'+esc(pos)+'</text></g>';
+  };
+  const benchRow=(p,i,x,y)=>{
+    const num=p.shirt_number==null?"—":String(p.shirt_number);
+    const pos=p.stadium_position||p.applied_position||"";
+    return '<rect x="'+x+'" y="'+(y-23)+'" width="390" height="37" rx="9" fill="#fff" fill-opacity="'+(i%2?".06":".10")+'"/>'+
+      '<rect x="'+(x+8)+'" y="'+(y-17)+'" width="34" height="26" rx="7" fill="#FFD23F"/>'+
+      '<text x="'+(x+25)+'" y="'+(y+1)+'" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="14" fill="#071C37">'+esc(num)+'</text>'+
+      '<text x="'+(x+52)+'" y="'+(y+1)+'" font-family="Montserrat" font-weight="800" font-size="14" fill="#fff">'+esc(fit(p.name||"Player",24))+'</text>'+
+      '<text x="'+(x+378)+'" y="'+(y+1)+'" text-anchor="end" font-family="Montserrat" font-weight="700" font-size="12" fill="#AFC5F4">'+esc(pos)+'</text>';
+  };
+  const left=bench.slice(0,7).map((p,i)=>benchRow(p,i,55,1315+i*43)).join("");
+  const right=bench.slice(7,14).map((p,i)=>benchRow(p,i,455,1315+i*43)).join("");
+  const updated=d.updated_at?new Date(d.updated_at).toLocaleString("en-GB",{timeZone:"Asia/Tashkent",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Latest squad";
+  return [
+    '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1700" viewBox="0 0 900 1700"><defs>',
+    '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#102B62"/><stop offset=".55" stop-color="#081735"/><stop offset="1" stop-color="#030917"/></linearGradient>',
+    '<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6D98A"/><stop offset="1" stop-color="#B78A32"/></linearGradient>',
+    '<pattern id="lines" width="44" height="44" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0V44" stroke="#fff" stroke-opacity=".035" stroke-width="14"/></pattern>',
+    '<filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#020814" flood-opacity=".45"/></filter></defs>',
+    '<rect width="900" height="1700" fill="url(#bg)"/><rect width="900" height="1700" fill="url(#lines)"/><rect x="24" y="24" width="852" height="1652" rx="30" fill="none" stroke="url(#gold)" stroke-width="3"/>',
+    CREST?'<image href="'+CREST+'" x="55" y="55" width="120" height="120"/>':"",
+    '<text x="205" y="95" font-family="Montserrat" font-weight="700" font-size="22" letter-spacing="6" fill="#FFD23F">ZAMIN FK</text>',
+    '<text x="205" y="160" font-family="Montserrat" font-weight="900" font-size="64" fill="#fff">ASOSIY TARKIB</text>',
+    '<rect x="700" y="115" width="135" height="56" rx="14" fill="#FFD23F"/><text x="767" y="152" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="27" fill="#071C37">4-3-3</text>',
+    '<text x="450" y="235" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="26" letter-spacing="3" fill="#fff">STARTING XI</text>',
+    '<rect x="35" y="280" width="830" height="840" rx="28" fill="#188344" stroke="#E8F5EC" stroke-width="4"/>',
+    '<path d="M35 700 H865" fill="none" stroke="#D9F0E1" stroke-opacity=".55" stroke-width="4"/><circle cx="450" cy="700" r="150" fill="none" stroke="#D9F0E1" stroke-opacity=".55" stroke-width="4"/>',
+    '<rect x="260" y="280" width="380" height="145" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/><rect x="370" y="280" width="160" height="70" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/>',
+    '<rect x="260" y="975" width="380" height="145" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/><rect x="370" y="1050" width="160" height="70" fill="none" stroke="#D9F0E1" stroke-opacity=".6" stroke-width="4"/>',
+    placed.map(shirt).join(""),
+    '<text x="450" y="1200" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="24" letter-spacing="3" fill="#FFD23F">ZAXIRA · SUBSTITUTES / RESERVES</text>',
+    '<rect x="42" y="1230" width="816" height="335" rx="22" fill="#fff" fill-opacity=".035" stroke="#fff" stroke-opacity=".15" stroke-width="2"/>',
+    left,right,
+    '<text x="450" y="1620" text-anchor="middle" font-family="Montserrat" font-weight="700" font-size="16" fill="#AFC5F4">UPDATED '+esc(updated)+' · CLUB-ASSIGNED SHIRT NUMBERS</text>',
+    '<text x="450" y="1655" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="20" letter-spacing="5" fill="#FFD23F">ZAMIN FK</text></svg>'
+  ].join("");
+}
+
 const render = (svg, width) => new Resvg(svg, { font: { fontFiles: FONTS, loadSystemFonts: false, defaultFontFamily: "Montserrat" }, fitTo: { mode: "width", value: width } }).render().asPng();
 const ok = () => !!Resvg && FONTS.length === 4;
-module.exports = { ok, playerPng: d => render(playerSvg(d), 1080), vipPng: d => render(vipSvg(d), 1280), playerSvg, vipSvg };
+module.exports = { ok, playerPng: d => render(playerSvg(d), 1080), vipPng: d => render(vipSvg(d), 1280),
+  squadPng: d => render(squadSvg(d), 1080), playerSvg, vipSvg, squadSvg };

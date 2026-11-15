@@ -56,7 +56,8 @@ const SQUAD_GROUPS = Object.freeze({
 const SQUAD_GROUP_ORDER = ["GK", "DEF", "MID", "FWD"];
 const SQUAD_APPLIED_POSITIONS = SQUAD_GROUP_ORDER;
 const SQUAD_ACTIVE_LIMIT = 22;
-const SQUAD_RESERVE_LIMIT = 2;
+const SQUAD_PRIORITY_RESERVE_LIMIT = 2; // First 2 reserves complete the 24-player priority group.
+const SQUAD_RESERVE_LIMIT = 12; // Reserve team cap: 22 active + up to 12 reserves.
 
 function squadXpRank(a, b) {
   const xp = (Number(b.xp) || 0) - (Number(a.xp) || 0);
@@ -134,15 +135,19 @@ function buildSquadProposal(input = []) {
   ].filter(Boolean);
   const active = [...starters, ...substitutes].slice(0, SQUAD_ACTIVE_LIMIT)
     .map((player, index) => ({ ...player, squad_order: index + 1, squad_role: index < starters.length ? "starter" : "substitute" }));
-  const reserves = overflow.slice(0, SQUAD_RESERVE_LIMIT).map((player, index) => ({
+  // Every remaining eligible player stays in the ranked reserve queue; only the first
+  // SQUAD_RESERVE_LIMIT are shown publicly (see getCurrentSquad).
+  const reserves = overflow.map((player, index) => ({
     ...player, assigned_group: null, stadium_position: null, squad_role: "reserve",
     reserve_rank: index + 1, reassigned: false,
-    reason: "Outside the active 22; highest remaining XP reserve.",
+    reason: index < SQUAD_PRIORITY_RESERVE_LIMIT
+      ? "Priority reserve within the top 24."
+      : "Unlimited reserve queue, ordered by XP.",
   }));
 
   return {
     rules: { group_quotas: Object.fromEntries(SQUAD_GROUP_ORDER.map(g => [g, SQUAD_GROUPS[g].quota])),
-      active_limit: SQUAD_ACTIVE_LIMIT, reserve_limit: SQUAD_RESERVE_LIMIT,
+      active_limit: SQUAD_ACTIVE_LIMIT, priority_reserve_limit: SQUAD_PRIORITY_RESERVE_LIMIT, reserve_limit: SQUAD_RESERVE_LIMIT,
       xp_source: "members.xp", priority: "applied_position_then_xp" },
     eligible_count: unique.size,
     active_count: active.length,
@@ -168,6 +173,98 @@ const LINEUP_BENCH_LIMIT = 14;
 const lineupPosition = slot => slot === "CB1" || slot === "CB2" ? "CB" : slot;
 const lineupRank = slot => slot === "CB2" ? 3 : slot === "CB1" ? 2 : 1;
 
+// SHIRT-NUMBER POLICY: #1 = first-choice GK, #25 = reserve GK. The four
+// highest-ranked forwards receive #7, #9, #10 and #11. Other outfield players
+// receive a free random number from #2..#24, excluding those four reserved
+// forward numbers. Valid previous assignments are kept by Telegram player ID.
+function assignSquadNumbers(payload, previous = {}, random = Math.random) {
+  const active = Array.isArray(payload && payload.active) ? payload.active : [];
+  const reserves = Array.isArray(payload && payload.reserves) ? payload.reserves : [];
+  // OLD: all reserves competed for the finite 1–25 shirt-number pool.
+  // NEW: only the first two XP-ranked reserves (priority ranks 23–24) receive numbers.
+  // WHY: ranks 25 onward are unlimited and must not consume or duplicate shirt numbers.
+  const numberedReserves = reserves.slice(0, SQUAD_PRIORITY_RESERVE_LIMIT);
+  const players = [...active, ...numberedReserves], numbers = new Map(), used = new Set();
+  const set = (p, n) => { if (p && n && !used.has(n) && !numbers.has(String(p.tg_id))) { numbers.set(String(p.tg_id), n); used.add(n); } };
+  const keepers = players.filter(p => p.assigned_group === "GK" || p.applied_position === "GK")
+    .sort((a,b) => (Number(a.position_rank)||99)-(Number(b.position_rank)||99));
+  if (keepers[0]) set(keepers[0], 1);
+  if (keepers[1]) set(keepers[1], 25);
+  const forwards = players.filter(p => p.applied_position === "FWD" || p.assigned_group === "FWD")
+    .sort((a,b) => (Number(a.position_rank)||99)-(Number(b.position_rank)||99) || (Number(b.xp)||0)-(Number(a.xp)||0));
+  [7,9,10,11].forEach((n,i) => { if (forwards[i]) set(forwards[i], n); });
+  const legal = new Set(Array.from({length:23},(_,i)=>i+2).filter(n=>![7,9,10,11].includes(n)));
+  for (const p of players) {
+    const old = Number(previous[String(p.tg_id)]);
+    if (!numbers.has(String(p.tg_id)) && legal.has(old) && !used.has(old)) set(p, old);
+  }
+  for (const p of players) {
+    if (numbers.has(String(p.tg_id))) continue;
+    const choices = [...legal].filter(n=>!used.has(n));
+    if (!choices.length) continue;
+    const index = Math.min(choices.length-1, Math.max(0, Math.floor(random()*choices.length)));
+    set(p, choices[index]);
+  }
+  const attach = list => list.map(p=>({...p, shirt_number:numbers.get(String(p.tg_id))||null}));
+  return {...payload, active:attach(active), reserves:[
+    ...attach(numberedReserves),
+    ...reserves.slice(SQUAD_PRIORITY_RESERVE_LIMIT).map(p=>({...p,shirt_number:null}))
+  ]};
+}
+
+// Reconcile a saved manual 4-3-3 with a refreshed roster. Keep selected players
+// who are still eligible and preserve their slots. Replace only departed players,
+// then complete the bench from remaining players. This avoids wiping tactics hourly.
+function mergeLineupWithRoster(existing, payload) {
+  const roster=[...(payload.active||[]),...(payload.reserves||[])];
+  const byName=new Map(roster.map(p=>[String(p.name||"").trim().toLowerCase(),p]));
+  const used=new Set();
+  const groupFor=slot=>slot==="GK"?"GK":["LB","CB1","CB2","RB"].includes(slot)?"DEF":
+    ["CDM","CM","CAM"].includes(slot)?"MID":"FWD";
+  // Existing bench choices are protected during replacement selection. A bench
+  // player is promoted only when no other eligible player can fill the empty slot.
+  const protectedBench=new Set((existing&&existing.bench||[]).map(p=>{
+    if(p.tg_id)return String(p.tg_id);
+    const match=byName.get(String(p.name||"").trim().toLowerCase());
+    return match?String(match.tg_id):"";
+  }).filter(Boolean));
+  const choose=(preferred,slot)=>{
+    if(preferred&&!used.has(String(preferred.tg_id))){used.add(String(preferred.tg_id));return preferred;}
+    const group=groupFor(slot), candidates=roster.filter(p=>!used.has(String(p.tg_id))&&(p.assigned_group===group||p.applied_position===group));
+    const candidate=candidates.find(p=>!protectedBench.has(String(p.tg_id)))||candidates[0];
+    if(candidate){used.add(String(candidate.tg_id));return candidate;} return null;
+  };
+  const old=new Map((existing&&existing.starters||[]).map(p=>[p.slot,p]));
+  const starters=LINEUP_SLOTS.map(slot=>{
+    const prior=old.get(slot);
+    const still=prior&&(prior.tg_id?roster.find(p=>String(p.tg_id)===String(prior.tg_id)):byName.get(String(prior.name||"").trim().toLowerCase()));
+    const p=choose(still,slot);
+    return {slot,name:p?p.name:"",number:p?p.shirt_number:null,...(p?{tg_id:String(p.tg_id)}:{})};
+  });
+  const bench=[];
+  for(const prior of (existing&&existing.bench||[])){
+    const p=prior.tg_id?roster.find(x=>String(x.tg_id)===String(prior.tg_id)):byName.get(String(prior.name||"").trim().toLowerCase());
+    if(p&&!used.has(String(p.tg_id))){used.add(String(p.tg_id));bench.push(p);}
+  }
+  for(const p of roster)if(!used.has(String(p.tg_id))&&bench.length<LINEUP_BENCH_LIMIT){used.add(String(p.tg_id));bench.push(p);}
+  return {starters,bench:bench.map(p=>({name:p.name,number:p.shirt_number,tg_id:String(p.tg_id)}))};
+}
+
+// Convert a saved admin lineup into safe input for automatic reconciliation.
+// OLD: direct normalization could reject player choices because of duplicate/stale
+// manual shirt numbers. NEW: discard only old number values (the club registry is
+// authoritative), retain valid slot/name/player-ID choices, and fill missing slots.
+// This prevents stale manual numbers from blocking an otherwise valid hourly refresh.
+function lineupForAutomaticSync(input) {
+  const source = input && typeof input === "object" ? input : {};
+  const starters = (Array.isArray(source.starters) ? source.starters : [])
+    .filter(p => p && LINEUP_SLOTS.includes(String(p.slot || "")))
+    .map(p => ({ ...p, number: null }));
+  const bench = (Array.isArray(source.bench) ? source.bench : [])
+    .slice(0, LINEUP_BENCH_LIMIT).map(p => ({ ...p, number: null }));
+  return normalizeLineup({ starters, bench });
+}
+
 // Pure: cleans admin input. Returns { starters, bench } or throws Error with .status = 400.
 function normalizeLineup(input) {
   const bad = message => Object.assign(new Error(message), { status: 400 });
@@ -183,7 +280,8 @@ function normalizeLineup(input) {
       if (!name) number = null;
       else { if (used.has(number)) throw bad("duplicate number"); used.add(number); }
     }
-    return { name, number };
+    const tgId = raw && raw.tg_id != null ? String(raw.tg_id).trim() : "";
+    return { name, number, ...(tgId ? { tg_id: tgId } : {}) };
   };
   const bySlot = new Map();
   for (const raw of input.starters) {
@@ -197,7 +295,11 @@ function normalizeLineup(input) {
   return { starters, bench };
 }
 
-// Pure: the line-up an approved snapshot (or the legacy accepted-player list) implies, used until an admin saves a manual one.
+// Pure: an approved roster -> the 4-3-3 line-up shown in the admin panel.
+// OLD: this conversion kept only player names and wrote null shirt numbers, so a
+// manager opening and re-saving the lineup could accidentally erase assigned numbers.
+// NEW: preserve each player's Telegram ID and shirt number through this conversion;
+// this makes the admin edit flow safe after automatic numbering is enabled.
 function lineupFromRoster(active = []) {
   const taken = new Map(), bench = [];
   for (const p of Array.isArray(active) ? active : []) {
@@ -205,19 +307,20 @@ function lineupFromRoster(active = []) {
     const pos = String(p.stadium_position || p.position || "");
     let slot = p.squad_role === "starter" ? (pos === "CB" ? (Number(p.position_rank) >= 3 ? "CB2" : "CB1") : pos) : "";
     if (slot === "CB1" && taken.has("CB1") && !taken.has("CB2")) slot = "CB2";
-    if (LINEUP_SLOTS.includes(slot) && !taken.has(slot)) taken.set(slot, name);
-    else if (bench.length < LINEUP_BENCH_LIMIT) bench.push({ name, number: null });
+    const player = { name, number: p.shirt_number || null, ...(p.tg_id ? { tg_id: String(p.tg_id) } : {}) };
+    if (LINEUP_SLOTS.includes(slot) && !taken.has(slot)) taken.set(slot, player);
+    else if (bench.length < LINEUP_BENCH_LIMIT) bench.push(player);
   }
-  return { starters: LINEUP_SLOTS.map(slot => ({ slot, name: taken.get(slot) || "", number: null })), bench };
+  return { starters: LINEUP_SLOTS.map(slot => ({ slot, ...(taken.get(slot) || { name: "", number: null }) })), bench };
 }
 
 // Pure: line-up -> the player rows the stadium feed serves.
 function lineupFeed(lineup) {
   const starters = lineup.starters.filter(p => p.name).map((p, i) => ({
-    id: null, kind: "player", name: p.name, number: p.number, position: lineupPosition(p.slot), applied_position: null,
+    id: p.tg_id || null, kind: "player", name: p.name, number: p.number, position: lineupPosition(p.slot), applied_position: null,
     squad_role: "starter", squad_order: i + 1, position_rank: lineupRank(p.slot), assigned_group: null, reassigned: false }));
   const bench = lineup.bench.map((p, i) => ({
-    id: null, kind: "player", name: p.name, number: p.number, position: null, applied_position: null,
+    id: p.tg_id || null, kind: "player", name: p.name, number: p.number, position: null, applied_position: null,
     squad_role: "substitute", squad_order: starters.length + i + 1, position_rank: null, assigned_group: null, reassigned: false }));
   return [...starters, ...bench];
 }
@@ -225,7 +328,7 @@ function lineupFeed(lineup) {
 // Validate the exact snapshot before it can replace the currently approved roster.
 function validateSquadSnapshot(payload) {
   if (!payload || !Array.isArray(payload.active) || !Array.isArray(payload.reserves)) return false;
-  if (payload.active.length > SQUAD_ACTIVE_LIMIT || payload.reserves.length > SQUAD_RESERVE_LIMIT) return false;
+  if (payload.active.length > SQUAD_ACTIVE_LIMIT) return false;
   if (Number(payload.active_count) !== payload.active.length || Number(payload.reserve_count) !== payload.reserves.length) return false;
   if (Number(payload.shortfall) !== Math.max(0, SQUAD_ACTIVE_LIMIT - payload.active.length)) return false;
 
@@ -313,6 +416,37 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       updated_by bigint not null,
       updated_at timestamptz not null default now()
     );
+    -- ADDED: stable shirt-number registry keyed by Telegram ID. The unique
+    -- constraint prevents duplicates; hourly sync removes departed players first.
+    create table if not exists squad_shirt_numbers (
+      tg_id bigint primary key,
+      shirt_number int not null unique check (shirt_number between 1 and 25),
+      assigned_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    );
+    -- PERMANENT DISPLAY-NAME OVERRIDES:
+    -- OLD: squad refresh rebuilt display names from application/member records.
+    -- NEW: an admin-edited name is stored by Telegram ID and is never auto-expired.
+    -- WHY: short names must survive hourly refreshes and leaving/rejoining the squad.
+    -- Shirt numbers are deliberately excluded; they remain governed by automatic rules.
+    create table if not exists squad_player_display_names (
+      tg_id bigint primary key,
+      display_name text not null check (length(trim(display_name)) between 1 and 28),
+      updated_by bigint,
+      updated_at timestamptz not null default now()
+    );
+    -- ACADEMY PROMOTION CHANGE LOG:
+    -- OLD: no durable state existed for a 100-XP Academy promotion or player onboarding.
+    -- NEW: persist each promotion through position selection, shirt-name entry and completion.
+    -- WHY: invitations must be sent once, and players must choose both details before senior entry.
+    create table if not exists academy_promotions (
+      tg_id bigint primary key,
+      status text not null check (status in ('pending_position','pending_name','completed')),
+      position text check (position in ('GK','DEF','MID','FWD')),
+      shirt_name text check (shirt_name is null or length(trim(shirt_name)) between 1 and 28),
+      invited_at timestamptz not null default now(),
+      completed_at timestamptz
+    );
   `)).then(async () => {
     for (const [i, [id, emoji, name, desc]] of DEPTS.entries())
       await db.query("insert into departments (id, emoji, name, description, sort) values ($1,$2,$3,$4,$5) on conflict (id) do nothing", [id, emoji, name, desc, i]);
@@ -328,6 +462,22 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   }
   const one = async (c, sql, a) => (await c.query(sql, a)).rows[0];
   const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
+  // Persist shirt numbers. Rows that are not an exact (tg_id, number) match of the new
+  // assignment are deleted first, so a number moving between two retained players cannot
+  // hit the unique(shirt_number) constraint mid-loop. Exact matches keep their row and assigned_at.
+  async function saveShirtNumbers(client, players) {
+    const ids = [], nums = [];
+    for (const p of players) {
+      if (!p.shirt_number) throw fail(409, "shirt number capacity exceeded");
+      ids.push(String(p.tg_id)); nums.push(p.shirt_number);
+    }
+    await client.query(`delete from squad_shirt_numbers s where not exists (
+      select 1 from unnest($1::bigint[], $2::int[]) n(tg_id, num)
+      where n.tg_id = s.tg_id and n.num = s.shirt_number)`, [ids, nums]);
+    for (let i = 0; i < ids.length; i++)
+      await client.query(`insert into squad_shirt_numbers(tg_id,shirt_number,assigned_at,updated_at)
+        values($1,$2,now(),now()) on conflict(tg_id) do nothing`, [ids[i], nums[i]]);
+  }
   async function createSquadProposal(user) {
     return tx(async client => {
       await client.query("select pg_advisory_xact_lock(7710003)");
@@ -342,6 +492,123 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       const saved = await one(client, "insert into squad_proposals (payload, created_by) values ($1::jsonb, $2) returning id, status, created_at", [JSON.stringify(proposal), String(user.id)]);
       return { ...saved, proposal };
     });
+  }
+
+  // AUTOMATIC REFRESH (new): runs the same accepted-player + live XP selection
+  // as the old admin proposal generator, but validates and approves it atomically.
+  // Advisory locking prevents concurrent cron jobs; an empty/invalid result never
+  // replaces the last known-good roster. Shirt numbers and manual lineup reconciliation
+  // happen in this same transaction, so the stadium cannot see a half-updated state.
+  // Sweep on startup/hourly refresh so all XP sources trigger the same 100-XP promotion.
+  async function notifyAcademyPromotions() {
+    await ready;
+    const candidates=(await db.query(`select m.tg_id from members m
+      where m.dept='academy' and m.xp>=100
+        and not exists(select 1 from academy_promotions ap where ap.tg_id=m.tg_id)
+      order by m.xp desc,m.tg_id`)).rows;
+    for (const p of candidates) {
+      const inserted=await db.query(`insert into academy_promotions(tg_id,status)
+        values($1,'pending_position') on conflict(tg_id) do nothing returning tg_id`,[String(p.tg_id)]);
+      if (!inserted.rowCount) continue;
+      try { await bot.api("sendMessage",{chat_id:String(p.tg_id),parse_mode:"HTML",
+        text:"🎓 <b>Yoshlar Akademiyasi — 100 XP!</b>\\n\\nSiz endi asosiy jamoaning 24 kishilik ustuvor tarkibiga kirish uchun kurashishingiz mumkin. Avval futbol pozitsiyangizni tanlang:",
+        reply_markup:{inline_keyboard:[
+          [{text:"🧤 GK — Darvozabon",callback_data:"academy:pos:GK"}],
+          [{text:"🛡 DEF — Himoyachi",callback_data:"academy:pos:DEF"}],
+          [{text:"🎯 MID — Yarim himoyachi",callback_data:"academy:pos:MID"}],
+          [{text:"⚡ FWD — Hujumchi",callback_data:"academy:pos:FWD"}]
+        ]}}); } catch(e) { console.error("academy promotion message",e.message); }
+    }
+  }
+  async function setAcademyPromotionPosition(tgId,position) {
+    if (!SQUAD_GROUPS[position]) throw fail(400,"position");
+    const r=await db.query(`update academy_promotions ap set position=$2,status='pending_name'
+      from members m where ap.tg_id=$1 and m.tg_id=ap.tg_id and m.xp>=100
+      and ap.status in ('pending_position','pending_name') returning ap.tg_id`,[String(tgId),position]);
+    if (!r.rowCount) throw fail(409,"promotion not pending");
+  }
+  async function completeAcademyPromotion(tgId,shirtName) {
+    const name=String(shirtName||"").replace(/\s+/g," ").trim();
+    if (!name || name.length>28) throw fail(400,"shirt name must be 1–28 characters");
+    return tx(async client=>{
+      const p=await one(client,`select ap.position,ap.status,m.nick,m.xp from academy_promotions ap
+        join members m on m.tg_id=ap.tg_id where ap.tg_id=$1 for update of ap,m`,[String(tgId)]);
+      if (!p || p.status!=="pending_name" || !p.position || Number(p.xp)<100) throw fail(409,"promotion not ready");
+      const existing=await one(client,`select id from applications where tg_id=$1 and kind='player' order by id desc limit 1 for update`,[String(tgId)]);
+      if(existing) await client.query(`update applications set status='accepted',position=$2,name=$3,role=$3,dept='academy',decided_at=now(),decided_by=0 where id=$1`,[existing.id,p.position,name]);
+      else await client.query(`insert into applications(tg_id,nick,role,kind,name,position,dept,status,decided_at,decided_by)
+        values($1,$2,$3,'player',$3,$4,'academy','accepted',now(),0)`,[String(tgId),p.nick,name,p.position]);
+      await client.query(`insert into squad_player_display_names(tg_id,display_name,updated_by,updated_at)
+        values($1,$2,0,now()) on conflict(tg_id) do update set display_name=excluded.display_name,updated_by=0,updated_at=now()`,[String(tgId),name]);
+      await client.query(`update academy_promotions set shirt_name=$2,status='completed',completed_at=now() where tg_id=$1`,[String(tgId),name]);
+      return {position:p.position,name};
+    });
+  }
+  async function getAcademyPromotion(tgId) {
+    await ready;
+    return (await db.query("select status from academy_promotions where tg_id=$1",[String(tgId)])).rows[0]||null;
+  }
+
+  async function refreshSquadAutomatically() {
+    // Every scheduled refresh also checks the 100-XP threshold, regardless of which XP source awarded it.
+    await notifyAcademyPromotions();
+    return tx(async client => {
+      await client.query("select pg_advisory_xact_lock(7710003)");
+      // OLD: refresh always selected the latest application/member name.
+      // NEW: overlay the permanent admin display name by Telegram ID before roster creation.
+      // WHY: a later application update must not restore the player's original long name.
+      const rows=(await client.query(`select distinct on (a.tg_id)
+          a.id as application_id,a.tg_id,
+          coalesce(nullif(trim(d.display_name),''),nullif(a.name,''),m.nick,a.nick) as name,
+          a.position as applied_position,m.xp,a.created_at,a.decided_at
+        from applications a join members m on m.tg_id=a.tg_id
+        left join squad_player_display_names d on d.tg_id=a.tg_id
+        where a.kind='player' and a.status='accepted' and a.position=any($1::text[])
+          and (coalesce(m.dept,'') <> 'academy' or exists (
+            select 1 from academy_promotions ap where ap.tg_id=a.tg_id and ap.status='completed'))
+        order by a.tg_id,a.decided_at desc nulls last,a.id desc`,[SQUAD_APPLIED_POSITIONS])).rows;
+      const raw=buildSquadProposal(rows);
+      if(!raw.active_count||!validateSquadSnapshot(raw))return {ok:false,skipped:true,reason:"no_valid_players"};
+      const oldRows=(await client.query("select tg_id,shirt_number from squad_shirt_numbers")).rows;
+      const previous=Object.fromEntries(oldRows.map(x=>[String(x.tg_id),Number(x.shirt_number)]));
+      const proposal=assignSquadNumbers(raw,previous);
+      // OLD: persist shirt numbers for every reserve, which fails once the queue is unlimited.
+      // NEW: persist only active 22 plus the first two priority reserves.
+      // WHY: later reserve ranks remain eligible but are intentionally unnumbered until promotion.
+      await saveShirtNumbers(client,[...proposal.active,...proposal.reserves.slice(0,SQUAD_PRIORITY_RESERVE_LIMIT)]);
+      const saved=await one(client,`insert into squad_proposals(status,payload,created_by,decided_by,decided_at)
+        values('approved',$1::jsonb,0,0,now()) returning id`,[JSON.stringify(proposal)]);
+      await client.query(`insert into squad_approved_roster(id,proposal_id,payload,approved_by,approved_at)
+        values(1,$1,$2::jsonb,0,now()) on conflict(id) do update set proposal_id=excluded.proposal_id,
+        payload=excluded.payload,approved_by=excluded.approved_by,approved_at=excluded.approved_at`,
+        [saved.id,JSON.stringify(proposal)]);
+      await client.query("update squad_proposals set status='rejected',decided_by=0,decided_at=now() where status='pending'");
+      const manual=await one(client,"select payload from squad_lineup where id=1 for update");
+      if(manual){
+        const old=typeof manual.payload==="string"?JSON.parse(manual.payload):manual.payload;
+        const merged=mergeLineupWithRoster(lineupForAutomaticSync(old),proposal);
+        await client.query("update squad_lineup set payload=$1::jsonb,updated_by=0,updated_at=now() where id=1",[JSON.stringify(merged)]);
+      }
+      return {ok:true,proposal_id:Number(saved.id),active_count:proposal.active_count,reserve_count:proposal.reserve_count};
+    });
+  }
+
+  async function getCurrentSquad() {
+    await ready;
+    let row=await one(db,"select payload,approved_at from squad_approved_roster where id=1");
+    if(!row){const result=await refreshSquadAutomatically();if(!result.ok)return null;row=await one(db,"select payload,approved_at from squad_approved_roster where id=1");}
+    let payload=typeof row.payload==="string"?JSON.parse(row.payload):row.payload;
+    // Backfill older approved snapshots created before shirt numbers existed. Without
+    // this check, /squad could show a blank number until the next scheduled hourly run.
+    if((payload.active||[]).some(p=>!p.shirt_number)){
+      const result=await refreshSquadAutomatically();
+      if(result.ok){
+        row=await one(db,"select payload,approved_at from squad_approved_roster where id=1");
+        payload=typeof row.payload==="string"?JSON.parse(row.payload):row.payload;
+      }
+    }
+    // Public /squad shows at most SQUAD_RESERVE_LIMIT reserves; the full queue stays stored.
+    return {...payload,reserves:(payload.reserves||[]).slice(0,SQUAD_RESERVE_LIMIT),updated_at:row.approved_at};
   }
 
   async function getSquadStatus() {
@@ -363,10 +630,24 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       if (action === "approve") {
         const payload = typeof proposal.payload === "string" ? JSON.parse(proposal.payload) : proposal.payload;
         if (!validateSquadSnapshot(payload)) throw fail(409, "invalid proposal snapshot");
+        // Keep the legacy manual-approval button compatible with automatic numbering:
+        // OLD: approving a proposal replaced the roster without assigning shirt numbers.
+        // NEW: every approved snapshot passes through the same persistent number policy,
+        // and a saved stadium lineup is reconciled before the transaction commits.
+        const oldNumbers = (await client.query("select tg_id, shirt_number from squad_shirt_numbers")).rows;
+        const previous = Object.fromEntries(oldNumbers.map(x => [String(x.tg_id), Number(x.shirt_number)]));
+        const numbered = assignSquadNumbers(payload, previous);
+        await saveShirtNumbers(client, [...numbered.active, ...numbered.reserves.slice(0, SQUAD_PRIORITY_RESERVE_LIMIT)]);
+        const manual = await one(client, "select payload from squad_lineup where id = 1 for update");
+        if (manual) {
+          const oldLineup = typeof manual.payload === "string" ? JSON.parse(manual.payload) : manual.payload;
+          const merged = mergeLineupWithRoster(lineupForAutomaticSync(oldLineup), numbered);
+          await client.query("update squad_lineup set payload = $1::jsonb, updated_by = 0, updated_at = now() where id = 1", [JSON.stringify(merged)]);
+        }
         await client.query(`insert into squad_approved_roster (id, proposal_id, payload, approved_by, approved_at)
           values (1, $1, $2::jsonb, $3, now())
           on conflict (id) do update set proposal_id = excluded.proposal_id, payload = excluded.payload, approved_by = excluded.approved_by, approved_at = excluded.approved_at`,
-          [id, JSON.stringify(payload), String(user.id)]);
+          [id, JSON.stringify(numbered), String(user.id)]);
         await client.query("update squad_proposals set status = 'rejected', decided_by = $2, decided_at = now() where status = 'pending' and id <> $1", [id, String(user.id)]);
       }
       await client.query("update squad_proposals set status = $2, decided_by = $3, decided_at = now() where id = $1", [id, action === "approve" ? "approved" : "rejected", String(user.id)]);
@@ -713,8 +994,11 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     // tell the applicant in Telegram (after commit; a failed message never blocks the decision)
     if (a.tg_id) {
       const what = a.kind === "player" ? "futbolchi" : a.kind === "staff" ? "klub xodimi" : (a.role || "ish");
+      const academyAccepted = status === "accepted" && (bodyDept || a.dept) === "academy";
       const text = status === "accepted"
-        ? `✅ <b>Tabriklaymiz!</b> Zamin FK ga ${what} sifatida qabul qilindingiz.` + (a.kind === "player" ? "\n⚽ Endi siz jamoa tarkibidasiz — stadionda mashg‘ulotda ko‘rinasiz!" : "") + (body.note ? "\n\n" + String(body.note).slice(0, 200) : "")
+        ? academyAccepted
+          ? "🎓 <b>Tabriklaymiz!</b> Siz ZAMIN FK Yoshlar Akademiyasiga qabul qilindingiz.\\n\\n⭐ 100 XP ga yetganingizdan so‘ng asosiy jamoaning 24 kishilik ustuvor tarkibi uchun kurashish imkoniyatiga ega bo‘lasiz. Bot sizga pozitsiya va futbolka ismini tanlash xabarini avtomatik yuboradi." + (body.note ? "\\n\\n" + String(body.note).slice(0, 200) : "")
+          : `✅ <b>Tabriklaymiz!</b> Zamin FK ga ${what} sifatida qabul qilindingiz.` + (a.kind === "player" ? "\n⚽ Endi siz jamoa tarkibidasiz — stadionda mashg‘ulotda ko‘rinasiz!" : "") + (body.note ? "\n\n" + String(body.note).slice(0, 200) : "")
         : `ℹ️ Arizangiz ko‘rib chiqildi: bu safar qabul qilinmadi.` + (body.note ? "\n" + String(body.note).slice(0, 200) : "") + "\nKeyingi imkoniyatlarni kuzatib boring!";
       setTimeout(() => bot.api("sendMessage", { chat_id: String(a.tg_id), text, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)), 0);
     }
@@ -881,7 +1165,28 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   route("/api/admin/squad/lineup", async () => getLineup(), true);
   route("/api/admin/squad/lineup/save", async (user, body) => {
     await ready;
-    const lineup = normalizeLineup(body);
+    const requested = normalizeLineup(body);
+    // PERMANENT NAME SAVE:
+    // OLD: shortened names were kept only in the current lineup/roster JSON and got lost
+    //      when hourly refresh rebuilt the roster from application records.
+    // NEW: every named player explicitly saved by the admin is upserted by Telegram ID.
+    // WHY: manual display-name edits are permanent; the registry is never pruned on exit.
+    // Shirt numbers are not saved here, so the automatic reserved-number policy stays intact.
+    for (const player of [...requested.starters, ...requested.bench]) {
+      if (player.tg_id && player.name) {
+        await db.query(`insert into squad_player_display_names(tg_id,display_name,updated_by,updated_at)
+          values($1,$2,$3,now()) on conflict(tg_id) do update
+          set display_name=excluded.display_name,updated_by=excluded.updated_by,updated_at=now()`,
+          [String(player.tg_id),player.name,String(user.id)]);
+      }
+    }
+    // OLD: admin saves wrote whatever shirt numbers came from the Mini App directly.
+    // NEW: when an official roster exists, preserve the manager's selected players and
+    // formation but reattach the club-assigned numbers from the approved snapshot. This
+    // stops a manual save from accidentally undoing #1/#25 and the reserved forward IDs.
+    const approved = await one(db, "select payload from squad_approved_roster where id = 1");
+    const snapshot = approved ? parseJson(approved.payload) : null;
+    const lineup = snapshot ? mergeLineupWithRoster(requested, snapshot) : requested;
     await db.query(`insert into squad_lineup (id, payload, updated_by, updated_at) values (1, $1::jsonb, $2, now())
       on conflict (id) do update set payload = excluded.payload, updated_by = excluded.updated_by, updated_at = now()`, [JSON.stringify(lineup), String(user.id)]);
     return getLineup();
@@ -894,6 +1199,18 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   route("/api/admin/squad/decide", async (user, body) => decideSquadProposal(user, body), true);
   // Public stadium feed: approved snapshot controls players; city workers and staff remain live.
   // Before the first approval, keep the legacy accepted-player feed so the pitch does not go empty.
+  // GitHub Actions calls this authenticated endpoint hourly. CRON_SECRET must be set
+  // identically in Render and GitHub repository Actions secrets; no user/admin auth is reused.
+  app.post("/api/internal/squad/refresh", async (req,res)=>{
+    const expected=String(process.env.CRON_SECRET||"");
+    const supplied=String(req.get("authorization")||"").replace(/^Bearer\\s+/i,"");
+    if(!expected)return res.status(503).json({error:"cron_not_configured"});
+    const a=Buffer.from(supplied),b=Buffer.from(expected);
+    if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return res.status(401).json({error:"unauthorized"});
+    try{return res.json(await refreshSquadAutomatically());}
+    catch(e){console.error("automatic squad refresh",e);return res.status(500).json({error:"refresh_failed"});}
+  });
+
   app.get("/api/squad", async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
     try {
@@ -901,13 +1218,15 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       const manual = await one(db, "select payload from squad_lineup where id = 1");
       const approved = manual ? null : await one(db, "select payload from squad_approved_roster where id = 1");
       let players;
-      if (manual) players = lineupFeed(normalizeLineup(parseJson(manual.payload)));
+      if (manual) players = lineupFeed(normalizeLineup(parseJson(manual.payload))).map(p => ({ ...p, tg_id: p.id ? String(p.id) : null }));
       else if (approved) {
         const payload = typeof approved.payload === "string" ? JSON.parse(approved.payload) : approved.payload;
-        players = (Array.isArray(payload && payload.active) ? payload.active : []).map(p => ({
-          id: p.application_id || null,
+        // the 24 playing players: 22 active + the 2 priority reserves (used by the stadium to keep them off the fan seats)
+        players = [...(Array.isArray(payload && payload.active) ? payload.active : []), ...(Array.isArray(payload && payload.reserves) ? payload.reserves.slice(0, 2) : [])].map(p => ({
+          id: p.application_id || null, tg_id: p.tg_id ? String(p.tg_id) : null,
           kind: "player",
           name: String(p.name || "Player"),
+          number: p.shirt_number || null,
           position: p.stadium_position || null,
           applied_position: p.applied_position || null,
           squad_role: p.squad_role || null,
@@ -935,7 +1254,17 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
   });
 
   bot.setStartHook((user, payload) => payload.startsWith("ref_") ? registerReferral(user, payload.slice(4)) : null);
-  return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId, createSquadProposal, getSquadStatus, decideSquadProposal };
+  // Startup backfill: the first deployment of this feature should not wait up to an
+  // hour for GitHub Actions. Run once after the DB schema is ready; later updates are
+  // driven by the authenticated hourly workflow. Failure is logged and leaves the
+  // last approved roster intact.
+  ready.then(() => refreshSquadAutomatically()).then(result => {
+    if (result && result.ok) console.log("initial squad sync", result);
+  }).catch(e => console.error("initial squad sync", e.message));
+  return { ensureMember, summary, registerReferral, decideApp, isAdmin, tierOf, ready, DEPTS, TIERS, supporterId,
+    createSquadProposal, getSquadStatus, decideSquadProposal, refreshSquadAutomatically, getCurrentSquad,
+    notifyAcademyPromotions, setAcademyPromotionPosition, completeAcademyPromotion, getAcademyPromotion };
 }
 
-module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, validateSquadSnapshot, SQUAD_GROUPS, normalizeLineup, lineupFromRoster, lineupFeed, LINEUP_SLOTS };
+module.exports = { init, tierOf, TIERS, supporterId, weekStart, tashkentDay, buildSquadProposal, validateSquadSnapshot,
+  assignSquadNumbers, mergeLineupWithRoster, SQUAD_GROUPS, normalizeLineup, lineupFromRoster, lineupFeed, LINEUP_SLOTS };

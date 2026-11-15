@@ -98,6 +98,56 @@ function init({ db, bot, club, led }) {
     const c = await cardFor(user);
     return apiFile("sendPhoto", { chat_id: chatId, caption: c.caption, parse_mode: "HTML", reply_markup: cardKb }, "photo", c.png);
   }
+  // /yordam: detailed guide, answers the questions players ask most.
+  const HELP_TEXT = [
+    "📖 <b>ZAMIN FK — yo‘riqnoma</b>",
+    "",
+    "<b>1. Stadion o‘rindig‘i</b>",
+    "Ilovada «Stadion»ni oching va Instagram nikingizni bog‘lang — o‘rindiq raqamingiz beriladi.",
+    "",
+    "<b>2. Asosiy 22 talik</b>",
+    "Tarkib XP bo‘yicha tuziladi: XP qancha ko‘p bo‘lsa, asosiy 22 taliga tushish ehtimoli shuncha yuqori. Qolganlar zaxirada (ko‘pi bilan 12 tasi /squad da ko‘rinadi).",
+    "",
+    "<b>3. XP qanday olinadi?</b>",
+    "Ilovada ishlash, missiyalar, hissalar va do‘st taklif qilish orqali.",
+    "",
+    "<b>4. Uy, ish va bozor</b>",
+    "🏠 Ilovada uy oling va 7 darajagacha yaxshilang.",
+    "🪙 Ishlar: Kofexona, Taksi, Novvoy, Quruvchi. Mijozlarga to‘g‘ri buyurtma bering, tanga oling. Kuniga jami 3 smena.",
+    "🎁 Kunlik bonus: har kuni bosing — seriya oshgani sari ko‘proq tanga.",
+    "🛒 Bozor: mashina sotib oling, u uyingiz oldida turadi.",
+    "",
+    "<b>5. Buyruqlar</b>",
+    "/start — bosh menyu",
+    "/reyting — XP reytingi va o‘rningiz",
+    "/squad — joriy tarkib",
+    "/feedback — taklif yoki muammo",
+    "/yordam — shu yo‘riqnoma",
+  ].join("\n");
+
+  // /squad (new): before this change the bot had player/VIP cards only. This
+  // command reads the latest approved squad snapshot and renders the shared poster
+  // template in cards.js; names and shirt numbers are live data, not baked into an image.
+  // If no approved snapshot exists yet, club.getCurrentSquad performs one safe initial
+  // refresh. If rendering/data is unavailable, the command sends a clear text fallback.
+  async function sendSquad(chatId) {
+    try {
+      const squad = await club.getCurrentSquad();
+      if (!squad || !Array.isArray(squad.active) || !squad.active.length)
+        return api("sendMessage", { chat_id: chatId, text: "⚽ Hozircha tasdiqlangan tarkib mavjud emas." });
+      if (!cards.ok() || !cards.squadPng)
+        return api("sendMessage", { chat_id: chatId, text: "⚽ Tarkib mavjud, lekin poster renderer hozircha ishlamayapti." });
+      const png = cards.squadPng(squad);
+      const starters = squad.active.filter(p => p.squad_role === "starter").length;
+      const bench = squad.active.length - starters;
+      const caption = `⚽ <b>Today's Squad — ZAMIN FK</b>\n🟢 Starting XI: <b>${starters}</b> · 🪑 Bench: <b>${bench}</b> · 🛟 Reserves: <b>${(squad.reserves || []).length}</b>\n\nShirt numbers stay stable between hourly updates.`;
+      return apiFile("sendPhoto", { chat_id: chatId, caption, parse_mode: "HTML" }, "photo", png);
+    } catch (e) {
+      console.error("send squad poster", e);
+      return api("sendMessage", { chat_id: chatId, text: "⚠️ Tarkib rasmini tayyorlashda xatolik yuz berdi. Keyinroq qayta urinib ko‘ring." });
+    }
+  }
+
   async function refreshCard(cb) {
     const c = await cardFor(cb.from);
     await apiFile("editMessageMedia", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, reply_markup: cardKb,
@@ -179,7 +229,7 @@ function init({ db, bot, club, led }) {
   async function generateAndShowSquad(chat, user) {
     const saved = await club.createSquadProposal(user);
     const p = saved.proposal;
-    const header = "⚽ <b>Squad proposal #" + saved.id + "</b>\n" + p.active_count + "/22 active · " + p.reserve_count + "/2 reserves · " + p.eligible_count + " eligible\n\n";
+    const header = "⚽ <b>Squad proposal #" + saved.id + "</b>\n" + p.active_count + "/22 active · " + p.reserve_count + " reserves · " + p.eligible_count + " eligible\n\n";
     const groups = [
       ["🟢 <b>STARTING XI</b>", p.active.filter(x => x.squad_role === "starter")],
       ["🪑 <b>SUBSTITUTES</b>", p.active.filter(x => x.squad_role === "substitute")],
@@ -209,7 +259,7 @@ function init({ db, bot, club, led }) {
     else lines.push("\n📝 Pending proposal: yo‘q");
     if (status.approved) {
       const payload = typeof status.approved.payload === "string" ? JSON.parse(status.approved.payload) : status.approved.payload;
-      lines.push("\n✅ Approved: <b>#" + status.approved.proposal_id + "</b> · " + payload.active_count + "/22 active · " + payload.reserve_count + "/2 reserves\nTasdiqlangan vaqt: " + status.approved.approved_at);
+      lines.push("\n✅ Approved: <b>#" + status.approved.proposal_id + "</b> · " + payload.active_count + "/22 active · " + payload.reserve_count + " reserves\nTasdiqlangan vaqt: " + status.approved.approved_at);
     } else lines.push("\n✅ Approved roster: hali yo‘q");
     return api("sendMessage", { chat_id: chat, parse_mode: "HTML", text: lines.join("\n"),
       reply_markup: { inline_keyboard: [[{ text: "🔄 Yangilash", callback_data: "adm:squad:status" }, { text: "⬅️ Tarkib paneli", callback_data: "adm:squad" }]] } });
@@ -347,7 +397,21 @@ function init({ db, bot, club, led }) {
     const msg = update && update.message, cb = update && update.callback_query;
     if (msg && msg.from && msg.chat && msg.chat.type === "private") {
       const t = String(msg.text || "").trim();
+      if (t && !t.startsWith("/")) return async () => {
+        const state=await club.getAcademyPromotion(msg.from.id).catch(()=>null);
+        if(state && state.status==="pending_name"){
+          try {
+            const saved=await club.completeAcademyPromotion(msg.from.id,t);
+            await api("sendMessage",{chat_id:msg.chat.id,parse_mode:"HTML",
+              text:`✅ <b>Ma’lumotlaringiz saqlandi!</b>\\nPozitsiya: <b>${esc(saved.position)}</b>\\nFutbolka nomi: <b>${esc(saved.name)}</b>\\n\\nSiz senior XP reytingiga kiritildingiz. 22 ta aktiv joydan tashqaridagi futbolchilar cheksiz zaxira ro‘yxatida XP bo‘yicha saralanadi.`});
+            await club.refreshSquadAutomatically();
+          } catch(e) { await api("sendMessage",{chat_id:msg.chat.id,text:"Futbolka ismini 1–28 belgi bilan yuboring."}); }
+          return;
+        }
+      };
+      if (/^\/squad(@\w+)?$/i.test(t)) return () => sendSquad(msg.chat.id);
       if (/^\/(karta|card)(@\w+)?$/i.test(t)) return () => sendCard(msg.chat.id, msg.from);
+      if (/^\/yordam(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: HELP_TEXT });
       if (/^\/(reyting|top)(@\w+)?$/i.test(t)) return async () => api("sendMessage", { chat_id: msg.chat.id, parse_mode: "HTML", text: await topText(msg.from) });
       if (/^\/xabar(@\w+)?\s+[\s\S]{10,}$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
@@ -379,6 +443,12 @@ function init({ db, bot, club, led }) {
       return async () => {
         let answered = false;
         try {
+          if (/^academy:pos:(GK|DEF|MID|FWD)$/.test(data)) {
+            await api("answerCallbackQuery",{callback_query_id:cb.id});answered=true;
+            await club.setAcademyPromotionPosition(cb.from.id,data.split(":")[2]);
+            return api("sendMessage",{chat_id:cb.message.chat.id,parse_mode:"HTML",
+              text:"✍️ <b>Futbolka ustida ko‘rinadigan ismingizni yuboring.</b>\\n1–28 belgi. Ism yoki qisqa futbolchi nomini kiriting."});
+          }
           if (data === "card:re" || data === "card:new") {
             await api("answerCallbackQuery", { callback_query_id: cb.id, text: data === "card:re" ? "Yangilanmoqda…" : "" }); answered = true;
             return data === "card:re" ? await refreshCard(cb) : await sendCard(cb.message.chat.id, cb.from);

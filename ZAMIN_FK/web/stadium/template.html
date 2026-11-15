@@ -33,12 +33,12 @@
   #rule { left:50%; transform:translateX(-50%); bottom:86px; background:var(--yel); color:var(--navy); font-weight:900; font-size:14px; padding:8px 14px; border-radius:14px; white-space:nowrap; }
   #toast { left:50%; transform:translateX(-50%); top:120px; padding:12px 18px; font-weight:700; font-size:15px; text-align:center; display:none; max-width:90vw; }
   #labels { position:fixed; inset:0; pointer-events:none; z-index:3; overflow:hidden; }
-  .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.95); color:var(--navy); font-weight:900; font-size:10px; padding:3px 7px; border-radius:10px; white-space:nowrap; box-shadow:0 3px 10px rgba(0,0,0,.3); }
-  .tag::before { content:"•"; color:var(--blue); margin-right:4px; }
-  .tag.me { background:var(--yel); font-size:10px; padding:3px 7px; border:2px solid var(--navy); }
-  .tag.hero { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:10px; padding:3px 7px; }
+  .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.96); color:var(--navy); font-weight:700; font-size:11px; letter-spacing:.2px; padding:3px 9px; border-radius:999px; border:1px solid rgba(13,37,87,.14); white-space:nowrap; box-shadow:0 2px 6px rgba(13,37,87,.22); }
+  .tag::before { content:""; display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--blue); margin-right:6px; vertical-align:middle; }
+  .tag.me { background:var(--yel); font-weight:900; font-size:11px; padding:3px 9px; border:1px solid var(--navy); }
+  .tag.hero { background:var(--navy); color:#fff; border:1px solid var(--yel); font-weight:900; font-size:11px; padding:3px 9px; }
   .tag.hero::before { content:"★"; color:var(--yel); }
-  .tag.squad { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:8px; font-weight:900; padding:2px 5px; border-radius:8px; box-shadow:0 2px 7px rgba(0,0,0,.28); }
+  .tag.squad { background:var(--navy); color:#fff; border:1px solid var(--yel); font-size:10px; font-weight:900; padding:2px 7px; box-shadow:0 2px 6px rgba(13,37,87,.3); }
   .tag.squad::before { content:"★"; color:var(--yel); margin-right:3px; }
   #card { left:50%; bottom:130px; z-index:6; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; }
   #card h3 { margin:0 0 4px; font-weight:900; font-size:20px; color:var(--yel); }
@@ -102,7 +102,7 @@
   .bn .n { flex:none; min-width:30px; background:var(--yel); color:var(--navy); font-weight:900; font-size:13px; border-radius:6px; padding:3px 4px; text-align:center; } .bn .nm { font-weight:700; font-size:13px; overflow-wrap:anywhere; }
   .bn.sel { background:rgba(255,210,63,.22); outline:2px solid var(--yel); }
   .luact { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; } .luact .btn { flex:1; }
-  .tag.hq { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:10px; padding:3px 7px; } .tag.hq::before { content:""; margin:0; }
+  .tag.hq { background:var(--navy); color:#fff; border:1px solid var(--yel); font-weight:900; font-size:11px; padding:3px 9px; } .tag.hq::before { content:""; margin:0; }
   #jpath button, #jkind button { flex:1; font:inherit; font-weight:900; font-size:14px; color:#fff; background:rgba(255,255,255,.1); border:3px solid transparent; border-radius:14px; padding:12px 6px; }
   #jpath button.on, #jkind button.on { border-color:var(--yel); }
   #sJob input { width:100%; font:inherit; font-weight:700; font-size:15px; color:#fff; background:rgba(0,0,0,.25); border:2px solid rgba(255,255,255,.25); border-radius:14px; padding:12px; margin-bottom:10px; outline:none; }
@@ -166,13 +166,13 @@
   .go.alt3 { background:var(--blue); color:#fff; }
   #lvls { display:flex; gap:4px; margin:0 0 14px; } #lvls i { flex:1; height:10px; border-radius:5px; background:rgba(255,255,255,.15); } #lvls i.on { background:var(--yel); }
   .go { width:100%; font:inherit; font-weight:900; font-size:18px; color:var(--navy); background:var(--yel); border:0; border-radius:16px; padding:14px; }
-  .tag.home::before { content:"🏠"; margin-right:4px; }
-  .tag.res { background:#fff; border:2px solid var(--blue); } .tag.res::before { content:"🚶"; margin-right:4px; } .tag.res.car::before { content:"🚗"; }
+  .tag.home { font-weight:700; }
+  .tag.res { background:#fff; border:1px solid var(--blue); }
   .tag.res.me { background:var(--yel); border-color:var(--navy); font-size:14px; }
   .tag.lot { background:rgba(13,37,87,.85); color:#cfdcff; font-size:11px; }
   .tag.lot::before { content:""; margin:0; }
-  .tag.big { background:var(--navy); color:#fff; border:2px solid var(--yel); font-size:14px; padding:6px 12px; }
-  .tag.big::before { content:"🏟"; margin-right:6px; }
+  .tag.big { background:var(--navy); color:#fff; border:2px solid var(--yel); font-weight:900; font-size:14px; padding:6px 14px; border-radius:999px; box-shadow:0 4px 12px rgba(13,37,87,.35); }
+  .tag.big::before { display:none; }
   .mrow { display:flex; gap:8px; overflow-x:auto; padding:6px 2px 10px; -webkit-overflow-scrolling:touch; }
   .mdl { flex:none; width:76px; height:64px; border-radius:12px; border:3px solid transparent; background:#fff center/contain no-repeat; font:inherit; font-weight:900; font-size:12px; color:#0D2557; }
   .mdl.on { border-color:#FFD23F; box-shadow:0 0 0 2px #0D2557; }
@@ -287,12 +287,18 @@ async function getState(ms) {
 }
 const norm = s => String(s || "").trim().toLowerCase().replace(/^@/, "");
 // real town from OpenStreetMap; ?map=0 (or a missing file) falls back to the generated town
-const MAP_FILE = __MAP__;
+const MAP_FILE = __MAP__ + "?v=2";   // cache-bust: phones keep the old map for up to a day
 async function getMap() {
   if (!MAP_FILE || new URLSearchParams(location.search).get("map") === "0") return null;
   try { const r = await fetch(MAP_FILE); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
-const [STATE0, MAP] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap()]);
+async function getSquad(ms) {
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+  try { const r = await fetch(API + "/api/squad", { cache: "no-store", signal: ctl.signal }); return r.ok ? await r.json() : null; } catch (e) { return null; } finally { clearTimeout(t); }
+}
+const [STATE0, MAP, SQUAD0] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap(), getSquad(2500)]);
+// the 24 players on the squad are on the pitch / bench, never in the fan seats (matched by Telegram id, so no duplicates)
+const PLAYING = new Set((Array.isArray(SQUAD0) ? SQUAD0 : []).filter(p => p && p.kind === "player" && p.tg_id).map(p => String(p.tg_id)));
 let STATE = STATE0 || { seats: [], homes: [], miniapp: "" };
 const FAN_META = new Map();       // nick -> { tg: telegram username or null }
 // Club members sit in the Supporters' Stand (main-stand straight). Their seat number comes from the server and never moves.
@@ -300,6 +306,7 @@ const STAND_W = 160;
 const CENTER_OUT = Array.from({ length: STAND_W }, (_, j) => j).sort((p, q) => Math.abs(p - 79.5) - Math.abs(q - 79.5) || p - q);
 const MEMBERS = [], memberNicks = new Set(), extraFans = [];
 for (const s of STATE.seats || []) {
+  if (PLAYING.has(String(s.tg_id))) continue;     // playing squad members do not take a fan seat
   const ig = norm(s.instagram), nick = ig || norm(s.nick);
   if (!nick) continue;
   FAN_META.set(nick, { tg: s.tg_username || null, ig: !!ig, member: s.seat_no > 0 });
@@ -358,10 +365,11 @@ const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.c
 const memberIdx = MEMBERS.map(m => standIdx.get(m.ring + ":" + m.j)), takenIdx = new Set(memberIdx);
 const seatByNo = no => { const k = no - 1, i = standIdx.get(Math.floor(k / STAND_W) + ":" + CENTER_OUT[k % STAND_W]); return i == null ? null : seats[i]; };
 let free = seats.map((_, i) => i).filter(i => !takenIdx.has(i)).sort((i, j) => seats[i].cost - seats[j].cost), restIdx;
-if (IG_REST.length <= 300) {            // small crowd: random seat per nick on the two long sides, so fans are easy to see
-  const pool = free.filter(i => { const st = seats[i]; return Math.abs(st.nz) > 0.99 && st.ring < 14; }), used = new Set();
-  restIdx = IG_REST.map(nick => { let k = hash(nick) % pool.length; while (used.has(k)) k = (k + 7) % pool.length; used.add(k); return pool[k]; });
-} else restIdx = free.slice(0, IG_REST.length);
+const seeded = seed => () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+{                                        // each nick gets a random free seat anywhere in the stadium (seeded, so it is stable on reload)
+  const pool = free.slice(), used = new Set();
+  restIdx = IG_REST.map(nick => { const R = seeded(hash(nick)); let k = Math.floor(R() * pool.length); while (used.has(k) && used.size < pool.length) k = (k + 1) % pool.length; used.add(k); return pool[k]; });
+}
 const restSet = new Set(restIdx);
 const order = [...memberIdx, ...restIdx, ...free.filter(i => !restSet.has(i))];   // first FANS.length entries = occupied seats in FANS order
 const SECTORS = "ABCDEFGHIJKLMNOP";
@@ -733,6 +741,18 @@ const PRISM = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.5, 0); sh.line
   const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); g.translate(0, 0, -0.5); return g; })();
 // ---------- REAL TOWN from OpenStreetMap (web/stadium/map/*.json, built by tools/map/osm_to_map.py) ----------
 let MAP_LABELS = [];
+// stadium site (footprint + margin): no street lamps or cars inside it
+function inStadiumZone(x, z) { return Math.abs(x) < OUT_A + 8 && Math.abs(z) < OUT_B + 8; }
+function clipOutsideStadium(ps) {           // split a polyline into runs that stay outside the stadium zone
+  const runs = []; let cur = [];
+  const hits = (a, b) => { for (let t = 0; t <= 1; t += .05) if (inStadiumZone(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)) return true; return false; };
+  for (const p of ps) {
+    if (inStadiumZone(p[0], p[1]) || (cur.length && hits(cur[cur.length - 1], p))) { if (cur.length > 1) runs.push(cur); cur = inStadiumZone(p[0], p[1]) ? [] : [p]; continue; }
+    cur.push(p);
+  }
+  if (cur.length > 1) runs.push(cur);
+  return runs;
+}
 function buildRealTown(map) {
   const CLR = (x, z) => Math.abs(x) < OUT_A + 48 && Math.abs(z) < OUT_B + 42;   // stadium + club district
   const pts = f => { const o = []; for (let i = 0; i < f.length; i += 2) o.push([f[i], f[i + 1]]); return o; };
@@ -800,7 +820,7 @@ function buildRealTown(map) {
           for (const sd of [-1, 1]) { const px = x - uz * off * sd, pz = z + ux * off * sd; if (CLR(px, pz)) continue;
             if (rr() < .55) { const h = 10 + rr() * 6; pop.push([px, h / 2 + 1.4, pz, 1.7, h, 1.7]); trunk.push([px, 1, pz, .3, 2, .3]); }
             else { const k = 1.6 + rr() * .9; round.push([px, 2.4 + k, pz, k * 1.5, k * 1.35, k * 1.5, rr() * 6]); rtrunk.push([px, 1.3, pz, .35, 2.6, .35]); } }
-          if ((s | 0) % 36 < 9) { const px = x + uz * (off - 1.5), pz = z - ux * (off - 1.5); pole.push([px, 2.6, pz, .22, 5.2, .22]); head.push([px, 5.5, pz, .7, .9, .7]); }
+          if ((s | 0) % 36 < 9 && !inStadiumZone(x + uz * (off - 1.5), z - ux * (off - 1.5))) { const px = x + uz * (off - 1.5), pz = z - ux * (off - 1.5); pole.push([px, 2.6, pz, .22, 5.2, .22]); head.push([px, 5.5, pz, .7, .9, .7]); }
           if ((s | 0) % 54 >= 18 && (s | 0) % 54 < 27) { const bx = x - uz * (off - 1.2), bz = z + ux * (off - 1.2);
             if (!CLR(bx, bz)) { bench.push([bx, .75, bz, 2.2, .18, .7, ry + Math.PI / 2], [bx - uz * .3, 1.15, bz + ux * .3, 2.2, .5, .1, ry + Math.PI / 2]);
               legs.push([bx, .35, bz, 1.9, .7, .5, ry + Math.PI / 2]); bin.push([bx + ux * 2, .55, bz + uz * 2, .55, 1.1, .55]); } }
@@ -884,7 +904,7 @@ function buildRealTown(map) {
     LOT_PLUS.instanceMatrix.needsUpdate = true;
   };
   // traffic on real streets, labels from real names
-  for (const [c, ps] of roadsXY) if (c <= 4 && ps.length > 1) carPaths.push(ps);
+  for (const [c, ps] of roadsXY) if (c <= 4 && ps.length > 1) for (const run of clipOutsideStadium(ps)) carPaths.push(run);   // cars never drive inside the stadium
   MAP_LABELS = map.labels.filter(l => !CLR(l[1], l[2]));
   let ext = 0; for (const [, f] of map.roads) for (let i = 0; i < f.length; i++) ext = Math.max(ext, Math.abs(f[i]));
   WORLD = Math.min(1400, ext);
@@ -925,6 +945,20 @@ for (let gx = -GRID; gx <= GRID; gx++) for (let gz = -GRID; gz <= GRID; gz++) {
 }
 plots.sort((a, b) => a.d - b.d); plots.forEach((p, i) => p.id = i);
 
+// warm halo around every street lamp; fades in after dark (DN sets window.STREET_GLOW.opacity)
+function lampHalo(items) {
+  if (!items.length) return null;
+  const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d");
+  const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, "rgba(255,240,200,1)"); r.addColorStop(.3, "rgba(255,214,140,.55)"); r.addColorStop(1, "rgba(255,200,120,0)");
+  g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+  const pos = new Float32Array(items.length * 3);
+  items.forEach((it, i) => { pos[i * 3] = it[0]; pos[i * 3 + 1] = it[1] + .3; pos[i * 3 + 2] = it[2]; });
+  const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({ size: 14, map: new THREE.CanvasTexture(c), color: 0xffe2a0, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+  const pts = new THREE.Points(geo, mat); pts.frustumCulled = false; scene.add(pts);
+  return mat;
+}
 // ---------- streets: asphalt, sidewalks, aryk canal, poplar rows, street lights, zebra crossings ----------
 {
   const walk = [], asph = [], aryk = [], dash = [], zebra = [], poplars = [], trunks = [], poles = [], heads = [];
@@ -944,7 +978,7 @@ plots.sort((a, b) => a.d - b.d); plots.forEach((p, i) => p.id = i);
       const nearX = Math.abs(((a % 70) + 70) % 70) < 9 || Math.abs(((a % 70) + 70) % 70) > 61;   // keep junctions clear
       if (!nearX) dash.push(at(v, a, c, -.02, 3, .02, .25));
       if (nearX) continue;
-      if ((a | 0) % 35 < 9 && (a | 0) % 35 >= 0) { const pc = c - 6.2; poles.push(at(v, a, pc, 3.5, .25, 7, .25)); heads.push(at(v, a, pc + 1, 7, .5, .3, 2)); }
+      if ((a | 0) % 35 < 9 && (a | 0) % 35 >= 0) { const pc = c - 6.2; const pl = at(v, a, pc, 3.5, .25, 7, .25), hd = at(v, a, pc + 1, 7, .5, .3, 2); if (!inStadiumZone(hd[0], hd[2])) { poles.push(pl); heads.push(hd); } /* no street lamps inside the stadium */ }
     }
   }
   for (const [a0, a1, c, v] of segs) for (let a = a0 + 1; a < a1; a += 6.5) {        // terak (poplar) rows on both sides
@@ -965,6 +999,7 @@ plots.sort((a, b) => a.d - b.d); plots.forEach((p, i) => p.id = i);
   instanced(popG, lamC(0xffffff), poplars, poplars.map(() => choose([0x3e6b2c, 0x46772f, 0x37602a, 0x52813a])));
   instanced(new THREE.CylinderGeometry(.5, .5, 1, 5), lamC(0x6b5236), trunks);
   instanced(CBOX, lamC(0x6f747b), poles); instanced(CBOX, new THREE.MeshBasicMaterial({ color: 0xfff1c4 }), heads);
+  window.STREET_GLOW = lampHalo(heads);
 }
 
 // ---------- undeveloped land: orchards near town, fields further out. Homes replace them plot by plot ----------
@@ -1339,7 +1374,7 @@ function spawnWalkers() {
     scene.add(o); const L0 = cum[cum.length - 1]; WALKERS.push({ o, ps, cum, L: L0, s: fan ? rr() * L0 : Math.max(0, Math.min(L0, L0 / 2 + (rr() - .5) * 700)), dir: rr() < .5 ? 1 : -1, sp, side, loop: fan });
   };
   const streets = carPaths.filter(ps => ps.length > 1).sort((a, b) => Math.hypot(...a[0]) - Math.hypot(...b[0]));
-  for (let i = 0; i < 70 && streets.length; i++) mk(streets[i % Math.min(streets.length, 24)], (rr() < .5 ? -1 : 1) * 8.5, 1.1 + rr() * .6, false);
+  for (let i = 0; i < 36 && streets.length; i++) mk(streets[i % Math.min(streets.length, 24)], (rr() < .5 ? -1 : 1) * 8.5, 1.1 + rr() * .6, false);
   const A = OUT_A + 22, B = OUT_B + 18, loop = [[-A, -B], [A, -B], [A, B], [-A, B], [-A, -B]];
   for (let i = 0; i < 40; i++) mk(loop, (rr() - .5) * 8, 1 + rr() * .7, true);
 }
@@ -1536,7 +1571,7 @@ function printGeo(mesh, o) {              // a patch laid on the shirt and skinn
   g.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(si, 4)); g.setAttribute("skinWeight", new THREE.Float32BufferAttribute(sw, 4));
   return g;
 }
-function makeRig(name, num) {             // clone the hierarchy; geometry, material and textures stay shared
+function makeRig(name, num, still) {             // clone the hierarchy; geometry, material and textures stay shared
   const src = RIG.base, root = src.clone(), a = [], b = []; src.traverse(o => a.push(o)); root.traverse(o => b.push(o));
   const mesh = b[a.indexOf(RIG.mesh)];
   mesh.skeleton = new THREE.Skeleton(RIG.mesh.skeleton.bones.map(bn => b[a.indexOf(bn)]), RIG.mesh.skeleton.boneInverses); mesh.bind(mesh.skeleton, RIG.mesh.bindMatrix);
@@ -1551,13 +1586,15 @@ function makeRig(name, num) {             // clone the hierarchy; geometry, mate
     m.frustumCulled = false; mesh.parent.add(m); m.bind(mesh.skeleton, mesh.bindMatrix);
   });
   const mx = new THREE.AnimationMixer(root), run = mx.clipAction(RIG.run), walk = mx.clipAction(RIG.walk);
-  run.play(); walk.play(); walk.setEffectiveWeight(0); mx.setTime(Math.random() * 2);
-  return { root, mx, run, walk, tex, last: 0 };
+  if (still) { run.play(); run.paused = true; walk.setEffectiveWeight(0); mx.update(0); }   // substitutes: player.glb in a fixed pose, no walk animation
+  else { run.play(); walk.play(); walk.setEffectiveWeight(0); mx.setTime(Math.random() * 2); }
+  return { root, mx, run, walk, tex, last: 0, still: !!still };
 }
 function wearRig(s, i) {
   if (!RIG.base) return loadRig();
   const name = String(s.p.name || "").toUpperCase().slice(0, 12), num = String(s.p.number || (s.p.position === "CB" && Number(s.p.position_rank) >= 3 ? 5 : SHIRT_NO[s.p.position]) || i + 1), key = i + "|" + name + "|" + num;
-  let r = RIG.pool.get(key); if (!r) RIG.pool.set(key, r = makeRig(name, num));
+  const still = s.p.squad_role === "substitute", rk = (still ? "s|" : "r|") + key;
+  let r = RIG.pool.get(rk); if (!r) RIG.pool.set(rk, r = makeRig(name, num, still));
   if (r.root.parent) r.root.parent.remove(r.root);
   s.g.children.forEach(o => o.visible = false); s.g.add(r.root); s.rig = r;
 }
@@ -1609,7 +1646,7 @@ async function loadSquad() {
   try {
     const r = await fetch(API + "/api/squad", { cache: "no-store" }); if (!r.ok) return;
     const list = await r.json(); SQUAD.forEach(s => scene.remove(s.g)); SQUAD.length = 0;
-    list.filter(p => p.kind !== "player" || p.squad_role === "starter").forEach((p, i) => {
+    list.forEach((p, i) => {                                   // starters and substitutes all use the same player.glb model
       const s = makeSquadPlayer(p, i); s.g.userData.squadPlayer = s; SQUAD.push(s);
     });
     sweepRigs();
@@ -1623,7 +1660,8 @@ function animateSquad(t) {
     const x = s.bx + (run ? Math.sin(k) * 9 : Math.sin(k * .3) * 3), z = s.bz + (run ? Math.sin(k * .7) * 6 : 0);
     s.g.position.set(x, 0, z); s.g.rotation.y = Math.atan2(Math.cos(k) * 9, Math.cos(k * .7) * 4.2);
     const sw = run ? Math.sin(t * 10 + s.ph) * .6 : 0; s.lL.rotation.x = sw; s.lR.rotation.x = -sw;
-    if (s.rig && s.rig.mx) {                                  // rigged model: blend walk and run by how fast it is moving
+    if (s.rig && s.rig.mx && s.rig.still) { /* substitutes stay in their fixed pose */ }
+    else if (s.rig && s.rig.mx) {                             // rigged model: blend walk and run by how fast it is moving
       const R = s.rig, v = Math.hypot(Math.cos(k) * 5.4, Math.cos(k * .7) * 2.52), w = Math.min(1, Math.max(0, (v - 2) / 2.2));
       R.run.setEffectiveWeight(w); R.walk.setEffectiveWeight(1 - w);
       R.run.timeScale = Math.min(1.15, Math.max(.6, v / 6.2)); R.walk.timeScale = Math.min(1.4, Math.max(.35, v / 2.6));
@@ -1631,7 +1669,17 @@ function animateSquad(t) {
     }
   }
 }
-function squadLabels(place) { for (const s of SQUAD) if (s.p.kind === "player" && s.p.squad_role === "starter") place(s.g.position.x, 4.4, s.g.position.z, "tag hero", s.p.name); }
+// STADIUM CHANGE: previously player labels showed only names, so the newly
+// assigned shirt numbers were invisible in the 3D view. Keep the same label placement
+// and styling, but prepend the live number supplied by /api/squad. The existing
+// 60-second feed poll is intentionally retained: it refreshes the view quickly after
+// the hourly backend sync without adding any new server-side timer or database load.
+function squadLabels(place) {
+  for (const s of SQUAD) if (s.p.kind === "player" && s.p.squad_role === "starter") {
+    const label = s.p.number ? "#" + s.p.number + " " + s.p.name : s.p.name;
+    place(s.g.position.x, 4.4, s.g.position.z, "tag hero", label);
+  }
+}
 function animateTeam(t) {
   animateSquad(t);
   const bek = H("bekzod"), az = H("aziz"), jas = H("jasur"), rus = H("rustam"), goat = H("echki");
@@ -1705,6 +1753,7 @@ const DN = (() => {
     for (const g of glow) g.mt.color.copy(mix3(g.night, DAYGLASS, day * .85));
     if (bloom) { bloom.strength = .12 + (1 - day) * 1.05; bloom.threshold = .55 + day * .35; }
     document.documentElement.dataset.night = day < .5 ? "1" : "0";
+    if (window.STREET_GLOW) window.STREET_GLOW.opacity = (1 - day) * .9;     // street lamps glow after dark
   }
   return {
     tick(now) { if (now - lastCollect > 4000) { lastCollect = now; const n = glow.length; collect(); if (glow.length !== n) state = null; } update(false); },
@@ -1721,7 +1770,7 @@ controls.enablePan = true; controls.screenSpacePanning = false; controls.panSpee
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 const VIEWS = {
   stadium: { pos: new THREE.Vector3(95, 75, 105), tgt: new THREE.Vector3(0, 2, 0) },
-  city: { pos: new THREE.Vector3(260, 300, 400), tgt: new THREE.Vector3(0, 0, 0) },
+  city: { pos: new THREE.Vector3(0, 210, 170), tgt: new THREE.Vector3(0, 0, 0) },   // first view: above the stadium
 };
 camera.position.copy(VIEWS[MODE].pos); controls.target.copy(VIEWS[MODE].tgt);
 let fly = null;
@@ -1760,7 +1809,7 @@ let me = null;
 function tag(i) { if (!pool[i]) { const d = document.createElement("div"); d.className = "tag"; labelsEl.appendChild(d); pool[i] = d; } return pool[i]; }
 const P = new THREE.Vector3();
 function project(x, y, z) { P.set(x, y, z).project(camera); return [(P.x + 1) / 2 * innerWidth, (1 - P.y) / 2 * innerHeight, P.z]; }
-let lastLabel = 0, used = 0;
+let lastLabel = 0, used = 0, shownFans = new Set();
 function updateLabels(now) {
   if (now - lastLabel < 120 && !fly) return; lastLabel = now;
   used = 0;
@@ -1772,7 +1821,7 @@ function updateLabels(now) {
     const labelDistance = Math.hypot(x - camPos.x, y - camPos.y, z - camPos.z);
     const labelScale = cls === "tag big"
       ? Math.max(0.72, Math.min(1.4, 180 / Math.max(1, labelDistance)))
-      : Math.max(0.22, Math.min(1, 105 / Math.max(1, labelDistance)));
+      : Math.max(0.22, Math.min(cls === "tag fan" ? 0.6 : 1, 105 / Math.max(1, labelDistance)));   // fan names stay small up close
     const w = (txt.length * (cls === "tag big" ? 12 : 6) + (cls === "tag big" ? 34 : 16)) * labelScale, h = (cls === "tag big" ? 34 : 17) * labelScale;
     if (!force && boxes.some(b => Math.abs(b[0] - sx) < (b[2] + w) / 2 && Math.abs(b[1] - sy) < h)) return false;
     boxes.push([sx, sy, w]);
@@ -1782,14 +1831,16 @@ function updateLabels(now) {
   const place = (st, cls, txt) => placeAt(st.x, st.y + 1.3, st.z, cls, txt, cls === "tag me");
   if (me) place(me, "tag me", "@" + me.fan);
   const near = camR < 260;                       // inside the stadium: people; far away: the city
-  placeAt(0, OUT_R * ROW_H + 14, 0, "tag big", T[L].stad, true);
+  if (camR >= 260) placeAt(0, OUT_R * ROW_H + 14, 0, "tag big", T[L].stad, true);   // stadium name only when far away
   if (near) {
     // Legacy demo sprites are not roster players; only the approved starting XI receive pitch nameplates.
     const cand = [], step = Math.max(1, Math.floor(fans / 3000));
-    for (let k = 0; k < fans; k += step) { const st = seats[order[k]]; cand.push([(st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2, st]); }
+    for (let k = 0; k < fans; k += step) { const st = seats[order[k]], d = (st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2; cand.push([shownFans.has(st) ? d * .5 : d, st]); }   // names already on screen keep their place
     cand.sort((a, b) => a[0] - b[0]);
-    let shown = 0; const LIM = fans <= 60 ? 60 : 22;
-    for (const [, st] of cand) { if (shown >= LIM) break; if (st !== me && place(st, "tag fan", "@" + st.fan)) shown++; }
+    const LIM = fans <= 60 ? 60 : camR < 110 ? 8 : camR < 180 ? 12 : 6;                                       // fewer names when zoomed out
+    const nowShown = new Set();
+    for (const [, st] of cand) { if (nowShown.size >= LIM) break; if (st !== me && place(st, "tag fan", "@" + st.fan)) nowShown.add(st); }
+    shownFans = nowShown;
   } else {
     if (PLAZA) placeAt(PLAZA.x, 24, PLAZA.z - 30, "tag lot", T[L].plaza, true);
     const tg = controls.target, ml = MAP_LABELS.map(l => [(l[1] - tg.x) ** 2 + (l[2] - tg.z) ** 2, l]).sort((a, b) => a[0] - b[0]).slice(0, 10);
@@ -1805,7 +1856,8 @@ function updateLabels(now) {
     residentLabels(placeAt, camPos);
   }
   const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]);
-  for (const [, o] of hs) if (o !== mine) placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick);
+  const HOME_LIM = near ? 60 : 14; let homeTags = 0;      // overview: only the nearest few homes get a name tag
+  for (const [, o] of hs) { if (homeTags >= HOME_LIM) break; if (o !== mine && placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick)) homeTags++; }
   for (let k = used; k < pool.length; k++) pool[k].style.display = "none";
 }
 
@@ -1911,7 +1963,7 @@ const T2 = {
     bizSoon: "🏪 Biznes ochish (do‘kon, kafe) — keyingi bosqichda", bought: n => `${n} uyingiz oldida! 🚗`, poor: n => `Yetmaydi: yana ${n} 🪙 kerak`,
     up: (n, c) => `⬆️ ${n} — ${c} 🪙`, bonus: n => `🎁 Kunlik bonus: +${n} 🪙`, bonusOk: n => `+${n} 🪙 kunlik bonus! Ertaga ham kiring 🔥`, linkIg: "🎟 Instagram nikni bog‘lash",
     wRole: "Kofexona sotuvchisi", wHint: "Oldingi mijoz nima so‘rayapti? To‘g‘ri tugmani bosing!", wWait: "Mijozlar kutilmoqda…", wWrong: "❌ Noto‘g‘ri buyurtma", wLeft: "😤 Mijoz ketib qoldi",
-    wDone: "Smena tugadi! ☕", wSum: (n, c) => `${n} ta mijozga xizmat qildingiz.<br>Ishlab topdingiz: <b>${c} 🪙</b>`, wBack: "Shaharga qaytish", wLeave: "⏸ Chiqish (smena davom etadi)",
+    wDone: "Smena tugadi!", wSum: (n, c) => `${n} ta mijozga xizmat qildingiz.<br>Ishlab topdingiz: <b>${c} 🪙</b>`, wBack: "Shaharga qaytish", wLeave: "⏸ Chiqish (smena davom etadi)",
     jobNames: { coffee: "☕ Kofexona sotuvchisi", taxi: "🚕 Taksi haydovchisi", bakery: "🥖 Novvoy", builder: "🧱 Quruvchi" } },
   ru: { bShop: "🛒 Базар", jobsH: "💼 Работа", jobsP: "Зарабатывайте монеты 🪙. Смены ограничены в день — возвращайтесь каждый день!",
     toApply: "📝 Вступить в команду (заявка)", start: "Начать", cont: "Продолжить", soon: "Скоро", shiftInfo: (m, d, n) => `Смена ${m} мин · сегодня ${d}/${n}`,
@@ -1919,7 +1971,7 @@ const T2 = {
     bizSoon: "🏪 Открыть бизнес (магазин, кафе) — на следующем этапе", bought: n => `${n} у вашего дома! 🚗`, poor: n => `Не хватает ${n} 🪙`,
     up: (n, c) => `⬆️ ${n} — ${c} 🪙`, bonus: n => `🎁 Ежедневный бонус: +${n} 🪙`, bonusOk: n => `+${n} 🪙 бонус! Заходите и завтра 🔥`, linkIg: "🎟 Привязать ник Instagram",
     wRole: "Бариста", wHint: "Что просит первый клиент? Нажмите нужную кнопку!", wWait: "Ждём клиентов…", wWrong: "❌ Не тот заказ", wLeft: "😤 Клиент ушёл",
-    wDone: "Смена окончена! ☕", wSum: (n, c) => `Вы обслужили ${n} клиентов.<br>Заработано: <b>${c} 🪙</b>`, wBack: "Вернуться в город", wLeave: "⏸ Выйти (смена идёт)",
+    wDone: "Смена окончена!", wSum: (n, c) => `Вы обслужили ${n} клиентов.<br>Заработано: <b>${c} 🪙</b>`, wBack: "Вернуться в город", wLeave: "⏸ Выйти (смена идёт)",
     jobNames: { coffee: "☕ Бариста", taxi: "🚕 Таксист", bakery: "🥖 Пекарь", builder: "🧱 Строитель" } },
   en: { bShop: "🛒 Market", jobsH: "💼 Jobs", jobsP: "Earn coins 🪙. Shifts are limited per day — come back every day!",
     toApply: "📝 Join our team (apply)", start: "Start", cont: "Continue", soon: "Soon", shiftInfo: (m, d, n) => `${m}-min shift · today ${d}/${n}`,
@@ -1927,7 +1979,7 @@ const T2 = {
     bizSoon: "🏪 Open a business (shop, café) — next stage", bought: n => `${n} is at your home! 🚗`, poor: n => `You need ${n} more 🪙`,
     up: (n, c) => `⬆️ ${n} — ${c} 🪙`, bonus: n => `🎁 Daily bonus: +${n} 🪙`, bonusOk: n => `+${n} 🪙 daily bonus! Come back tomorrow 🔥`, linkIg: "🎟 Link Instagram nick",
     wRole: "Barista", wHint: "What does the first customer want? Tap the right item!", wWait: "Waiting for customers…", wWrong: "❌ Wrong order", wLeft: "😤 Customer left",
-    wDone: "Shift over! ☕", wSum: (n, c) => `You served ${n} customers.<br>Earned: <b>${c} 🪙</b>`, wBack: "Back to the city", wLeave: "⏸ Leave (shift keeps running)",
+    wDone: "Shift over!", wSum: (n, c) => `You served ${n} customers.<br>Earned: <b>${c} 🪙</b>`, wBack: "Back to the city", wLeave: "⏸ Leave (shift keeps running)",
     jobNames: { coffee: "☕ Barista", taxi: "🚕 Taxi driver", bakery: "🥖 Baker", builder: "🧱 Builder" } },
 };
 for (const k in T2) Object.assign(T[k], T2[k]);
@@ -2011,18 +2063,18 @@ document.getElementById("homeBonus").onclick = async () => { try { const d = awa
 document.getElementById("homeVisit").onclick = () => { const m = myHome(); if (!m) return; document.getElementById("sHome").style.display = "none"; if (MODE !== "city") setMode("city", false); goHome(m); };
 
 // jobs list
-const LOCKED_JOBS = ["taxi", "bakery", "builder"];
+const JOB_IC = id => (T[L].jobNames[id] || "💼").split(" ")[0];
 function renderJobs() {
   const el = document.getElementById("jobList"); el.innerHTML = "";
   const jobs = ME ? ME.catalog.jobs : [];
   for (const j of jobs) {
-    const active = ME.shift && ME.shift.job === j.id, left = j.shiftsPerDay - ME.shiftsToday;
+    const active = ME.shift && ME.shift.job === j.id, busy = ME.shift && !active, left = j.shiftsPerDay - ME.shiftsToday;   // the daily shift limit is shared by all jobs
     const c = document.createElement("div"); c.className = "card";
-    c.innerHTML = `<div class="ic">☕</div><div class="tx"><b>${T[L].jobNames[j.id] || j.name}</b><small>${T[L].shiftInfo(j.shiftSec / 60, Math.min(ME.shiftsToday, j.shiftsPerDay), j.shiftsPerDay)}</small></div>`;
-    const b = document.createElement("button"); b.textContent = active ? T[L].cont : T[L].start; b.disabled = !active && left <= 0;
+    c.innerHTML = `<div class="ic">${JOB_IC(j.id)}</div><div class="tx"><b>${T[L].jobNames[j.id] || j.name}</b><small>${T[L].shiftInfo(j.shiftSec / 60, Math.min(ME.shiftsToday, j.shiftsPerDay), j.shiftsPerDay)}</small></div>`;
+    const b = document.createElement("button"); b.textContent = active ? T[L].cont : T[L].start; b.disabled = busy || (!active && left <= 0);
     b.onclick = () => startJob(j.id); c.appendChild(b); el.appendChild(c);
   }
-  for (const id of LOCKED_JOBS) { const c = document.createElement("div"); c.className = "card lock"; c.innerHTML = `<div class="ic">${T[L].jobNames[id].split(" ")[0]}</div><div class="tx"><b>${T[L].jobNames[id]}</b><small>${T[L].soon}</small></div>`; el.appendChild(c); }
+  for (const id of Object.keys(T[L].jobNames).filter(id => !jobs.some(j => j.id === id))) { const c = document.createElement("div"); c.className = "card lock"; c.innerHTML = `<div class="ic">${T[L].jobNames[id].split(" ")[0]}</div><div class="tx"><b>${T[L].jobNames[id]}</b><small>${T[L].soon}</small></div>`; el.appendChild(c); }
 }
 document.getElementById("bJob").onclick = needTg(async () => { await fetchMe(); renderJobs(); open("sJobs"); });
 // ---------- applications: city work (free choice) or club (player / staff); everything goes to the admin ----------
@@ -2092,7 +2144,8 @@ document.getElementById("sGo").onclick = async () => {
   await sendApp({ kind: "staff", name: document.getElementById("sName").value, age: document.getElementById("sAge").value, dept: APP.dept, note: document.getElementById("sNote").value });
 };
 
-// ---------- roleplay shift: coffee-shop counter ----------
+// ---------- roleplay shift: serve the queue (coffee shop, taxi, bakery, building yard) ----------
+const WORK_BG = { taxi: "linear-gradient(#f2c230 0%, #d9a514 38%, #3a3f4a 38%, #23262d 100%)", bakery: "linear-gradient(#8a4b1c 0%, #b8742f 38%, #e2b77a 38%, #f4e2c0 100%)", builder: "linear-gradient(#4a5a6a 0%, #6f8296 38%, #c46a3a 38%, #e09a6a 100%)" };
 const FACES = ["👨", "👩", "🧔", "👵", "👴", "👦", "👧", "👨‍🦱", "👩‍🦰", "🧕", "👨‍🦳", "👱‍♀️"];
 const h32 = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };   // same as server
 const custOf = (job, seed, k) => { const r = h32(`${seed}:${k}`); return { k, at: k * job.everySec + (r % (job.jitterSec + 1)), order: (r >>> 8) % job.menu.length, face: (r >>> 16) % 12 }; };
@@ -2103,7 +2156,7 @@ async function startJob(id) {
     if (!d.shift) return;
     sheets.forEach(s => s.style.display = "none");
     W.job = d.catalog.jobs.find(j => j.id === d.shift.job); W.shift = d.shift; W.served = new Set(d.shift.served); W.earned = d.shift.earned; W.n = d.shift.served.length;
-    document.getElementById("wPlace").textContent = W.job.place; document.getElementById("wRole").textContent = T[L].wRole;
+    document.getElementById("wPlace").textContent = W.job.place; document.getElementById("wRole").textContent = (T[L].jobNames[W.job.id] || W.job.name).replace(/^\S+\s/, ""); W.el.style.background = WORK_BG[W.job.id] || "";
     const menu = document.getElementById("menu"); menu.innerHTML = "";
     W.job.menu.forEach((m, i) => { const b = document.createElement("button"); b.textContent = m; b.onclick = () => serve(i); menu.appendChild(b); });
     document.getElementById("wEnd").classList.remove("on"); W.el.classList.add("on");
@@ -2142,6 +2195,7 @@ async function serve(item) {
 }
 function endWork() {
   clearInterval(W.timer);
+  document.querySelector("#wEnd h2").textContent = T[L].wDone + " " + JOB_IC(W.job.id);
   document.getElementById("wSum").innerHTML = T[L].wSum(W.n, W.earned); document.getElementById("wEnd").classList.add("on"); fetchMe();
 }
 document.getElementById("wClose").onclick = () => { clearInterval(W.timer); W.el.classList.remove("on"); fetchMe(); };
@@ -2553,6 +2607,7 @@ function loop(now) {
     if (cx || cz) { t.x += cx; t.z += cz; camera.position.x += cx; camera.position.z += cz; }
   }
   controls.update();
+  if (LOT_PLUS) LOT_PLUS.visible = camera.position.distanceTo(controls.target) < 330;      // "+" build markers only when zoomed in
   sky.position.copy(camera.position);
   try { animateTeam(now / 1000); } catch (e) { console.error("animateTeam failed:", e); }
   try { cityTick(dt); walkersTick(dt, now / 1000); residentsTick(dt, now / 1000); } catch (e) { console.error("city/walkers tick failed:", e); }
@@ -2571,7 +2626,7 @@ if (new URLSearchParams(location.search).has("debug")) window.__zfk = { scene, c
   if (gs) { const st = seatByNo(+gs); if (st && st.fan) setTimeout(() => goTo(st), 700); }
   const st = go && byNick.get(norm(go));
   if (st) setTimeout(() => { goTo(st); say(T[L].seatOk(T[L].seat(st))); }, 700);
-  else if (MODE === "city") { const m = HOMES.find(h => h.id === myId); if (m) setTimeout(() => goHome(m), 900); }
+  else if (MODE === "city") { setTimeout(() => flyTo(VIEWS.city.pos.clone(), VIEWS.city.tgt.clone(), 1.6), 900); }   // start above the stadium, not at home
   let nh = null; try { nh = sessionStorage.getItem("zfk_newhome"); sessionStorage.removeItem("zfk_newhome"); } catch (e) {}
   if (nh) { const m = HOMES.find(h => h.id === myId); if (m) setTimeout(() => say(T[L].homeOk + " " + m.nick + " 🎟"), 1200); }
 }
