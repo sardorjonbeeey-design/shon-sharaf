@@ -120,7 +120,7 @@ const wt = (beat, re) => { const w = BS[beat].words.find(x => re.test(x.w.toLowe
 const HP = seats[HERO];
 // ---- cameras (3D voxel segments) ----
 const SH = [
- [[0, [34, 7, 40], [-22, 10, 26], 66], [B2, [34, 7, -14], [-22, 10, -30], 66]],
+ [[0, [-64, 46, 84], [0, 6, 0], 56], [B2, [-24, 30, 62], [0, 6, -6], 58]],
  null,
  [[B3, [0, 150, 25], [0, 0, 0], 42, 1], [B4, [0, 112, 32], [0, 0, 0], 44, 1]],
  [[B4, [-62, 40, 78], [0, 5, 0], 56], [B5, [62, 42, 78], [0, 5, -4], 56]],
@@ -166,13 +166,13 @@ add(`<div class="chip" style="font-size:36px">G‘OYA: <em>@islom.muhammadov7</e
 // BEAT 3 — the screen paper: newest fans, held on screen
 dimEl(.5, B3, B4);
 hd("YANGI MUXLISLAR", "O‘ZINGIZNI TOPING", B3, B3 + 1.9, 270);
-const rows = NAMES.map((n, i) => { const fs = Math.min(29, 400 / (n.length + 1) * 1.75); return `<div style="height:40px;line-height:40px;font-size:${fs}px;font-weight:700;color:#0D2557;white-space:nowrap;text-align:left;padding-left:14px;${i % 2 ? "" : "background:rgba(31,79,184,.07);"}">@${n}</div>`; });
+const rows = NAMES.map((n, i) => { const fs = Math.min(31, 410 / (n.length + 1) * 1.75); return `<div style="height:42px;line-height:42px;font-size:${fs}px;font-weight:700;color:#0D2557;white-space:nowrap;text-align:left;padding-left:14px;${i % 2 ? "" : "background:rgba(31,79,184,.07);"}">@${n}</div>`; });
 const half = Math.ceil(rows.length / 2);
 const paper = `<div style="width:900px;background:#fffefb;border-radius:20px;box-shadow:0 30px 60px rgba(0,0,0,.65);overflow:hidden;color:#0D2557;text-align:left">
   <div style="background:#1F4FB8;color:#fff;padding:16px 26px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:40px;font-weight:900">📄 YANGI MUXLISLAR</div><div style="font-size:30px;font-weight:700">${NAMES.length} ta</div></div>
   <div style="display:flex;gap:10px;padding:14px 12px 18px 12px"><div style="flex:1">${rows.slice(0, half).join("")}</div><div style="flex:1">${rows.slice(half).join("")}</div></div>
   <div style="background:#f1efe7;padding:10px 26px;font-size:26px;font-weight:700;color:#5a6a99">ZAMIN FK · 1 obunachi = 1 virtual muxlis</div></div>`;
-add(paper, 470, 1030, B3 + .15, B4 - .05, { z: 22, enter: "slide", rot: -1 });
+add(paper, 470, 1010, B3 + .15, B4 - .05, { z: 22, enter: "slide", rot: -1 });
 add(`<div class="q" style="font-size:150px">🔍</div>`, 900, 380, B3 + 2.6, B4 - .05, { z: 26, enter: "pop", pulse: true });
 // BEAT 4 — CTA
 dimEl(.55, B4, B5);
