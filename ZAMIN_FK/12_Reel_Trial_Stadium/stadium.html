@@ -216,5 +216,20 @@ function fxFrame(t) { fx.clearRect(0, 0, 1080, 1920); const a = S(6, 2).a + .0, 
     const x0 = 540 + Math.cos(ang) * r, y0 = 960 + Math.sin(ang) * r * 1.5, x1 = 540 + Math.cos(ang) * (r + len), y1 = 960 + Math.sin(ang) * (r + len) * 1.5; const c = [[255, 210, 63], [127, 252, 255], [255, 255, 255], [255, 90, 160]][i % 4];
     fx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${.35 * k})`; fx.lineWidth = 3 + hash(i * 9) * 5; fx.beginPath(); fx.moveTo(x0, y0); fx.lineTo(x1, y1); fx.stroke(); } fx.globalCompositeOperation = "source-over"; }
 window.renderAt = t => { world(t); placeCam(t); R.render(sc, cam); frameOv(t); fxFrame(t); };
+
+// ---------- single-frame story mode: renderStory(n) ----------
+window.renderStory = n => {
+  items.forEach(i => i.d.style.display = "none"); beam1.visible = beam2.visible = false; updateSeats(n, 0); ys.scale.setScalar(.0001);
+  cam.fov = 58; cam.updateProjectionMatrix(); cam.up.set(0, 1, 0); cam.position.set(-46, 40, 66); cam.lookAt(2, 1, -8); R.render(sc, cam); fx.clearRect(0, 0, 1080, 1920);
+  const h = document.createElement("div"); h.className = "it"; h.style.cssText = "left:540px;top:0;transform:translate(-50%,0);width:1000px;white-space:normal";
+  h.innerHTML = `<img src="assets/crest.png" style="height:170px;display:block;margin:260px auto 10px;filter:drop-shadow(0 10px 24px #000)">
+   <div style="font-size:300px;line-height:.95;color:#FFD23F;-webkit-text-stroke:14px #0D2557;paint-order:stroke fill;text-shadow:0 14px 0 #0D2557,0 24px 50px #000">${n}</div>
+   <div style="font-size:92px;line-height:1.05;color:#fff;-webkit-text-stroke:9px #0D2557;paint-order:stroke fill;text-shadow:0 8px 24px #000;margin-top:6px">MUXLIS</div>
+   <div style="font-size:60px;line-height:1.12;color:#fff;font-weight:900;margin-top:18px;text-shadow:0 5px 18px #000,0 0 6px #000">STADIONDAN O‘Z JOYINI<br><span style="color:#FFD23F">EGALLADI</span></div>`;
+  OV.appendChild(h);
+  const f = document.createElement("div"); f.className = "it"; f.style.cssText = "left:540px;top:1560px;transform:translate(-50%,0)";
+  f.innerHTML = `<div class="pill" style="padding:14px 40px"><small>ZAMIN FK STADIONI</small><b style="font-size:46px">1 OBUNACHI = 1 MUXLIS</b><br><i style="font-size:26px">VIRTUAL · SIZNING JOYINGIZ HAM KUTMOQDA</i></div>`;
+  OV.appendChild(f);
+};
 window.ready = () => document.fonts.ready.then(() => document.fonts.load("900 40px MZ")).then(() => true);
 </script></body></html>
