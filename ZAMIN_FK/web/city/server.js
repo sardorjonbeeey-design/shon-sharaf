@@ -25,6 +25,7 @@ else console.log(`✓ Frontend ${pageSize} bytes, THREE.js:${pageHasThree}, canv
 const COLORS = 6, MAX_LEVEL = 7;
 const ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
 const app = express();
+app.use(require("compression")());                          // gzip text/JSON/GLB responses (lossless) to cut bandwidth
 app.use(express.json({ limit: "256kb" }));
 
 // Request logging for debugging frontend issues
