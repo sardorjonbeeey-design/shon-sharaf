@@ -2627,40 +2627,56 @@ const SKY = (() => {
   const N = 24, byNo = new Map(SKY_MOCK.map(o => [o.no, o]));
   // ring just outside + above the roof; the north gap (LED screen side, z<0) stays open
   const Rg = seats[seats.length - 1].ring + 1, A = PW / 2 + 9 + Rg * ROW_D + 15, B = PH / 2 + 9 + Rg * ROW_D + 15;   // just outside the floodlight masts
-  const GOLD = 0xFFD23F, BLUE = 0x1F4FB8, W = 12, H = 6, D = 12;
+  const GOLD = 0xFFD23F, BLUE = 0x1F4FB8, W = 12, H = 5, D = 5;
   const group = new THREE.Group(); group.name = "zaminSky"; scene.add(group);
-  const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
-  const gDisc = new THREE.CircleGeometry(7, 28);
-  let cabinTemplate = null;
-  if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/sky/cabin_vip.glb", gl => {
-    const m = gl.scene; m.scale.setScalar(5); m.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(m); const sz = new THREE.Vector3(); box.getSize(sz);
-    m.scale.setScalar(5 * W / Math.max(sz.x, sz.z));
-    // convert every mesh material to MeshBasicMaterial (self-lit, no scene light needed)
-    m.traverse(ch => { if (ch.isMesh) {
-      const old = ch.material;
-      const mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
-      // try every possible texture property
-      const tex = old.map || old.baseColorMap || old.diffuseMap || null;
-      if (tex) { mat.map = tex; mat.color.set(0xffffff); }
-      else if (old.color) { mat.color.copy(old.color); }
-      else { mat.color.set(0x88AACC); }
-      // also check if original PBR has baseColorFactor
-      if (!tex && old.pbrMetallicRoughness && old.pbrMetallicRoughness.baseColorFactor) {
-        const f = old.pbrMetallicRoughness.baseColorFactor;
-        mat.color.setRGB(f[0], f[1], f[2]);
-      }
-      mat.needsUpdate = true;
-      ch.material = mat;
-    }});
-    cabinTemplate = m;
-    cabins.forEach(c => {
-      const clone = cabinTemplate.clone();
-      clone.position.y = -H / 2;
-      clone.traverse(ch => { if (ch.isMesh) { ch.userData.cabin = c.i; pickables.push(ch); } });
-      c.g.add(clone); c.model3d = clone;
-    });
-  }, undefined, e => console.warn("cabin_vip.glb:", e));
+  // --- procedural capsule cabin ---
+  function buildCabin() {
+    const cab = new THREE.Group();
+    // capsule body: rounded box shape (stretch a sphere into a pill)
+    const bodyGeo = new THREE.CylinderGeometry(D / 2, D / 2, W - D, 24, 1, false);
+    bodyGeo.rotateZ(Math.PI / 2);
+    // end caps
+    const capGeo = new THREE.SphereGeometry(D / 2, 24, 16);
+    // glass material
+    const mGlass = new THREE.MeshBasicMaterial({ color: 0x1a3a6a, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
+    const body = new THREE.Mesh(bodyGeo, mGlass);
+    const capL = new THREE.Mesh(capGeo, mGlass); capL.position.x = -(W - D) / 2;
+    const capR = new THREE.Mesh(capGeo, mGlass); capR.position.x = (W - D) / 2;
+    cab.add(body, capL, capR);
+    // gold frame edges — horizontal rings
+    const mFrame = new THREE.MeshBasicMaterial({ color: 0xC9A032 });
+    const ringGeo = new THREE.TorusGeometry(D / 2 + 0.05, 0.08, 8, 32);
+    for (let rx = -(W - D) / 2; rx <= (W - D) / 2; rx += (W - D)) {
+      const ring = new THREE.Mesh(ringGeo, mFrame); ring.position.x = rx; ring.rotation.y = Math.PI / 2; cab.add(ring);
+    }
+    // gold horizontal rails top & bottom
+    const railGeo = new THREE.CylinderGeometry(0.08, 0.08, W - D, 8);
+    railGeo.rotateZ(Math.PI / 2);
+    for (const dy of [D / 2, -D / 2]) {
+      const rail = new THREE.Mesh(railGeo.clone(), mFrame); rail.position.y = dy; cab.add(rail);
+    }
+    // blue neon strips — top & bottom horizontal
+    const mNeon = new THREE.MeshBasicMaterial({ color: 0x00AAFF });
+    const neonGeo = new THREE.CylinderGeometry(0.12, 0.12, W + 0.4, 8);
+    neonGeo.rotateZ(Math.PI / 2);
+    const nTop = new THREE.Mesh(neonGeo.clone(), mNeon); nTop.position.y = D / 2 + 0.15; cab.add(nTop);
+    const nBot = new THREE.Mesh(neonGeo.clone(), mNeon); nBot.position.y = -D / 2 - 0.15; cab.add(nBot);
+    // blue neon end rings
+    const neonRingGeo = new THREE.TorusGeometry(D / 2 + 0.12, 0.1, 8, 32);
+    const mNeonGlow = new THREE.MeshBasicMaterial({ color: 0x00CCFF });
+    for (const rx of [-(W - D) / 2 - 0.1, (W - D) / 2 + 0.1]) {
+      const nr = new THREE.Mesh(neonRingGeo, mNeonGlow); nr.position.x = rx; nr.rotation.y = Math.PI / 2; cab.add(nr);
+    }
+    // floor plate inside
+    const floorGeo = new THREE.BoxGeometry(W - D - 0.5, 0.12, D - 1);
+    const mFloor = new THREE.MeshBasicMaterial({ color: 0x1a1a2e });
+    const floor = new THREE.Mesh(floorGeo, mFloor); floor.position.y = -D / 2 + 0.5; cab.add(floor);
+    // blue glow disc underneath
+    const glowGeo = new THREE.CircleGeometry(D / 2 + 1, 32);
+    const mGlow = new THREE.MeshBasicMaterial({ color: 0x0088FF, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+    const glow = new THREE.Mesh(glowGeo, mGlow); glow.rotation.x = Math.PI / 2; glow.position.y = -D / 2 - 0.5; cab.add(glow);
+    return cab;
+  }
   function label(text, sub, dim) {
     const c = document.createElement("canvas"); c.width = 512; c.height = 128; const x = c.getContext("2d");
     const rr = (a, b, w, h, r) => { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); };
@@ -2679,12 +2695,9 @@ const SKY = (() => {
     const STAD_TOP = Rg * ROW_H + 18;
     const x = A * Math.cos(ang), z = B * Math.sin(ang), y = i % 2 ? STAD_TOP + 20 : STAD_TOP + 5, own = byNo.get(i + 1) || null;
     const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = Math.atan2(-x, -z) + Math.PI;
-    const disc = new THREE.Mesh(gDisc, mDisc); disc.rotation.x = Math.PI / 2; disc.position.y = -H / 2 - .9; if (!own) disc.visible = false;
-    g.add(disc);
-    if (cabinTemplate) {
-      const clone = cabinTemplate.clone(); clone.position.y = -H / 2; g.add(clone);
-      clone.traverse(ch => { if (ch.isMesh) { ch.userData.cabin = i; pickables.push(ch); } });
-    }
+    const cab = buildCabin();
+    cab.traverse(ch => { if (ch.isMesh) { ch.userData.cabin = i; pickables.push(ch); } });
+    g.add(cab);
     const lb = own ? label("@" + own.nick, "👑 № " + String(i + 1).padStart(2, "0")) : label("№ " + String(i + 1).padStart(2, "0"), "", true);
     lb.position.y = H / 2 + 3.4; g.add(lb);
     group.add(g);
@@ -2692,9 +2705,9 @@ const SKY = (() => {
   }
   // selection highlight: one gold frame + beam
   const hi = new THREE.Group(); hi.visible = false;
-  hi.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W + 1.6, H + 1.6, D + 1.6)), new THREE.LineBasicMaterial({ color: GOLD })));
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.25, 2.5, 30, 16, 1, true), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: .08, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
-  beam.position.y = -H / 2 - 21; hi.add(beam); group.add(hi);
+  hi.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W + 1, D + 1, D + 1)), new THREE.LineBasicMaterial({ color: GOLD })));
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.2, 2, 25, 16, 1, true), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: .06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  beam.position.y = -D / 2 - 13; hi.add(beam); group.add(hi);
 
   const $ = id => document.getElementById(id);
   let cur = null, inside = null, saved = null;
