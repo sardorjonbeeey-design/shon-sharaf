@@ -1283,7 +1283,22 @@ function layoutHomes(list) {
       for (let q = 0; q < 4; q++) { const r = p.ry + q * Math.PI / 2, d = Math.abs(Math.atan2(Math.sin(r - want), Math.cos(r - want))); if (d < bd) { bd = d; best = r; } }
       o.rotation.y = best; o.scale.setScalar(Math.max(.6, Math.min(1.25, Math.min(p.len, p.wid) / 11)));
     } else o.rotation.y = Math.atan2(-p.x, -p.z);
-    o.userData = h; h.p = p; homeGroup.add(o); homeObjs.push(o);
+    o.userData = h; h.p = p;
+    // 3D nameplate sprite on the house
+    if (h.nick) {
+      const nc = document.createElement("canvas"); nc.width = 256; nc.height = 48; const nx = nc.getContext("2d");
+      nx.fillStyle = "rgba(10,25,60,.75)"; const rr = 8; nx.beginPath(); nx.moveTo(rr,0); nx.lineTo(256-rr,0); nx.quadraticCurveTo(256,0,256,rr); nx.lineTo(256,48-rr); nx.quadraticCurveTo(256,48,256-rr,48); nx.lineTo(rr,48); nx.quadraticCurveTo(0,48,0,48-rr); nx.lineTo(0,rr); nx.quadraticCurveTo(0,0,rr,0); nx.fill();
+      nx.strokeStyle = "#c9a032"; nx.lineWidth = 2; nx.stroke();
+      nx.fillStyle = "#ffffff"; nx.font = "bold 22px system-ui,sans-serif"; nx.textAlign = "center"; nx.textBaseline = "middle";
+      const dn = h.nick.length > 14 ? h.nick.slice(0,13) + "…" : h.nick;
+      nx.fillText(dn, 128, 25);
+      const ntx = new THREE.CanvasTexture(nc); ntx.anisotropy = 4;
+      const nsp = new THREE.Sprite(new THREE.SpriteMaterial({ map: ntx, transparent: true, depthWrite: false, fog: false }));
+      const hh = LEVEL_H[h.level || 1] * (o.scale ? o.scale.y : 1);
+      nsp.scale.set(4.5, 0.85, 1); nsp.position.y = hh + 1.2;
+      o.add(nsp);
+    }
+    homeGroup.add(o); homeObjs.push(o);
   });
   BUILT = used; hideBuiltLand(used, HOMES.length);
   document.getElementById("nh").textContent = HOMES.length;
