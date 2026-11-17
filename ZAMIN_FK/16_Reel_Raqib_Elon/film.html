@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
+@font-face{font-family:MZ;font-weight:700;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf)}
+html,body{margin:0;background:#02040c;overflow:hidden;width:1080px;height:1920px;font-family:MZ,sans-serif}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:540px 960px}
+#bg{position:absolute;left:0;top:0;width:1080px;height:1920px}
+#scrim{position:absolute;left:0;top:0;width:1080px;height:1920px;background:linear-gradient(rgba(2,4,12,.72),rgba(2,4,12,.1) 20%,rgba(2,4,12,.1) 78%,rgba(2,4,12,.8))}
+#ov{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
+.it{position:absolute;white-space:nowrap;text-align:center;color:#fff;font-weight:900}
+.hd small{display:block;font-size:38px;letter-spacing:2px;text-shadow:0 4px 14px #000}
+.hd b{display:block;font-size:92px;line-height:1.02;color:#FFD23F;text-shadow:0 6px 0 #0D2557,0 10px 30px #000;-webkit-text-stroke:7px #0D2557;paint-order:stroke fill}
+.hd b.w{color:#fff}
+.dot{width:78px;height:78px;border-radius:50%;background:#1F4FB8;border:5px solid #fff;color:#fff;font-size:34px;line-height:68px;box-shadow:0 0 26px rgba(127,252,255,.9),0 6px 14px rgba(0,0,0,.6)}
+.nm{margin-top:6px;font-size:23px;background:rgba(5,14,40,.9);border:3px solid #FFD23F;border-radius:12px;padding:3px 12px;display:inline-block}
+.nm em{font-style:normal;color:#FFD23F;margin-left:6px}
+.slot{width:78px;height:78px;border-radius:50%;border:5px dashed #FFD23F;background:rgba(5,14,40,.78);color:#FFD23F;font-size:52px;line-height:66px;box-shadow:0 0 28px rgba(255,210,63,.7)}
+.pos{margin-top:6px;font-size:32px;background:#FFD23F;color:#0D2557;border-radius:12px;padding:2px 16px;display:inline-block;box-shadow:0 5px 0 #0D2557}
+.band{font-size:38px;background:rgba(5,14,40,.92);border:5px solid #FFD23F;border-radius:26px;padding:14px 34px;box-shadow:0 0 34px rgba(255,210,63,.4)}
+.band small{display:block;font-size:24px;letter-spacing:3px;color:#9fb6ff}
+.cm{background:#fff;color:#0D2557;border-radius:28px;padding:16px 28px;font-size:44px;text-align:left;box-shadow:0 14px 36px rgba(0,0,0,.6);border:5px solid #0D2557}
+.cm s{display:block;text-decoration:none;font-size:24px;color:#5a6a99;font-weight:700}.cm i{font-style:normal;color:#e63946}
+.follow{font-size:66px;color:#fff;background:#E1306C;border-radius:60px;padding:22px 66px;box-shadow:0 10px 0 #7a1138,0 16px 36px rgba(0,0,0,.6)}
+.slot.f{border-style:solid;font-size:30px;color:#0D2557;background:#FFD23F}.fn{font-size:19px;padding:3px 8px}.res{font-size:28px;line-height:1.22;text-align:center;background:rgba(5,14,40,.9);border:4px solid #9fb6ff;border-radius:22px;padding:14px 30px;columns:2;column-gap:40px}
+.chip{background:rgba(5,14,40,.9);border:4px solid #FFD23F;border-radius:18px;padding:10px 24px;font-size:38px}
+#fl{position:absolute;left:0;top:0;width:1080px;height:1920px;background:#fff;opacity:0;z-index:50}
+</style></head><body>
+<div id="stage"><img id="bg"><div id="scrim"></div><div id="ovp"></div></div><div id="ov"></div><div id="fl"></div>
+<script>
+const W = window.W || [], BS = {}; W.forEach(b => BS[b.beat] = b); const S = (b, i) => BS[b].sents[i], bs = n => BS[n].start, be = n => n < 6 ? BS[n + 1].start + .02 : END;
+const END = W[W.length - 1].end + 1.0; window.END = END; const FPS = 30, DIVE = 40;
+const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), sm = (a, b, x) => { const t = cl((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const eob = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const LAY = {"A_GK": [539.9999999999994, 1533.167730114379], "B_GK": [539.9999999999995, 386.83106406521017], "A_LB": [212.47550313313215, 1392.8002389299802], "B_LB": [867.5250265966424, 527.1990829340957], "A_CB1": [411.3296703819604, 1427.89211862891], "B_CB1": [668.6705545997966, 492.1070851197428], "A_CB2": [668.6703296180383, 1427.89211862891], "B_CB2": [411.32944540020253, 492.1070851197428], "A_RB": [867.5244968668667, 1392.8002389299802], "B_RB": [212.47497340335673, 527.1990829340957], "A_CDM": [738.8542109668173, 1252.4326741153666], "B_CDM": [341.1455717212562, 667.5670281724091], "A_CM": [341.1457890331815, 1252.4326741153666], "B_CM": [738.8544282787427, 667.5670281724091], "A_CAM": [539.9999999999994, 1182.2488640967108], "B_CAM": [539.9999999999994, 737.7509731801194], "A_LW": [235.86991728392292, 1053.5784979206067], "B_LW": [844.1301890710889, 866.4214912189104], "A_ST": [539.9999999999994, 1030.1838792414042], "B_ST": [539.9999999999994, 889.8161242151339], "A_RW": [844.130082716076, 1053.5784979206067], "B_RW": [235.86981092891006, 866.4214912189104]};
+const XI = [["GK", 1, "Shuhratbek"], ["LB", 4, "Duschanov M."], ["CB1", 12, "Temirmalik B."], ["CB2", 23, "Davronjonov M"], ["RB", 24, "Muhammadyasin"], ["CM", 19, "Maxmudov"], ["CDM", 5, "Rizayev M"], ["CAM", 6, "Elshod A."], ["LW", 7, "Shuhratbek M"], ["ST", 9, "Jovohir"], ["RW", 10, "Yorqulov N."]];
+const items = [], OVP = document.getElementById("ovp"), OV = document.getElementById("ov"), FL = document.getElementById("fl");
+function add(par, html, x, y, at, to, o = {}) { const d = document.createElement("div"); d.className = "it " + (o.cls || ""); d.innerHTML = html; d.style.left = x + "px"; d.style.top = y + "px"; d.style.display = "none"; if (o.z) d.style.zIndex = o.z; par.appendChild(d); items.push({ d, at, to: to == null ? 1e9 : to, o }); return d; }
+const hd = (label, big, at, to, y = 170, o = {}) => add(OV, `<small>${label}</small><b class="${o.w ? "w" : ""}">${big}</b>`, 540, y, at, to, { cls: "hd", z: 20, enter: "stamp", ...o });
+function frameOv(t) {
+  for (const it of items) { const { d, at, to, o } = it; if (!(t >= at && t < to)) { d.style.display = "none"; continue; }
+    d.style.display = "block"; const u = t - at, e = o.enter === "none" ? 1 : eob(cl(u / (o.enter === "stamp" ? .3 : .34))), out = o.keep ? 1 : cl((to - t) / .12);
+    let s = 1; if (o.pulse) s = 1 + .06 * Math.sin(u * 7 + (o.ph || 0)); if (o.glow) d.style.filter = `drop-shadow(0 0 ${14 + 10 * Math.sin(u * 6)}px #FFD23F)`;
+    d.style.opacity = String(cl(u / .08) * out * (o.dim ? o.dim(t) : 1)); d.style.transform = `translate(-50%,-50%) scale(${(.3 + .7 * e) * s})` + (o.rot ? ` rotate(${o.rot}deg)` : ""); }
+  const f = Math.max(0, ...[1, 2, 3, 4, 5, 6].map(i => 1 - (t - bs(i)) / .12)); FL.style.opacity = String(cl(f) * .25);
+}
+const FANS = {GK:"ibroxim.abdullayev7", LB:"nomonjonv.13", CB1:"mukhammadjnovv", CB2:"bogbekov_04", RB:"umaraliyev_nurilla", CDM:"asanbekov.fcb", CM:"abdulhamidov.17_", CAM:"abduxolisovv", LW:"erkin_kasimjanovich", ST:"abduxolisov_fc", RW:"as1bek__11"};
+const RES = ["saparov.1110","qochqarovv_","xojanazarovv.107","adiz.shuxratov","hamrokulov_o","ibrohim_o614","xoldarov__oo","muhammadali.abdujamilov","olloberdimuhammadjonovv","mominjonov1114","al_oybekia","orzub4k","behruzbek.rozimatov","2o1_.uzz","nuriddinof_jr.11","abdumuminov_007_","umaraliev.lll","al1jon_27.05","erlan.1015"];
+const stagger = (n, k) => bs(n) + .15 + k * .16;
+// A side: our XI (fades back while the reserves are listed)
+XI.forEach(([k, no, name], i) => { const [x, y] = LAY["A_" + k];
+  add(OVP, `<div class="dot">${no}</div><div class="nm">${name}</div>`, x, y + 22, bs(1) + .4 + i * .05, END, { z: 10, enter: "pop", keep: true, dim: t => t >= bs(4) && t < bs(5) ? .12 : 1 }); });
+// B side: fans' XI, slots fill one by one
+XI.forEach(([k], i) => { const [x, y] = LAY["B_" + k], p = k.replace(/\d/, "");
+  add(OVP, `<div class="slot f">${p}</div><div class="nm fn">@${FANS[k]}</div>`, x, y + 22, stagger(2, i), END, { z: 10, enter: "pop", keep: true }); });
+hd("ZAMIN FK", "MUXLISLAR<br>JAMOASI TAYYOR!", 0, be(1), 190, { enter: "none" });
+add(OV, `<div class="chip">B JAMOA · <span style="color:#FFD23F">ENG KO‘P LAYK</span></div>`, 540, 1770, .8, be(1), { z: 21, enter: "pop" });
+hd("MUXLISLAR XI", "ENG KO‘P LAYK", bs(2), be(2), 190);
+add(OV, `<div class="band"><small>HAR POZITSIYADA</small>1 TA G‘OLIB</div>`, 540, 1770, S(2, 0).a + .5, be(2), { z: 21, enter: "pop" });
+hd("AFSUSKI...", "KO‘PCHILIGI<br>FOLLOW EMAS", bs(3), be(3), 190, { w: true });
+add(OV, `<div class="band" style="font-size:80px;border-color:#9fb6ff">😔 ...</div>`, 540, 1770, bs(3) + .6, be(3), { z: 21, enter: "pop" });
+hd("ZAXIRA", "KEYINGI LAYKLAR", bs(4), be(4), 190);
+add(OV, `<div class="res">${RES.map(n => "@" + n).join("<br>")}</div>`, 540, 1260, bs(4) + .3, be(4), { z: 21, enter: "pop" });
+hd("JAMOA SARDORI", "KIM BO‘LADI?", bs(5), be(5), 190);
+add(OV, `<div class="cm"><s>NAMUNA</s><b>SARDOR:</b> @nomzod_ism <i>❤</i></div>`, 540, 1770, bs(5) + .8, be(5), { z: 22, enter: "pop", rot: -2 });
+hd("ZAMIN FK", "MUXLISLARGA<br>QARSHI!", bs(6), END, 190, { keep: true });
+add(OV, `<div class="follow">OBUNA BO‘LING</div>`, 540, 1770, S(6, 1).a - .05, END, { z: 22, enter: "pop", pulse: true, keep: true });
+add(OV, `<img src="assets/crest.png" style="height:150px">`, 130, 1770, S(6, 1).a - .05, END, { z: 22, enter: "pop", keep: true });
+// ---- background: real stadium top view (dive frames, then the top plate) + slow push-in
+const IM = {}; const nm = f => f < DIVE ? `build/top/d_${String(f).padStart(3, "0")}.jpg` : `build/top/top.jpg`;
+async function bg(t) { const f = Math.min(DIVE, Math.floor(t * FPS)); const im = IM[f]; if (im) document.getElementById("bg").src = im.src; if (im && im.decode) await im.decode().catch(() => 0); }
+window.renderAt = async t => { await bg(t); const z = 1 + .05 * sm(DIVE / FPS, END, t); document.getElementById("stage").style.transform = `scale(${z})`; frameOv(t); };
+window.ready = async () => { await document.fonts.ready; await document.fonts.load("900 40px MZ"); for (const f of [...Array(DIVE).keys(), DIVE]) { const im = new Image(); im.src = nm(f); await im.decode(); IM[f] = im; } await Promise.all([...document.images].map(i => i.decode ? i.decode().catch(() => 0) : 0)); return true; };
+</script></body></html>
