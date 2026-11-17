@@ -2629,29 +2629,21 @@ const SKY = (() => {
   const Rg = seats[seats.length - 1].ring + 1, A = PW / 2 + 9 + Rg * ROW_D + 50, B = PH / 2 + 9 + Rg * ROW_D + 50;   // clears the four floodlight masts at the stand corners
   const GOLD = 0xFFD23F, BLUE = 0x1F4FB8, W = 12, H = 6, D = 12;
   const group = new THREE.Group(); group.name = "zaminSky"; scene.add(group);
-  const gBox = new THREE.BoxGeometry(W, H, D), gEdge = new THREE.EdgesGeometry(gBox), gFloor = new THREE.BoxGeometry(W + 1, .6, D + 1), gTrim = new THREE.BoxGeometry(W + 1.2, .25, D + 1.2);
-  const gDisc = new THREE.CircleGeometry(7, 28), gCup = new THREE.CylinderGeometry(.9, .45, 1.3, 20), gStem = new THREE.CylinderGeometry(.14, .14, .9, 10), gBase = new THREE.CylinderGeometry(.6, .7, .35, 20);
-  const gBall = new THREE.IcosahedronGeometry(1.05, 1), gStar = new THREE.OctahedronGeometry(1.15, 0), gHandle = new THREE.TorusGeometry(.5, .09, 8, 14);
-  const mGlass = new THREE.MeshBasicMaterial({ color: 0x7fc0ff, transparent: true, opacity: .16, depthWrite: false, side: THREE.DoubleSide });
-  const mGlassFree = new THREE.MeshBasicMaterial({ color: 0x9db8ff, transparent: true, opacity: .05, depthWrite: false, side: THREE.DoubleSide });
-  const mEdge = new THREE.LineBasicMaterial({ color: 0xbfe0ff, transparent: true, opacity: .95 }), mEdgeFree = new THREE.LineBasicMaterial({ color: 0x8aa0d8, transparent: true, opacity: .45 });
-  const mFloor = new THREE.MeshBasicMaterial({ color: 0x0D2557 }), mTrim = new THREE.MeshBasicMaterial({ color: 0xc79b25 }), mTrimFree = new THREE.MeshBasicMaterial({ color: 0x3b4f8a });
   const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
-  const mGold = new THREE.MeshStandardMaterial({ color: GOLD, metalness: .85, roughness: .25, emissive: 0x4a3200, emissiveIntensity: .35 });
-  const mBall = new THREE.MeshStandardMaterial({ color: 0xf4f6fa, roughness: .5, flatShading: true, emissive: 0x223355, emissiveIntensity: .5 });
-  const mStar = new THREE.MeshStandardMaterial({ color: 0x7fc0ff, metalness: .5, roughness: .2, emissive: 0x2f6fff, emissiveIntensity: .9, flatShading: true });
-  function collectible(model) {
-    const g = new THREE.Group();
-    if (model === "ball") g.add(new THREE.Mesh(gBall, mBall));
-    else if (model === "star") g.add(new THREE.Mesh(gStar, mStar));
-    else { // trophy
-      const base = new THREE.Mesh(gBase, mGold), stem = new THREE.Mesh(gStem, mGold), cup = new THREE.Mesh(gCup, mGold);
-      base.position.y = -.9; stem.position.y = -.5; cup.position.y = .35;
-      const h1 = new THREE.Mesh(gHandle, mGold), h2 = h1.clone(); h1.position.set(-.95, .4, 0); h2.position.set(.95, .4, 0);
-      g.add(base, stem, cup, h1, h2);
-    }
-    return g;
-  }
+  const gDisc = new THREE.CircleGeometry(7, 28);
+  let cabinTemplate = null;
+  if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/sky/cabin_vip.glb", gl => {
+    const m = gl.scene; m.scale.setScalar(5); m.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(m); const sz = new THREE.Vector3(); box.getSize(sz);
+    m.scale.setScalar(5 * W / Math.max(sz.x, sz.z));
+    cabinTemplate = m;
+    cabins.forEach(c => {
+      const clone = cabinTemplate.clone();
+      clone.position.y = -H / 2;
+      c.g.add(clone); c.model3d = clone;
+      clone.traverse(ch => { if (ch.isMesh) { ch.userData.cabin = c.i; pickables.push(ch); } });
+    });
+  }, undefined, e => console.warn("cabin_vip.glb:", e));
   function label(text, sub, dim) {
     const c = document.createElement("canvas"); c.width = 512; c.height = 128; const x = c.getContext("2d");
     const rr = (a, b, w, h, r) => { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); };
@@ -2664,24 +2656,23 @@ const SKY = (() => {
     sp.scale.set(9.5, 2.4, 1); return sp;
   }
   const cabins = [], pickables = [];
-  const gap = Math.PI * 0.2;                                    // keep the north (LED screen) side open
+  const gap = Math.PI * 0.2;
   for (let i = 0; i < N; i++) {
     const ang = -Math.PI / 2 + gap + (i + .5) * (2 * Math.PI - 2 * gap) / N;
     const x = A * Math.cos(ang), z = B * Math.sin(ang), y = i % 2 ? 46 : 31, own = byNo.get(i + 1) || null;
-    const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = Math.atan2(-x, -z) + Math.PI;     // front glass faces the pitch
-    const glass = new THREE.Mesh(gBox, own ? mGlass : mGlassFree); glass.renderOrder = 2;
-    const edges = new THREE.LineSegments(gEdge, own ? mEdge : mEdgeFree);
-    const floor = new THREE.Mesh(gFloor, mFloor); floor.position.y = -H / 2 - .3; const trim = new THREE.Mesh(gTrim, own ? mTrim : mTrimFree); trim.position.y = -H / 2 - .65;
+    const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = Math.atan2(-x, -z) + Math.PI;
     const disc = new THREE.Mesh(gDisc, mDisc); disc.rotation.x = Math.PI / 2; disc.position.y = -H / 2 - .9; if (!own) disc.visible = false;
-    g.add(glass, edges, floor, trim, disc);
-    let item = null;
-    if (own) { item = collectible(own.model); item.scale.setScalar(.75); item.position.y = -H / 2 + 1.7; g.add(item); }
+    g.add(disc);
+    if (cabinTemplate) {
+      const clone = cabinTemplate.clone(); clone.position.y = -H / 2; g.add(clone);
+      clone.traverse(ch => { if (ch.isMesh) { ch.userData.cabin = i; pickables.push(ch); } });
+    }
     const lb = own ? label("@" + own.nick, "👑 № " + String(i + 1).padStart(2, "0")) : label("№ " + String(i + 1).padStart(2, "0"), "", true);
     lb.position.y = H / 2 + 3.4; g.add(lb);
-    glass.userData.cabin = i; group.add(g); pickables.push(glass);
-    cabins.push({ i, no: i + 1, own, g, item, y0: y, ph: i * 1.3, dir: new THREE.Vector3(-x, 0, -z).normalize() });
+    group.add(g);
+    cabins.push({ i, no: i + 1, own, g, item: null, y0: y, ph: i * 1.3, dir: new THREE.Vector3(-x, 0, -z).normalize() });
   }
-  // selection highlight: one gold frame + beam, moved to the selected cabin
+  // selection highlight: one gold frame + beam
   const hi = new THREE.Group(); hi.visible = false;
   hi.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W + 1.6, H + 1.6, D + 1.6)), new THREE.LineBasicMaterial({ color: GOLD })));
   const beam = new THREE.Mesh(new THREE.CylinderGeometry(.35, 4.5, 40, 16, 1, true), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: .16, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
