@@ -2631,11 +2631,14 @@ const SKY = (() => {
   const group = new THREE.Group(); group.name = "zaminSky"; scene.add(group);
   const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
   const gDisc = new THREE.CircleGeometry(7, 28);
+  // sky-level light so cabins are visible
+  const skyLight = new THREE.PointLight(0xfff4dc, 1.2, 300, 1); skyLight.position.set(0, 50, 0); group.add(skyLight);
   let cabinTemplate = null;
   if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/sky/cabin_vip.glb", gl => {
     const m = gl.scene; m.scale.setScalar(5); m.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(m); const sz = new THREE.Vector3(); box.getSize(sz);
     m.scale.setScalar(5 * W / Math.max(sz.x, sz.z));
+    m.traverse(ch => { if (ch.isMesh && ch.material) { ch.material.emissive = new THREE.Color(0x222222); ch.material.emissiveIntensity = 0.3; } });
     cabinTemplate = m;
     cabins.forEach(c => {
       const clone = cabinTemplate.clone();
@@ -2659,7 +2662,8 @@ const SKY = (() => {
   const gap = Math.PI * 0.2;
   for (let i = 0; i < N; i++) {
     const ang = -Math.PI / 2 + gap + (i + .5) * (2 * Math.PI - 2 * gap) / N;
-    const x = A * Math.cos(ang), z = B * Math.sin(ang), y = i % 2 ? 46 : 31, own = byNo.get(i + 1) || null;
+    const STAD_TOP = Rg * ROW_H + 18;
+    const x = A * Math.cos(ang), z = B * Math.sin(ang), y = i % 2 ? STAD_TOP + 17 : STAD_TOP + 2, own = byNo.get(i + 1) || null;
     const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = Math.atan2(-x, -z) + Math.PI;
     const disc = new THREE.Mesh(gDisc, mDisc); disc.rotation.x = Math.PI / 2; disc.position.y = -H / 2 - .9; if (!own) disc.visible = false;
     g.add(disc);
