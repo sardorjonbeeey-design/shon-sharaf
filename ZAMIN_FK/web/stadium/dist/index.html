@@ -2612,18 +2612,7 @@ const SKY = (() => {
   };
   const t = () => ST[L] || ST.en;
   // MOCK data (Phase 1 only). Phase 2: GET /api/vip -> [{no, tg_id, nick, model, message, purchased_at}]
-  const SKY_MOCK = [
-    { no: 1, nick: "legends00000001", model: "trophy", message: "Zamin FK — bir yurak, bir jamoa! 💙", at: "2026-11-02", member: 7, xp: 940, home: "L5" },
-    { no: 3, nick: "kewl.imjay45", model: "ball", message: "Stadion ustida eng yaxshi manzara 🔭", at: "2026-11-05", member: 12, xp: 610, home: "L3" },
-    { no: 4, nick: "dilnoza", model: "star", message: "Har bir gol uchun rahmat!", at: "2026-11-06", member: 31, xp: 420, home: "L2" },
-    { no: 6, nick: "sardor", model: "trophy", message: "Champions soon.", at: "2026-11-09", member: 3, xp: 1200, home: "L7" },
-    { no: 8, nick: "malika_uz", model: "star", message: "⭐⭐⭐", at: "2026-11-10", member: 58, xp: 250, home: "L1" },
-    { no: 9, nick: "bekzod", model: "ball", message: "Kelinglar, birga o‘ynaymiz!", at: "2026-11-11", member: 19, xp: 700, home: "L4" },
-    { no: 12, nick: "jasur", model: "trophy", message: "Darvozabon uchun eng xavfsiz joy 😄", at: "2026-11-12", member: 22, xp: 530, home: "L3" },
-    { no: 15, nick: "umid", model: "ball", message: "ZAMIN FK 💙💛", at: "2026-11-13", member: 44, xp: 330, home: "L2" },
-    { no: 18, nick: "nilufar", model: "star", message: "Mening kabinam — mening qoidalarim.", at: "2026-11-14", member: 64, xp: 210, home: "L1" },
-    { no: 21, nick: "otabek", model: "trophy", message: "Birinchi kubok shu yerda turadi!", at: "2026-11-15", member: 9, xp: 880, home: "L6" },
-  ];
+  const SKY_MOCK = [];
   const N = 24, byNo = new Map(SKY_MOCK.map(o => [o.no, o]));
   // ring just outside + above the roof; the north gap (LED screen side, z<0) stays open
   const Rg = seats[seats.length - 1].ring + 1, A = PW / 2 + 9 + Rg * ROW_D + 15, B = PH / 2 + 9 + Rg * ROW_D + 15;   // just outside the floodlight masts
