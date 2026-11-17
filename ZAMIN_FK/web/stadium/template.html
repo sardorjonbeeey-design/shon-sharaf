@@ -2632,17 +2632,32 @@ const SKY = (() => {
   const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
   const gDisc = new THREE.CircleGeometry(7, 28);
   let cabinTemplate = null;
-  const cabinMat = new THREE.MeshBasicMaterial({ color: 0x44AAFF, side: THREE.DoubleSide });
   if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/sky/cabin_vip.glb", gl => {
     const m = gl.scene; m.scale.setScalar(5); m.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(m); const sz = new THREE.Vector3(); box.getSize(sz);
     m.scale.setScalar(5 * W / Math.max(sz.x, sz.z));
-    m.traverse(ch => { if (ch.isMesh) ch.material = cabinMat; });
+    // convert every mesh material to MeshBasicMaterial (self-lit, no scene light needed)
+    m.traverse(ch => { if (ch.isMesh) {
+      const old = ch.material;
+      const mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+      // try every possible texture property
+      const tex = old.map || old.baseColorMap || old.diffuseMap || null;
+      if (tex) { mat.map = tex; mat.color.set(0xffffff); }
+      else if (old.color) { mat.color.copy(old.color); }
+      else { mat.color.set(0x88AACC); }
+      // also check if original PBR has baseColorFactor
+      if (!tex && old.pbrMetallicRoughness && old.pbrMetallicRoughness.baseColorFactor) {
+        const f = old.pbrMetallicRoughness.baseColorFactor;
+        mat.color.setRGB(f[0], f[1], f[2]);
+      }
+      mat.needsUpdate = true;
+      ch.material = mat;
+    }});
     cabinTemplate = m;
     cabins.forEach(c => {
       const clone = cabinTemplate.clone();
       clone.position.y = -H / 2;
-      clone.traverse(ch => { if (ch.isMesh) { ch.material = cabinMat; ch.userData.cabin = c.i; pickables.push(ch); } });
+      clone.traverse(ch => { if (ch.isMesh) { ch.userData.cabin = c.i; pickables.push(ch); } });
       c.g.add(clone); c.model3d = clone;
     });
   }, undefined, e => console.warn("cabin_vip.glb:", e));
@@ -2678,7 +2693,7 @@ const SKY = (() => {
   // selection highlight: one gold frame + beam
   const hi = new THREE.Group(); hi.visible = false;
   hi.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W + 1.6, H + 1.6, D + 1.6)), new THREE.LineBasicMaterial({ color: GOLD })));
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.35, 4.5, 40, 16, 1, true), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: .16, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.25, 2.5, 30, 16, 1, true), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: .08, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
   beam.position.y = -H / 2 - 21; hi.add(beam); group.add(hi);
 
   const $ = id => document.getElementById(id);
