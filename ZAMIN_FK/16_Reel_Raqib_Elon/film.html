@@ -50,7 +50,7 @@ XI.forEach(([k, no, name], i) => { const [x, y] = LAY["A_" + k];
   add(OVP, `<div class="dot">${no}</div><div class="nm">${name}</div>`, x, y + 22, bs(1) + .4 + i * .05, END, { z: 10, enter: "pop", keep: true, dim: t => t >= bs(4) && t < bs(5) ? .12 : 1 }); });
 // B side: fans' XI, slots fill one by one
 XI.forEach(([k], i) => { const [x, y] = LAY["B_" + k], p = k.replace(/\d/, "");
-  add(OVP, `<div class="slot f">${p}</div><div class="nm fn">@${FANS[k]}</div>`, x, y + 22, stagger(2, i), END, { z: 10, enter: "pop", keep: true }); });
+  add(OVP, k==="GK" ? `<div class="nm fn" style="margin:0 0 6px">@${FANS[k]}</div><div class="slot f">${p}</div>` : `<div class="slot f">${p}</div><div class="nm fn">@${FANS[k]}</div>`, x, k==="GK" ? y - 12 : y + 22, stagger(2, i), END, { z: 10, enter: "pop", keep: true }); });
 hd("ZAMIN FK", "MUXLISLAR<br>JAMOASI TAYYOR!", 0, be(1), 190, { enter: "none" });
 add(OV, `<div class="chip">B JAMOA · <span style="color:#FFD23F">ENG KO‘P LAYK</span></div>`, 540, 1770, .8, be(1), { z: 21, enter: "pop" });
 hd("MUXLISLAR XI", "ENG KO‘P LAYK", bs(2), be(2), 190);
@@ -59,8 +59,9 @@ hd("AFSUSKI...", "KO‘PCHILIGI<br>FOLLOW EMAS", bs(3), be(3), 190, { w: true })
 add(OV, `<div class="band" style="font-size:80px;border-color:#9fb6ff">😔 ...</div>`, 540, 1770, bs(3) + .6, be(3), { z: 21, enter: "pop" });
 hd("ZAXIRA", "KEYINGI LAYKLAR", bs(4), be(4), 190);
 add(OV, `<div class="res">${RES.map(n => "@" + n).join("<br>")}</div>`, 540, 1260, bs(4) + .3, be(4), { z: 21, enter: "pop" });
-hd("JAMOA SARDORI", "KIM BO‘LADI?", bs(5), be(5), 190);
-add(OV, `<div class="cm"><s>NAMUNA</s><b>SARDOR:</b> @nomzod_ism <i>❤</i></div>`, 540, 1770, bs(5) + .8, be(5), { z: 22, enter: "pop", rot: -2 });
+hd("MURABBIY", "KERAK!", bs(5), be(5), 190);
+add(OVP, `<div class="slot">?</div><div class="pos">MURABBIY</div>`, 900, 330, bs(5) + .25, be(5), { z: 12, enter: "pop", pulse: true });
+add(OV, `<div class="cm"><s>NAMUNA</s><b>MEN MURABBIYMAN</b> @sizning_ism <i>❤</i></div>`, 540, 1770, S(5, 1).a, be(5), { z: 22, enter: "pop", rot: -2 });
 hd("ZAMIN FK", "MUXLISLARGA<br>QARSHI!", bs(6), END, 190, { keep: true });
 add(OV, `<div class="follow">OBUNA BO‘LING</div>`, 540, 1770, S(6, 1).a - .05, END, { z: 22, enter: "pop", pulse: true, keep: true });
 add(OV, `<img src="assets/crest.png" style="height:150px">`, 130, 1770, S(6, 1).a - .05, END, { z: 22, enter: "pop", keep: true });
