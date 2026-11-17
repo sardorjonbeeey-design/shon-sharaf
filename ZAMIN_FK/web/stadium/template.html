@@ -40,6 +40,18 @@
   .tag.hero::before { content:"★"; color:var(--yel); }
   .tag.squad { background:var(--navy); color:#fff; border:1px solid var(--yel); font-size:10px; font-weight:900; padding:2px 7px; box-shadow:0 2px 6px rgba(13,37,87,.3); }
   .tag.squad::before { content:"★"; color:var(--yel); margin-right:3px; }
+  #vpanel { left:12px; right:78px; top:120px; bottom:90px; padding:14px; display:none; overflow:auto; }
+  #vpanel h3 { margin:0 0 8px; color:var(--yel); font-weight:900; }
+  #vpanel .x { position:absolute; right:12px; top:6px; font-size:22px; background:none; border:0; color:#fff; }
+  #vlist button { display:flex; align-items:center; gap:8px; width:100%; text-align:left; font:inherit; font-weight:700; font-size:16px; color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,210,63,.35); border-radius:12px; padding:11px 12px; margin:6px 0; }
+  #vlist button b { flex:1; color:#FFD23F; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #vlist button i { font-style:normal; opacity:.75; } #vlist button u { text-decoration:none; color:#FFD23F; font-weight:900; }
+  #cabin { left:50%; bottom:130px; z-index:6; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; }
+  #cabin h3 { margin:0 0 2px; font-weight:900; font-size:20px; color:var(--yel); } #cabin h3 a { color:inherit; text-decoration:underline; cursor:pointer; }
+  #cabin p { margin:4px 0 0; font-weight:700; font-size:14px; line-height:1.35; } #cabin .msg { font-style:italic; color:#cfe0ff; white-space:pre-wrap; word-break:break-word; }
+  #cabin .x { position:absolute; right:12px; top:8px; font-size:20px; background:none; border:0; color:#fff; }
+  #cabin .go { margin-top:10px; width:100%; font:inherit; font-weight:900; font-size:17px; color:var(--navy); background:var(--yel); border:0; border-radius:14px; padding:12px; }
+  #cabin .owner { display:none; margin-top:8px; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,.1); font-size:13px; }
   #card { left:50%; bottom:130px; z-index:6; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; }
   #card h3 { margin:0 0 4px; font-weight:900; font-size:20px; color:var(--yel); }
   #card p { margin:0; font-weight:700; font-size:14px; line-height:1.35; }
@@ -185,7 +197,7 @@
 <div id="count" class="ui pill"><small data-t="fans"></small><b id="n">0</b><i>VIRTUAL</i><div class="homes"><small data-t="pop"></small><b id="nh">0</b></div></div>
 <div id="langs" class="ui"></div>
 <div id="place" class="ui"></div>
-<div id="side" class="ui"><button id="list">👥</button><button id="view">🏙</button><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button></div>
+<div id="side" class="ui"><button id="list">👥</button><button id="vip" style="color:#FFD23F">👑</button><button id="view">🏙</button><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button></div>
 <button id="cta" class="ui" data-t="cta"></button>
 <div id="actions" class="ui"><button id="bClub" class="club">⚽ Klub</button><button id="bHome" data-t="bHome"></button><button id="bJob" data-t="bJob"></button><button id="bShop" class="alt" data-t="bShop"></button></div>
 <div id="club"><div class="ctop"><img id="cCrest" alt=""><div><b>ZAMIN FK</b><small id="cSub">Muxlislar portali</small></div><button id="cX">×</button></div>
@@ -215,6 +227,8 @@
 </div>
 <div id="rule" class="ui" data-t="rule"></div>
 <div id="toast" class="ui pill"></div>
+<div id="vpanel" class="ui pill"><button class="x" id="vx">×</button><h3 id="vh"></h3><div id="vlist"></div></div>
+<div id="cabin" class="ui pill"><button class="x" id="cbx">×</button><h3 id="cbh"></h3><p id="cbp"></p><div class="owner" id="cbo"></div><p class="msg" id="cbm"></p><button class="go" id="cbgo"></button></div>
 <div id="card" class="ui pill"><button class="x" id="cx">×</button><h3 id="ch"></h3><p id="cp"></p></div>
 <div id="demo" class="ui" data-t="demo"></div>
 <div id="panel" class="ui pill"><button class="x" id="px">×</button><h3 data-t="fans"></h3><div id="plist"></div></div>
@@ -1885,6 +1899,7 @@ canvas.addEventListener("pointerup", e => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
   mouse.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1);
   ray.setFromCamera(mouse, camera);
+  if (SKY.onTap(ray)) return;
   const fh = ray.intersectObject(bodies)[0] || ray.intersectObject(heads)[0] || ray.intersectObject(shorts)[0];
   if (fh && fiSeat[fh.instanceId]) { showFan(fiSeat[fh.instanceId]); return; }
   const hq = ray.intersectObjects(HQ_OBJS, true)[0];
@@ -2587,6 +2602,146 @@ if (MAP) { const pl = document.getElementById("place"); pl.textContent = "📍 "
 setMode(MODE, false);
 updateCta();
 
+// ---------- ZAMIN SKY: VIP floating glass cabins (PHASE 1: visual prototype, mock data) ----------
+// Lives in the same scene / camera / controls / raycaster as the stadium. Phase 2 replaces SKY_MOCK with the server list.
+const SKY = (() => {
+  const ST = {
+    uz: { h: "👑 VIP RO‘YXAT", free: "Bo‘sh kabina", owned: "VIP kabina", no: "Kabina", since: "Sotib olingan", enter: "Kabinaga kirish", leave: "Kabinadan chiqish", empty: "Bu kabina hali sotilmagan.", ownerCard: (o) => `👤 ${o.nick} · Muxlis №${o.member} · ⭐ ${o.xp} XP · 🏠 ${o.home}`, nomsg: "—" },
+    ru: { h: "👑 VIP СПИСОК", free: "Свободная кабина", owned: "VIP-кабина", no: "Кабина", since: "Куплена", enter: "Войти в кабину", leave: "Выйти из кабины", empty: "Эта кабина ещё свободна.", ownerCard: (o) => `👤 ${o.nick} · Болельщик №${o.member} · ⭐ ${o.xp} XP · 🏠 ${o.home}`, nomsg: "—" },
+    en: { h: "👑 VIP LIST", free: "Free cabin", owned: "VIP cabin", no: "Cabin", since: "Purchased", enter: "Enter cabin", leave: "Leave cabin", empty: "This cabin is not owned yet.", ownerCard: (o) => `👤 ${o.nick} · Fan #${o.member} · ⭐ ${o.xp} XP · 🏠 ${o.home}`, nomsg: "—" },
+  };
+  const t = () => ST[L] || ST.en;
+  // MOCK data (Phase 1 only). Phase 2: GET /api/vip -> [{no, tg_id, nick, model, message, purchased_at}]
+  const SKY_MOCK = [
+    { no: 1, nick: "legends00000001", model: "trophy", message: "Zamin FK — bir yurak, bir jamoa! 💙", at: "2026-11-02", member: 7, xp: 940, home: "L5" },
+    { no: 3, nick: "kewl.imjay45", model: "ball", message: "Stadion ustida eng yaxshi manzara 🔭", at: "2026-11-05", member: 12, xp: 610, home: "L3" },
+    { no: 4, nick: "dilnoza", model: "star", message: "Har bir gol uchun rahmat!", at: "2026-11-06", member: 31, xp: 420, home: "L2" },
+    { no: 6, nick: "sardor", model: "trophy", message: "Champions soon.", at: "2026-11-09", member: 3, xp: 1200, home: "L7" },
+    { no: 8, nick: "malika_uz", model: "star", message: "⭐⭐⭐", at: "2026-11-10", member: 58, xp: 250, home: "L1" },
+    { no: 9, nick: "bekzod", model: "ball", message: "Kelinglar, birga o‘ynaymiz!", at: "2026-11-11", member: 19, xp: 700, home: "L4" },
+    { no: 12, nick: "jasur", model: "trophy", message: "Darvozabon uchun eng xavfsiz joy 😄", at: "2026-11-12", member: 22, xp: 530, home: "L3" },
+    { no: 15, nick: "umid", model: "ball", message: "ZAMIN FK 💙💛", at: "2026-11-13", member: 44, xp: 330, home: "L2" },
+    { no: 18, nick: "nilufar", model: "star", message: "Mening kabinam — mening qoidalarim.", at: "2026-11-14", member: 64, xp: 210, home: "L1" },
+    { no: 21, nick: "otabek", model: "trophy", message: "Birinchi kubok shu yerda turadi!", at: "2026-11-15", member: 9, xp: 880, home: "L6" },
+  ];
+  const N = 24, byNo = new Map(SKY_MOCK.map(o => [o.no, o]));
+  // ring just outside + above the roof; the north gap (LED screen side, z<0) stays open
+  const Rg = seats[seats.length - 1].ring + 1, A = PW / 2 + 9 + Rg * ROW_D + 50, B = PH / 2 + 9 + Rg * ROW_D + 50;   // clears the four floodlight masts at the stand corners
+  const GOLD = 0xFFD23F, BLUE = 0x1F4FB8, W = 12, H = 6, D = 12;
+  const group = new THREE.Group(); group.name = "zaminSky"; scene.add(group);
+  const gBox = new THREE.BoxGeometry(W, H, D), gEdge = new THREE.EdgesGeometry(gBox), gFloor = new THREE.BoxGeometry(W + 1, .6, D + 1), gTrim = new THREE.BoxGeometry(W + 1.2, .25, D + 1.2);
+  const gDisc = new THREE.CircleGeometry(7, 28), gCup = new THREE.CylinderGeometry(.9, .45, 1.3, 20), gStem = new THREE.CylinderGeometry(.14, .14, .9, 10), gBase = new THREE.CylinderGeometry(.6, .7, .35, 20);
+  const gBall = new THREE.IcosahedronGeometry(1.05, 1), gStar = new THREE.OctahedronGeometry(1.15, 0), gHandle = new THREE.TorusGeometry(.5, .09, 8, 14);
+  const mGlass = new THREE.MeshBasicMaterial({ color: 0x7fc0ff, transparent: true, opacity: .16, depthWrite: false, side: THREE.DoubleSide });
+  const mGlassFree = new THREE.MeshBasicMaterial({ color: 0x9db8ff, transparent: true, opacity: .05, depthWrite: false, side: THREE.DoubleSide });
+  const mEdge = new THREE.LineBasicMaterial({ color: 0xbfe0ff, transparent: true, opacity: .95 }), mEdgeFree = new THREE.LineBasicMaterial({ color: 0x8aa0d8, transparent: true, opacity: .45 });
+  const mFloor = new THREE.MeshBasicMaterial({ color: 0x0D2557 }), mTrim = new THREE.MeshBasicMaterial({ color: 0xc79b25 }), mTrimFree = new THREE.MeshBasicMaterial({ color: 0x3b4f8a });
+  const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
+  const mGold = new THREE.MeshStandardMaterial({ color: GOLD, metalness: .85, roughness: .25, emissive: 0x4a3200, emissiveIntensity: .35 });
+  const mBall = new THREE.MeshStandardMaterial({ color: 0xf4f6fa, roughness: .5, flatShading: true, emissive: 0x223355, emissiveIntensity: .5 });
+  const mStar = new THREE.MeshStandardMaterial({ color: 0x7fc0ff, metalness: .5, roughness: .2, emissive: 0x2f6fff, emissiveIntensity: .9, flatShading: true });
+  function collectible(model) {
+    const g = new THREE.Group();
+    if (model === "ball") g.add(new THREE.Mesh(gBall, mBall));
+    else if (model === "star") g.add(new THREE.Mesh(gStar, mStar));
+    else { // trophy
+      const base = new THREE.Mesh(gBase, mGold), stem = new THREE.Mesh(gStem, mGold), cup = new THREE.Mesh(gCup, mGold);
+      base.position.y = -.9; stem.position.y = -.5; cup.position.y = .35;
+      const h1 = new THREE.Mesh(gHandle, mGold), h2 = h1.clone(); h1.position.set(-.95, .4, 0); h2.position.set(.95, .4, 0);
+      g.add(base, stem, cup, h1, h2);
+    }
+    return g;
+  }
+  function label(text, sub, dim) {
+    const c = document.createElement("canvas"); c.width = 512; c.height = 128; const x = c.getContext("2d");
+    const rr = (a, b, w, h, r) => { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); };
+    rr(6, 6, 500, 116, 28); x.fillStyle = dim ? "rgba(13,37,87,.55)" : "rgba(13,37,87,.92)"; x.fill(); x.lineWidth = 6; x.strokeStyle = dim ? "rgba(217,173,44,.3)" : "#c79b25"; x.stroke();
+    x.textAlign = "center"; x.fillStyle = dim ? "rgba(255,255,255,.6)" : "#d9ad2c"; x.font = "900 50px system-ui, sans-serif";
+    x.fillText(text.length > 17 ? text.slice(0, 16) + "…" : text, 256, sub ? 62 : 80);
+    if (sub) { x.fillStyle = dim ? "rgba(255,255,255,.55)" : "#9DB8FF"; x.font = "800 28px system-ui, sans-serif"; x.fillText(sub, 256, 104); }
+    const tx = new THREE.CanvasTexture(c); tx.anisotropy = 4;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, fog: false }));
+    sp.scale.set(9.5, 2.4, 1); return sp;
+  }
+  const cabins = [], pickables = [];
+  const gap = Math.PI * 0.2;                                    // keep the north (LED screen) side open
+  for (let i = 0; i < N; i++) {
+    const ang = -Math.PI / 2 + gap + (i + .5) * (2 * Math.PI - 2 * gap) / N;
+    const x = A * Math.cos(ang), z = B * Math.sin(ang), y = i % 2 ? 46 : 31, own = byNo.get(i + 1) || null;
+    const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = Math.atan2(-x, -z) + Math.PI;     // front glass faces the pitch
+    const glass = new THREE.Mesh(gBox, own ? mGlass : mGlassFree); glass.renderOrder = 2;
+    const edges = new THREE.LineSegments(gEdge, own ? mEdge : mEdgeFree);
+    const floor = new THREE.Mesh(gFloor, mFloor); floor.position.y = -H / 2 - .3; const trim = new THREE.Mesh(gTrim, own ? mTrim : mTrimFree); trim.position.y = -H / 2 - .65;
+    const disc = new THREE.Mesh(gDisc, mDisc); disc.rotation.x = Math.PI / 2; disc.position.y = -H / 2 - .9; if (!own) disc.visible = false;
+    g.add(glass, edges, floor, trim, disc);
+    let item = null;
+    if (own) { item = collectible(own.model); item.scale.setScalar(.75); item.position.y = -H / 2 + 1.7; g.add(item); }
+    const lb = own ? label("@" + own.nick, "👑 № " + String(i + 1).padStart(2, "0")) : label("№ " + String(i + 1).padStart(2, "0"), "", true);
+    lb.position.y = H / 2 + 3.4; g.add(lb);
+    glass.userData.cabin = i; group.add(g); pickables.push(glass);
+    cabins.push({ i, no: i + 1, own, g, item, y0: y, ph: i * 1.3, dir: new THREE.Vector3(-x, 0, -z).normalize() });
+  }
+  // selection highlight: one gold frame + beam, moved to the selected cabin
+  const hi = new THREE.Group(); hi.visible = false;
+  hi.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W + 1.6, H + 1.6, D + 1.6)), new THREE.LineBasicMaterial({ color: GOLD })));
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.35, 4.5, 40, 16, 1, true), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: .16, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  beam.position.y = -H / 2 - 21; hi.add(beam); group.add(hi);
+
+  const $ = id => document.getElementById(id);
+  let cur = null, inside = null, saved = null;
+  const pos = new THREE.Vector3();
+  function select(c, fly = true) {
+    cur = c; hi.visible = true; hi.position.copy(c.g.position); hi.rotation.copy(c.g.rotation);
+    if (fly) { c.g.getWorldPosition(pos); const d = c.dir; flyTo(new THREE.Vector3(pos.x + d.x * 30, pos.y + 6, pos.z + d.z * 30), pos.clone(), 2.0); }
+    const T_ = t();
+    $("cbh").innerHTML = ""; $("cbo").style.display = "none"; $("cbm").textContent = "";
+    if (c.own) {
+      const a = document.createElement("a"); a.textContent = "@" + c.own.nick; a.onclick = () => { const o = $("cbo"); o.textContent = T_.ownerCard(c.own); o.style.display = o.style.display === "block" ? "none" : "block"; };
+      $("cbh").append("👑 ", a);
+      $("cbp").textContent = `${T_.owned} · ${T_.no} №${c.no} · ${T_.since}: ${c.own.at}`; $("cbm").textContent = "“" + c.own.message + "”";
+      $("cbgo").textContent = T_.enter; $("cbgo").style.display = "block";
+    } else { $("cbh").textContent = `${T_.free} №${c.no}`; $("cbp").textContent = T_.empty; $("cbgo").style.display = "none"; }
+    $("cabin").style.display = "block";
+  }
+  function deselect() { cur = null; hi.visible = false; $("cabin").style.display = "none"; }
+  function enter(c) {
+    if (!c || !c.own) return; inside = c; saved = { p: camera.position.clone(), t: controls.target.clone(), pan: controls.enablePan, min: controls.minDistance, max: controls.maxDistance };
+    c.g.getWorldPosition(pos); const it = new THREE.Vector3(pos.x, pos.y - H / 2 + 1.7, pos.z), d = c.dir;
+    controls.enablePan = false; controls.minDistance = 2.4; controls.maxDistance = 5.4;
+    flyTo(new THREE.Vector3(it.x - d.x * 5.2, it.y + 1.1, it.z - d.z * 5.2), it, 1.8);    // camera on the outer side of the object, looking towards the pitch; orbit limited to the cabin
+    $("cbgo").textContent = t().leave; $("cbgo").onclick = leave;
+  }
+  function leave() {
+    if (!inside) return; const c = inside; inside = null;
+    controls.enablePan = saved.pan; controls.minDistance = saved.min; controls.maxDistance = saved.max;
+    flyTo(new THREE.Vector3(c.g.position.x + c.dir.x * 30, c.g.position.y + 6, c.g.position.z + c.dir.z * 30), c.g.position.clone(), 1.6);
+    $("cbgo").textContent = t().enter; $("cbgo").onclick = () => enter(cur);
+  }
+  $("cbgo").onclick = () => enter(cur);
+  $("cbx").onclick = () => { if (inside) leave(); deselect(); };
+  function list() {
+    const pl = $("vlist"); pl.innerHTML = ""; $("vh").textContent = t().h;
+    cabins.filter(c => c.own).sort((a, b) => a.no - b.no).forEach(c => {
+      const b = document.createElement("button"); b.innerHTML = `<u>👑</u><b></b><i>№${c.no}</i><u>›</u>`; b.querySelector("b").textContent = "@" + c.own.nick;
+      b.onclick = () => { $("vpanel").style.display = "none"; if (inside) leave(); select(c); }; pl.append(b);
+    });
+    $("vpanel").style.display = "block";
+  }
+  $("vip").onclick = () => { $("panel").style.display = "none"; list(); };
+  $("vx").onclick = () => $("vpanel").style.display = "none";
+  return {
+    onTap(rayc) {
+      if (inside) return true;                                   // inside a cabin: taps only orbit the object
+      const h = rayc.intersectObjects(pickables, false)[0]; if (!h) return false;
+      select(cabins[h.object.userData.cabin]); return true;
+    },
+    tick(sec) {
+      for (const c of cabins) { c.g.position.y = c.y0 + Math.sin(sec * .6 + c.ph) * .45; if (c.item) c.item.rotation.y = sec * .7 + c.ph; }
+      if (cur) { hi.position.copy(cur.g.position); const k = .6 + .4 * Math.sin(sec * 3); hi.children[1].material.opacity = .08 + .14 * k; }
+    },
+  };
+})();
+
 // counter roll-up
 const nEl = document.getElementById("n");
 const t0 = performance.now();
@@ -2609,6 +2764,7 @@ function loop(now) {
   controls.update();
   if (LOT_PLUS) LOT_PLUS.visible = camera.position.distanceTo(controls.target) < 330;      // "+" build markers only when zoomed in
   sky.position.copy(camera.position);
+  try { SKY.tick(now / 1000); } catch (e) { console.error("SKY tick failed:", e); }
   try { animateTeam(now / 1000); } catch (e) { console.error("animateTeam failed:", e); }
   try { cityTick(dt); walkersTick(dt, now / 1000); residentsTick(dt, now / 1000); } catch (e) { console.error("city/walkers tick failed:", e); }
   nEl.textContent = fmt(fans * Math.min(1, (now - t0) / 1600));
