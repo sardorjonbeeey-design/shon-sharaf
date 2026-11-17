@@ -141,9 +141,12 @@ PKEYS.forEach((k,i)=>{
 add(OV,`<div class="cta-box"><small>IZOHGA YOZING 👇</small>POZITSIYA + ISMINGIZ</div>`,
   540,1710,bs(4)+.5,be(4),{z:22,enter:"pop"});
 
-// Beat 5 — WHISPER (dark overlay, intimate, different mood)
+// Beat 5 — WHISPER (dark overlay, goat peeks from bottom-left, intimate)
+// goat_chew.png 818×1343 → 380px wide, centre at (210,1690) = peeks from bottom
+add(OVP,`<img src="assets/goat.png" style="width:380px;image-rendering:auto">`,
+  210,1700,bs(5)+.05,be(5),{z:28,enter:"pop",rot:-8,pulse:true,ph:1.2});
 add(OV,`<div class="whisper"><span class="wbig">🤭</span><br>Aytgancha...<br>eng faol o'yinchi<br><span class="wgreen">asosiy jamoaga<br>o'tishi mumkin</span> 😉</div>`,
-  540,960,bs(5)+.15,be(5),{z:30,enter:"pop"});
+  580,840,bs(5)+.2,be(5),{z:30,enter:"pop"});
 
 // Beat 6 — OBUNA
 hd("ZAMIN FK","O'YIN<br>BOSHLANMOQDA!",bs(6),END,560,{cls2:"",keep:true});
