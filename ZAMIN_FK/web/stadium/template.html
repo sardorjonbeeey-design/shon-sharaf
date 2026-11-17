@@ -2626,7 +2626,7 @@ const SKY = (() => {
   ];
   const N = 24, byNo = new Map(SKY_MOCK.map(o => [o.no, o]));
   // ring just outside + above the roof; the north gap (LED screen side, z<0) stays open
-  const Rg = seats[seats.length - 1].ring + 1, A = PW / 2 + 9 + Rg * ROW_D + 50, B = PH / 2 + 9 + Rg * ROW_D + 50;   // clears the four floodlight masts at the stand corners
+  const Rg = seats[seats.length - 1].ring + 1, A = PW / 2 + 9 + Rg * ROW_D + 15, B = PH / 2 + 9 + Rg * ROW_D + 15;   // just outside the floodlight masts
   const GOLD = 0xFFD23F, BLUE = 0x1F4FB8, W = 12, H = 6, D = 12;
   const group = new THREE.Group(); group.name = "zaminSky"; scene.add(group);
   const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
