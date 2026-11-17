@@ -2631,14 +2631,11 @@ const SKY = (() => {
   const group = new THREE.Group(); group.name = "zaminSky"; scene.add(group);
   const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
   const gDisc = new THREE.CircleGeometry(7, 28);
-  // sky-level light so cabins are visible
-  const skyLight = new THREE.PointLight(0xfff4dc, 1.2, 300, 1); skyLight.position.set(0, 50, 0); group.add(skyLight);
   let cabinTemplate = null;
   if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/sky/cabin_vip.glb", gl => {
     const m = gl.scene; m.scale.setScalar(5); m.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(m); const sz = new THREE.Vector3(); box.getSize(sz);
     m.scale.setScalar(5 * W / Math.max(sz.x, sz.z));
-    m.traverse(ch => { if (ch.isMesh && ch.material) { ch.material.emissive = new THREE.Color(0x222222); ch.material.emissiveIntensity = 0.3; } });
     cabinTemplate = m;
     cabins.forEach(c => {
       const clone = cabinTemplate.clone();
