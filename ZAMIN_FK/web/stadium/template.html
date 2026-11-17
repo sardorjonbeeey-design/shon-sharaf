@@ -1284,19 +1284,22 @@ function layoutHomes(list) {
       o.rotation.y = best; o.scale.setScalar(Math.max(.6, Math.min(1.25, Math.min(p.len, p.wid) / 11)));
     } else o.rotation.y = Math.atan2(-p.x, -p.z);
     o.userData = h; h.p = p;
-    // 3D nameplate sprite on the house
+    // nameplate board standing on ground in front of house
     if (h.nick) {
-      const nc = document.createElement("canvas"); nc.width = 256; nc.height = 48; const nx = nc.getContext("2d");
-      nx.fillStyle = "rgba(10,25,60,.75)"; const rr = 8; nx.beginPath(); nx.moveTo(rr,0); nx.lineTo(256-rr,0); nx.quadraticCurveTo(256,0,256,rr); nx.lineTo(256,48-rr); nx.quadraticCurveTo(256,48,256-rr,48); nx.lineTo(rr,48); nx.quadraticCurveTo(0,48,0,48-rr); nx.lineTo(0,rr); nx.quadraticCurveTo(0,0,rr,0); nx.fill();
-      nx.strokeStyle = "#c9a032"; nx.lineWidth = 2; nx.stroke();
-      nx.fillStyle = "#ffffff"; nx.font = "bold 22px system-ui,sans-serif"; nx.textAlign = "center"; nx.textBaseline = "middle";
-      const dn = h.nick.length > 14 ? h.nick.slice(0,13) + "…" : h.nick;
-      nx.fillText(dn, 128, 25);
-      const ntx = new THREE.CanvasTexture(nc); ntx.anisotropy = 4;
-      const nsp = new THREE.Sprite(new THREE.SpriteMaterial({ map: ntx, transparent: true, depthWrite: false, fog: false }));
-      const hh = LEVEL_H[h.level || 1] * (o.scale ? o.scale.y : 1);
-      nsp.scale.set(4.5, 0.85, 1); nsp.position.y = hh + 1.2;
-      o.add(nsp);
+      const nc = document.createElement("canvas"); nc.width = 256; nc.height = 64; const nx = nc.getContext("2d");
+      nx.fillStyle = "#0d1937"; nx.fillRect(0, 0, 256, 64);
+      nx.strokeStyle = "#c9a032"; nx.lineWidth = 3; nx.strokeRect(2, 2, 252, 60);
+      nx.fillStyle = "#ffffff"; nx.font = "bold 24px system-ui,sans-serif"; nx.textAlign = "center"; nx.textBaseline = "middle";
+      const dn = h.nick.length > 14 ? h.nick.slice(0, 13) + "…" : h.nick;
+      nx.fillText(dn, 128, 33);
+      const ntx = new THREE.CanvasTexture(nc);
+      // board: flat plane with the name texture
+      const board = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.8), new THREE.MeshBasicMaterial({ map: ntx, transparent: false }));
+      board.position.set(0, 1.2, 3.2);
+      // post: thin cylinder holding the board
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 4), new THREE.MeshBasicMaterial({ color: 0x555555 }));
+      post.position.set(0, 0.6, 3.2);
+      o.add(board, post);
     }
     homeGroup.add(o); homeObjs.push(o);
   });
