@@ -1,0 +1,32 @@
+1
+00:00:00,250 --> 00:00:01,882
+Murabbiy aniqlandi!
+
+2
+00:00:01,902 --> 00:00:05,437
+Eng ko'p layk — hayitboyev nuqta yetmish olti!
+
+3
+00:00:05,457 --> 00:00:06,518
+Tabriklaymiz!
+
+4
+00:00:06,538 --> 00:00:09,513
+Murabbiyning birinchi qarori — sinov o'yini!
+
+5
+00:00:09,533 --> 00:00:13,867
+Sinov jamoasiga kirish uchun: pozitsiyangiz va ismingizni yozing.
+
+6
+00:00:13,887 --> 00:00:14,823
+Aytgancha...
+
+7
+00:00:14,843 --> 00:00:17,916
+eng faol o'yinchi asosiy jamoaga o'tishi mumkin.
+
+8
+00:00:17,936 --> 00:00:20,585
+Obuna bo'ling, o'yin boshlanmoqda!
+
