@@ -2631,26 +2631,33 @@ const SKY = (() => {
   const group = new THREE.Group(); group.name = "zaminSky"; scene.add(group);
   const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
   const gDisc = new THREE.CircleGeometry(7, 28);
-  let cabinTemplate = null;
-  function litMat(ch) {
-    if (!ch.isMesh || !ch.material) return;
-    const old = ch.material, map = old.map || null;
-    console.log("cabin mat:", old.type, "map:", !!map, "color:", old.color?.getHexString());
-    ch.material = new THREE.MeshBasicMaterial({ map, color: map ? 0xffffff : 0xaaaaaa, side: THREE.DoubleSide });
-    if (map) ch.material.needsUpdate = true;
-  }
+  let cabinTemplate = null, cabinMat = null;
   if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/sky/cabin_vip.glb", gl => {
     const m = gl.scene; m.scale.setScalar(5); m.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(m); const sz = new THREE.Vector3(); box.getSize(sz);
     m.scale.setScalar(5 * W / Math.max(sz.x, sz.z));
-    m.traverse(litMat);
+    // collect all textures from the gltf parser
+    const textures = gl.parser ? gl.parser.associations : null;
+    // find the base color texture from any mesh material
+    let baseMap = null;
+    m.traverse(ch => {
+      if (!ch.isMesh) return;
+      const mt = ch.material;
+      if (mt.map) baseMap = mt.map;
+      else if (mt.emissiveMap) baseMap = mt.emissiveMap;
+      else if (mt.aoMap) baseMap = mt.aoMap;
+    });
+    // create a single bright material for all cabins
+    cabinMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+    if (baseMap) { cabinMat.map = baseMap; cabinMat.needsUpdate = true; }
+    // apply to template
+    m.traverse(ch => { if (ch.isMesh) ch.material = cabinMat; });
     cabinTemplate = m;
     cabins.forEach(c => {
       const clone = cabinTemplate.clone();
       clone.position.y = -H / 2;
-      clone.traverse(litMat);
+      clone.traverse(ch => { if (ch.isMesh) { ch.material = cabinMat; ch.userData.cabin = c.i; pickables.push(ch); } });
       c.g.add(clone); c.model3d = clone;
-      clone.traverse(ch => { if (ch.isMesh) { ch.userData.cabin = c.i; pickables.push(ch); } });
     });
   }, undefined, e => console.warn("cabin_vip.glb:", e));
   function label(text, sub, dim) {
