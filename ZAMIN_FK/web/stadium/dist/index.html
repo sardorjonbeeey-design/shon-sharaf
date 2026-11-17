@@ -2668,9 +2668,48 @@ const SKY = (() => {
       const nr = new THREE.Mesh(neonRingGeo, mNeonGlow); nr.position.x = rx; nr.rotation.y = Math.PI / 2; cab.add(nr);
     }
     // floor plate inside
+    const FY = -D / 2 + 0.5;
     const floorGeo = new THREE.BoxGeometry(W - D - 0.5, 0.12, D - 1);
     const mFloor = new THREE.MeshBasicMaterial({ color: 0x1a1a2e });
-    const floor = new THREE.Mesh(floorGeo, mFloor); floor.position.y = -D / 2 + 0.5; cab.add(floor);
+    const floor = new THREE.Mesh(floorGeo, mFloor); floor.position.y = FY; cab.add(floor);
+    // --- premium seat (left side) ---
+    const mLeather = new THREE.MeshBasicMaterial({ color: 0xc8bfa0 });
+    const mLeatherDk = new THREE.MeshBasicMaterial({ color: 0x9a8e72 });
+    // seat base
+    const seatBase = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 1.2), mLeather);
+    seatBase.position.set(-1.5, FY + 0.37, 0); cab.add(seatBase);
+    // seat back
+    const seatBack = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 0.3), mLeather);
+    seatBack.position.set(-1.5, FY + 1.1, -0.55); cab.add(seatBack);
+    // armrests
+    for (const az of [-0.55, 0.55]) {
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 1.0), mLeatherDk);
+      arm.position.set(-1.5, FY + 0.55, az); cab.add(arm);
+    }
+    // seat pedestal
+    const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 0.25, 8), mLeatherDk);
+    ped.position.set(-1.5, FY + 0.1, 0); cab.add(ped);
+    // --- gold trophy cup (right side) ---
+    const mGold = new THREE.MeshBasicMaterial({ color: 0xFFD700 });
+    const mGoldDk = new THREE.MeshBasicMaterial({ color: 0xB8960C });
+    // pedestal
+    const tPed = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.6, 8), mGoldDk);
+    tPed.position.set(2.2, FY + 0.36, 0); cab.add(tPed);
+    // cup body (lathe shape)
+    const cupPts = [new THREE.Vector2(0, 0), new THREE.Vector2(0.45, 0), new THREE.Vector2(0.15, 0.4), new THREE.Vector2(0.12, 0.7), new THREE.Vector2(0.35, 1.2), new THREE.Vector2(0.4, 1.4), new THREE.Vector2(0.35, 1.5), new THREE.Vector2(0, 1.5)];
+    const cupGeo = new THREE.LatheGeometry(cupPts, 16);
+    const cup = new THREE.Mesh(cupGeo, mGold);
+    cup.position.set(2.2, FY + 0.66, 0); cab.add(cup);
+    // cup handles
+    const handleGeo = new THREE.TorusGeometry(0.3, 0.06, 8, 12, Math.PI);
+    for (const hz of [-1, 1]) {
+      const h = new THREE.Mesh(handleGeo, mGold);
+      h.position.set(2.2, FY + 1.5, hz * 0.4); h.rotation.x = Math.PI / 2; h.rotation.z = hz * Math.PI / 2; cab.add(h);
+    }
+    // glass display case around trophy
+    const caseGeo = new THREE.CylinderGeometry(0.65, 0.65, 2.2, 16, 1, true);
+    const mCase = new THREE.MeshBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false });
+    const tCase = new THREE.Mesh(caseGeo, mCase); tCase.position.set(2.2, FY + 1.7, 0); cab.add(tCase);
     // blue glow disc underneath
     const glowGeo = new THREE.CircleGeometry(D / 2 + 1, 32);
     const mGlow = new THREE.MeshBasicMaterial({ color: 0x0088FF, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
