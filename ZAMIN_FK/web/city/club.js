@@ -962,6 +962,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     return { rows, counts, positions: POSITIONS, depts: DEPTS.map(d => ({ id: d[0], name: d[2] })), roles: CITY_ROLES };
   }, true);
 
+  const TRY_GAME = "\n\nO'yinni sinab ko'ring👇\n@zamingame_bot";
   // accept / reject / assign to a department (staff, or a player's department role)
   const decideApp = (user, body) => tx(async c => {        // used by the mini app admin panel and the bot admin buttons
     const id = Number(body.id) | 0, action = String(body.action || "");
@@ -1000,7 +1001,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
           ? "🎓 <b>Tabriklaymiz!</b> Siz ZAMIN FK Yoshlar Akademiyasiga qabul qilindingiz.\\n\\n⭐ 100 XP ga yetganingizdan so‘ng asosiy jamoaning 24 kishilik ustuvor tarkibi uchun kurashish imkoniyatiga ega bo‘lasiz. Bot sizga pozitsiya va futbolka ismini tanlash xabarini avtomatik yuboradi." + (body.note ? "\\n\\n" + String(body.note).slice(0, 200) : "")
           : `✅ <b>Tabriklaymiz!</b> Zamin FK ga ${what} sifatida qabul qilindingiz.` + (a.kind === "player" ? "\n⚽ Endi siz jamoa tarkibidasiz — stadionda mashg‘ulotda ko‘rinasiz!" : "") + (body.note ? "\n\n" + String(body.note).slice(0, 200) : "")
         : `ℹ️ Arizangiz ko‘rib chiqildi: bu safar qabul qilinmadi.` + (body.note ? "\n" + String(body.note).slice(0, 200) : "") + "\nKeyingi imkoniyatlarni kuzatib boring!";
-      setTimeout(() => bot.api("sendMessage", { chat_id: String(a.tg_id), text, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)), 0);
+      setTimeout(() => bot.api("sendMessage", { chat_id: String(a.tg_id), text: text + TRY_GAME, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)), 0);
     }
     return { ok: true, status };
   });
@@ -1137,7 +1138,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
     });
     cache = null;
     const note = b.note ? "\n\n" + bot.esc(String(b.note).slice(0, 200)) : "";
-    bot.api("sendMessage", { chat_id: id, text: "🎁 <b>ZAMIN FK sizga sovg‘a yubordi!</b>\n" + out.lines.join("\n") + note, parse_mode: "HTML" }).catch(() => {});
+    bot.api("sendMessage", { chat_id: id, text: "🎁 <b>ZAMIN FK sizga sovg‘a yubordi!</b>\n" + out.lines.join("\n") + note + TRY_GAME, parse_mode: "HTML" }).catch(() => {});
     try { bot.log && bot.log("🎁 Admin grant", { Admin: String(user.id), Kimga: out.nick + " (" + id + ")", Berildi: out.lines.join(", ") }); } catch (e) {}
     return { ok: true, ...out };
   }, true);
