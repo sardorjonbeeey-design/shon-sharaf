@@ -511,7 +511,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
         values($1,'pending_position') on conflict(tg_id) do nothing returning tg_id`,[String(p.tg_id)]);
       if (!inserted.rowCount) continue;
       try { await bot.api("sendMessage",{chat_id:String(p.tg_id),parse_mode:"HTML",
-        text:"🎓 <b>Yoshlar Akademiyasi — 100 XP!</b>\\n\\nSiz endi asosiy jamoaning 24 kishilik ustuvor tarkibiga kirish uchun kurashishingiz mumkin. Avval futbol pozitsiyangizni tanlang:",
+        text:"🎓 <b>Yoshlar Akademiyasi — 100 XP!</b>\n\nSiz endi asosiy jamoaning 24 kishilik ustuvor tarkibiga kirish uchun kurashishingiz mumkin. Avval futbol pozitsiyangizni tanlang:",
         reply_markup:{inline_keyboard:[
           [{text:"🧤 GK — Darvozabon",callback_data:"academy:pos:GK"}],
           [{text:"🛡 DEF — Himoyachi",callback_data:"academy:pos:DEF"}],
@@ -998,7 +998,7 @@ function init({ app, db, auth, bot, nickOf, ready: base }) {
       const academyAccepted = status === "accepted" && (bodyDept || a.dept) === "academy";
       const text = status === "accepted"
         ? academyAccepted
-          ? "🎓 <b>Tabriklaymiz!</b> Siz ZAMIN FK Yoshlar Akademiyasiga qabul qilindingiz.\\n\\n⭐ 100 XP ga yetganingizdan so‘ng asosiy jamoaning 24 kishilik ustuvor tarkibi uchun kurashish imkoniyatiga ega bo‘lasiz. Bot sizga pozitsiya va futbolka ismini tanlash xabarini avtomatik yuboradi." + (body.note ? "\\n\\n" + String(body.note).slice(0, 200) : "")
+          ? "🎓 <b>Tabriklaymiz!</b> Siz ZAMIN FK Yoshlar Akademiyasiga qabul qilindingiz.\n\n⭐ 100 XP ga yetganingizdan so‘ng asosiy jamoaning 24 kishilik ustuvor tarkibi uchun kurashish imkoniyatiga ega bo‘lasiz. Bot sizga pozitsiya va futbolka ismini tanlash xabarini avtomatik yuboradi." + (body.note ? "\n\n" + String(body.note).slice(0, 200) : "")
           : `✅ <b>Tabriklaymiz!</b> Zamin FK ga ${what} sifatida qabul qilindingiz.` + (a.kind === "player" ? "\n⚽ Endi siz jamoa tarkibidasiz — stadionda mashg‘ulotda ko‘rinasiz!" : "") + (body.note ? "\n\n" + String(body.note).slice(0, 200) : "")
         : `ℹ️ Arizangiz ko‘rib chiqildi: bu safar qabul qilinmadi.` + (body.note ? "\n" + String(body.note).slice(0, 200) : "") + "\nKeyingi imkoniyatlarni kuzatib boring!";
       setTimeout(() => bot.api("sendMessage", { chat_id: String(a.tg_id), text: text + TRY_GAME, parse_mode: "HTML" }).catch(e => console.error("notify", e.message)), 0);
