@@ -2632,18 +2632,23 @@ const SKY = (() => {
   const mDisc = new THREE.MeshBasicMaterial({ color: 0x2f6fff, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending });
   const gDisc = new THREE.CircleGeometry(7, 28);
   let cabinTemplate = null;
+  function litMat(ch) {
+    if (!ch.isMesh || !ch.material) return;
+    const old = ch.material, map = old.map || null;
+    console.log("cabin mat:", old.type, "map:", !!map, "color:", old.color?.getHexString());
+    ch.material = new THREE.MeshBasicMaterial({ map, color: map ? 0xffffff : 0xaaaaaa, side: THREE.DoubleSide });
+    if (map) ch.material.needsUpdate = true;
+  }
   if (THREE.GLTFLoader) new THREE.GLTFLoader().load("models/sky/cabin_vip.glb", gl => {
     const m = gl.scene; m.scale.setScalar(5); m.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(m); const sz = new THREE.Vector3(); box.getSize(sz);
     m.scale.setScalar(5 * W / Math.max(sz.x, sz.z));
-    m.traverse(ch => { if (ch.isMesh && ch.material) {
-      const old = ch.material, map = old.map || null;
-      ch.material = new THREE.MeshBasicMaterial({ map, color: map ? 0xffffff : (old.color || new THREE.Color(0x888888)), transparent: old.transparent || false, opacity: old.opacity != null ? old.opacity : 1, side: old.side });
-    }});
+    m.traverse(litMat);
     cabinTemplate = m;
     cabins.forEach(c => {
       const clone = cabinTemplate.clone();
       clone.position.y = -H / 2;
+      clone.traverse(litMat);
       c.g.add(clone); c.model3d = clone;
       clone.traverse(ch => { if (ch.isMesh) { ch.userData.cabin = c.i; pickables.push(ch); } });
     });
