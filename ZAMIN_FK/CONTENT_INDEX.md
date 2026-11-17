@@ -62,3 +62,4 @@ Each episode folder: `assets/` (images), `voice/` (narration per line), `sfx/`, 
 - Virtual stadium page (followers' seats): `web/stadium/` (`fans_instagram.json`, `build.py`), `/add` skill adds followers.
 - Older builders: `tools/anim/` (cartoon engine, Days 1–3), `tools/build_episode.py`, `tools/stadium/`.
 | Reel | `16_Reel_Raqib_Elon` | Muxlislar XI e’lon + zaxira + MURABBIY CTA (MP4 faqat lokal) |
+| Reel | `17_Reel_Murabbiy_Elon` | Murabbiy (hayitboyev.76) e’lon + Sinov Jamoasi CTA (MP4 faqat lokal) |
