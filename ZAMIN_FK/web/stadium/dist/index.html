@@ -1879,17 +1879,13 @@ function updateLabels(now) {
     for (const [, l] of ml) placeAt(l[1], l[3] === "road" ? 1 : 12, l[2], "tag lot", (l[3] === "road" ? "🛣 " : l[3] === "mosque" ? "🕌 " : l[3] === "school" ? "🏫 " : l[3] === "park" ? "🌳 " : "") + l[0]);
   }
   const mine = myId && homeObjs.find(o => o.userData.id === myId);
-  const hy = o => LEVEL_H[o.userData.level || 1] * o.scale.y + 3;
-  if (mine) placeAt(mine.position.x, hy(mine), mine.position.z, "tag me home", mine.userData.nick, true);
   squadLabels((x, y, z, cls, txt) => placeAt(x, y, z, cls, txt, true));
   if (!near || MODE === "city") {
     for (const l of LOTS) placeAt(l.x, l.park ? 2 : 8, l.z, "tag lot", (l.park ? "" : T[L].soon) + T[L].lots[l.i]);
     for (const o of HQ_OBJS) { const d = o.userData.info; const distance = o.position.distanceTo(camPos); const label = distance > 180 ? d.emoji : `${d.emoji} ${d.name} · ${d.level ? d.level + "-daraja" : "qurilmoqda"}`; placeAt(o.position.x, o.userData.h + 3, o.position.z, "tag hq", label, true); }
     residentLabels(placeAt, camPos);
   }
-  const hs = homeObjs.map(o => [o.position.distanceToSquared(camPos), o]).sort((a, b) => a[0] - b[0]);
-  const HOME_LIM = near ? 60 : 14; let homeTags = 0;      // overview: only the nearest few homes get a name tag
-  for (const [, o] of hs) { if (homeTags >= HOME_LIM) break; if (o !== mine && placeAt(o.position.x, hy(o), o.position.z, "tag home", o.userData.nick)) homeTags++; }
+  // home nameplates are physical 3D boards in front of each house — no floating CSS labels needed
   for (let k = used; k < pool.length; k++) pool[k].style.display = "none";
 }
 
