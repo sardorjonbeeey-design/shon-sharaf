@@ -26,6 +26,15 @@ const COLORS = 6, MAX_LEVEL = 7;
 const ROLES = ["Quruvchi (3D)", "Dizayner", "Video montaj", "SMM", "Dasturchi", "Boshqa"];
 const app = express();
 app.use(require("compression")());                          // gzip text/JSON/GLB responses (lossless) to cut bandwidth
+// CORS for the public API so the page (and Telegram Mini App) can be hosted on another origin (e.g. Cloudflare Pages).
+// Auth is by Telegram initData in the request body, not cookies, so "*" exposes nothing extra. Internal routes excluded.
+app.use("/api", (req, res, next) => {
+  if (req.path.startsWith("/internal")) return next();
+  res.set({ "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Max-Age": "86400" });
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
 app.use(express.json({ limit: "256kb" }));
 
 // Request logging for debugging frontend issues
