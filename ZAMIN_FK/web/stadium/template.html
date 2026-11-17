@@ -2636,6 +2636,10 @@ const SKY = (() => {
     const m = gl.scene; m.scale.setScalar(5); m.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(m); const sz = new THREE.Vector3(); box.getSize(sz);
     m.scale.setScalar(5 * W / Math.max(sz.x, sz.z));
+    m.traverse(ch => { if (ch.isMesh && ch.material) {
+      const old = ch.material, map = old.map || null;
+      ch.material = new THREE.MeshBasicMaterial({ map, color: map ? 0xffffff : (old.color || new THREE.Color(0x888888)), transparent: old.transparent || false, opacity: old.opacity != null ? old.opacity : 1, side: old.side });
+    }});
     cabinTemplate = m;
     cabins.forEach(c => {
       const clone = cabinTemplate.clone();
