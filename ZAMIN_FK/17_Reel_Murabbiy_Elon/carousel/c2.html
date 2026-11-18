@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1080px;background:#0a0005;font-family:MZ,sans-serif;overflow:hidden;position:relative}
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.15;filter:saturate(0)}
+#scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.18) 3px,rgba(0,0,0,.18) 4px);pointer-events:none;z-index:50}
+#glow-top{position:absolute;top:0;left:0;right:0;height:200px;
+  background:linear-gradient(to bottom,rgba(255,45,120,.3),transparent)}
+#wrap{position:relative;z-index:10;width:1080px;height:1080px;display:flex;padding:0}
+
+/* left: mugshot */
+.left{width:430px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;padding-bottom:0}
+.goat{height:680px;filter:drop-shadow(0 0 30px rgba(255,45,120,.35));margin-top:auto}
+.mug-frame{position:absolute;bottom:0;left:0;right:0;height:80px;
+  background:rgba(0,0,0,.7);border-top:4px solid #FF2D78;display:flex;align-items:center;justify-content:center}
+.mug-id{font-size:22px;letter-spacing:4px;color:#FF2D78}
+
+/* right: wanted info */
+.right{flex:1;padding:36px 36px 36px 28px;display:flex;flex-direction:column;justify-content:space-between}
+.wanted-banner{background:#FF2D78;padding:12px 24px;text-align:center;
+  font-size:52px;letter-spacing:6px;color:#fff;
+  text-shadow:3px 3px 0 rgba(0,0,0,.5);clip-path:polygon(0 0,100% 0,97% 100%,3% 100%)}
+.dead-alive{font-size:22px;letter-spacing:5px;color:rgba(255,255,255,.5);text-align:center;margin-top:6px}
+.name-box{margin-top:14px}
+.name-label{font-size:20px;letter-spacing:5px;color:rgba(255,45,120,.7);margin-bottom:4px}
+.name-val{font-size:52px;color:#fff;line-height:1;text-shadow:0 0 20px rgba(255,45,120,.4)}
+
+.crimes{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.crime-row{display:flex;justify-content:space-between;align-items:center;
+  border-bottom:2px solid rgba(255,255,255,.08);padding:8px 0}
+.c-label{font-size:22px;letter-spacing:3px;color:rgba(255,255,255,.55)}
+.c-val{font-size:28px;color:#FFD23F;text-shadow:0 0 10px rgba(255,210,63,.4)}
+
+.reward-box{background:rgba(255,45,120,.08);border:3px solid #FF2D78;border-radius:14px;padding:14px 20px;text-align:center}
+.r-label{font-size:20px;letter-spacing:5px;color:rgba(255,45,120,.7);margin-bottom:6px}
+.r-val{font-size:38px;color:#FFD23F;line-height:1.1}
+
+.slide-num{font-size:20px;letter-spacing:4px;color:rgba(255,255,255,.25);text-align:right}
+</style></head><body>
+<img id="bg" src="top.jpg">
+<div id="glow-top"></div><div id="scan"></div>
+<div id="wrap">
+  <div class="left">
+    <img class="goat" src="goat_chew.png">
+    <div class="mug-frame"><div class="mug-id">ZFK-00G0AT-2026</div></div>
+  </div>
+  <div class="right">
+    <div>
+      <div class="wanted-banner">WANTED</div>
+      <div class="dead-alive">TIRIK YOKI O'LI</div>
+      <div class="name-box">
+        <div class="name-label">LAQAB</div>
+        <div class="name-val">THE GOAT</div>
+      </div>
+      <div class="crimes">
+        <div class="crime-row"><div class="c-label">LAYK OLISH</div><div class="c-val">46 ♥</div></div>
+        <div class="crime-row"><div class="c-label">IZOH BOSIMI</div><div class="c-val">SINOVli</div></div>
+        <div class="crime-row"><div class="c-label">XAVF DARAJASI</div><div class="c-val">★★★★★</div></div>
+        <div class="crime-row"><div class="c-label">MAQOM</div><div class="c-val">OZOD</div></div>
+      </div>
+    </div>
+    <div class="reward-box">
+      <div class="r-label">MUKOFOT</div>
+      <div class="r-val">SINOV JAMOASI<br>JOYINI YOZING</div>
+    </div>
+    <div class="slide-num">2 / 4</div>
+  </div>
+</div>
+</body></html>

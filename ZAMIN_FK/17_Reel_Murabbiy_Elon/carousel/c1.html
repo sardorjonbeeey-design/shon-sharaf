@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1080px;background:#050008;font-family:MZ,sans-serif;overflow:hidden;position:relative}
+
+/* stadium bg */
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.18;filter:saturate(0)}
+/* scanlines */
+#scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.18) 3px,rgba(0,0,0,.18) 4px);pointer-events:none;z-index:50}
+/* sunset strip at bottom */
+#sunset{position:absolute;bottom:0;left:0;right:0;height:280px;
+  background:linear-gradient(to top,#FF2D78 0%,#FF6B00 35%,#9B00FF 75%,transparent 100%);opacity:.55}
+/* dark vignette */
+#vign{position:absolute;inset:0;background:radial-gradient(ellipse 90% 90% at 50% 50%,transparent 30%,rgba(5,0,8,.7) 100%)}
+
+#wrap{position:relative;z-index:10;width:1080px;height:1080px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:48px 56px 36px}
+
+/* header */
+.header{display:flex;align-items:center;gap:18px;width:100%}
+.crest{height:52px;filter:drop-shadow(0 0 10px rgba(255,45,120,.7))}
+.studio{font-size:24px;letter-spacing:8px;color:#FF2D78;text-shadow:0 0 20px rgba(255,45,120,.8);flex:1}
+.rating{font-size:24px;letter-spacing:4px;color:#FFD23F;text-shadow:0 0 16px rgba(255,210,63,.6)}
+
+/* goat */
+.goat-stage{position:relative;flex:1;width:100%;display:flex;justify-content:center;align-items:flex-end}
+.goat{height:480px;filter:drop-shadow(-8px 0 40px rgba(255,45,120,.4)) drop-shadow(8px 0 40px rgba(0,212,170,.3))}
+/* GTA title treatment */
+.gta-title{position:absolute;top:20px;left:0;right:0;text-align:center}
+.gta-title .sub{font-size:28px;letter-spacing:12px;color:#FF2D78;text-shadow:0 0 20px #FF2D78;margin-bottom:4px}
+.gta-title h1{font-size:118px;line-height:.9;color:#fff;
+  text-shadow:4px 4px 0 #FF2D78,-4px -4px 0 #FF2D78,0 0 60px rgba(255,45,120,.5);
+  -webkit-text-stroke:2px #FF2D78;paint-order:stroke fill}
+.gta-title .sub2{font-size:38px;letter-spacing:7px;color:#FFD23F;text-shadow:0 0 20px rgba(255,210,63,.6);margin-top:6px}
+
+/* loading bar */
+.load-wrap{width:100%;display:flex;flex-direction:column;gap:10px}
+.load-label{display:flex;justify-content:space-between;font-size:22px;color:rgba(255,255,255,.6);letter-spacing:4px}
+.load-track{height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}
+.load-fill{height:100%;width:72%;background:linear-gradient(90deg,#FF2D78,#FF6B00);border-radius:4px;
+  box-shadow:0 0 16px rgba(255,45,120,.7)}
+.swipe{font-size:22px;letter-spacing:3px;color:rgba(255,255,255,.4);text-align:center}
+</style></head><body>
+<img id="bg" src="top.jpg">
+<div id="sunset"></div><div id="vign"></div><div id="scan"></div>
+<div id="wrap">
+  <div class="header">
+    <img class="crest" src="crest.png">
+    <div class="studio">ZAMIN FK STUDIOS</div>
+    <div class="rating">★ 2026</div>
+  </div>
+
+  <div class="goat-stage">
+    <div class="gta-title">
+      <div class="sub">TAQDIM ETADI</div>
+      <h1>SINOV<br>O'YINI</h1>
+      <div class="sub2">ZAMIN FK</div>
+    </div>
+    <img class="goat" src="goat_side.png">
+  </div>
+
+  <div class="load-wrap">
+    <div class="load-label"><span>LOADING...</span><span>72%</span></div>
+    <div class="load-track"><div class="load-fill"></div></div>
+    <div class="swipe">DAVOMI UCHUN → O'NGGA SURING</div>
+  </div>
+</div>
+</body></html>

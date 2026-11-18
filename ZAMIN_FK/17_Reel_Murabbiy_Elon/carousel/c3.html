@@ -1,0 +1,94 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1080px;background:#020510;font-family:MZ,sans-serif;overflow:hidden;position:relative}
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.15;filter:saturate(0) hue-rotate(200deg)}
+#scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.14) 3px,rgba(0,0,0,.14) 4px);pointer-events:none;z-index:50}
+#corner-tl{position:absolute;top:0;left:0;width:300px;height:300px;
+  background:radial-gradient(ellipse at top left,rgba(0,212,170,.2),transparent 70%)}
+#corner-br{position:absolute;bottom:0;right:0;width:300px;height:300px;
+  background:radial-gradient(ellipse at bottom right,rgba(255,45,120,.2),transparent 70%)}
+#wrap{position:relative;z-index:10;width:1080px;height:1080px;display:flex;padding:40px 48px}
+
+/* left: character */
+.left{width:360px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative}
+.rustam{height:620px;filter:drop-shadow(0 0 24px rgba(0,212,170,.3));margin-top:auto}
+.ov-badge{position:absolute;top:0;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#FF2D78,#9B00FF);padding:10px 28px;border-radius:14px;text-align:center}
+.ov-num{font-size:68px;color:#fff;line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.5)}
+.ov-label{font-size:18px;letter-spacing:5px;color:rgba(255,255,255,.7)}
+
+/* right: stats */
+.right{flex:1;padding-left:32px;display:flex;flex-direction:column;justify-content:space-between}
+.hud-title{font-size:26px;letter-spacing:8px;color:#00D4AA;text-shadow:0 0 16px rgba(0,212,170,.5);margin-bottom:4px}
+.char-name{font-size:52px;color:#fff;line-height:1;margin-bottom:4px}
+.char-role{font-size:22px;letter-spacing:5px;color:rgba(255,45,120,.8);margin-bottom:20px}
+
+.stats{display:flex;flex-direction:column;gap:14px}
+.stat-row{display:flex;flex-direction:column;gap:5px}
+.stat-top{display:flex;justify-content:space-between;align-items:center}
+.stat-name{font-size:20px;letter-spacing:4px;color:rgba(255,255,255,.6)}
+.stat-num{font-size:26px;color:#FFD23F;text-shadow:0 0 10px rgba(255,210,63,.5)}
+.stat-track{height:10px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden}
+.stat-fill{height:100%;border-radius:5px;box-shadow:0 0 10px currentColor}
+.s92{width:92%;background:#00D4AA;color:#00D4AA}
+.s88{width:88%;background:#FF6B00;color:#FF6B00}
+.s91{width:91%;background:#FF2D78;color:#FF2D78}
+.s85{width:85%;background:#9B00FF;color:#9B00FF}
+.s79{width:79%;background:#00D4AA;color:#00D4AA}
+.s94{width:94%;background:#FFD23F;color:#FFD23F}
+
+.cta{background:rgba(0,212,170,.08);border:3px solid #00D4AA;border-radius:14px;padding:14px 20px;text-align:center}
+.cta-t{font-size:22px;letter-spacing:4px;color:#00D4AA;margin-bottom:4px}
+.cta-b{font-size:34px;color:#fff}
+.slide-num{font-size:20px;letter-spacing:4px;color:rgba(255,255,255,.2);text-align:right;margin-top:8px}
+</style></head><body>
+<img id="bg" src="top.jpg">
+<div id="corner-tl"></div><div id="corner-br"></div><div id="scan"></div>
+<div id="wrap">
+  <div class="left">
+    <div class="ov-badge"><div class="ov-num">87</div><div class="ov-label">OVR</div></div>
+    <img class="rustam" src="rustam.png">
+  </div>
+  <div class="right">
+    <div>
+      <div class="hud-title">PLAYER PROFILE</div>
+      <div class="char-name">THE GOAT</div>
+      <div class="char-role">SINOV JAMOASI</div>
+      <div class="stats">
+        <div class="stat-row">
+          <div class="stat-top"><div class="stat-name">TEZLIK</div><div class="stat-num">92</div></div>
+          <div class="stat-track"><div class="stat-fill s92"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-top"><div class="stat-name">ZARBALAR</div><div class="stat-num">88</div></div>
+          <div class="stat-track"><div class="stat-fill s88"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-top"><div class="stat-name">DRIBBLING</div><div class="stat-num">91</div></div>
+          <div class="stat-track"><div class="stat-fill s91"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-top"><div class="stat-name">PAS</div><div class="stat-num">85</div></div>
+          <div class="stat-track"><div class="stat-fill s85"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-top"><div class="stat-name">HIMOYA</div><div class="stat-num">79</div></div>
+          <div class="stat-track"><div class="stat-fill s79"></div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-top"><div class="stat-name">JISMONIY</div><div class="stat-num">94</div></div>
+          <div class="stat-track"><div class="stat-fill s94"></div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="cta">
+        <div class="cta-t">SENING STATSING QANDAY?</div>
+        <div class="cta-b">Izohga yozing 👇</div>
+      </div>
+      <div class="slide-num">3 / 4</div>
+    </div>
+  </div>
+</div>
+</body></html>
