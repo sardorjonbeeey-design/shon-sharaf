@@ -244,6 +244,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="premium-stadium.js"></script>
 <script type="module">
 // One project, two entrances:
 //   Instagram / web link  -> camera opens on the stadium (city visible around it)
@@ -532,6 +533,7 @@ const FAN_MESHES = [bodies, heads, shorts, legs, arms, hands, shoes, hair, afro]
 [steps, chairs, ...FAN_MESHES].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
 bodies.count = heads.count = shorts.count = hair.count = afro.count = fi;
 legs.count = arms.count = hands.count = shoes.count = fi * 2;
+const __zfkArchitectureBaseline = new Set(scene.children); // preserve pitch, seats and fan meshes
 // outer wall + club banner band
 {
   const R = seats[seats.length - 1].ring + 1;
@@ -726,6 +728,10 @@ function drawScreen(i) {
     lamp.position.set(pole.position.x, hgt, pole.position.z); lamp.lookAt(0, 0, 0); scene.add(lamp);
   }
 }
+// Replace the old shell with the premium Crown Arena; pitch, fans and live city logic stay intact.
+for (const __obj of scene.children) if (!__zfkArchitectureBaseline.has(__obj)) __obj.visible = false;
+try { window.ZFKPremium.build({ THREE, scene, PW, PH, seats, ROW_D, ROW_H, rrLen, rrPoint }); }
+catch (__premiumError) { console.error("Premium stadium architecture failed:", __premiumError); }
 // ================= CITY: Qoratepa — a mahalla town around the stadium =================
 const lamC = c => new THREE.MeshLambertMaterial({ color: c });
 const OUT_R = seats[seats.length - 1].ring + 1;
