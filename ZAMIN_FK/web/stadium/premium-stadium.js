@@ -146,16 +146,16 @@
     // Sculptural roof: a continuous silver crown with a blue inner soffit.
     // Its outer edge floats above the façade; its inner edge shades the upper seating.
     const roofY = 45.5;
-    ringSurface(-34, roofY + 2.6, 12.5, roofY, roofMat);
-    ringSurface(-34, roofY + 2.55, 12.5, roofY + 2.6, roofUnderside);
-    ringSurface(-35.0, roofY + 2.8, -33.5, roofY + 2.8, goldMetal);
+    ringSurface(-24, roofY + 2.6, 12.5, roofY, roofMat);
+    ringSurface(-24, roofY + 2.55, 12.5, roofY + 2.6, roofUnderside);
+    ringSurface(-25.0, roofY + 2.8, -23.5, roofY + 2.8, goldMetal);
     ringSurface(11.7, roofY - 0.05, 13.2, roofY + 0.35, blueMetal);
 
     // Radial roof ribs, perimeter ring beams and diagonal tension members.
     const ribCount = Math.floor(perimeter / 7.5);
     for (let i = 0; i < ribCount; i++) {
       const t = i / ribCount;
-      const pA = point(t, -34), pB = point(t, 12.5);
+      const pA = point(t, -24), pB = point(t, 12.5);
       beam([pA[0], roofY + 2.8, pA[1]], [pB[0], roofY + 0.1, pB[1]], 0.48, 0.7, steel);
       const pC = point(t, -18);
       beam([pC[0], roofY + 1.7, pC[1]], [pB[0], roofY + 0.3, pB[1]], 0.16, 0.18, goldMetal);
