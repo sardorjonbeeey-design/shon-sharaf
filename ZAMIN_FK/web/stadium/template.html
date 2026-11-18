@@ -1880,7 +1880,7 @@ const DN = (() => {
 
   // Club academy and supporter museum: two contemporary buildings with Uzbek turquoise tile accents.
   function clubBuilding(x,z,w,d,h,title,sub,accent,withDome) {
-    const g=new THREE.Group(); g.position.set(x,0,z); district.add(g);
+    const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y = x < 0 ? Math.PI / 2 : -Math.PI / 2; district.add(g);
     const localBox=(W,H,D,X,Y,Z,M)=>box(W,H,D,X,Y,Z,M,g);
     localBox(w+3,1.1,d+3,0,.55,0,dark);
     localBox(w,h,d,0,h/2,0,cream);
