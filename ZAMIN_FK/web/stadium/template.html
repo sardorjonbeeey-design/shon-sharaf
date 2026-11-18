@@ -2625,6 +2625,8 @@ updateCta();
 // ---------- ZAMIN SKY: VIP floating glass cabins (PHASE 1: visual prototype, mock data) ----------
 // Lives in the same scene / camera / controls / raycaster as the stadium. Phase 2 replaces SKY_MOCK with the server list.
 const SKY = (() => {
+  // Disabled on the premium-stadium preview: remove the floating capsule cabins without affecting the stadium.
+  return { onTap() { return false; }, tick() {} };
   const ST = {
     uz: { h: "👑 VIP RO‘YXAT", free: "Bo‘sh kabina", owned: "VIP kabina", no: "Kabina", since: "Sotib olingan", enter: "Kabinaga kirish", leave: "Kabinadan chiqish", empty: "Bu kabina hali sotilmagan.", ownerCard: (o) => `👤 ${o.nick} · Muxlis №${o.member} · ⭐ ${o.xp} XP · 🏠 ${o.home}`, nomsg: "—" },
     ru: { h: "👑 VIP СПИСОК", free: "Свободная кабина", owned: "VIP-кабина", no: "Кабина", since: "Куплена", enter: "Войти в кабину", leave: "Выйти из кабины", empty: "Эта кабина ещё свободна.", ownerCard: (o) => `👤 ${o.nick} · Болельщик №${o.member} · ⭐ ${o.xp} XP · 🏠 ${o.home}`, nomsg: "—" },
