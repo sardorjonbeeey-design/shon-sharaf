@@ -1987,7 +1987,7 @@ viewBtn.onclick = () => setMode(MODE === "city" ? "stadium" : "city");
 const tourBtn = document.getElementById("tour");
 let cinematicTour = false, tourTimers = [];
 function stopCinematicTour() {
-  cinematicTour = false; tourTimers.forEach(clearTimeout); tourTimers = [];
+  cinematicTour = false; tourTimers.forEach(clearTimeout); tourTimers = []; fly = null;
   controls.enabled = true;
   if (tourBtn) tourBtn.textContent = "🎬";
 }
