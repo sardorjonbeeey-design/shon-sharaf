@@ -17,6 +17,8 @@
     const a = PW / 2 + 9 + R * ROW_D;
     const b = PH / 2 + 9 + R * ROW_D;
     const r = 10 + R * ROW_D;
+    const roofInner = -Math.min(24, r - 3);
+    const roofMid = roofInner * 0.72;
     const perimeter = rrLen(a, b, r);
     const samples = Math.max(420, Math.ceil(perimeter / 1.6));
     const BLUE = 0x1557d6, NAVY = 0x071a3d, GOLD = 0xd8b45b;
@@ -146,22 +148,22 @@
     // Sculptural roof: a continuous silver crown with a blue inner soffit.
     // Its outer edge floats above the façade; its inner edge shades the upper seating.
     const roofY = 45.5;
-    ringSurface(-24, roofY + 2.6, 12.5, roofY, roofMat);
-    ringSurface(-24, roofY + 2.55, 12.5, roofY + 2.6, roofUnderside);
-    ringSurface(-25.0, roofY + 2.8, -23.5, roofY + 2.8, goldMetal);
+    ringSurface(roofInner, roofY + 2.6, 12.5, roofY, roofMat);
+    ringSurface(roofInner, roofY + 2.55, 12.5, roofY + 2.6, roofUnderside);
+    ringSurface(roofInner - 1, roofY + 2.8, roofInner + 0.5, roofY + 2.8, goldMetal);
     ringSurface(11.7, roofY - 0.05, 13.2, roofY + 0.35, blueMetal);
 
     // Radial roof ribs, perimeter ring beams and diagonal tension members.
     const ribCount = Math.floor(perimeter / 7.5);
     for (let i = 0; i < ribCount; i++) {
       const t = i / ribCount;
-      const pA = point(t, -24), pB = point(t, 12.5);
+      const pA = point(t, roofInner), pB = point(t, 12.5);
       beam([pA[0], roofY + 2.8, pA[1]], [pB[0], roofY + 0.1, pB[1]], 0.48, 0.7, steel);
-      const pC = point(t, -18);
+      const pC = point(t, roofMid);
       beam([pC[0], roofY + 1.7, pC[1]], [pB[0], roofY + 0.3, pB[1]], 0.16, 0.18, goldMetal);
     }
-    for (const d of [-28, -20, -12, -4, 4, 10]) {
-      const y = roofY + 2.8 - ((d + 34) / 46) * 2.7;
+    for (const d of [roofInner + 2, roofMid, roofInner * 0.32, -2, 4, 10]) {
+      const y = roofY + 2.8 - ((d - roofInner) / (12.5 - roofInner)) * 2.7;
       ringSurface(d - 0.18, y - 0.15, d + 0.18, y + 0.15, steel, Math.floor(samples * 0.8));
     }
 
