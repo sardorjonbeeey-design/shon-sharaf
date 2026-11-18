@@ -1746,9 +1746,8 @@ function animateTeam(t) {
 
 // ---------- day / night by Uzbekistan time (UTC+5); ?time=night|day|<hour> to preview ----------
 const DN = (() => {
-  const q = new URLSearchParams(location.search).get("time");
-  const hourNow = () => { if (q === "night") return 22.5; if (q === "day") return 13; if (q !== null && q !== "" && !isNaN(+q)) return +q;
-    const d = new Date(); return (d.getUTCHours() + 5) % 24 + d.getUTCMinutes() / 60; };
+  // Premium preview is permanently daytime; ignore clock and ?time=night overrides.
+  const hourNow = () => 13;
   const SUNRISE = 6.9, SUNSET = 17.0;                    // Tashkent, late autumn
   const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
   const C = c => new THREE.Color(c);
