@@ -145,9 +145,12 @@
       root.add(group);
     });
 
-    // Sculptural roof: a continuous silver crown with a blue inner soffit.
-    // Its outer edge floats above the façade; its inner edge shades the upper seating.
-    const roofY = 45.5;
+    // Match the roof to the original upper-tier geometry instead of using a fixed, oversized height.
+    // Upper tier: 8 rows at 0.62m rise, first floor HW + 0.9m; roof clears its top by 3.4m.
+    const HW = R * ROW_H + 3;
+    const upperTierTop = HW + 0.9 + 7 * 0.62;
+    const roofY = upperTierTop + 3.4;
+    // Sculptural roof: a continuous silver crown with a blue inner soffit, aligned to the seats.
     ringSurface(roofInner, roofY + 2.6, 12.5, roofY, roofMat);
     ringSurface(roofInner, roofY + 2.55, 12.5, roofY + 2.6, roofUnderside);
     ringSurface(roofInner - 1, roofY + 2.8, roofInner + 0.5, roofY + 2.8, goldMetal);
@@ -170,12 +173,13 @@
     // Four corner crown pylons, with tapered bases and warm beacon lights.
     for (const [sx, sz] of [[-1,-1],[-1,1],[1,-1],[1,1]]) {
       const x = sx * (a + 13), z = sz * (b + 13);
-      const pylon = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 2.1, 34, 8), steel);
-      pylon.position.set(x, 30, z); root.add(pylon);
+      const pylonHeight = roofY + 5.5;
+      const pylon = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 2.1, pylonHeight, 8), steel);
+      pylon.position.set(x, pylonHeight / 2, z); root.add(pylon);
       const crown = new THREE.Mesh(new THREE.BoxGeometry(7, 1.2, 7), goldMetal);
-      crown.position.set(x, 47.5, z); root.add(crown);
-      const lamp = new THREE.PointLight(0x8bbdff, 1.1, 44);
-      lamp.position.set(x, 48.5, z); root.add(lamp);
+      crown.position.set(x, pylonHeight + 0.6, z); root.add(crown);
+      const lamp = new THREE.PointLight(0x8bbdff, 0.55, 36);
+      lamp.position.set(x, pylonHeight + 1.6, z); root.add(lamp);
     }
 
     // Continuous glass VIP/concourse ribbon, with a fine mullion rhythm.
