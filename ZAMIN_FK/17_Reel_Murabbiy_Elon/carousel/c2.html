@@ -1,65 +1,89 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:MZ;font-weight:900;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1080px;height:1080px;background:#0a0005;font-family:MZ,sans-serif;overflow:hidden;position:relative}
-#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.15;filter:saturate(0)}
-#scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.18) 3px,rgba(0,0,0,.18) 4px);pointer-events:none;z-index:50}
-#glow-top{position:absolute;top:0;left:0;right:0;height:200px;
-  background:linear-gradient(to bottom,rgba(255,45,120,.3),transparent)}
-#wrap{position:relative;z-index:10;width:1080px;height:1080px;display:flex;padding:0}
+body{width:1080px;height:1080px;overflow:hidden;position:relative;font-family:MZ,sans-serif}
 
-/* left: mugshot */
-.left{width:430px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;padding-bottom:0}
-.goat{height:680px;filter:drop-shadow(0 0 30px rgba(255,45,120,.35));margin-top:auto}
-.mug-frame{position:absolute;bottom:0;left:0;right:0;height:80px;
-  background:rgba(0,0,0,.7);border-top:4px solid #FF2D78;display:flex;align-items:center;justify-content:center}
-.mug-id{font-size:22px;letter-spacing:4px;color:#FF2D78}
+#sky{position:absolute;inset:0;
+  background:linear-gradient(to bottom,#2B0A5A 0%,#6A2090 25%,#D96AA8 55%,#F0956A 75%,#4A7FC0 75%,#1E3D6A 100%)}
+#horiz{position:absolute;bottom:265px;left:0;right:0;height:50px;
+  background:radial-gradient(ellipse 100% 100% at 50% 100%,rgba(255,160,80,.7),transparent)}
+#ground{position:absolute;bottom:0;left:0;right:0;height:270px;
+  background:linear-gradient(to bottom,#3A6AAE,#1E3D6A)}
+#palms{position:absolute;bottom:265px;left:0;right:0;z-index:2}
+#scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,0,0,.06) 4px,rgba(0,0,0,.06) 5px);z-index:40;pointer-events:none}
+#vign{position:absolute;inset:0;background:radial-gradient(ellipse 110% 110% at 50% 50%,transparent 40%,rgba(10,0,20,.6) 100%);z-index:3}
+#wrap{position:relative;z-index:10;width:1080px;height:1080px;display:flex}
+
+/* left col: mugshot */
+.left{width:400px;position:relative;display:flex;align-items:flex-end;justify-content:center}
+.goat-img{height:720px;filter:drop-shadow(0 0 30px rgba(255,100,180,.5))}
+.mugid{position:absolute;bottom:270px;left:0;right:0;
+  background:rgba(0,0,0,.7);border-top:4px solid #FF2D78;padding:10px;text-align:center;
+  font-size:20px;letter-spacing:4px;color:#FF2D78;z-index:5}
 
 /* right: wanted info */
-.right{flex:1;padding:36px 36px 36px 28px;display:flex;flex-direction:column;justify-content:space-between}
-.wanted-banner{background:#FF2D78;padding:12px 24px;text-align:center;
-  font-size:52px;letter-spacing:6px;color:#fff;
-  text-shadow:3px 3px 0 rgba(0,0,0,.5);clip-path:polygon(0 0,100% 0,97% 100%,3% 100%)}
-.dead-alive{font-size:22px;letter-spacing:5px;color:rgba(255,255,255,.5);text-align:center;margin-top:6px}
-.name-box{margin-top:14px}
-.name-label{font-size:20px;letter-spacing:5px;color:rgba(255,45,120,.7);margin-bottom:4px}
-.name-val{font-size:52px;color:#fff;line-height:1;text-shadow:0 0 20px rgba(255,45,120,.4)}
+.right{flex:1;padding:36px 36px 36px 24px;display:flex;flex-direction:column;justify-content:flex-start;gap:0;z-index:5}
 
-.crimes{margin-top:14px;display:flex;flex-direction:column;gap:8px}
-.crime-row{display:flex;justify-content:space-between;align-items:center;
-  border-bottom:2px solid rgba(255,255,255,.08);padding:8px 0}
-.c-label{font-size:22px;letter-spacing:3px;color:rgba(255,255,255,.55)}
-.c-val{font-size:28px;color:#FFD23F;text-shadow:0 0 10px rgba(255,210,63,.4)}
+.wanted-wrap{position:relative;margin-bottom:16px}
+.wanted-banner{background:linear-gradient(90deg,#FF2D78,#9B00FF);
+  padding:14px 20px;font-style:italic;font-size:62px;color:#fff;
+  -webkit-text-stroke:3px #fff;paint-order:stroke fill;
+  text-shadow:4px 4px 0 rgba(0,0,0,.7);clip-path:polygon(0 0,100% 0,96% 100%,4% 100%);
+  text-align:center}
+.wanted-sub{font-size:18px;letter-spacing:6px;color:rgba(255,255,255,.5);text-align:center;margin-top:6px}
 
-.reward-box{background:rgba(255,45,120,.08);border:3px solid #FF2D78;border-radius:14px;padding:14px 20px;text-align:center}
-.r-label{font-size:20px;letter-spacing:5px;color:rgba(255,45,120,.7);margin-bottom:6px}
-.r-val{font-size:38px;color:#FFD23F;line-height:1.1}
+.info-block{margin-top:12px}
+.info-label{font-size:17px;letter-spacing:5px;color:#FF2D78;margin-bottom:2px}
+.info-val{font-size:50px;color:#fff;line-height:1;
+  text-shadow:3px 3px 0 rgba(0,0,0,.8),0 0 20px rgba(255,45,120,.3);margin-bottom:14px}
 
-.slide-num{font-size:20px;letter-spacing:4px;color:rgba(255,255,255,.25);text-align:right}
+.crimes{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.crime-row{display:flex;justify-content:space-between;
+  border-bottom:2px solid rgba(255,255,255,.1);padding:7px 0}
+.c-l{font-size:19px;letter-spacing:3px;color:rgba(255,255,255,.5)}
+.c-v{font-size:24px;color:#FFD23F;text-shadow:0 0 10px rgba(255,210,63,.5)}
+
+.reward{margin-top:14px;background:rgba(255,45,120,.1);border:3px solid #FF2D78;border-radius:14px;
+  padding:14px 20px;text-align:center}
+.r-label{font-size:17px;letter-spacing:5px;color:#FF2D78;margin-bottom:6px}
+.r-val{font-size:34px;color:#FFD23F;line-height:1.1}
+.slide-num{font-size:18px;letter-spacing:4px;color:rgba(255,255,255,.25);text-align:right;margin-top:10px}
 </style></head><body>
-<img id="bg" src="top.jpg">
-<div id="glow-top"></div><div id="scan"></div>
+<div id="sky"></div><div id="horiz"></div><div id="ground"></div>
+<div id="palms">
+<svg width="1080" height="300" viewBox="0 0 1080 300" style="position:absolute;bottom:0">
+  <g opacity=".6"><line x1="40" y1="300" x2="65" y2="60" stroke="#1A0A30" stroke-width="12"/>
+  <ellipse cx="65" cy="60" rx="70" ry="20" fill="#1A0A30" transform="rotate(-30 65 60)"/>
+  <ellipse cx="65" cy="60" rx="60" ry="17" fill="#1A0A30" transform="rotate(25 65 60)"/>
+  <ellipse cx="65" cy="60" rx="55" ry="15" fill="#1A0A30" transform="rotate(75 65 60)"/></g>
+  <g opacity=".5"><line x1="1030" y1="300" x2="1005" y2="70" stroke="#1A0A30" stroke-width="12"/>
+  <ellipse cx="1005" cy="70" rx="70" ry="20" fill="#1A0A30" transform="rotate(30 1005 70)"/>
+  <ellipse cx="1005" cy="70" rx="60" ry="17" fill="#1A0A30" transform="rotate(-25 1005 70)"/>
+  <ellipse cx="1005" cy="70" rx="55" ry="15" fill="#1A0A30" transform="rotate(-75 1005 70)"/></g>
+</svg>
+</div>
+<div id="vign"></div><div id="scan"></div>
 <div id="wrap">
   <div class="left">
-    <img class="goat" src="goat_chew.png">
-    <div class="mug-frame"><div class="mug-id">ZFK-00G0AT-2026</div></div>
+    <img class="goat-img" src="goat_chew.png">
+    <div class="mugid">ZFK-GOAT-2026</div>
   </div>
   <div class="right">
-    <div>
+    <div class="wanted-wrap">
       <div class="wanted-banner">WANTED</div>
-      <div class="dead-alive">TIRIK YOKI O'LI</div>
-      <div class="name-box">
-        <div class="name-label">LAQAB</div>
-        <div class="name-val">THE GOAT</div>
-      </div>
-      <div class="crimes">
-        <div class="crime-row"><div class="c-label">LAYK OLISH</div><div class="c-val">46 ♥</div></div>
-        <div class="crime-row"><div class="c-label">IZOH BOSIMI</div><div class="c-val">SINOVli</div></div>
-        <div class="crime-row"><div class="c-label">XAVF DARAJASI</div><div class="c-val">★★★★★</div></div>
-        <div class="crime-row"><div class="c-label">MAQOM</div><div class="c-val">OZOD</div></div>
-      </div>
+      <div class="wanted-sub">TIRIK YOKI O'LI</div>
     </div>
-    <div class="reward-box">
+    <div class="info-block">
+      <div class="info-label">LAQAB</div>
+      <div class="info-val">THE GOAT</div>
+    </div>
+    <div class="crimes">
+      <div class="crime-row"><div class="c-l">LAYK OLISH</div><div class="c-v">46 ♥</div></div>
+      <div class="crime-row"><div class="c-l">IZOH BOSIMI</div><div class="c-v">SINOVli</div></div>
+      <div class="crime-row"><div class="c-l">XAVF DARAJASI</div><div class="c-v">★★★★★</div></div>
+      <div class="crime-row"><div class="c-l">MAQOM</div><div class="c-v">OZOD</div></div>
+    </div>
+    <div class="reward">
       <div class="r-label">MUKOFOT</div>
       <div class="r-val">SINOV JAMOASI<br>JOYINI YOZING</div>
     </div>

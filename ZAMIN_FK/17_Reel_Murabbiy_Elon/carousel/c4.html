@@ -1,67 +1,88 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:MZ;font-weight:900;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1080px;height:1080px;background:#020810;font-family:MZ,sans-serif;overflow:hidden;position:relative}
-#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35}
-#scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.18) 3px,rgba(0,0,0,.18) 4px);pointer-events:none;z-index:50}
-/* magenta glow top */
-#glow{position:absolute;top:-60px;left:50%;transform:translateX(-50%);
-  width:800px;height:400px;background:radial-gradient(ellipse,rgba(155,0,255,.35),transparent 70%)}
-/* teal glow bottom */
-#glow2{position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);
-  width:900px;height:350px;background:radial-gradient(ellipse,rgba(0,212,170,.2),transparent 70%)}
-#scrim{position:absolute;inset:0;background:rgba(2,8,16,.5)}
-#wrap{position:relative;z-index:10;width:1080px;height:1080px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:48px 60px 44px}
+body{width:1080px;height:1080px;overflow:hidden;position:relative;font-family:MZ,sans-serif}
 
-/* header */
-.unlocked{font-size:26px;letter-spacing:8px;color:#9B00FF;text-shadow:0 0 20px #9B00FF;margin-bottom:0}
-.unlocked-box{background:rgba(155,0,255,.12);border:3px solid #9B00FF;border-radius:12px;
-  padding:10px 32px;text-align:center;box-shadow:0 0 30px rgba(155,0,255,.3)}
+#sky{position:absolute;inset:0;
+  background:linear-gradient(to bottom,#1A0535 0%,#4A1278 20%,#9B3FC8 42%,#E87DC8 60%,#F5956A 73%,#3A6AAE 73%,#1E3D6A 100%)}
+#horiz{position:absolute;bottom:275px;left:0;right:0;height:60px;
+  background:radial-gradient(ellipse 100% 100% at 50% 100%,rgba(255,160,80,.8),transparent)}
+#ground{position:absolute;bottom:0;left:0;right:0;height:280px;
+  background:linear-gradient(to bottom,#3A6AAE,#1E3D6A)}
+#scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,0,0,.07) 4px,rgba(0,0,0,.07) 5px);z-index:40;pointer-events:none}
+#vign{position:absolute;inset:0;background:radial-gradient(ellipse 110% 110% at 50% 50%,transparent 35%,rgba(10,0,25,.65) 100%);z-index:3}
 
-/* map pin area */
-.map-wrap{position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center}
-.pin{font-size:90px;filter:drop-shadow(0 0 24px rgba(255,45,120,.7));line-height:1}
-/* grid lines */
-.grid{position:absolute;inset:0;
-  background:linear-gradient(rgba(0,212,170,.06) 1px,transparent 1px),
-             linear-gradient(90deg,rgba(0,212,170,.06) 1px,transparent 1px);
-  background-size:60px 60px}
-.loc-name{font-size:70px;line-height:.95;text-align:center;color:#fff;
-  text-shadow:4px 4px 0 #9B00FF,-2px -2px 0 rgba(255,45,120,.4),0 0 40px rgba(155,0,255,.4);
-  -webkit-text-stroke:3px rgba(155,0,255,.6);paint-order:stroke fill}
-.coords{font-size:22px;letter-spacing:4px;color:rgba(0,212,170,.7);text-align:center;margin-top:8px}
+/* palms */
+#palms{position:absolute;bottom:275px;left:0;right:0;z-index:2}
+
+/* characters - two walking forward */
+#chars{position:absolute;bottom:275px;left:0;right:0;z-index:6;
+  display:flex;justify-content:center;align-items:flex-end;gap:20px}
+.ch1{height:580px;filter:drop-shadow(-6px 0 24px rgba(255,80,160,.4))}
+.ch2{height:460px;filter:drop-shadow(6px 0 24px rgba(255,160,60,.4));margin-bottom:0}
+
+/* top: title */
+#top-title{position:absolute;top:32px;left:0;right:0;z-index:10;text-align:center}
+.tt-eye{font-size:24px;letter-spacing:8px;color:rgba(255,255,255,.6);
+  text-shadow:0 0 16px rgba(255,100,200,.7);margin-bottom:6px}
+.tt-main{font-style:italic;font-size:76px;line-height:.92;color:#fff;
+  -webkit-text-stroke:5px #fff;paint-order:stroke fill;
+  text-shadow:5px 5px 0 rgba(0,0,0,.85),0 0 40px rgba(200,80,255,.5)}
+.tt-divider{width:400px;height:4px;margin:10px auto;
+  background:linear-gradient(90deg,transparent,#FF2D78,#9B00FF,transparent)}
 
 /* bottom CTA */
-.bottom-block{width:100%;display:flex;flex-direction:column;gap:14px;align-items:center}
-.cta-main{width:100%;background:linear-gradient(90deg,#9B00FF,#FF2D78);border-radius:20px;
-  padding:18px 44px;text-align:center;font-size:46px;color:#fff;
-  box-shadow:0 8px 40px rgba(155,0,255,.4),0 8px 40px rgba(255,45,120,.2)}
-.cta-sub{font-size:24px;letter-spacing:4px;color:rgba(0,212,170,.7)}
-.slide-info{display:flex;justify-content:space-between;width:100%;font-size:20px;color:rgba(255,255,255,.25);letter-spacing:3px}
+#cta{position:absolute;bottom:30px;left:0;right:0;z-index:10;text-align:center;padding:0 60px}
+.cta-pill{background:linear-gradient(90deg,#9B00FF 0%,#FF2D78 50%,#FF6B00 100%);
+  border-radius:60px;padding:20px 50px;font-style:italic;font-size:50px;color:#fff;
+  text-shadow:3px 3px 0 rgba(0,0,0,.6);
+  -webkit-text-stroke:2px rgba(255,255,255,.4);paint-order:stroke fill;
+  box-shadow:0 10px 50px rgba(155,0,255,.5),0 10px 50px rgba(255,45,120,.3);
+  display:inline-block;margin-bottom:12px}
+.cta-sub{font-size:22px;letter-spacing:5px;color:rgba(255,255,255,.55)}
+.cta-brand{font-size:20px;letter-spacing:5px;color:rgba(255,255,255,.3);margin-top:8px;
+  display:flex;justify-content:space-between}
 </style></head><body>
-<img id="bg" src="top.jpg">
-<div id="glow"></div><div id="glow2"></div><div id="scrim"></div><div id="scan"></div>
-<div id="wrap">
-  <div class="unlocked-box">
-    <div class="unlocked">★ NEW LOCATION UNLOCKED ★</div>
-  </div>
+<div id="sky"></div><div id="horiz"></div><div id="ground"></div>
+<div id="palms">
+<svg width="1080" height="380" viewBox="0 0 1080 380" style="position:absolute;bottom:0">
+  <g opacity=".8"><line x1="60" y1="380" x2="92" y2="60" stroke="#18083A" stroke-width="13"/>
+  <ellipse cx="92" cy="60" rx="75" ry="21" fill="#18083A" transform="rotate(-28 92 60)"/>
+  <ellipse cx="92" cy="60" rx="65" ry="18" fill="#18083A" transform="rotate(22 92 60)"/>
+  <ellipse cx="92" cy="60" rx="60" ry="16" fill="#18083A" transform="rotate(72 92 60)"/>
+  <ellipse cx="92" cy="60" rx="55" ry="15" fill="#18083A" transform="rotate(-75 92 60)"/></g>
+  <g opacity=".55"><line x1="150" y1="380" x2="185" y2="110" stroke="#200A45" stroke-width="9"/>
+  <ellipse cx="185" cy="110" rx="55" ry="15" fill="#200A45" transform="rotate(-22 185 110)"/>
+  <ellipse cx="185" cy="110" rx="48" ry="13" fill="#200A45" transform="rotate(28 185 110)"/>
+  <ellipse cx="185" cy="110" rx="44" ry="12" fill="#200A45" transform="rotate(78 185 110)"/></g>
+  <g opacity=".8"><line x1="1010" y1="380" x2="978" y2="70" stroke="#18083A" stroke-width="13"/>
+  <ellipse cx="978" cy="70" rx="75" ry="21" fill="#18083A" transform="rotate(28 978 70)"/>
+  <ellipse cx="978" cy="70" rx="65" ry="18" fill="#18083A" transform="rotate(-22 978 70)"/>
+  <ellipse cx="978" cy="70" rx="60" ry="16" fill="#18083A" transform="rotate(-72 978 70)"/>
+  <ellipse cx="978" cy="70" rx="55" ry="15" fill="#18083A" transform="rotate(75 978 70)"/></g>
+  <g opacity=".55"><line x1="920" y1="380" x2="882" y2="120" stroke="#200A45" stroke-width="9"/>
+  <ellipse cx="882" cy="120" rx="55" ry="15" fill="#200A45" transform="rotate(22 882 120)"/>
+  <ellipse cx="882" cy="120" rx="48" ry="13" fill="#200A45" transform="rotate(-28 882 120)"/>
+  <ellipse cx="882" cy="120" rx="44" ry="12" fill="#200A45" transform="rotate(-78 882 120)"/></g>
+</svg>
+</div>
 
-  <div class="map-wrap">
-    <div class="grid"></div>
-    <div style="text-align:center;position:relative;z-index:2">
-      <div class="pin">📍</div>
-      <div class="loc-name">ZAMIN FK<br>MAYDON</div>
-      <div class="coords">41.2995° N · 60.6166° E</div>
-    </div>
-  </div>
+<div id="chars">
+  <img class="ch1" src="rustam.png">
+  <img class="ch2" src="goat_side.png">
+</div>
 
-  <div class="bottom-block">
-    <div class="cta-main">FUTBOLCHI BO'LISH ISTAYSIZMI?</div>
-    <div class="cta-sub">Izohga POZITSIYA + ISMINGIZ 👇</div>
-    <div class="slide-info">
-      <span>@fk_zamin</span>
-      <span>4 / 4</span>
-    </div>
-  </div>
+<div id="vign"></div><div id="scan"></div>
+
+<div id="top-title">
+  <div class="tt-eye">ZAMIN FK TAKLIF ETADI</div>
+  <div class="tt-main">FUTBOLCHI<br>BO'LISH<br>ISTAYSIZMI?</div>
+  <div class="tt-divider"></div>
+</div>
+
+<div id="cta">
+  <div class="cta-pill">IZOHGA YOZING 👇</div>
+  <div class="cta-sub">POZITSIYA + ISMINGIZ</div>
+  <div class="cta-brand"><span>@fk_zamin</span><span>4 / 4</span></div>
 </div>
 </body></html>
