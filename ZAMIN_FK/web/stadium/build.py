@@ -67,6 +67,12 @@ os.makedirs(os.path.join(HERE, "dist"), exist_ok=True)
 import shutil as _sh                                          # 3D models (Kenney CC0) + GLTF loader go next to the page
 for d in ("models", "vendor"):
     if os.path.isdir(os.path.join(HERE, d)): _sh.copytree(os.path.join(HERE, d), os.path.join(HERE, "dist", d), dirs_exist_ok=True)
+# Premium stadium architecture is a separate source file loaded by template.html.
+_sh.copy2(os.path.join(HERE, "premium-stadium.js"), os.path.join(HERE, "dist", "premium-stadium.js"))
+# Original models/vendor copy loop retained above.
+if False:
+    for d in ():
+    if os.path.isdir(os.path.join(HERE, d)): _sh.copytree(os.path.join(HERE, d), os.path.join(HERE, "dist", d), dirs_exist_ok=True)
 out = os.path.join(HERE, "dist", "index.html")
 open(out, "w").write(html)
 print(out, len(fans), "fans", round(len(html) / 1024), "KB")
