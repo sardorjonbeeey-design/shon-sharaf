@@ -175,14 +175,16 @@
     const vipCabinGroup = new THREE.Group();
     vipCabinGroup.name = "ZFK_GOLD_VIP_CABINS";
     root.add(vipCabinGroup);
-    const vipGold = mat(0xd9ad45, 0.78, 0.22);
-    const vipGoldBright = mat(0xffd76a, 0.86, 0.18);
-    const vipNavy = mat(0x081a38, 0.38, 0.34);
-    const vipLeather = mat(0x18294b, 0.12, 0.78);
-    const vipLeatherLight = mat(0x344b70, 0.18, 0.68);
+    // Brighter VIP finish: gold remains premium, but reduced metalness keeps it readable
+    // without relying on environment reflections; navy upholstery is lifted for visibility.
+    const vipGold = mat(0xe4bd62, 0.42, 0.34);
+    const vipGoldBright = mat(0xffdf83, 0.38, 0.28);
+    const vipNavy = mat(0x203b62, 0.22, 0.48);
+    const vipLeather = mat(0x526d96, 0.08, 0.72, { emissive: 0x14243c, emissiveIntensity: 0.28 });
+    const vipLeatherLight = mat(0x7892b5, 0.06, 0.68, { emissive: 0x1a2c45, emissiveIntensity: 0.22 });
     const vipGlass = new THREE.MeshPhysicalMaterial({
-      color: 0x9fc8e8, metalness: 0.16, roughness: 0.12, transparent: true,
-      opacity: 0.22, clearcoat: 1, clearcoatRoughness: 0.06, side: THREE.DoubleSide, depthWrite: false
+      color: 0xd7edff, metalness: 0.04, roughness: 0.16, transparent: true,
+      opacity: 0.10, clearcoat: 1, clearcoatRoughness: 0.06, side: THREE.DoubleSide, depthWrite: false
     });
     const vipBox = new THREE.BoxGeometry(1, 1, 1);
     const vipSphere = new THREE.SphereGeometry(0.43, 20, 14);
@@ -257,6 +259,22 @@
         new THREE.MeshStandardMaterial({ color: 0xffd47a, emissive: 0xffb83d, emissiveIntensity: 1.15, metalness: .55, roughness: .28 })
       );
       warmStrip.position.set(0, vipHeight + .005, vipDepth / 2 - .18); cabin.add(warmStrip);
+      // Real, shadowless warm fill light makes the sofa, side table and trophy readable.
+      // One low-cost light per cabin; deliberately no shadow map.
+      const cabinLight = new THREE.PointLight(0xffd49a, 2.4, 10, 2);
+      cabinLight.position.set(0, 2.85, 0.05);
+      cabin.add(cabinLight);
+      const cabinFill = new THREE.PointLight(0xffe7bd, 0.85, 7, 2);
+      cabinFill.position.set(1.45, 1.9, 1.25);
+      cabin.add(cabinFill);
+      // Soft luminous ceiling panel supplements the point lights without casting shadows.
+      const ceilingGlow = new THREE.Mesh(
+        new THREE.PlaneGeometry(vipWidth - 1.0, vipDepth - 0.8),
+        new THREE.MeshBasicMaterial({ color: 0xffdca5, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false, toneMapped: false })
+      );
+      ceilingGlow.rotation.x = Math.PI / 2;
+      ceilingGlow.position.set(0, vipHeight + .005, 0);
+      cabin.add(ceilingGlow);
       // Small ZAMIN FK gold pennant inside each lounge.
       vipPart(cabin, vipCylinder, vipGoldBright, [.055, 1.45, .055], [-vipWidth / 2 + .55, 1.05, -vipDepth / 2 + .38], "ZFK flag pole");
       const pennant = vipPart(cabin, vipBox, vipGoldBright, [.72, .48, .045], [-vipWidth / 2 + .93, 1.43, -vipDepth / 2 + .38], "ZFK gold pennant");
