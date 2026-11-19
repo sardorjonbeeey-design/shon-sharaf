@@ -52,6 +52,15 @@
   #cabin .x { position:absolute; right:12px; top:8px; font-size:20px; background:none; border:0; color:#fff; }
   #cabin .go { margin-top:10px; width:100%; font:inherit; font-weight:900; font-size:17px; color:var(--navy); background:var(--yel); border:0; border-radius:14px; padding:12px; }
   #cabin .owner { display:none; margin-top:8px; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,.1); font-size:13px; }
+  #vpanel .vip-intro { margin:0 0 10px; color:#dce7ff; font-size:13px; line-height:1.45; }
+  #vwall { margin-top:14px; padding:12px; border:1px solid rgba(255,210,63,.5); border-radius:14px; background:linear-gradient(135deg,rgba(255,210,63,.14),rgba(255,255,255,.04)); }
+  #vwall b,#vwall span { display:block; } #vwall b { color:#ffd76a; font-size:13px; letter-spacing:.5px; } #vwall span { margin-top:5px; color:#dce7ff; font-size:12px; line-height:1.4; }
+  #cbcert { margin-top:12px; padding:12px; border:1px solid #d9ad45; border-radius:13px; text-align:center; background:linear-gradient(135deg,#0b1d3b,#182d50); box-shadow:inset 0 0 18px rgba(217,173,69,.12); }
+  #cbcert .cert-top { color:#f3d58a; font-size:10px; font-weight:900; letter-spacing:1.2px; }
+  #cbcert strong { display:block; margin:5px 0; color:#ffd76a; font-size:25px; letter-spacing:2px; }
+  #cbcert small { display:block; color:#fff; font-size:9px; letter-spacing:1px; }
+  #cbcert span { display:block; margin-top:6px; color:#c9d6ec; font-size:10px; line-height:1.35; }
+  #cbgo:disabled { opacity:.72; cursor:not-allowed; }
   #card { left:50%; bottom:130px; z-index:6; transform:translateX(-50%); width:min(92vw,380px); padding:16px 18px; display:none; }
   #card h3 { margin:0 0 4px; font-weight:900; font-size:20px; color:var(--yel); }
   #card p { margin:0; font-weight:700; font-size:14px; line-height:1.35; }
@@ -227,8 +236,8 @@
 </div>
 <div id="rule" class="ui" data-t="rule"></div>
 <div id="toast" class="ui pill"></div>
-<div id="vpanel" class="ui pill"><button class="x" id="vx">×</button><h3 id="vh"></h3><div id="vlist"></div></div>
-<div id="cabin" class="ui pill"><button class="x" id="cbx">×</button><h3 id="cbh"></h3><p id="cbp"></p><div class="owner" id="cbo"></div><p class="msg" id="cbm"></p><button class="go" id="cbgo"></button></div>
+<div id="vpanel" class="ui pill"><button class="x" id="vx">×</button><h3 id="vh"></h3><p id="vintro" class="vip-intro"></p><div id="vlist"></div><div id="vwall"><b>🏆 VIP WALL OF FAME</b><span>Cabin owners appear here after verified purchase.</span></div></div>
+<div id="cabin" class="ui pill"><button class="x" id="cbx">×</button><h3 id="cbh"></h3><p id="cbp"></p><div class="owner" id="cbo"></div><div id="cbcert"><div class="cert-top">👑 ZAMIN FK · GOLD VIP</div><strong id="cbcertno">VIP 01</strong><small>PERSONAL MEMBERSHIP CERTIFICATE</small><span>Issued to the verified buyer after payment confirmation.</span></div><p class="msg" id="cbm"></p><button class="go" id="cbgo" disabled>RESERVATION COMING SOON</button></div>
 <div id="card" class="ui pill"><button class="x" id="cx">×</button><h3 id="ch"></h3><p id="cp"></p></div>
 <div id="demo" class="ui" data-t="demo"></div>
 <div id="panel" class="ui pill"><button class="x" id="px">×</button><h3 data-t="fans"></h3><div id="plist"></div></div>
@@ -2803,11 +2812,10 @@ if (MAP) { const pl = document.getElementById("place"); pl.textContent = "📍 "
 setMode(MODE, false);
 updateCta();
 
-// ---------- ZAMIN FK GOLD VIP CABINS: 32 premium lounges in the upper grandstand ----------
+// ---------- ZAMIN FK GOLD VIP CABINS: 32 premium lounges + ownership recognition ----------
 const SKY = (() => {
   const root = window.__zfkPremiumRoot && window.__zfkPremiumRoot.getObjectByName("ZFK_GOLD_VIP_CABINS");
-  const cabins = [];
-  const pickables = [];
+  const cabins = [], pickables = [];
   if (root) {
     root.traverse(o => { if (o.isMesh && o.userData.vipCabinIndex) pickables.push(o); });
     for (let i = 1; i <= 32; i++) {
@@ -2824,15 +2832,20 @@ const SKY = (() => {
     const p = new THREE.Vector3(); c.group.getWorldPosition(p);
     const inward = new THREE.Vector3(-p.x, 0, -p.z).normalize();
     if (moveCamera) flyTo(new THREE.Vector3(p.x + inward.x * 22, p.y + 6.5, p.z + inward.z * 22), p.clone().add(new THREE.Vector3(0, 1.8, 0)), 1.8);
-    $("cbh").textContent = "👑 GOLD VIP CABIN " + String(c.no).padStart(2, "0");
-    $("cbp").textContent = L === "uz" ? "Yuqori tribuna · Shaxsiy premium lounge" : L === "ru" ? "Верхняя трибуна · Частный премиум-лаунж" : "Upper grandstand · Private premium lounge";
+    const no = String(c.no).padStart(2, "0");
+    $("cbh").textContent = "👑 GOLD VIP CABIN " + no;
+    $("cbp").textContent = L === "uz" ? "Yuqori tribuna · Oltin bezakli shaxsiy lounge" : L === "ru" ? "Верхняя трибуна · Частный лаунж с золотой отделкой" : "Upper grandstand · Private gold-finish lounge";
     $("cbo").style.display = "none";
-    $("cbm").textContent = L === "uz" ? "Narxi: 10 000 so‘m · Hozircha bo‘sh" : L === "ru" ? "Цена: 10 000 сум · Пока свободна" : "Price: 10,000 UZS · Available";
-    $("cbgo").style.display = "none";
+    $("cbcertno").textContent = "VIP " + no;
+    $("cbm").textContent = L === "uz" ? "10 000 so‘m · Ism lavhasi va doimiy joy to‘lov tasdiqlangach rasmiylashtiriladi." : L === "ru" ? "10 000 сум · Именная табличка и постоянное место оформляются после подтверждения оплаты." : "10,000 UZS · Your nameplate and permanent reservation are issued only after verified payment.";
+    $("cbgo").textContent = L === "uz" ? "To‘lov tizimi tez orada" : L === "ru" ? "Оплата скоро появится" : "PAYMENT SETUP COMING SOON";
+    $("cbgo").disabled = true;
+    $("cbgo").style.display = "block";
     $("cabin").style.display = "block";
   }
   function list() {
     $("vh").textContent = L === "uz" ? "👑 GOLD VIP KABINALAR" : L === "ru" ? "👑 ЗОЛОТЫЕ VIP-ЛАУНЖИ" : "👑 GOLD VIP CABINS";
+    $("vintro").textContent = L === "uz" ? "32 ta maxsus lounge · Har biri 10 000 so‘m · Egasi nomi oltin lavhada." : L === "ru" ? "32 эксклюзивных лаунжа · 10 000 сум каждый · Имя владельца на золотой табличке." : "32 exclusive lounges · 10,000 UZS each · Owner name displayed on a gold plaque.";
     const pl = $("vlist"); pl.innerHTML = "";
     for (const c of cabins.filter(Boolean)) {
       const b = document.createElement("button");
@@ -2841,9 +2854,10 @@ const SKY = (() => {
       b.onclick = () => { $("vpanel").style.display = "none"; details(c, true); };
       pl.appendChild(b);
     }
+    $("vwall").querySelector("span").textContent = L === "uz" ? "To‘lov tasdiqlangach, 32 ta VIP egasining nomi shu yerda ko‘rinadi." : L === "ru" ? "После подтверждения оплаты здесь появятся имена 32 владельцев VIP." : "The 32 verified cabin owners will be recognised here after payment confirmation.";
     $("vpanel").style.display = "block";
   }
-  $("vip").onclick = () => { $("panel").style.display = "none"; $("card").style.display = "none"; list(); };
+  $("vip").onclick = () => { $("panel").style.display = "none"; $("card").style.display = "none"; $("cabin").style.display = "none"; list(); };
   $("vx").onclick = () => $("vpanel").style.display = "none";
   $("cbx").onclick = () => { selected = null; $("cabin").style.display = "none"; };
   return {
