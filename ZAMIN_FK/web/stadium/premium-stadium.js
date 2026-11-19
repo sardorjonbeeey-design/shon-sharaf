@@ -170,6 +170,93 @@
       ringSurface(d - 0.18, y - 0.15, d + 0.18, y + 0.15, steel, Math.floor(samples * 0.8));
     }
 
+    // 32 compact Golden VIP lounges integrated into the upper grandstand.
+    // They are visual reservations only; payment/ownership is intentionally not simulated.
+    const vipCabinGroup = new THREE.Group();
+    vipCabinGroup.name = "ZFK_GOLD_VIP_CABINS";
+    root.add(vipCabinGroup);
+    const vipGold = mat(0xd9ad45, 0.78, 0.22);
+    const vipGoldBright = mat(0xffd76a, 0.86, 0.18);
+    const vipNavy = mat(0x081a38, 0.38, 0.34);
+    const vipLeather = mat(0x18294b, 0.12, 0.78);
+    const vipLeatherLight = mat(0x344b70, 0.18, 0.68);
+    const vipGlass = new THREE.MeshPhysicalMaterial({
+      color: 0x9fc8e8, metalness: 0.16, roughness: 0.12, transparent: true,
+      opacity: 0.22, clearcoat: 1, clearcoatRoughness: 0.06, side: THREE.DoubleSide, depthWrite: false
+    });
+    const vipBox = new THREE.BoxGeometry(1, 1, 1);
+    const vipSphere = new THREE.SphereGeometry(0.43, 20, 14);
+    const vipCylinder = new THREE.CylinderGeometry(1, 1, 1, 16);
+    function vipPart(parent, geometry, material, size, pos, name) {
+      const m = new THREE.Mesh(geometry, material);
+      m.scale.set(size[0], size[1], size[2]);
+      m.position.set(pos[0], pos[1], pos[2]);
+      if (name) m.name = name;
+      m.castShadow = true; m.receiveShadow = true; parent.add(m);
+      return m;
+    }
+    function vipLabel(no) {
+      const c = document.createElement("canvas"); c.width = 512; c.height = 128;
+      const x = c.getContext("2d");
+      const g = x.createLinearGradient(0, 0, 512, 128);
+      g.addColorStop(0, "#091a38"); g.addColorStop(.5, "#203c63"); g.addColorStop(1, "#091a38");
+      x.fillStyle = g; x.fillRect(0, 0, 512, 128);
+      x.strokeStyle = "#e2b84f"; x.lineWidth = 8; x.strokeRect(7, 7, 498, 114);
+      x.fillStyle = "#ffe19a"; x.font = "900 62px Arial"; x.textAlign = "center"; x.textBaseline = "middle";
+      x.fillText("VIP " + String(no).padStart(2, "0"), 256, 64);
+      const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4;
+      return new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
+    }
+    const vipCabinMeshes = [];
+    const vipCount = 32, vipWidth = 8.0, vipDepth = 5.0, vipHeight = 4.8;
+    const vipBaseY = HW + 1.0, vipOffset = 3.9;
+    for (let i = 0; i < vipCount; i++) {
+      const t = (i + 0.5) / vipCount, p = point(t, vipOffset);
+      const inward = new THREE.Vector3(-p[0], 0, -p[1]).normalize();
+      const cabin = new THREE.Group();
+      cabin.name = "ZFK_GOLD_VIP_" + String(i + 1).padStart(2, "0");
+      cabin.position.set(p[0], vipBaseY, p[1]);
+      cabin.rotation.y = Math.atan2(inward.x, inward.z);
+      cabin.userData.vipCabinIndex = i + 1;
+      // Gold-edged plinth and dark floor.
+      vipPart(cabin, vipBox, vipNavy, [vipWidth + .35, .28, vipDepth + .35], [0, .14, 0], "VIP plinth");
+      vipPart(cabin, vipBox, vipGold, [vipWidth + .5, .10, vipDepth + .5], [0, .04, 0], "Gold floor reveal");
+      vipPart(cabin, vipBox, vipNavy, [vipWidth, .12, vipDepth], [0, .32, 0], "Cabin floor");
+      // Panoramic glass frontage and side glazing.
+      vipPart(cabin, vipBox, vipGlass, [vipWidth - .28, vipHeight - .55, .08], [0, vipHeight / 2 + .18, vipDepth / 2 - .06], "Panoramic glass frontage");
+      vipPart(cabin, vipBox, vipGlass, [.08, vipHeight - .55, vipDepth - .25], [-vipWidth / 2 + .06, vipHeight / 2 + .18, 0], "Left glass wall");
+      vipPart(cabin, vipBox, vipGlass, [.08, vipHeight - .55, vipDepth - .25], [vipWidth / 2 - .06, vipHeight / 2 + .18, 0], "Right glass wall");
+      vipPart(cabin, vipBox, vipNavy, [vipWidth, vipHeight - .15, .18], [0, vipHeight / 2 + .12, -vipDepth / 2 + .05], "Rear privacy wall");
+      // Brushed-gold frame and roof canopy.
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+        vipPart(cabin, vipBox, vipGoldBright, [.16, vipHeight, .16], [sx * (vipWidth / 2 - .08), vipHeight / 2 + .3, sz * (vipDepth / 2 - .08)], "Gold corner post");
+      }
+      for (const sz of [-1, 1]) vipPart(cabin, vipBox, vipGold, [vipWidth + .2, .16, .18], [0, vipHeight + .28, sz * (vipDepth / 2)], "Gold lintel");
+      for (const sx of [-1, 1]) vipPart(cabin, vipBox, vipGold, [.18, .16, vipDepth + .1], [sx * vipWidth / 2, vipHeight + .28, 0], "Gold side rail");
+      vipPart(cabin, vipBox, vipNavy, [vipWidth + .28, .24, vipDepth + .28], [0, vipHeight + .12, 0], "Dark canopy");
+      vipPart(cabin, vipBox, vipGoldBright, [vipWidth + .34, .07, vipDepth + .34], [0, vipHeight + .28, 0], "Canopy gold edge");
+      // Compact deep-blue leather sofa facing the pitch.
+      vipPart(cabin, vipBox, vipLeather, [3.15, .58, 1.18], [-1.12, .78, -.35], "VIP sofa cushion");
+      vipPart(cabin, vipBox, vipLeatherLight, [3.15, 1.22, .28], [-1.12, 1.48, -.88], "VIP sofa back");
+      for (const sx of [-1, 1]) {
+        vipPart(cabin, vipBox, vipLeather, [.34, .82, 1.22], [-1.12 + sx * 1.58, 1.02, -.35], "VIP sofa arm");
+        for (const sz of [-1, 1]) vipPart(cabin, vipCylinder, vipGold, [.11, .48, .11], [-1.12 + sx * 1.22, .43, -.35 + sz * .42], "Sofa foot");
+      }
+      // Gold side table with a polished golden football ornament.
+      vipPart(cabin, vipCylinder, vipGold, [.16, .72, .16], [2.12, .72, .45], "Side table pedestal");
+      vipPart(cabin, vipCylinder, vipGoldBright, [1.05, .12, 1.05], [2.12, 1.12, .45], "Side table top");
+      vipPart(cabin, vipSphere, vipGoldBright, [1, 1, 1], [2.12, 1.68, .45], "Golden football ornament");
+      const ballBand = new THREE.Mesh(new THREE.TorusGeometry(.445, .018, 6, 32), vipNavy);
+      ballBand.position.set(2.12, 1.68, .45); ballBand.rotation.x = Math.PI / 2; cabin.add(ballBand);
+      const ballBand2 = new THREE.Mesh(new THREE.TorusGeometry(.445, .018, 6, 32), vipNavy);
+      ballBand2.position.set(2.12, 1.68, .45); ballBand2.rotation.y = Math.PI / 2; cabin.add(ballBand2);
+      // Number plate faces the pitch.
+      const plate = new THREE.Mesh(new THREE.PlaneGeometry(2.2, .55), vipLabel(i + 1));
+      plate.position.set(0, vipHeight - .48, vipDepth / 2 + .055); cabin.add(plate);
+      cabin.traverse(o => { if (o.isMesh) { o.userData.vipCabinIndex = i + 1; vipCabinMeshes.push(o); } });
+      vipCabinGroup.add(cabin);
+    }
+
     // Four corner crown pylons, with tapered bases and warm beacon lights.
     for (const [sx, sz] of [[-1,-1],[-1,1],[1,-1],[1,1]]) {
       const x = sx * (a + 13), z = sz * (b + 13);
