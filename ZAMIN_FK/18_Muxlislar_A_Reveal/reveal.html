@@ -1,267 +1,189 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
 @font-face{font-family:MZ;font-weight:900;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
 @font-face{font-family:MZ;font-weight:700;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf)}
-html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#02040c;font-family:MZ,sans-serif}
-#c{position:absolute;left:0;top:0}
-#fx{position:absolute;left:0;top:0;pointer-events:none}
+html,body{margin:0;background:#020810;overflow:hidden;width:1080px;height:1920px;font-family:MZ,sans-serif}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:540px 960px}
+#bg{position:absolute;left:0;top:0;width:1080px;height:1920px}
+#scrim{position:absolute;left:0;top:0;width:1080px;height:1920px;
+  background:radial-gradient(ellipse 70% 55% at 50% 50%,rgba(2,8,16,0) 0%,rgba(2,8,16,.55) 65%,rgba(2,8,16,.92) 100%)}
+#tint{position:absolute;left:0;top:0;width:1080px;height:1920px;
+  background:linear-gradient(160deg,rgba(10,30,60,.55) 0%,rgba(0,40,10,.25) 100%);mix-blend-mode:multiply}
 #ov{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
-.it{position:absolute;transform-origin:50% 50%;white-space:nowrap;text-align:center;color:#fff;font-weight:900}
-.hd small{display:block;font-size:40px;letter-spacing:1px;text-shadow:0 4px 14px #000}
-.hd b{display:block;font-size:98px;line-height:1.02;color:#FFD23F;text-shadow:0 6px 0 #0D2557,0 10px 30px #000;-webkit-text-stroke:7px #0D2557;paint-order:stroke fill}
-.hd b.w{color:#fff}
-.hd b.r{color:#ff4444;-webkit-text-stroke:7px #3a0000}
-.pill{background:rgba(5,14,40,.88);border:5px solid #FFD23F;border-radius:26px;padding:14px 34px;box-shadow:0 0 34px rgba(255,210,63,.35)}
-.pill small{display:block;font-size:26px;letter-spacing:3px;color:#9fb6ff}.pill b{font-size:72px;color:#fff}
-.tag{background:#fff;color:#0D2557;border-radius:20px;padding:10px 24px;font-size:36px;border:5px solid #FFD23F;box-shadow:0 10px 30px rgba(0,0,0,.8)}
-.rtag{background:#3a0000;color:#ff6666;border-radius:20px;padding:10px 24px;font-size:36px;border:5px solid #ff4444;box-shadow:0 10px 30px rgba(0,0,0,.8);text-decoration:line-through}
-.gtag{background:#001a08;color:#FFD23F;border-radius:20px;padding:10px 24px;font-size:36px;border:5px solid #FFD23F;box-shadow:0 10px 30px rgba(0,0,0,.8)}
-.chip{background:rgba(5,14,40,.9);border:4px solid #FFD23F;border-radius:18px;padding:10px 22px;font-size:40px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
-.chip em{font-style:normal;color:#FFD23F}
-.ptag{background:rgba(5,14,40,.92);border:4px solid #FFD23F;border-radius:16px;padding:7px 16px;font-size:27px;box-shadow:0 8px 24px rgba(0,0,0,.8);display:flex;gap:10px;align-items:center;white-space:nowrap}
-.ptag .pb{background:#FFD23F;color:#0D2557;border-radius:8px;padding:3px 8px;font-size:21px}
-#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.it{position:absolute;white-space:nowrap;text-align:center;color:#fff;font-weight:900}
+.hd{text-align:center}
+.hd small{display:block;font-size:52px;letter-spacing:5px;text-shadow:0 4px 20px #000;color:#9fb6ff}
+.hd b{display:block;font-size:100px;line-height:1.0;color:#FFD23F;
+  text-shadow:0 8px 0 #0D2557,0 14px 36px rgba(0,0,0,.8);
+  -webkit-text-stroke:7px #0D2557;paint-order:stroke fill}
+.hd b.w{color:#fff}.hd b.r{color:#E63946;-webkit-text-stroke:7px #7a1138}
+.slot{width:68px;height:68px;border-radius:50%;border:5px dashed #FFD23F;
+  background:rgba(5,14,40,.78);color:#FFD23F;font-size:46px;line-height:58px;
+  box-shadow:0 0 24px rgba(255,210,63,.6)}
+.slot.f{border-style:solid;font-size:28px;color:#0D2557;background:#FFD23F}
+.slot.dq{border-style:solid;border-color:#E63946;background:rgba(60,0,0,.88);
+  color:#E63946;font-size:34px;line-height:58px;box-shadow:0 0 28px rgba(230,57,70,.7)}
+.slot.rep{border-style:solid;border-color:#00C85A;background:rgba(0,30,10,.88);
+  color:#00C85A;font-size:34px;line-height:58px;box-shadow:0 0 24px rgba(0,200,90,.6)}
+.nm{margin-top:5px;font-size:21px;background:rgba(5,14,40,.85);border:2px solid rgba(31,79,184,.8);
+  border-radius:10px;padding:2px 10px;display:inline-block;color:#9fb6ff}
+.nm.dq{border-color:#E63946;color:#E63946;text-decoration:line-through;background:rgba(60,0,0,.7)}
+.nm.rep{border-color:#00C85A;color:#00C85A;background:rgba(0,30,10,.7)}
+.nm.f{border-color:#FFD23F;color:#FFD23F;background:rgba(5,14,40,.92)}
+.fn{font-size:17px;padding:2px 8px}
+.band{font-size:40px;background:rgba(5,14,40,.92);border:5px solid #FFD23F;
+  border-radius:26px;padding:14px 36px;box-shadow:0 0 34px rgba(255,210,63,.4)}
+.band small{display:block;font-size:26px;letter-spacing:3px;color:#9fb6ff}
+.follow{font-size:66px;color:#fff;background:#E1306C;border-radius:60px;
+  padding:22px 66px;box-shadow:0 10px 0 #7a1138,0 16px 36px rgba(0,0,0,.6)}
+.cta-box{font-size:50px;background:rgba(5,14,40,.92);border:5px solid #FFD23F;
+  border-radius:28px;padding:22px 38px;line-height:1.5;text-align:center;
+  white-space:normal;width:860px;box-shadow:0 0 40px rgba(255,210,63,.3)}
+.cta-box small{display:block;font-size:30px;color:#9fb6ff;letter-spacing:2px;margin-bottom:8px}
+.cm{background:#fff;color:#0D2557;border-radius:28px;padding:14px 28px;
+  font-size:40px;text-align:left;box-shadow:0 14px 36px rgba(0,0,0,.6);
+  border:5px solid #0D2557;white-space:normal;width:860px}
+#fl{position:absolute;left:0;top:0;width:1080px;height:1920px;background:#fff;opacity:0;z-index:50}
 </style></head><body>
-<canvas id="c" width="1080" height="1920"></canvas>
-<canvas id="fx" width="1080" height="1920"></canvas>
-<div id="ov"></div>
-<script src="../09_Episode_09/build/node_modules/three/build/three.min.js"></script>
+<div id="stage"><img id="bg"><div id="scrim"></div><div id="tint"></div><div id="ovp"></div></div>
+<div id="ov"></div><div id="fl"></div>
 <script>
-const T3 = THREE;
-const cl = (v,a=0,b=1) => Math.max(a,Math.min(b,v));
-const sm = (a,b,x) => { const t=cl((x-a)/(b-a)); return t*t*(3-2*t); };
-const lerp = (a,b,t) => a+(b-a)*t;
-const eob = x => { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2); };
-const hash = n => { const x=Math.sin(n*127.1+311.7)*43758.5453; return x-Math.floor(x); };
+// Time-based beats (same structure as R16/R17 voice beats)
+const BT=[0,0,5,11,16,33,39]; // BT[1]=B1 start … BT[6]=B6 start
+const bs=n=>BT[n];
+const be=n=>n<6?BT[n+1]:END;
+const END=47;window.END=END;
+const FPS=30,DIVE=40;
+const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const sm=(a,b,x)=>{const t=cl((x-a)/(b-a));return t*t*(3-2*t);};
+const eob=x=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
 
-// ── Time constants ──
-const T = { hook:0, ten:4, dq:8, rep:13, xi:17, coach:30, match:35, cta:42 };
-const END = 50; window.END = END;
+// Same LAY formation coordinates as R16/R17
+const LAY={
+  "GK": [539,1533],"RB":[867,1393],"CB1":[411,1428],"CB2":[669,1428],"LB":[212,1393],
+  "CDM":[739,1252],"CM":[341,1252],"CAM":[540,1182],"RW":[844,1054],"LW":[236,1054],"ST":[540,1030]
+};
 
-// ── Renderer / Scene ──
-const R = new T3.WebGLRenderer({canvas:document.getElementById("c"),antialias:true});
-R.setSize(1080,1920,false); R.setPixelRatio(1);
-const sc = new T3.Scene(); sc.background=new T3.Color(0x02040c); sc.fog=new T3.Fog(0x02040c,120,520);
-const cam = new T3.PerspectiveCamera(50,1080/1920,.1,1200);
-sc.add(new T3.HemisphereLight(0x7f9bff,0x0a1030,1.15));
-const sun=new T3.DirectionalLight(0xffffff,.85); sun.position.set(-40,90,60); sc.add(sun);
-const lam = c => new T3.MeshLambertMaterial({color:c});
-const bas = c => new T3.MeshBasicMaterial({color:c});
-const BOX = new T3.BoxGeometry(1,1,1);
-const M4=new T3.Matrix4(),Q4=new T3.Quaternion(),V3=new T3.Vector3(),S3=new T3.Vector3(),E4=new T3.Euler();
-function setM(mesh,i,x,y,z,sx,sy,sz,ry=0){Q4.setFromEuler(E4.set(0,ry,0));M4.compose(V3.set(x,y,z),Q4,S3.set(sx,sy,sz));mesh.setMatrixAt(i,M4);}
-
-// ── Pitch ──
-const PX=22,PZ=34;
-const ground=new T3.Mesh(new T3.PlaneGeometry(2400,2400),lam(0x050a1c));ground.rotation.x=-Math.PI/2;ground.position.y=-.3;sc.add(ground);
-for(let i=0;i<12;i++){const m=new T3.Mesh(new T3.PlaneGeometry(PX*2,PZ*2/12),lam(i%2?0x0e7a35:0x0a6a2d));m.rotation.x=-Math.PI/2;m.position.set(0,0,-PZ+(i+.5)*PZ*2/12);sc.add(m);}
-function line(x,z,w,d,c=0x7ffcff){const m=new T3.Mesh(BOX,bas(c));m.scale.set(w,.05,d);m.position.set(x,.06,z);sc.add(m);}
-line(0,-PZ,PX*2,.5);line(0,PZ,PX*2,.5);line(-PX,0,.5,PZ*2);line(PX,0,.5,PZ*2);line(0,0,PX*2,.5);
-for(const s of[-1,1]){line(0,s*(PZ-8),20,.4);line(-10,s*(PZ-4),.4,8);line(10,s*(PZ-4),.4,8);}
-const circ=new T3.Mesh(new T3.RingGeometry(5.7,6.2,48),bas(0x7ffcff));circ.rotation.x=-Math.PI/2;circ.position.y=.07;sc.add(circ);
-
-// ── Seats ──
-function rr(hx,hz,r,s){
-  const a=hx-r,b=hz-r,L1=2*a,L2=2*b,Lc=Math.PI*r/2,P=2*L1+2*L2+4*Lc;s=((s%P)+P)%P;
-  const seg=[[L1,"b"],[Lc,"c1"],[L2,"r"],[Lc,"c2"],[L1,"t"],[Lc,"c3"],[L2,"l"],[Lc,"c4"]];let o=0;
-  for(const[L,k]of seg){if(s<=o+L){const u=s-o;switch(k){
-    case"b":return[-a+u,hz,0,1];case"r":return[hx,b-u,1,0];case"t":return[a-u,-hz,0,-1];case"l":return[-hx,-b+u,-1,0];
-    case"c1":{const t=u/r;return[a+r*Math.sin(t),b+r*Math.cos(t),Math.sin(t),Math.cos(t)];}
-    case"c2":{const t=u/r;return[a+r*Math.cos(t),-b-r*Math.sin(t),Math.cos(t),-Math.sin(t)];}
-    case"c3":{const t=u/r;return[-a-r*Math.sin(t),-b-r*Math.cos(t),-Math.sin(t),-Math.cos(t)];}
-    default:{const t=u/r;return[-a-r*Math.cos(t),b+r*Math.sin(t),-Math.cos(t),Math.sin(t)];}}
-  }o+=L;}return[-a,hz,0,1];}
-const TIERS=14,seats=[];
-for(let i=0;i<TIERS;i++){
-  const hx=PX+4+i*1.15,hz=PZ+4+i*1.15,r=9+i*1.15,P=2*(2*(hx-r)+2*(hz-r))+2*Math.PI*r,n=Math.floor(P/1.12);
-  for(let k=0;k<n;k++){const[x,z,nx,nz]=rr(hx,hz,r,k*P/n);seats.push({x,z,y:.55+i*.85,ry:Math.atan2(-nx,-nz),tier:i,k,n});}}
-const NS=seats.length;
-let ord=seats.map((_,i)=>i).sort((a,b)=>hash(a*3.1)-hash(b*3.1));
-const pickNear=(x,y,z)=>{let b=0,bd=1e9;seats.forEach((s,i)=>{const d=(s.x-x)**2+(s.y-y)**2+(s.z-z)**2;if(d<bd){bd=d;b=i;}});return b;};
-
-// 11 player seats spread around lower tier
-const XI_PLAYERS = [
-  {pos:'GK',  name:'@avazov_gk_07',     si: pickNear(0,   .6, PZ+5)},
-  {pos:'RB',  name:'@akhmedov__701',    si: pickNear(PX+5,.6, PZ/2+4)},
-  {pos:'CB',  name:'@jurayev_sz',       si: pickNear(9,   .6, PZ+6)},
-  {pos:'CB',  name:'@_baxtibek_2015',   si: pickNear(-9,  .6, PZ+6)},
-  {pos:'LB',  name:'@ergashboyevvv_',   si: pickNear(-PX-5,.6,PZ/2+4)},
-  {pos:'CDM', name:'@zhanbo1ov',        si: pickNear(0,   .6, 10)},
-  {pos:'CM',  name:'@rasuluvich_09',    si: pickNear(PX+5,.6, 0)},
-  {pos:'CAM', name:'@murodbek___odilov',si: pickNear(-PX-5,.6,0)},
-  {pos:'RW',  name:'@mirzasharibov_',   si: pickNear(PX+5,.6,-PZ/2-4)},
-  {pos:'LW',  name:'@hamraqulov_1',     si: pickNear(-PX-5,.6,-PZ/2-4)},
-  {pos:'ST',  name:'@hasa.n11015',      si: pickNear(0,   .6,-PZ-5)},
+// XI — in reveal order GK→DEF→MID→FW
+// dq: original DQ'd player (shown in B2 at this position)
+const XI=[
+  {pos:"GK",  h:"@avazov_gk_07",        gk:true},
+  {pos:"RB",  h:"@akhmedov__701",        dq:"@bilalov_abduvohid"},
+  {pos:"CB1", h:"@jurayev_sz"},
+  {pos:"CB2", h:"@_baxtibek_2015"},
+  {pos:"LB",  h:"@ergashboyevvv_"},
+  {pos:"CDM", h:"@zhanbo1ov"},
+  {pos:"CM",  h:"@rasuluvich_09"},
+  {pos:"CAM", h:"@murodbek___odilov",    dq:"@_mxmdv19"},
+  {pos:"RW",  h:"@mirzasharibov_"},
+  {pos:"LW",  h:"@hamraqulov_1"},
+  {pos:"ST",  h:"@hasa.n11015"},
 ];
-const COACH_SI = pickNear(16, 2.5, PZ+8);
-const XI_SET = new Set(XI_PLAYERS.map(p=>p.si));
-XI_SET.add(COACH_SI);
+const DQ_POS=new Set(XI.filter(p=>p.dq).map(p=>p.pos));
 
-// fill shuffle: XI seats always first
-ord = [...XI_PLAYERS.map(p=>p.si), COACH_SI, ...ord.filter(i=>!XI_SET.has(i))];
-const rank=new Array(NS); ord.forEach((s,i)=>rank[s]=i);
-
-const SEATC=[0x1a3fb0,0x1f4fb8,0x16348f];
-const KIT=[0x2f6bff,0xffffff,0x2f6bff,0xffd23f,0xffffff,0xe63946,0x2f6bff,0x34d399,0xff8a3d,0xc084fc];
-const seatM=new T3.InstancedMesh(BOX,lam(0xffffff),NS);
-const bodyM=new T3.InstancedMesh(BOX,lam(0xffffff),NS);
-const headM=new T3.InstancedMesh(BOX,lam(0xffffff),NS);
-seats.forEach((s,i)=>{
-  const isXI=XI_SET.has(i);
-  seatM.setColorAt(i,new T3.Color(isXI?0xffd23f:SEATC[(s.k+s.tier)%3]));
-  bodyM.setColorAt(i,new T3.Color(isXI?0xffd23f:KIT[Math.floor(hash(i*7.7)*KIT.length)]));
-  headM.setColorAt(i,new T3.Color(isXI?0xffffff:[0xf2c8a0,0xd9a577,0xb98760][Math.floor(hash(i*2.9)*3)]));
-});
-[seatM,bodyM,headM].forEach(m=>{m.frustumCulled=false;sc.add(m);});
-
-function updateSeats(K){
-  seats.forEach((s,i)=>{
-    setM(seatM,i,s.x,s.y,s.z,.92,.5,.86,s.ry);
-    const u=cl(K-rank[i]+1,0,1),e=u<=0?0:eob(u);
-    setM(bodyM,i,s.x,s.y+.62*e,s.z,.55*e,.85*e,.42*e,s.ry);
-    setM(headM,i,s.x,s.y+1.28*e,s.z,.38*e,.38*e,.38*e,s.ry);
-  });
-  [seatM,bodyM,headM].forEach(m=>{m.instanceMatrix.needsUpdate=true;m.instanceColor.needsUpdate=true;});
+const items=[],OVP=document.getElementById("ovp"),OV=document.getElementById("ov"),FL=document.getElementById("fl");
+function add(par,html,x,y,at,to,o={}){
+  const d=document.createElement("div");d.className="it "+(o.cls||"");d.innerHTML=html;
+  d.style.left=x+"px";d.style.top=y+"px";d.style.display="none";
+  if(o.z)d.style.zIndex=o.z;par.appendChild(d);items.push({d,at,to:to==null?1e9:to,o});return d;
 }
-
-// rim lights
-const rim=(h,c,w=.35)=>{const hx=PX+4+TIERS*1.15+.4,hz=PZ+4+TIERS*1.15+.4,r=9+TIERS*1.15,P=2*(2*(hx-r)+2*(hz-r))+2*Math.PI*r,n=Math.floor(P/.9);const m=new T3.InstancedMesh(BOX,bas(c),n);for(let k=0;k<n;k++){const[x,z,nx,nz]=rr(hx,hz,r,k*P/n);setM(m,k,x,h,z,w+.6,w,w+.6,Math.atan2(-nx,-nz));}sc.add(m);};
-rim(TIERS*.85+.9,0x7ffcff);rim(.25,0x7ffcff,.3);
-
-// spotlight beams for XI players
-const beams = XI_PLAYERS.map(p=>{
-  const s=seats[p.si];
-  const m=new T3.Mesh(new T3.CylinderGeometry(.7,.7,80,16,1,true),new T3.MeshBasicMaterial({color:0xffd23f,transparent:true,opacity:.18,side:T3.DoubleSide,depthWrite:false,blending:T3.AdditiveBlending}));
-  m.position.set(s.x,s.y+40,s.z);sc.add(m);return m;});
-const coachBeam=new T3.Mesh(new T3.CylinderGeometry(.7,.7,80,16,1,true),new T3.MeshBasicMaterial({color:0x7ffcff,transparent:true,opacity:.22,side:T3.DoubleSide,depthWrite:false,blending:T3.AdditiveBlending}));
-coachBeam.position.set(seats[COACH_SI].x,seats[COACH_SI].y+40,seats[COACH_SI].z);sc.add(coachBeam);
-
-// ── Seat count K(t) ──
-function K(t){
-  if(t<T.hook+.5) return Math.round(lerp(0,1500,cl(t/(T.hook+.5))));
-  if(t<T.dq) return 1500;
-  return 1500;
-}
-
-// ── Camera shots ──
-// [t, [px,py,pz], [lx,ly,lz], fov]
-const SH=[
-  // hook: top-down drone
-  [[T.hook,   [0,170,8],   [0,0,0],   42],
-   [T.ten,    [0,120,20],  [0,0,0],   46]],
-  // tension: side orbit
-  [[T.ten,    [-55,28,65], [0,6,0],   56],
-   [T.dq,     [55,25,60],  [0,6,0],   56]],
-  // DQ: medium front
-  [[T.dq,     [-22,18,58], [0,7,0],   60],
-   [T.rep,    [22,16,55],  [0,7,0],   60]],
-  // replacements
-  [[T.rep,    [22,16,55],  [0,7,0],   60],
-   [T.xi,     [-18,15,52], [0,7,0],   58]],
-  // XI reveal: slow orbit
-  [[T.xi,     [-55,22,65], [0,5,0],   54],
-   [T.xi+6,   [0,20,72],   [0,5,0],   54],
-   [T.coach-1,[55,22,65],  [0,5,0],   54]],
-  // coach: close to coach seat
-  [[T.coach,  [seats[COACH_SI].x+10,seats[COACH_SI].y+6,seats[COACH_SI].z+12],[seats[COACH_SI].x,seats[COACH_SI].y+1,seats[COACH_SI].z],48],
-   [T.match,  [seats[COACH_SI].x-8, seats[COACH_SI].y+5,seats[COACH_SI].z+10],[seats[COACH_SI].x,seats[COACH_SI].y+1,seats[COACH_SI].z],48]],
-  // match: wide dramatic
-  [[T.match,  [0,90,100],  [0,5,0],   50],
-   [T.cta,    [0,70,90],   [0,5,0],   50]],
-  // CTA
-  [[T.cta,    [-42,32,72], [0,10,0],  56],
-   [END,      [42,30,70],  [0,10,0],  56]],
-];
-function placeCam(t){
-  let si=0;while(si<SH.length-1&&t>=SH[si+1][0][0])si++;
-  const k=SH[si];let i=0;while(i<k.length-1&&t>=k[i+1][0])i++;
-  const a=k[i],c=k[Math.min(i+1,k.length-1)],u=a===c?0:sm(a[0],c[0],t);
-  const L=(p,q)=>[lerp(p[0],q[0],u),lerp(p[1],q[1],u),lerp(p[2],q[2],u)];
-  const p=L(a[1],c[1]),l=L(a[2],c[2]);cam.fov=lerp(a[3],c[3],u);cam.updateProjectionMatrix();
-  cam.up.set(0,1,0);cam.position.set(p[0],p[1],p[2]);cam.lookAt(l[0],l[1],l[2]);
-}
-
-// ── Overlay system ──
-const OV=document.getElementById("ov"),items=[];
-function add(html,x,y,at,to,o={}){const d=document.createElement("div");d.className="it "+(o.cls||"");d.innerHTML=html;d.style.left=x+"px";d.style.top=y+"px";d.style.display="none";if(o.z)d.style.zIndex=o.z;OV.appendChild(d);items.push({d,at,to:to==null?1e9:to,o});return d;}
-const hd=(label,big,at,to,y=330,w=false,r=false)=>add(`<small>${label}</small><b class="${w?"w":r?"r":""}">${big}</b>`,540,y,at,to,{cls:"hd",z:20,enter:"stamp"});
+const hd=(label,big,at,to,y=640,o={})=>
+  add(OV,`<small>${label}</small><b class="${o.cls2||""}">${big}</b>`,540,y,at,to,{cls:"hd",z:20,enter:"stamp",...o});
 
 function frameOv(t){
-  for(const it of items){const{d,at,to,o}=it;const on=t>=at&&t<to;if(!on){d.style.display="none";continue;}
-    d.style.display="block";const u=(t-at),e=o.enter==="none"?1:eob(cl(u/(o.enter==="stamp"?.32:.36))),out=cl((to-t)/.12);
-    let sx=1,sy=1;if(o.pulse){const p=1+.05*Math.sin(u*7);sx=sy=p;}
-    const sca=(.3+.7*e)*sx;d.style.opacity=String(cl(u/.08)*out);let tr=`translate(-50%,-50%) scale(${sca})`;
-    if(o.track){const p=o.track(t);if(!p){d.style.display="none";continue;}d.style.left=cl(p[0],60,1020)+"px";d.style.top=cl(p[1],60,1860)+"px";}
-    d.style.transform=tr;if(o.live)o.live(d,t);}
+  for(const it of items){
+    const{d,at,to,o}=it;if(!(t>=at&&t<to)){d.style.display="none";continue;}
+    d.style.display="block";
+    const u=t-at,e=o.enter==="none"?1:eob(cl(u/(o.enter==="stamp"?.3:.34))),out=o.keep?1:cl((to-t)/.12);
+    let s=1;if(o.pulse)s=1+.06*Math.sin(u*7+(o.ph||0));
+    if(o.glow)d.style.filter=`drop-shadow(0 0 ${14+10*Math.sin(u*6)}px #FFD23F)`;
+    if(o.rglow)d.style.filter=`drop-shadow(0 0 ${12+8*Math.sin(u*5)}px #E63946)`;
+    d.style.opacity=String(cl(u/.08)*out*(o.dim?o.dim(t):1));
+    d.style.transform=`translate(-50%,-50%) scale(${(.3+.7*e)*s})`+(o.rot?` rotate(${o.rot}deg)`:"");
+  }
+  const f=Math.max(0,...[2,3,4,5,6].map(i=>1-(t-bs(i))/.12));FL.style.opacity=String(cl(f)*.25);
 }
-function proj(x,y,z){const v=new T3.Vector3(x,y,z).project(cam);if(v.z>1)return null;return[(v.x+1)/2*1080,(1-v.y)/2*1920];}
 
-// ── CUT FLASH ──
-const flashEl=document.createElement("div");flashEl.id="flash";flashEl.style.cssText="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none";OV.appendChild(flashEl);
-function doFlash(t){let f=0;for(const c of[T.ten,T.dq,T.rep,T.xi,T.coach,T.match,T.cta]){const d=t-c;if(d>=0&&d<.22)f=Math.max(f,.4*(1-d/.22));}flashEl.style.opacity=f;}
+// ── BEAT 1 — HOOK ──
+hd("ZAMIN FK","1500 ARIZA<br>1 JAMOA",bs(1),be(1),540);
+add(OV,`<div class="band"><small>SINOV O'YINIDAN SO'NG</small>FAQAT 11 TA O'RIN</div>`,
+  540,1760,bs(1)+.6,be(1),{z:21,enter:"pop"});
 
-// ── SCENE 1: HOOK ──
-const cntDiv=add(`<small>ARIZA BERGANLАР</small><b class="w">0</b>`,540,330,T.hook,T.ten-0.1,{cls:"hd",z:20,enter:"none",live:(d,t)=>{d.querySelector("b").textContent=Math.round(1500*sm(0.1,2.0,t));}});
-hd("ZAMIN FK · SINOV JAMOASI","BARCHA<br>JOY",T.ten-1.5,T.ten-0.05,330,false,false);
+// ── BEAT 2 — DQ: Formation appears. 9 gold slots + 2 red DQ ──
+// Non-DQ positions: gold slots with pos label (B2 → B4)
+let idx=0;
+XI.filter(p=>!p.dq).forEach((p,i)=>{
+  const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
+  const html=p.gk
+    ?`<div class="nm fn" style="margin:0 0 5px;color:#9fb6ff">...</div><div class="slot f">${pos}</div>`
+    :`<div class="slot f">${pos}</div><div class="nm fn" style="color:#9fb6ff">...</div>`;
+  add(OVP,html,x,p.gk?y-10:y+20,bs(2)+.1+idx*.1,bs(4),{z:10,enter:"pop"});
+  idx++;
+});
+// DQ positions: red ✕ with original handle (B2 → B3)
+XI.filter(p=>p.dq).forEach((p,i)=>{
+  const[x,y]=LAY[p.pos];
+  add(OVP,`<div class="slot dq">✕</div><div class="nm fn dq">${p.dq}</div>`,
+    x,y+20,bs(2)+.3+i*.22,bs(3),{z:12,enter:"pop",rglow:true});
+});
+hd("AFSUSKI...","2 TASI<br>TUSHIB QOLDI",bs(2),be(2),200,{cls2:"r"});
+add(OV,`<div class="cm"><b>SABAB:</b> Akkauntimizni kuzatishmagan ❌</div>`,
+  540,1600,bs(2)+.5,be(2),{z:22,enter:"pop"});
 
-// ── SCENE 2: TENSION ──
-hd("FAQAT","11 TA<br>O'RIN",T.ten,T.dq-0.1,260,true);
-add(`<div class="chip">Lekin <em>2 tasi</em> o'rinlarini yo'qotdi</div>`,540,1600,T.ten+1.8,T.dq-0.1,{z:21,enter:"pop"});
+// ── BEAT 3 — REPLACEMENTS: DQ → green REP ──
+XI.filter(p=>p.dq).forEach((p,i)=>{
+  const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
+  add(OVP,`<div class="slot rep">✓</div><div class="nm fn rep">${p.h}</div>`,
+    x,y+20,bs(3)+.2+i*.22,bs(4),{z:13,enter:"pop"});
+});
+hd("ALMASHTIRILDI","YANGI<br>TANLANGAN",bs(3),be(3),540);
+add(OV,`<div class="band" style="border-color:#00C85A"><small style="color:#00C85A">QOIDA HAMMAGA TENG</small>O'RINLAR TO'LDIRILDI ✅</div>`,
+  540,1760,bs(3)+.5,be(3),{z:21,enter:"pop"});
 
-// ── SCENE 3: DQ ──
-hd("DISKVALIFIKATSIYA","SABAB:<br>KUZATISHMADI",T.dq,T.rep-0.1,280,false,true);
-add(`<div class="rtag">❌ CAM · @_mxmdv19</div>`,540,1370,T.dq+0.5,T.rep-0.1,{z:22,enter:"pop"});
-add(`<div class="rtag">❌ RB · @bilalov_abduvohid</div>`,540,1510,T.dq+1.0,T.rep-0.1,{z:22,enter:"pop"});
-add(`<div class="chip" style="font-size:32px">Qoida hammaga teng.</div>`,540,1660,T.dq+2.2,T.rep-0.1,{z:21,enter:"stamp"});
-
-// ── SCENE 4: REPLACEMENTS ──
-hd("O'RINLARI EGALLANDI","YANGI<br>TANLANGAN",T.rep,T.xi-0.1,280,false,false);
-add(`<div class="gtag">✅ CAM · @murodbek___odilov</div>`,540,1370,T.rep+0.5,T.xi-0.1,{z:22,enter:"pop"});
-add(`<div class="gtag">✅ RB · @akhmedov__701</div>`,540,1510,T.rep+1.0,T.xi-0.1,{z:22,enter:"pop"});
-
-// ── SCENE 5: XI REVEAL — name tags above seats ──
-hd("MUXLISLAR A","TARKIB<br>TAYYOR",T.xi,T.xi+1.5,280,true);
-
-XI_PLAYERS.forEach((p,i)=>{
-  const s=seats[p.si];
-  const at=T.xi+0.6+i*1.1;
-  const to=T.cta+5;
-  add(`<div class="ptag"><div class="pb">${p.pos}</div>${p.name}</div>`,
-    s.x,s.z,at,to,{z:22,enter:"pop",track:t=>{const pt=proj(s.x,s.y+2.4,s.z);return pt;},pulse:i===10});
+// ── BEAT 4 — XI REVEAL: All 11 staggered GK→DEF→MID→FW ──
+hd("MUXLISLAR A","TARKIB<br>TAYYOR!",bs(4),be(4),540);
+XI.forEach((p,i)=>{
+  const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
+  const html=p.gk
+    ?`<div class="nm fn f" style="margin:0 0 5px">${p.h}</div><div class="slot f">${pos}</div>`
+    :`<div class="slot f">${pos}</div><div class="nm fn f">${p.h}</div>`;
+  add(OVP,html,x,p.gk?y-10:y+20,bs(4)+.1+i*.13,END,{z:14,enter:"pop",keep:true,glow:i===10,dim:t=>t>=bs(5)?0.18:1});
 });
 
-// ── SCENE 6: COACH ──
-const cs=seats[COACH_SI];
-hd("MUXLISLAR A — MURABBIY","@vmaar.77",T.coach,T.match-0.1,320,false,false);
-add(`<div class="chip">🏆 Eng faol muxlisimiz</div>`,540,1600,T.coach+1.0,T.match-0.1,{z:21,enter:"pop",pulse:true});
-add(`<div class="tag" style="font-size:30px">MURABBIY</div>`,
-  cs.x,cs.z,T.coach+0.4,T.match-0.1,{z:23,enter:"stamp",track:t=>{const p=proj(cs.x,cs.y+2.6,cs.z);return p;}});
+// ── BEAT 5 — MATCH ──
+hd("ERTANGI O'YIN","ZAMIN FK<br>VS<br>MUXLISLAR A",bs(5),be(5),480,{cls2:"w"});
+add(OV,`<div style="font-size:120px;color:#FFD23F;text-shadow:0 8px 0 #0D2557,0 14px 36px rgba(0,0,0,.8);-webkit-text-stroke:8px #0D2557;paint-order:stroke fill">ERTAGA ⚡</div>`,
+  540,1680,bs(5)+.5,be(5),{z:21,enter:"stamp",pulse:true});
+add(OV,`<img src="../12_Reel_Trial_Stadium/assets/crest.png" style="height:150px">`,
+  130,1770,bs(5)+.4,END,{z:22,enter:"pop",keep:true});
 
-// ── SCENE 7: MATCH ──
-hd("ERTANGI O'YIN","ZAMIN FK<br>VS<br>MUXLISLAR A",T.match,T.cta-0.1,240,false,false);
-add(`<div class="hd" style="font-size:0"><b style="font-size:150px;color:#FFD23F;letter-spacing:8px;-webkit-text-stroke:8px #0D2557;paint-order:stroke fill">ERTAGA ⚡</b></div>`,540,1480,T.match+1.4,T.cta-0.1,{z:21,enter:"stamp",pulse:true});
-add(`<img src="../12_Reel_Trial_Stadium/assets/crest.png" style="height:160px;display:block">`,540,1710,T.match+0.3,T.cta-0.1,{z:21,enter:"stamp"});
+// ── BEAT 6 — CTA ──
+hd("MUXLISLAR B","SHAKLLANMOQDA!",bs(6),END,540);
+add(OV,`<div class="cta-box"><small>O'RIN OLISH UCHUN 👇</small>KUZAT + IZOH QO'LDIRING</div>`,
+  540,1480,bs(6)+.5,END,{z:22,enter:"pop",pulse:true,keep:true});
+add(OV,`<div class="follow">OBUNA BO'LING</div>`,
+  540,1770,bs(6)+.9,END,{z:22,enter:"pop",pulse:true,keep:true});
 
-// ── SCENE 8: CTA ──
-hd("MUXLISLAR B","SHAKLLANMOQDA",T.cta,END,260,true);
-add(`<div class="pill"><small>O'RIN OLISH UCHUN</small><b style="font-size:60px">KUZAT + IZOH</b></div>`,540,1360,T.cta+0.8,END,{z:22,enter:"pop",pulse:true});
-add(`<div class="chip" style="font-size:34px">POZITSIYA + ISMINGIZ = O'RIN ⚽</div>`,540,1600,T.cta+1.6,END,{z:21,enter:"stamp"});
-add(`<div class="chip" style="font-size:28px;color:rgba(255,255,255,.6)">Kuzatmaganlar bu safar ham tushib qoladi.</div>`,540,1720,T.cta+2.4,END,{z:21,enter:"stamp"});
-
-// ── World update ──
-function world(t){
-  updateSeats(K(t));
-  // beams visible during XI reveal and after
-  beams.forEach((b,i)=>{
-    b.visible=t>=T.xi+i*1.1;
-    b.material.opacity=.14+.08*Math.sin(t*4+i);
-  });
-  coachBeam.visible=t>=T.coach;
-  coachBeam.material.opacity=t>=T.coach?.28+.1*Math.sin(t*5):0;
+// ── BACKGROUND: Same stadium top-view + slow push-in as R16/R17 ──
+const IM={};
+const nm=f=>f<DIVE
+  ?`../17_Reel_Murabbiy_Elon/build/top/d_${String(f).padStart(3,"0")}.jpg`
+  :`../17_Reel_Murabbiy_Elon/build/top/top.jpg`;
+async function bgLoad(t){
+  const f=Math.min(DIVE,Math.floor(t*FPS));
+  const im=IM[f];if(im)document.getElementById("bg").src=im.src;
+  if(im&&im.decode)await im.decode().catch(()=>0);
 }
-
-// ── Render ──
-window.renderAt = t => {
-  world(t);placeCam(t);R.render(sc,cam);frameOv(t);doFlash(t);
+window.renderAt=async t=>{
+  await bgLoad(t);
+  const z=1+.05*sm(DIVE/FPS,END,t);
+  document.getElementById("stage").style.transform=`scale(${z})`;
+  frameOv(t);
 };
-window.ready = () => document.fonts.ready.then(()=>document.fonts.load("900 40px MZ")).then(()=>true);
+window.ready=async()=>{
+  await document.fonts.ready;
+  await document.fonts.load("900 40px MZ");
+  for(const f of[...Array(DIVE).keys(),DIVE]){const im=new Image();im.src=nm(f);await im.decode();IM[f]=im;}
+  await Promise.all([...document.images].map(i=>i.decode?i.decode().catch(()=>0):0));
+  return true;
+};
 </script></body></html>
