@@ -433,6 +433,28 @@ function init({ db, bot, club, led }) {
         try { const id = await led.addText(msg.from.id, line); return api("sendMessage", { chat_id: msg.chat.id, text: `✅ Reklama #${id} qo‘shildi. Stadion ekranlarida 1–5 daqiqada ko‘rinadi. /reklamalar` }); }
         catch (e) { return api("sendMessage", { chat_id: msg.chat.id, text: ledErr(e) }); }
       };
+      if (/^\/addvip(@\w+)?\s+@?([a-z0-9_]{5,32})$/i.test(t)) return async () => {
+        if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
+        const username = t.match(/^\/addvip(?:@\w+)?\s+@?([a-z0-9_]{5,32})$/i)[1].toLowerCase();
+        const client = await db.connect();
+        try {
+          await client.query("begin");
+          await client.query("select pg_advisory_xact_lock(321032)");
+          const user = (await client.query("select tg_id,nick from members where lower(tg_username)=$1 union all select tg_id,nick from seats where lower(tg_username)=$1 limit 1", [username])).rows[0];
+          if (!user) { await client.query("rollback"); return api("sendMessage", { chat_id: msg.chat.id, text: "@" + username + " not found. User must have opened the bot and joined ZAMIN FK." }); }
+          const prior = (await client.query("select cabin_no from vip_cabins where tg_id=$1", [String(user.tg_id)])).rows[0];
+          if (prior) { await client.query("commit"); return api("sendMessage", { chat_id: msg.chat.id, text: "Already assigned GOLD VIP " + String(prior.cabin_no).padStart(2,"0") }); }
+          const free = (await client.query("select n from generate_series(1,32) n where not exists(select 1 from vip_cabins v where v.cabin_no=n) order by n limit 1")).rows[0];
+          if (!free) { await client.query("rollback"); return api("sendMessage", { chat_id: msg.chat.id, text: "All 32 VIP cabins are assigned." }); }
+          const no = Number(free.n);
+          await client.query("insert into vip_cabins(cabin_no,tg_id,username,display_name,assigned_by) values($1,$2,$3,$4,$5)", [no,String(user.tg_id),username,String(user.nick||username).replace(/^@/,""),String(msg.from.id)]);
+          await client.query("commit");
+          await bot.log("GOLD VIP assigned", { Admin: bot.who(msg.from), Buyer: "@" + username, Cabin: no, Payment: "Manually confirmed by admin · 10,000 UZS" });
+          await api("sendMessage", { chat_id: msg.chat.id, text: "VIP cabin assigned: @" + username + " → GOLD VIP " + String(no).padStart(2,"0") + ". Payment manually confirmed." });
+          api("sendMessage", { chat_id: String(user.tg_id), text: "ZAMIN FK GOLD VIP " + String(no).padStart(2,"0") + " cabin assigned to you!" }).catch(e => console.error("VIP notification", e.message));
+        } catch (e) { await client.query("rollback").catch(()=>{}); console.error("addvip",e); return api("sendMessage", { chat_id:msg.chat.id, text:"VIP assignment failed." }); }
+        finally { client.release(); }
+      };
       if (/^\/admin(@\w+)?$/i.test(t)) return async () => {
         if (!isAdmin(msg.from.id)) return api("sendMessage", { chat_id: msg.chat.id, text: "Bu buyruq faqat adminlar uchun." });
         return api("sendMessage", { chat_id: msg.chat.id, ...(await adminMenu()) });
