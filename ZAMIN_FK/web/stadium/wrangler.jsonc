@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "premium-stadium-shon-sharaf-premium",
+  "name": "shon-sharaf-premium",
   "compatibility_date": "2026-11-18",
   "preview_urls": true,
   "previews": {},
