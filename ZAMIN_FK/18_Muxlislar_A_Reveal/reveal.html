@@ -36,6 +36,9 @@ html,body{margin:0;background:#020810;overflow:hidden;width:1080px;height:1920px
 .band small{display:block;font-size:26px;letter-spacing:3px;color:#9fb6ff}
 .follow{font-size:66px;color:#fff;background:#E1306C;border-radius:60px;
   padding:22px 66px;box-shadow:0 10px 0 #7a1138,0 16px 36px rgba(0,0,0,.6)}
+.cch{border-radius:16px;padding:10px 24px;background:#0D2557;border:5px solid #FFD23F;text-align:center;min-width:200px;box-shadow:0 0 32px rgba(255,210,63,.5)}
+.cch .cl{font-size:22px;color:#9fb6ff;letter-spacing:4px;display:block;margin-bottom:2px}
+.cch .cn{font-size:28px;color:#FFD23F;display:block}
 .cta-box{font-size:50px;background:rgba(5,14,40,.92);border:5px solid #FFD23F;
   border-radius:28px;padding:22px 38px;line-height:1.5;text-align:center;
   white-space:normal;width:860px;box-shadow:0 0 40px rgba(255,210,63,.3)}
@@ -120,7 +123,7 @@ Object.values(GRP).flat().filter(p=>!DQ_POS.has(p.pos)).forEach(p=>{
   const html=p.gk
     ?`<div class="nm fn" style="margin:0 0 5px;color:#9fb6ff">...</div><div class="slot f">${pos}</div>`
     :`<div class="slot f">${pos}</div><div class="nm fn" style="color:#9fb6ff">...</div>`;
-  add(OVP,html,x,p.gk?y-10:y+20,bs(2)+.1+si*.08,be(4),{z:10,enter:"pop"});
+  add(OVP,html,x,p.gk?y-10:y+20,bs(2)+.1+si*.08,bs(4),{z:10,enter:"pop"});
   si++;
 });
 // 2 DQ slots (B2 → B3)
@@ -138,7 +141,7 @@ DQ.forEach((p,i)=>{
   const[x,y]=LAY[p.pos];
   const rep=Object.values(GRP).flat().find(r=>r.pos===p.pos);
   add(OVP,`<div class="slot rep">✓</div><div class="nm fn rep">${rep.h}</div>`,
-    x,y+20,bs(3)+.2+i*.22,be(4),{z:13,enter:"pop"});
+    x,y+20,bs(3)+.2+i*.22,bs(4),{z:13,enter:"pop"});
 });
 add(OV,`<div class="band" style="border-color:#00C85A"><small style="color:#00C85A">QOIDA HAMMAGA TENG</small>O'RINLAR TO'LDIRILDI ✅</div>`,
   540,1760,S(3,1).a,be(3),{z:21,enter:"pop"});
@@ -152,8 +155,8 @@ add(OV,`<div class="band" style="border-color:#00C85A"><small style="color:#00C8
 hd("MUXLISLAR A","TARKIB<br>TAYYOR!",S(4,0).a,be(4),540);
 GRP.GK.forEach((p,i)=>{
   const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
-  add(OVP,`<div class="nm fn f" style="margin:0 0 5px">${p.h}</div><div class="slot f">${pos}</div>`,
-    x,y-10,S(4,1).a+i*.1,END,{z:14,enter:"pop",keep:true,dim:t=>t>=bs(5)?0.18:1});
+  add(OVP,`<div class="slot f">${pos}</div><div class="nm fn f">${p.h}</div>`,
+    x,y+20,S(4,1).a+i*.1,END,{z:14,enter:"pop",keep:true,dim:t=>t>=bs(5)?0.18:1});
 });
 GRP.DEF.forEach((p,i)=>{
   const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
@@ -170,6 +173,10 @@ GRP.FW.forEach((p,i)=>{
   add(OVP,`<div class="slot f">${pos}</div><div class="nm fn f">${p.h}</div>`,
     x,y+20,S(4,4).a+i*.12,END,{z:14,enter:"pop",keep:true,glow:p.pos==="ST",dim:t=>t>=bs(5)?0.18:1});
 });
+
+// Coach — appears at B4 heading, stays through to end, dims in B5
+add(OVP,`<div class="cch"><span class="cl">📋 MURABBIY</span><span class="cn">@hayitboyev.76</span></div>`,
+  540,1710,S(4,0).a,END,{z:15,enter:"pop",keep:true,dim:t=>t>=bs(5)?0.18:1});
 
 // ── BEAT 5 — Whisper + Goat ──
 // goat peeks bottom-left
