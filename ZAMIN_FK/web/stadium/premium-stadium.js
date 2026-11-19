@@ -245,14 +245,34 @@
       // Gold side table with a polished golden football ornament.
       vipPart(cabin, vipCylinder, vipGold, [.13, .62, .13], [1.65, .62, .35], "Side table pedestal");
       vipPart(cabin, vipCylinder, vipGoldBright, [.88, .10, .88], [1.65, .98, .35], "Side table top");
-      vipPart(cabin, vipSphere, vipGoldBright, [.8, .8, .8], [1.65, 1.46, .35], "Golden football ornament");
+      vipPart(cabin, vipCylinder, vipGold, [.52, .12, .52], [1.65, 1.12, .35], "Golden ball trophy plinth");
+      vipPart(cabin, vipSphere, vipGoldBright, [.8, .8, .8], [1.65, 1.46, .35], "Golden football trophy ornament");
       const ballBand = new THREE.Mesh(new THREE.TorusGeometry(.36, .016, 6, 32), vipNavy);
       ballBand.position.set(1.65, 1.46, .35); ballBand.rotation.x = Math.PI / 2; cabin.add(ballBand);
-      const ballBand2 = new THREE.Mesh(new THREE.TorusGeometry(.445, .018, 6, 32), vipNavy);
+      const ballBand2 = new THREE.Mesh(new THREE.TorusGeometry(.36, .016, 6, 32), vipNavy);
       ballBand2.position.set(1.65, 1.46, .35); ballBand2.rotation.y = Math.PI / 2; cabin.add(ballBand2);
-      // Number plate faces the pitch.
+      // Warm architectural light strip (emissive, no extra point-light cost).
+      const warmStrip = new THREE.Mesh(
+        new THREE.BoxGeometry(vipWidth - .8, .045, .045),
+        new THREE.MeshStandardMaterial({ color: 0xffd47a, emissive: 0xffb83d, emissiveIntensity: 1.15, metalness: .55, roughness: .28 })
+      );
+      warmStrip.position.set(0, vipHeight + .005, vipDepth / 2 - .18); cabin.add(warmStrip);
+      // Small ZAMIN FK gold pennant inside each lounge.
+      vipPart(cabin, vipCylinder, vipGoldBright, [.055, 1.45, .055], [-vipWidth / 2 + .55, 1.05, -vipDepth / 2 + .38], "ZFK flag pole");
+      const pennant = vipPart(cabin, vipBox, vipGoldBright, [.72, .48, .045], [-vipWidth / 2 + .93, 1.43, -vipDepth / 2 + .38], "ZFK gold pennant");
+      pennant.rotation.y = -.08;
+      // Two-line owner plate: cabin number now, buyer's verified username after purchase.
       const plate = new THREE.Mesh(new THREE.PlaneGeometry(1.8, .46), vipLabel(i + 1));
       plate.position.set(0, vipHeight - .42, vipDepth / 2 + .055); cabin.add(plate);
+      const ownerCanvas = document.createElement("canvas"); ownerCanvas.width = 512; ownerCanvas.height = 96;
+      const oc = ownerCanvas.getContext("2d");
+      oc.fillStyle = "#081a38"; oc.fillRect(0, 0, 512, 96);
+      oc.strokeStyle = "#d9ad45"; oc.lineWidth = 5; oc.strokeRect(3, 3, 506, 90);
+      oc.fillStyle = "#f3d58a"; oc.font = "bold 34px Arial"; oc.textAlign = "center"; oc.textBaseline = "middle";
+      oc.fillText("OWNER NAMEPLATE", 256, 48);
+      const ownerMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(ownerCanvas), toneMapped: false });
+      const ownerPlate = new THREE.Mesh(new THREE.PlaneGeometry(1.8, .34), ownerMat);
+      ownerPlate.position.set(0, vipHeight - .92, vipDepth / 2 + .057); cabin.add(ownerPlate);
       cabin.traverse(o => { if (o.isMesh) { o.userData.vipCabinIndex = i + 1; vipCabinMeshes.push(o); } });
       vipCabinGroup.add(cabin);
     }
