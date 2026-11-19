@@ -36,7 +36,7 @@
       opacity: 0.68, clearcoat: 1, clearcoatRoughness: 0.08, side: THREE.DoubleSide
     });
     const roofMat = new THREE.MeshStandardMaterial({
-      color: 0xe8edf4, metalness: 0.68, roughness: 0.28,
+      color: 0xbfc9d2, metalness: 0.82, roughness: 0.38,
       side: THREE.DoubleSide, envMapIntensity: 1.1
     });
     const roofUnderside = mat(0x142b4f, 0.62, 0.36, { side: THREE.DoubleSide });
