@@ -323,7 +323,8 @@ async function getSquad(ms) {
 const [STATE0, MAP, SQUAD0] = await Promise.all([getState(MODE === "city" ? 8000 : 2500), getMap(), getSquad(2500)]);
 // the 24 players on the squad are on the pitch / bench, never in the fan seats (matched by Telegram id, so no duplicates)
 const PLAYING = new Set((Array.isArray(SQUAD0) ? SQUAD0 : []).filter(p => p && p.kind === "player" && p.tg_id).map(p => String(p.tg_id)));
-let STATE = STATE0 || { seats: [], homes: [], miniapp: "" };
+let STATE = STATE0 || { seats: [], homes: [], miniapp: "", vipCabins: [] };
+let VIP_OWNERS = new Map((Array.isArray(STATE.vipCabins) ? STATE.vipCabins : []).map(v => [Number(v.no), v]));
 const FAN_META = new Map();       // nick -> { tg: telegram username or null }
 // Club members sit in the Supporters' Stand (main-stand straight). Their seat number comes from the server and never moves.
 const STAND_W = 160;
@@ -2835,9 +2836,11 @@ const SKY = (() => {
     const no = String(c.no).padStart(2, "0");
     $("cbh").textContent = "👑 GOLD VIP CABIN " + no;
     $("cbp").textContent = L === "uz" ? "Yuqori tribuna · Oltin bezakli shaxsiy lounge" : L === "ru" ? "Верхняя трибуна · Частный лаунж с золотой отделкой" : "Upper grandstand · Private gold-finish lounge";
-    $("cbo").style.display = "none";
+    const owner = VIP_OWNERS.get(c.no);
+    $("cbo").style.display = owner ? "block" : "none";
+    $("cbo").textContent = owner ? "👑 Owner: @" + owner.username : "";
     $("cbcertno").textContent = "VIP " + no;
-    $("cbm").textContent = L === "uz" ? "10 000 so‘m · Ism lavhasi va doimiy joy to‘lov tasdiqlangach rasmiylashtiriladi." : L === "ru" ? "10 000 сум · Именная табличка и постоянное место оформляются после подтверждения оплаты." : "10,000 UZS · Your nameplate and permanent reservation are issued only after verified payment.";
+    $("cbm").textContent = owner ? "✅ SOLD · @" + owner.username : "10 000 so‘m · Payment is collected manually by the admin.";
     $("cbgo").textContent = L === "uz" ? "To‘lov tizimi tez orada" : L === "ru" ? "Оплата скоро появится" : "PAYMENT SETUP COMING SOON";
     $("cbgo").disabled = true;
     $("cbgo").style.display = "block";
@@ -2850,11 +2853,14 @@ const SKY = (() => {
     for (const c of cabins.filter(Boolean)) {
       const b = document.createElement("button");
       b.innerHTML = "<u>👑</u><b></b><i>10 000 so‘m</i><u>›</u>";
-      b.querySelector("b").textContent = "GOLD VIP " + String(c.no).padStart(2, "0");
+      const owner = VIP_OWNERS.get(c.no);
+      b.querySelector("b").textContent = "GOLD VIP " + String(c.no).padStart(2, "0") + (owner ? " · @" + owner.username : "");
+      b.querySelector("i").textContent = owner ? "SOLD" : "10 000 so‘m";
       b.onclick = () => { $("vpanel").style.display = "none"; details(c, true); };
       pl.appendChild(b);
     }
-    $("vwall").querySelector("span").textContent = L === "uz" ? "To‘lov tasdiqlangach, 32 ta VIP egasining nomi shu yerda ko‘rinadi." : L === "ru" ? "После подтверждения оплаты здесь появятся имена 32 владельцев VIP." : "The 32 verified cabin owners will be recognised here after payment confirmation.";
+    const owners = Array.from(VIP_OWNERS.values()).sort((a,b) => Number(a.no)-Number(b.no));
+    $("vwall").querySelector("span").textContent = owners.length ? owners.map(v => "VIP " + String(v.no).padStart(2,"0") + " · @" + v.username).join(" | ") : "VIP owners appear here after admin confirmation.";
     $("vpanel").style.display = "block";
   }
   $("vip").onclick = () => { $("panel").style.display = "none"; $("card").style.display = "none"; $("cabin").style.display = "none"; list(); };
