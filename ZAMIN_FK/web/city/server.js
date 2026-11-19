@@ -80,7 +80,8 @@ if (process.env.DATABASE_URL) {
       created_at timestamptz not null default now(), updated_at timestamptz not null default now());
     create table if not exists applications (
       id bigserial primary key, tg_id bigint not null, nick text not null, role text not null, note text,
-      created_at timestamptz not null default now());`)
+      created_at timestamptz not null default now());
+    create table if not exists vip_cabins (cabin_no int primary key check(cabin_no between 1 and 32), tg_id bigint not null unique, username text not null, display_name text not null, assigned_by bigint not null, assigned_at timestamptz not null default now());`)
     .catch(e => console.error("db init", e.message));
 }
 bot.initFeedback(db);
@@ -131,6 +132,7 @@ app.get("/api/state", async (req, res) => {
       maxLevel: MAX_LEVEL,
       homes: homes.map(homeOut),
       seats: seats.map(s => ({ tg_id: String(s.tg_id), nick: s.nick.replace(/^@/, ""), tg_username: s.tg_username, instagram: s.instagram, seat_no: s.seat_no ?? null })),
+      vipCabins: await q("select cabin_no as no, username, display_name from vip_cabins order by cabin_no").catch(() => []),
       club: await CLUB.summary().catch(() => null),
     });
   } catch (e) { console.error(e); res.status(500).json({ error: "server" }); }
