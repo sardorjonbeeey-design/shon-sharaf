@@ -208,7 +208,7 @@
       return new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
     }
     const vipCabinMeshes = [];
-    const vipCount = 32, vipWidth = 8.0, vipDepth = 5.0, vipHeight = 4.8;
+    const vipCount = 32, vipWidth = 6.4, vipDepth = 4.2, vipHeight = 4.2;
     const vipBaseY = HW + 1.0, vipOffset = 3.9;
     for (let i = 0; i < vipCount; i++) {
       const t = (i + 0.5) / vipCount, p = point(t, vipOffset);
@@ -236,23 +236,23 @@
       vipPart(cabin, vipBox, vipNavy, [vipWidth + .28, .24, vipDepth + .28], [0, vipHeight + .12, 0], "Dark canopy");
       vipPart(cabin, vipBox, vipGoldBright, [vipWidth + .34, .07, vipDepth + .34], [0, vipHeight + .28, 0], "Canopy gold edge");
       // Compact deep-blue leather sofa facing the pitch.
-      vipPart(cabin, vipBox, vipLeather, [3.15, .58, 1.18], [-1.12, .78, -.35], "VIP sofa cushion");
-      vipPart(cabin, vipBox, vipLeatherLight, [3.15, 1.22, .28], [-1.12, 1.48, -.88], "VIP sofa back");
+      vipPart(cabin, vipBox, vipLeather, [2.55, .52, 1.0], [-.95, .72, -.35], "VIP sofa cushion");
+      vipPart(cabin, vipBox, vipLeatherLight, [2.55, 1.0, .25], [-.95, 1.3, -.72], "VIP sofa back");
       for (const sx of [-1, 1]) {
-        vipPart(cabin, vipBox, vipLeather, [.34, .82, 1.22], [-1.12 + sx * 1.58, 1.02, -.35], "VIP sofa arm");
-        for (const sz of [-1, 1]) vipPart(cabin, vipCylinder, vipGold, [.11, .48, .11], [-1.12 + sx * 1.22, .43, -.35 + sz * .42], "Sofa foot");
+        vipPart(cabin, vipBox, vipLeather, [.28, .7, 1.0], [-.95 + sx * 1.28, .92, -.35], "VIP sofa arm");
+        for (const sz of [-1, 1]) vipPart(cabin, vipCylinder, vipGold, [.11, .48, .11], [-.95 + sx * .98, .37, -.35 + sz * .33], "Sofa foot");
       }
       // Gold side table with a polished golden football ornament.
-      vipPart(cabin, vipCylinder, vipGold, [.16, .72, .16], [2.12, .72, .45], "Side table pedestal");
-      vipPart(cabin, vipCylinder, vipGoldBright, [1.05, .12, 1.05], [2.12, 1.12, .45], "Side table top");
-      vipPart(cabin, vipSphere, vipGoldBright, [1, 1, 1], [2.12, 1.68, .45], "Golden football ornament");
-      const ballBand = new THREE.Mesh(new THREE.TorusGeometry(.445, .018, 6, 32), vipNavy);
-      ballBand.position.set(2.12, 1.68, .45); ballBand.rotation.x = Math.PI / 2; cabin.add(ballBand);
+      vipPart(cabin, vipCylinder, vipGold, [.13, .62, .13], [1.65, .62, .35], "Side table pedestal");
+      vipPart(cabin, vipCylinder, vipGoldBright, [.88, .10, .88], [1.65, .98, .35], "Side table top");
+      vipPart(cabin, vipSphere, vipGoldBright, [.8, .8, .8], [1.65, 1.46, .35], "Golden football ornament");
+      const ballBand = new THREE.Mesh(new THREE.TorusGeometry(.36, .016, 6, 32), vipNavy);
+      ballBand.position.set(1.65, 1.46, .35); ballBand.rotation.x = Math.PI / 2; cabin.add(ballBand);
       const ballBand2 = new THREE.Mesh(new THREE.TorusGeometry(.445, .018, 6, 32), vipNavy);
-      ballBand2.position.set(2.12, 1.68, .45); ballBand2.rotation.y = Math.PI / 2; cabin.add(ballBand2);
+      ballBand2.position.set(1.65, 1.46, .35); ballBand2.rotation.y = Math.PI / 2; cabin.add(ballBand2);
       // Number plate faces the pitch.
-      const plate = new THREE.Mesh(new THREE.PlaneGeometry(2.2, .55), vipLabel(i + 1));
-      plate.position.set(0, vipHeight - .48, vipDepth / 2 + .055); cabin.add(plate);
+      const plate = new THREE.Mesh(new THREE.PlaneGeometry(1.8, .46), vipLabel(i + 1));
+      plate.position.set(0, vipHeight - .42, vipDepth / 2 + .055); cabin.add(plate);
       cabin.traverse(o => { if (o.isMesh) { o.userData.vipCabinIndex = i + 1; vipCabinMeshes.push(o); } });
       vipCabinGroup.add(cabin);
     }
