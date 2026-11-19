@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 1080px;
+  height: 1920px;
+  background: #080808;
+  overflow: hidden;
+  color: white;
+  font-family: 'Inter', 'Arial Black', Arial, sans-serif;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  padding: 80px 60px;
+}
+.scene.active { opacity: 1; }
+
+/* ─── SCENE 1: HOOK ─── */
+#s1 { background: #080808; }
+#s1 .number {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 220px;
+  color: #00C5A8;
+  line-height: 1;
+  opacity: 0;
+  animation: slideUp 0.5s 0.3s forwards;
+}
+#s1 .line1 {
+  font-size: 68px;
+  font-weight: 900;
+  text-align: center;
+  color: #fff;
+  opacity: 0;
+  animation: fadeIn 0.5s 0.8s forwards;
+  line-height: 1.2;
+}
+#s1 .line2 {
+  font-size: 56px;
+  font-weight: 700;
+  text-align: center;
+  color: #aaa;
+  margin-top: 24px;
+  opacity: 0;
+  animation: fadeIn 0.5s 2s forwards;
+}
+#s1 .highlight {
+  color: #00C5A8;
+  font-size: 90px;
+  font-weight: 900;
+}
+
+/* ─── SCENE 2: TENSION ─── */
+#s2 { background: #080808; }
+#s2 .tension-top {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 160px;
+  color: #fff;
+  text-align: center;
+  opacity: 0;
+  animation: slideUp 0.4s 0.2s forwards;
+  line-height: 1;
+}
+#s2 .tension-mid {
+  font-size: 72px;
+  font-weight: 900;
+  color: #fff;
+  text-align: center;
+  margin-top: 20px;
+  opacity: 0;
+  animation: fadeIn 0.5s 1.2s forwards;
+}
+#s2 .tension-reason {
+  font-size: 44px;
+  font-weight: 700;
+  color: #FF4444;
+  text-align: center;
+  margin-top: 32px;
+  padding: 20px 40px;
+  border: 3px solid #FF4444;
+  border-radius: 16px;
+  opacity: 0;
+  animation: fadeIn 0.5s 2.4s forwards;
+}
+
+/* ─── SCENE 3: DQ ─── */
+#s3 { background: linear-gradient(180deg, #080808 0%, #1a0000 100%); }
+#s3 .dq-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: #FF4444;
+  text-transform: uppercase;
+  letter-spacing: 6px;
+  margin-bottom: 60px;
+  opacity: 0;
+  animation: fadeIn 0.4s 0.3s forwards;
+}
+.dq-card {
+  width: 100%;
+  background: #1a0000;
+  border: 2px solid #FF4444;
+  border-radius: 20px;
+  padding: 36px 48px;
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+}
+.dq-card:nth-child(2) { animation: slideLeft 0.5s 0.6s forwards; }
+.dq-card:nth-child(3) { animation: slideLeft 0.5s 1.2s forwards; }
+.dq-card .x-mark {
+  font-size: 80px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.dq-card .info { flex: 1; }
+.dq-card .pos {
+  font-size: 28px;
+  color: #FF4444;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+.dq-card .name {
+  font-size: 56px;
+  font-weight: 900;
+  color: #fff;
+  text-decoration: line-through;
+  text-decoration-color: #FF4444;
+  text-decoration-thickness: 4px;
+}
+#s3 .dq-reason {
+  font-size: 40px;
+  color: #aaa;
+  margin-top: 50px;
+  opacity: 0;
+  animation: fadeIn 0.5s 2.5s forwards;
+}
+
+/* ─── SCENE 4: REPLACEMENTS ─── */
+#s4 { background: linear-gradient(180deg, #080808 0%, #001a0a 100%); }
+#s4 .rep-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: #34C759;
+  text-transform: uppercase;
+  letter-spacing: 6px;
+  margin-bottom: 60px;
+  opacity: 0;
+  animation: fadeIn 0.4s 0.3s forwards;
+}
+.rep-card {
+  width: 100%;
+  background: #001a0a;
+  border: 2px solid #34C759;
+  border-radius: 20px;
+  padding: 36px 48px;
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  opacity: 0;
+}
+.rep-card:nth-child(2) { animation: slideRight 0.5s 0.6s forwards; }
+.rep-card:nth-child(3) { animation: slideRight 0.5s 1.3s forwards; }
+.rep-card .check { font-size: 80px; flex-shrink: 0; }
+.rep-card .info { flex: 1; }
+.rep-card .pos {
+  font-size: 28px;
+  color: #34C759;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+.rep-card .name {
+  font-size: 56px;
+  font-weight: 900;
+  color: #fff;
+}
+#s4 .rep-sub {
+  font-size: 40px;
+  color: #34C759;
+  margin-top: 50px;
+  font-weight: 700;
+  opacity: 0;
+  animation: fadeIn 0.5s 2.4s forwards;
+}
+
+/* ─── SCENE 5: XI REVEAL ─── */
+#s5 {
+  background: linear-gradient(180deg, #001a14 0%, #080808 60%);
+  justify-content: flex-start;
+  padding-top: 100px;
+}
+#s5 .xi-header {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 80px;
+  color: #00C5A8;
+  letter-spacing: 8px;
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: fadeIn 0.4s 0.2s forwards;
+  align-self: center;
+}
+.xi-group-label {
+  font-size: 28px;
+  font-weight: 700;
+  color: #00C5A8;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin: 20px 0 8px;
+  padding-left: 10px;
+  opacity: 0;
+  width: 100%;
+}
+.xi-player {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 24px;
+  border-left: 4px solid #00C5A8;
+  background: rgba(0,197,168,0.06);
+  border-radius: 0 12px 12px 0;
+  margin: 6px 0;
+  opacity: 0;
+}
+.xi-player .pos-badge {
+  background: #00C5A8;
+  color: #080808;
+  font-size: 22px;
+  font-weight: 900;
+  padding: 6px 14px;
+  border-radius: 8px;
+  min-width: 80px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.xi-player .pname {
+  font-size: 44px;
+  font-weight: 900;
+  color: #fff;
+}
+
+/* ─── SCENE 6: COACH ─── */
+#s6 { background: linear-gradient(180deg, #0a0800 0%, #1a1000 100%); }
+#s6 .coach-label {
+  font-size: 40px;
+  font-weight: 700;
+  color: #FFD700;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeIn 0.4s 0.3s forwards;
+}
+#s6 .coach-trophy {
+  font-size: 160px;
+  margin: 30px 0;
+  opacity: 0;
+  animation: scaleIn 0.5s 0.8s forwards;
+}
+#s6 .coach-name {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 100px;
+  color: #FFD700;
+  text-align: center;
+  opacity: 0;
+  animation: slideUp 0.5s 1.3s forwards;
+}
+#s6 .coach-sub {
+  font-size: 40px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 20px;
+  opacity: 0;
+  animation: fadeIn 0.5s 2s forwards;
+}
+
+/* ─── SCENE 7: MATCH ─── */
+#s7 {
+  background: linear-gradient(180deg, #001520 0%, #000d14 100%);
+  gap: 0;
+}
+#s7 .match-top {
+  font-size: 36px;
+  font-weight: 700;
+  color: #aaa;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-bottom: 60px;
+  opacity: 0;
+  animation: fadeIn 0.4s 0.3s forwards;
+}
+.match-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+}
+.match-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  opacity: 0;
+}
+.match-team.left { animation: slideRight 0.5s 0.6s forwards; }
+.match-team.right { animation: slideLeft 0.5s 0.6s forwards; }
+.match-team .team-crest {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+}
+.match-team .team-crest-placeholder {
+  width: 220px;
+  height: 220px;
+  background: rgba(0,197,168,0.15);
+  border: 3px solid #00C5A8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 100px;
+}
+.match-team .team-name {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 68px;
+  color: #fff;
+  text-align: center;
+  line-height: 1.1;
+}
+.match-team.left .team-name { color: #00C5A8; }
+.match-team.right .team-name { color: #FFD700; }
+.match-vs {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 100px;
+  color: #fff;
+  opacity: 0;
+  animation: scaleIn 0.4s 1s forwards;
+  flex-shrink: 0;
+}
+#s7 .ertaga {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 130px;
+  color: #FFD700;
+  letter-spacing: 12px;
+  margin-top: 60px;
+  opacity: 0;
+  animation: pulse 1s 1.5s infinite, fadeIn 0.5s 1.5s forwards;
+}
+
+/* ─── SCENE 8: CTA ─── */
+#s8 {
+  background: linear-gradient(160deg, #0d0020 0%, #1a0040 30%, #2d0060 60%, #0d0020 100%);
+  gap: 0;
+  justify-content: center;
+}
+#s8 .cta-eyebrow {
+  font-size: 36px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  text-align: center;
+  opacity: 0;
+  animation: fadeIn 0.5s 0.3s forwards;
+  margin-bottom: 40px;
+}
+#s8 .cta-main {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 100px;
+  color: #fff;
+  text-align: center;
+  line-height: 1.1;
+  opacity: 0;
+  animation: slideUp 0.5s 0.6s forwards;
+  margin-bottom: 20px;
+}
+#s8 .cta-sub {
+  font-size: 44px;
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+  opacity: 0;
+  animation: fadeIn 0.5s 1.0s forwards;
+  margin-bottom: 60px;
+}
+
+.cta-btn-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  opacity: 0;
+  animation: slideUp 0.6s 1.4s forwards;
+}
+.cta-btn {
+  width: 90%;
+  padding: 42px 60px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-align: center;
+  animation: btnPulse 1.5s 2s infinite;
+}
+.cta-btn-follow {
+  background: linear-gradient(90deg, #9B00FF, #FF2D78);
+  color: #fff;
+  box-shadow: 0 0 60px rgba(155,0,255,0.6), 0 0 120px rgba(255,45,120,0.3);
+}
+.cta-btn-comment {
+  background: linear-gradient(90deg, #FF6B00, #FFD700);
+  color: #000;
+  box-shadow: 0 0 60px rgba(255,107,0,0.5);
+}
+.cta-btn .btn-icon { font-size: 64px; }
+
+#s8 .cta-b-label {
+  font-size: 48px;
+  font-weight: 900;
+  color: #FFD700;
+  text-align: center;
+  margin-top: 40px;
+  opacity: 0;
+  animation: fadeIn 0.5s 2.4s forwards;
+}
+#s8 .cta-b-sub {
+  font-size: 36px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  margin-top: 12px;
+  opacity: 0;
+  animation: fadeIn 0.5s 2.7s forwards;
+}
+
+/* glow ring behind CTA section */
+#s8::before {
+  content: '';
+  position: absolute;
+  width: 900px;
+  height: 900px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(155,0,255,0.15) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: glowPulse 2s infinite;
+}
+
+/* ─── KEYFRAMES ─── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(60px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(80px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-80px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes btnPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  50% { opacity: 0.5; transform: translate(-50%,-50%) scale(1.1); }
+}
+</style>
+</head>
+<body>
+
+<!-- SCENE 1: HOOK -->
+<div class="scene" id="s1">
+  <div class="number">1500</div>
+  <div class="line1">kishi ariza berdi.</div>
+  <div class="line2">Faqat <span class="highlight">11</span> ta o'rin.</div>
+</div>
+
+<!-- SCENE 2: TENSION -->
+<div class="scene" id="s2">
+  <div class="tension-top">2 TASI...</div>
+  <div class="tension-mid">...o'z o'rinlarini yo'qotdi.</div>
+  <div class="tension-reason">⚠️ Sabab: bizni kuzatishmagan edi.</div>
+</div>
+
+<!-- SCENE 3: DQ REVEAL -->
+<div class="scene" id="s3">
+  <div class="dq-title">❌ Diskvalifikatsiya</div>
+  <div class="dq-card">
+    <div class="x-mark">❌</div>
+    <div class="info">
+      <div class="pos">CAM</div>
+      <div class="name">@_mxmdv19</div>
+    </div>
+  </div>
+  <div class="dq-card">
+    <div class="x-mark">❌</div>
+    <div class="info">
+      <div class="pos">RB</div>
+      <div class="name">@bilalov_abduvohid</div>
+    </div>
+  </div>
+  <div class="dq-reason">Kuzatmaganlar o'rin yo'qotadi.</div>
+</div>
+
+<!-- SCENE 4: REPLACEMENTS -->
+<div class="scene" id="s4">
+  <div class="rep-title">✅ O'rinlari egallandi</div>
+  <div class="rep-card">
+    <div class="check">✅</div>
+    <div class="info">
+      <div class="pos">CAM</div>
+      <div class="name">@murodbek___odilov</div>
+    </div>
+  </div>
+  <div class="rep-card">
+    <div class="check">✅</div>
+    <div class="info">
+      <div class="pos">RB</div>
+      <div class="name">@akhmedov__701</div>
+    </div>
+  </div>
+  <div class="rep-sub">Qoida hammaga teng.</div>
+</div>
+
+<!-- SCENE 5: XI REVEAL -->
+<div class="scene" id="s5">
+  <div class="xi-header">MUXLISLAR A — XI</div>
+
+  <div class="xi-group-label" id="g-gk">GK</div>
+  <div class="xi-player" id="p0">
+    <div class="pos-badge">GK</div>
+    <div class="pname">@avazov_gk_07</div>
+  </div>
+
+  <div class="xi-group-label" id="g-def">DEF</div>
+  <div class="xi-player" id="p1">
+    <div class="pos-badge">RB</div>
+    <div class="pname">@akhmedov__701</div>
+  </div>
+  <div class="xi-player" id="p2">
+    <div class="pos-badge">CB</div>
+    <div class="pname">@jurayev_sz</div>
+  </div>
+  <div class="xi-player" id="p3">
+    <div class="pos-badge">CB</div>
+    <div class="pname">@_baxtibek_2015</div>
+  </div>
+  <div class="xi-player" id="p4">
+    <div class="pos-badge">LB</div>
+    <div class="pname">@ergashboyevvv_</div>
+  </div>
+
+  <div class="xi-group-label" id="g-mid">MID</div>
+  <div class="xi-player" id="p5">
+    <div class="pos-badge">CDM</div>
+    <div class="pname">@zhanbo1ov</div>
+  </div>
+  <div class="xi-player" id="p6">
+    <div class="pos-badge">CM</div>
+    <div class="pname">@rasuluvich_09</div>
+  </div>
+  <div class="xi-player" id="p7">
+    <div class="pos-badge">CAM</div>
+    <div class="pname">@murodbek___odilov</div>
+  </div>
+
+  <div class="xi-group-label" id="g-fw">FW</div>
+  <div class="xi-player" id="p8">
+    <div class="pos-badge">RW</div>
+    <div class="pname">@mirzasharibov_</div>
+  </div>
+  <div class="xi-player" id="p9">
+    <div class="pos-badge">LW</div>
+    <div class="pname">@hamraqulov_1</div>
+  </div>
+  <div class="xi-player" id="p10">
+    <div class="pos-badge">ST</div>
+    <div class="pname">@hasa.n11015</div>
+  </div>
+</div>
+
+<!-- SCENE 6: COACH -->
+<div class="scene" id="s6">
+  <div class="coach-label">MUXLISLAR A — MURABBIY</div>
+  <div class="coach-trophy">🏆</div>
+  <div class="coach-name">@vmaar.77</div>
+  <div class="coach-sub">Eng faol muxlisimiz — endi jamoa boshida.</div>
+</div>
+
+<!-- SCENE 7: MATCH -->
+<div class="scene" id="s7">
+  <div class="match-top">Ertangi o'yin</div>
+  <div class="match-row">
+    <div class="match-team left">
+      <img class="team-crest" src="file:///workspace/shon-sharaf/ZAMIN_FK/01_Art_Direction/Club_Crest/ZFK_CREST_MASTER_V01_M1_2048.png" alt="ZFK">
+      <div class="team-name">ZAMIN FK</div>
+    </div>
+    <div class="match-vs">VS</div>
+    <div class="match-team right">
+      <div class="team-crest-placeholder">👥</div>
+      <div class="team-name">MUXLISLAR A</div>
+    </div>
+  </div>
+  <div class="ertaga">ERTAGA ⚡</div>
+</div>
+
+<!-- SCENE 8: CTA -->
+<div class="scene" id="s8">
+  <div class="cta-eyebrow">Sizning o'rningiz bor</div>
+  <div class="cta-main">MUXLISLAR B<br>SHAKLLANMOQDA</div>
+  <div class="cta-sub">O'rin soni cheklangan ⚠️</div>
+
+  <div class="cta-btn-wrap">
+    <div class="cta-btn cta-btn-follow">
+      <span class="btn-icon">👆</span>
+      KUZATING
+    </div>
+    <div class="cta-btn cta-btn-comment">
+      <span class="btn-icon">💬</span>
+      IZOH QOLDIRING
+    </div>
+  </div>
+
+  <div class="cta-b-label">POZITSIYA + ISMINGIZ = O'RIN</div>
+  <div class="cta-b-sub">Kuzatmaganlar bu safar ham tushib qoladi.</div>
+</div>
+
+<script>
+const CREST = '/workspace/shon-sharaf/ZAMIN_FK/01_Art_Direction/Club_Crest/ZFK_CREST_MASTER_V01_M1_2048.png';
+
+const scenes = [
+  { id: 's1', start: 0,     dur: 4000  },
+  { id: 's2', start: 4000,  dur: 4000  },
+  { id: 's3', start: 8000,  dur: 5000  },
+  { id: 's4', start: 13000, dur: 4000  },
+  { id: 's5', start: 17000, dur: 13000 },
+  { id: 's6', start: 30000, dur: 5000  },
+  { id: 's7', start: 35000, dur: 7000  },
+  { id: 's8', start: 42000, dur: 12000 },
+];
+
+scenes.forEach(({ id, start, dur }) => {
+  setTimeout(() => document.getElementById(id).classList.add('active'), start);
+  setTimeout(() => document.getElementById(id).classList.remove('active'), start + dur);
+});
+
+// XI reveal: stagger players one by one
+const xiStart = 17000;
+const groups = [
+  { label: 'g-gk',  delay: 400 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+  { label: null,     delay: 0 },
+];
+
+// Group labels stagger
+const groupDelays = {
+  'g-gk':  600,
+  'g-def': 1700,
+  'g-mid': 4000,
+  'g-fw':  6400,
+};
+Object.entries(groupDelays).forEach(([id, delay]) => {
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) { el.style.animation = 'none'; el.style.opacity = '0'; }
+  }, 0);
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) { el.style.transition = 'opacity 0.3s'; el.style.opacity = '1'; }
+  }, xiStart + delay);
+});
+
+// Players stagger
+const playerDelays = [900, 1900, 2500, 3100, 3700, 4300, 4900, 5600, 6700, 7300, 7900];
+playerDelays.forEach((delay, i) => {
+  setTimeout(() => {
+    const el = document.getElementById('p' + i);
+    if (el) { el.style.transition = 'opacity 0.3s, transform 0.3s'; el.style.opacity = '1'; el.style.transform = 'translateX(0)'; }
+  }, xiStart + delay);
+});
+
+// Init xi players hidden
+document.querySelectorAll('.xi-player, .xi-group-label').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateX(40px)';
+});
+</script>
+
+</body>
+</html>
