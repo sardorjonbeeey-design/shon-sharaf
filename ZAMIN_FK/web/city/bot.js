@@ -121,7 +121,7 @@ async function setup() {
       await api("setWebhook", { url, secret_token: SECRET, allowed_updates: ["message", "callback_query"], max_connections: 20 });
       await api("setMyCommands", { commands: [{ command: "start", description: "Boshlash" }, { command: "karta", description: "Mening kartam" }, { command: "reyting", description: "Reyting" }, { command: "feedback", description: "Taklif yoki muammo" }] }).catch(e => console.error("commands", e.message));
       for (const chat of ADMIN_DM) api("setMyCommands", { scope: { type: "chat", chat_id: chat }, commands: [{ command: "start", description: "Boshlash" }, { command: "karta", description: "Mening kartam" }, { command: "reyting", description: "Reyting" },
-        { command: "admin", description: "Admin panel" }, { command: "reklamalar", description: "LED reklama" }, { command: "feedback", description: "Taklif yoki muammo" }] }).catch(e => console.error("admin commands", e.message));
+        { command: "admin", description: "Admin panel" }, { command: "addvip", description: "VIP kabina biriktirish" }, { command: "reklamalar", description: "LED reklama" }, { command: "feedback", description: "Taklif yoki muammo" }] }).catch(e => console.error("admin commands", e.message));
       info.webhook = "ok"; console.log(`bot: @${info.username} webhook ok -> ${url}`); return;
     } catch (e) { console.error("bot setup", e.message); await new Promise(r => setTimeout(r, 2000 * 2 ** i)); }
   }
