@@ -1,13 +1,14 @@
-// node render_reveal.js [frames t1,t2 | video out.mp4]
+// node render_reveal.js [frames t1,t2 | video out.mp4]  — needs build/words.json from prep_voice.py
 const {chromium}=require("playwright"),{spawn}=require("child_process"),fs=require("fs");
-const HERE=__dirname;
+const HERE=__dirname, W=fs.readFileSync(HERE+"/build/words.json","utf8");
 (async()=>{
   const mode=process.argv[2]||"video";
-  const arg=process.argv[3]||HERE+"/muxlislar_a_v2.mp4";
+  const arg=process.argv[3]||HERE+"/build/silent.mp4";
   const b=await chromium.launch({args:["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader","--ignore-gpu-blocklist","--allow-file-access-from-files"]});
   const p=await b.newPage({viewport:{width:1080,height:1920},deviceScaleFactor:1});
   p.on("pageerror",e=>console.log("[pageerror]",String(e).slice(0,400)));
   p.on("console",m=>{if(/error/i.test(m.type()))console.log("[page]",m.text().slice(0,300));});
+  await p.addInitScript(w=>{window.W=JSON.parse(w);},W);
   await p.goto("file://"+HERE+"/reveal.html");
   await p.evaluate(()=>window.ready());
   const END=await p.evaluate(()=>window.END);
@@ -26,7 +27,7 @@ const HERE=__dirname;
       await p.evaluate(t=>window.renderAt(t),f/fps);
       const buf=await p.screenshot({type:"jpeg",quality:93});
       if(!ff.stdin.write(buf))await new Promise(r=>ff.stdin.once("drain",r));
-      if(f%60===0)console.error(`frame ${f}/${n} (${(f/fps).toFixed(1)}s)`);
+      if(f%90===0)console.error(`frame ${f}/${n} (${(f/fps).toFixed(1)}s)`);
     }
     ff.stdin.end();
     await new Promise(r=>ff.on("close",r));

@@ -8,6 +8,7 @@ html,body{margin:0;background:#020810;overflow:hidden;width:1080px;height:1920px
   background:radial-gradient(ellipse 70% 55% at 50% 50%,rgba(2,8,16,0) 0%,rgba(2,8,16,.55) 65%,rgba(2,8,16,.92) 100%)}
 #tint{position:absolute;left:0;top:0;width:1080px;height:1920px;
   background:linear-gradient(160deg,rgba(10,30,60,.55) 0%,rgba(0,40,10,.25) 100%);mix-blend-mode:multiply}
+#dark5{position:absolute;left:0;top:0;width:1080px;height:1920px;background:#020810;opacity:0}
 #ov{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
 .it{position:absolute;white-space:nowrap;text-align:center;color:#fff;font-weight:900}
 .hd{text-align:center}
@@ -42,43 +43,44 @@ html,body{margin:0;background:#020810;overflow:hidden;width:1080px;height:1920px
 .cm{background:#fff;color:#0D2557;border-radius:28px;padding:14px 28px;
   font-size:40px;text-align:left;box-shadow:0 14px 36px rgba(0,0,0,.6);
   border:5px solid #0D2557;white-space:normal;width:860px}
+.whisper{font-size:50px;line-height:1.5;text-align:center;color:#c8d8ff;white-space:normal;width:860px;
+  background:rgba(0,10,30,.7);border:3px solid rgba(255,210,63,.35);border-radius:34px;
+  padding:32px 50px;box-shadow:0 0 50px rgba(255,210,63,.15)}
+.whisper .wbig{font-size:72px;color:#FFD23F}
 #fl{position:absolute;left:0;top:0;width:1080px;height:1920px;background:#fff;opacity:0;z-index:50}
 </style></head><body>
-<div id="stage"><img id="bg"><div id="scrim"></div><div id="tint"></div><div id="ovp"></div></div>
+<div id="stage"><img id="bg"><div id="scrim"></div><div id="tint"></div><div id="dark5"></div><div id="ovp"></div></div>
 <div id="ov"></div><div id="fl"></div>
 <script>
-// Time-based beats (same structure as R16/R17 voice beats)
-const BT=[0,0,5,11,16,33,39]; // BT[1]=B1 start … BT[6]=B6 start
-const bs=n=>BT[n];
-const be=n=>n<6?BT[n+1]:END;
-const END=47;window.END=END;
+const W=window.W||[],BS={};W.forEach(b=>BS[b.beat]=b);
+const S=(b,i)=>BS[b].sents[i],bs=n=>BS[n].start,be=n=>n<6?BS[n+1].start+.02:END;
+const END=W[W.length-1].end+1.0;window.END=END;
 const FPS=30,DIVE=40;
 const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const sm=(a,b,x)=>{const t=cl((x-a)/(b-a));return t*t*(3-2*t);};
 const eob=x=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
 
-// Same LAY formation coordinates as R16/R17
 const LAY={
-  "GK": [539,1533],"RB":[867,1393],"CB1":[411,1428],"CB2":[669,1428],"LB":[212,1393],
+  "GK":[539,1533],"RB":[867,1393],"CB1":[411,1428],"CB2":[669,1428],"LB":[212,1393],
   "CDM":[739,1252],"CM":[341,1252],"CAM":[540,1182],"RW":[844,1054],"LW":[236,1054],"ST":[540,1030]
 };
 
-// XI — in reveal order GK→DEF→MID→FW
-// dq: original DQ'd player (shown in B2 at this position)
-const XI=[
-  {pos:"GK",  h:"@avazov_gk_07",        gk:true},
-  {pos:"RB",  h:"@akhmedov__701",        dq:"@bilalov_abduvohid"},
-  {pos:"CB1", h:"@jurayev_sz"},
-  {pos:"CB2", h:"@_baxtibek_2015"},
-  {pos:"LB",  h:"@ergashboyevvv_"},
-  {pos:"CDM", h:"@zhanbo1ov"},
-  {pos:"CM",  h:"@rasuluvich_09"},
-  {pos:"CAM", h:"@murodbek___odilov",    dq:"@_mxmdv19"},
-  {pos:"RW",  h:"@mirzasharibov_"},
-  {pos:"LW",  h:"@hamraqulov_1"},
-  {pos:"ST",  h:"@hasa.n11015"},
-];
-const DQ_POS=new Set(XI.filter(p=>p.dq).map(p=>p.pos));
+// XI — groups for voice-staggered reveal (B4 sentences: B4s1=GK, B4s2=DEF, B4s3=MID, B4s4=FW)
+const GRP={
+  GK:  [{pos:"GK",  h:"@avazov_gk_07",    gk:true}],
+  DEF: [{pos:"RB",  h:"@akhmedov__701"},
+        {pos:"CB1", h:"@jurayev_sz"},
+        {pos:"CB2", h:"@_baxtibek_2015"},
+        {pos:"LB",  h:"@ergashboyevvv_"}],
+  MID: [{pos:"CDM", h:"@zhanbo1ov"},
+        {pos:"CM",  h:"@rasuluvich_09"},
+        {pos:"CAM", h:"@murodbek___odilov"}],
+  FW:  [{pos:"RW",  h:"@mirzasharibov_"},
+        {pos:"LW",  h:"@hamraqulov_1"},
+        {pos:"ST",  h:"@hasa.n11015"}]
+};
+const DQ=[{pos:"RB",dq:"@bilalov_abduvohid"},{pos:"CAM",dq:"@_mxmdv19"}];
+const DQ_POS=new Set(DQ.map(d=>d.pos));
 
 const items=[],OVP=document.getElementById("ovp"),OV=document.getElementById("ov"),FL=document.getElementById("fl");
 function add(par,html,x,y,at,to,o={}){
@@ -100,70 +102,92 @@ function frameOv(t){
     d.style.opacity=String(cl(u/.08)*out*(o.dim?o.dim(t):1));
     d.style.transform=`translate(-50%,-50%) scale(${(.3+.7*e)*s})`+(o.rot?` rotate(${o.rot}deg)`:"");
   }
+  document.getElementById("dark5").style.opacity=String(cl(sm(bs(5),bs(5)+.5,t)-sm(be(5)-.3,be(5),t))*0.72);
   const f=Math.max(0,...[2,3,4,5,6].map(i=>1-(t-bs(i))/.12));FL.style.opacity=String(cl(f)*.25);
 }
 
-// ── BEAT 1 — HOOK ──
-hd("ZAMIN FK","1500 ARIZA<br>1 JAMOA",bs(1),be(1),540);
+// ── BEAT 1 — Hook ──
+hd("ZAMIN FK","MUXLISLAR<br>JAMOASI<br>ANIQLANDI!",bs(1),be(1),480);
 add(OV,`<div class="band"><small>SINOV O'YINIDAN SO'NG</small>FAQAT 11 TA O'RIN</div>`,
-  540,1760,bs(1)+.6,be(1),{z:21,enter:"pop"});
+  540,1760,bs(1)+.3,be(1),{z:21,enter:"pop"});
 
-// ── BEAT 2 — DQ: Formation appears. 9 gold slots + 2 red DQ ──
-// Non-DQ positions: gold slots with pos label (B2 → B4)
-let idx=0;
-XI.filter(p=>!p.dq).forEach((p,i)=>{
+// ── BEAT 2 — DQ: Formation + 2 DQ slots ──
+hd("AFSUSKI...","2 TASI<br>TUSHIB QOLDI",bs(2),be(2),200,{cls2:"r"});
+// 9 confirmed base slots (B2 → B4, then replaced by named slots)
+let si=0;
+Object.values(GRP).flat().filter(p=>!DQ_POS.has(p.pos)).forEach(p=>{
   const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
   const html=p.gk
     ?`<div class="nm fn" style="margin:0 0 5px;color:#9fb6ff">...</div><div class="slot f">${pos}</div>`
     :`<div class="slot f">${pos}</div><div class="nm fn" style="color:#9fb6ff">...</div>`;
-  add(OVP,html,x,p.gk?y-10:y+20,bs(2)+.1+idx*.1,bs(4),{z:10,enter:"pop"});
-  idx++;
+  add(OVP,html,x,p.gk?y-10:y+20,bs(2)+.1+si*.08,be(4),{z:10,enter:"pop"});
+  si++;
 });
-// DQ positions: red ✕ with original handle (B2 → B3)
-XI.filter(p=>p.dq).forEach((p,i)=>{
+// 2 DQ slots (B2 → B3)
+DQ.forEach((p,i)=>{
   const[x,y]=LAY[p.pos];
   add(OVP,`<div class="slot dq">✕</div><div class="nm fn dq">${p.dq}</div>`,
-    x,y+20,bs(2)+.3+i*.22,bs(3),{z:12,enter:"pop",rglow:true});
+    x,y+20,bs(2)+.4+i*.2,be(3),{z:12,enter:"pop",rglow:true});
 });
-hd("AFSUSKI...","2 TASI<br>TUSHIB QOLDI",bs(2),be(2),200,{cls2:"r"});
 add(OV,`<div class="cm"><b>SABAB:</b> Akkauntimizni kuzatishmagan ❌</div>`,
-  540,1600,bs(2)+.5,be(2),{z:22,enter:"pop"});
+  540,1600,S(2,2).a,be(2),{z:22,enter:"pop"});
 
-// ── BEAT 3 — REPLACEMENTS: DQ → green REP ──
-XI.filter(p=>p.dq).forEach((p,i)=>{
-  const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
-  add(OVP,`<div class="slot rep">✓</div><div class="nm fn rep">${p.h}</div>`,
-    x,y+20,bs(3)+.2+i*.22,bs(4),{z:13,enter:"pop"});
-});
+// ── BEAT 3 — Replacements ──
 hd("ALMASHTIRILDI","YANGI<br>TANLANGAN",bs(3),be(3),540);
+DQ.forEach((p,i)=>{
+  const[x,y]=LAY[p.pos];
+  const rep=Object.values(GRP).flat().find(r=>r.pos===p.pos);
+  add(OVP,`<div class="slot rep">✓</div><div class="nm fn rep">${rep.h}</div>`,
+    x,y+20,bs(3)+.2+i*.22,be(4),{z:13,enter:"pop"});
+});
 add(OV,`<div class="band" style="border-color:#00C85A"><small style="color:#00C85A">QOIDA HAMMAGA TENG</small>O'RINLAR TO'LDIRILDI ✅</div>`,
-  540,1760,bs(3)+.5,be(3),{z:21,enter:"pop"});
+  540,1760,S(3,1).a,be(3),{z:21,enter:"pop"});
 
-// ── BEAT 4 — XI REVEAL: All 11 staggered GK→DEF→MID→FW ──
-hd("MUXLISLAR A","TARKIB<br>TAYYOR!",bs(4),be(4),540);
-XI.forEach((p,i)=>{
+// ── BEAT 4 — XI reveal: staggered by voice sentence ──
+// S(4,0): "Muxlislar A — tarkib tayyor!" → heading
+// S(4,1): "G K." → GK
+// S(4,2): "Mudofaachilar." → DEF
+// S(4,3): "Yarim mudofaachilar." → MID
+// S(4,4): "Hujumchilar." → FW
+hd("MUXLISLAR A","TARKIB<br>TAYYOR!",S(4,0).a,be(4),540);
+GRP.GK.forEach((p,i)=>{
   const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
-  const html=p.gk
-    ?`<div class="nm fn f" style="margin:0 0 5px">${p.h}</div><div class="slot f">${pos}</div>`
-    :`<div class="slot f">${pos}</div><div class="nm fn f">${p.h}</div>`;
-  add(OVP,html,x,p.gk?y-10:y+20,bs(4)+.1+i*.13,END,{z:14,enter:"pop",keep:true,glow:i===10,dim:t=>t>=bs(5)?0.18:1});
+  add(OVP,`<div class="nm fn f" style="margin:0 0 5px">${p.h}</div><div class="slot f">${pos}</div>`,
+    x,y-10,S(4,1).a+i*.1,END,{z:14,enter:"pop",keep:true,dim:t=>t>=bs(5)?0.18:1});
+});
+GRP.DEF.forEach((p,i)=>{
+  const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
+  add(OVP,`<div class="slot f">${pos}</div><div class="nm fn f">${p.h}</div>`,
+    x,y+20,S(4,2).a+i*.12,END,{z:14,enter:"pop",keep:true,dim:t=>t>=bs(5)?0.18:1});
+});
+GRP.MID.forEach((p,i)=>{
+  const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
+  add(OVP,`<div class="slot f">${pos}</div><div class="nm fn f">${p.h}</div>`,
+    x,y+20,S(4,3).a+i*.12,END,{z:14,enter:"pop",keep:true,dim:t=>t>=bs(5)?0.18:1});
+});
+GRP.FW.forEach((p,i)=>{
+  const[x,y]=LAY[p.pos],pos=p.pos.replace(/\d/,"");
+  add(OVP,`<div class="slot f">${pos}</div><div class="nm fn f">${p.h}</div>`,
+    x,y+20,S(4,4).a+i*.12,END,{z:14,enter:"pop",keep:true,glow:p.pos==="ST",dim:t=>t>=bs(5)?0.18:1});
 });
 
-// ── BEAT 5 — MATCH ──
-hd("ERTANGI O'YIN","ZAMIN FK<br>VS<br>MUXLISLAR A",bs(5),be(5),480,{cls2:"w"});
-add(OV,`<div style="font-size:120px;color:#FFD23F;text-shadow:0 8px 0 #0D2557,0 14px 36px rgba(0,0,0,.8);-webkit-text-stroke:8px #0D2557;paint-order:stroke fill">ERTAGA ⚡</div>`,
-  540,1680,bs(5)+.5,be(5),{z:21,enter:"stamp",pulse:true});
-add(OV,`<img src="../12_Reel_Trial_Stadium/assets/crest.png" style="height:150px">`,
-  130,1770,bs(5)+.4,END,{z:22,enter:"pop",keep:true});
+// ── BEAT 5 — Whisper + Goat ──
+// goat peeks bottom-left
+add(OVP,`<img src="../17_Reel_Murabbiy_Elon/assets/goat.png" style="width:340px;image-rendering:auto">`,
+  195,1720,bs(5)+.05,be(5),{z:28,enter:"pop",rot:-8,pulse:true,ph:1.2});
+add(OV,`<div class="whisper"><span class="wbig">🤭</span><br>Aytgancha...<br>Muxlislar B ham<br><span style="color:#FFD23F">shakllanmoqda</span> ⚽</div>`,
+  580,840,bs(5)+.2,be(5),{z:30,enter:"pop"});
 
 // ── BEAT 6 — CTA ──
-hd("MUXLISLAR B","SHAKLLANMOQDA!",bs(6),END,540);
+hd("MUXLISLAR B","SHAKLLANMOQDA!",bs(6),END,540,{keep:true});
 add(OV,`<div class="cta-box"><small>O'RIN OLISH UCHUN 👇</small>KUZAT + IZOH QO'LDIRING</div>`,
   540,1480,bs(6)+.5,END,{z:22,enter:"pop",pulse:true,keep:true});
 add(OV,`<div class="follow">OBUNA BO'LING</div>`,
   540,1770,bs(6)+.9,END,{z:22,enter:"pop",pulse:true,keep:true});
+add(OV,`<img src="../12_Reel_Trial_Stadium/assets/crest.png" style="height:150px">`,
+  130,1780,bs(6)+.4,END,{z:22,enter:"pop",keep:true});
 
-// ── BACKGROUND: Same stadium top-view + slow push-in as R16/R17 ──
+// ── BACKGROUND: dive + push-in ──
 const IM={};
 const nm=f=>f<DIVE
   ?`../17_Reel_Murabbiy_Elon/build/top/d_${String(f).padStart(3,"0")}.jpg`
