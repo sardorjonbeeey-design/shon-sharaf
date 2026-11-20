@@ -34,7 +34,7 @@ const COVERS=[
   {n:16, label:"KUN",   num:"11",   title:"G'OYA\nSIZDAN",         accent:"#FFD23F", bright:0.72},
   {n:17, label:"REEL",  num:"17",   title:"MURABBIY\nE'LON",        accent:"#00C85A", bright:0.72},
   {n:18, label:"VIRAL", num:"🔥",   title:"SINOV\nJAMOASI",        accent:"#FF4500", bright:0.52},
-  {n:19, label:"REEL",  num:"18",   title:"MUXLISLAR A\nTARKIB",   accent:"#FFD23F", bright:0.65},
+  {n:19, label:"REEL",  num:"19",   title:"KUTILMAGAN\nG'ALABA",   accent:"#F87171", bright:0.65},
 ];
 
 function numSize(num){
