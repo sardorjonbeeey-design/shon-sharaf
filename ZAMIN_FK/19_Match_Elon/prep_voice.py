@@ -2,7 +2,7 @@
 import json, subprocess, os
 H = os.path.dirname(os.path.abspath(__file__))
 V = H + "/voice"; os.makedirs(H + "/build", exist_ok=True)
-N = 8; GAP = [0.25, 0.3, 0.2, 0.25, 0.4, 0.3, 0.25, 0.0]; LEAD = 0.0
+N = 9; GAP = [0.25, 0.3, 0.2, 0.25, 0.4, 0.3, 0.25, 0.3, 0.0]; LEAD = 0.0
 
 def dur(p):
     return float(subprocess.check_output(
@@ -26,13 +26,14 @@ def trim(src, dst):
 out, t = [], LEAD
 TEXTS = [
     "Hech kim kutmagan edi.",
-    "Zamin FK — Muxlislar O'n bitta.",
+    "Zamin FK — Muxlislar Jamoasi.",
     "O'ttiz to'rtinchi daqiqa — Hasa. GOL! Bir — nol!",
-    "Oltmish yettinchi daqiqa. Muxlislar o'n bitta tenglashtirdi. Bir — bir.",
-    "Sakson to'qqizinchi daqiqa. Va... ikki — bir! Muxlislar o'n bitta g'alaba qildi!",
-    "Zamin FK — bir. Muxlislar o'n bitta — ikki.",
+    "Oltmish yettinchi daqiqa. Muxlislar Jamoasi tenglashtirdi. Bir — bir.",
+    "Sakson to'qqizinchi daqiqa. Va... ikki — bir! Muxlislar Jamoasi g'alaba qildi!",
+    "Zamin FK — bir. Muxlislar Jamoasi — ikki.",
     "Ertaga: Team B — Team C.",
     "Keyingi video sizdan. Eng creative izoh — keyingi video bo'ladi.",
+    "Murabbiy esa... hali ham ishonmaydi.",
 ]
 for i in range(N):
     n = f"{i+1:02d}"

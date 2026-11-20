@@ -62,13 +62,22 @@ html,body{margin:0;background:#02040c;width:1080px;height:1920px;overflow:hidden
   -webkit-text-stroke:4px #0D2557;paint-order:stroke fill}
 .cta .sub{font-size:42px;color:#9fb6ff;font-weight:700;margin-top:16px;
   text-shadow:0 3px 12px rgba(0,0,0,.9);line-height:1.4}
+/* Coach card */
+.coach{text-align:center}
+.coach .label{font-size:34px;font-weight:900;color:#9fb6ff;letter-spacing:6px;margin-bottom:20px;
+  text-shadow:0 3px 12px rgba(0,0,0,.9)}
+.coach .quote{font-size:62px;font-weight:900;color:#fff;line-height:1.1;
+  text-shadow:0 0 60px rgba(255,60,60,.5),0 6px 20px rgba(0,0,0,.9)}
 /* Flash overlay */
 #flash{position:absolute;inset:0;pointer-events:none;opacity:0}
 </style></head><body>
 
-<img id="bg0" src="../06_Episode_06/assets/K7_pitch.png" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover">
-<img id="bg7" src="../06_Episode_06/assets/K3_half.png" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
-<img id="bg8" src="../06_Episode_06/assets/K3_full.png" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<!-- bg0: action/pitch (B1-B2, B6-B8) -->
+<img id="bg0" src="assets/game_action.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover">
+<!-- bg_goal: celebration (B3-B5) -->
+<img id="bg_goal" src="assets/goal_celebration.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<!-- bg_coach: coach shocked (B9) -->
+<img id="bg_coach" src="assets/coach_shocked.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
 <div id="grade"></div>
 <canvas id="grain" width="1080" height="1920"></canvas>
 <div id="flash"></div>
@@ -83,13 +92,12 @@ html,body{margin:0;background:#02040c;width:1080px;height:1920px;overflow:hidden
 const W = window.W || [];
 const bs = b => W[b-1] ? W[b-1].start : 0;
 const be = b => W[b-1] ? W[b-1].end   : 0;
-const END = W.length ? W[W.length-1].end + 1.5 : 35;
+const END = W.length ? W[W.length-1].end + 1.5 : 40;
 
 // ── helpers ──────────────────────────────────────────────────────────────
 const OVP = document.getElementById("ov");
 const cl = (v,a=0,b=1) => Math.max(a,Math.min(b,v));
 const sm = (a,b,x) => { const t=cl((x-a)/(b-a)); return t*t*(3-2*t); };
-const lerp = (a,b,t) => a+(b-a)*t;
 
 // film grain
 (function(){
@@ -135,7 +143,7 @@ function add(html, cx, cy, t_in, t_out, opts={}){
 }
 
 // ── scene definitions ─────────────────────────────────────────────────────
-// B1 (0–1.35): Hook — black + mystery text
+// B1 (hook): black bg + mystery text
 add(`<div class="hook">HECH KIM<br>KUTMAGAN<br>EDI...</div>`,
   540, 960, bs(1)+0.1, be(1)-0.3, {fade:0.2});
 
@@ -145,87 +153,91 @@ add(`<div style="font-size:220px;font-weight:900;color:#FFD23F;
   -webkit-text-stroke:10px #0D2557;paint-order:stroke fill">1:2</div>`,
   540, 960, be(1)-0.05, bs(2)+0.1, {fade:0.12});
 
-// B2 (1.60–4.56): Teams matchup
+// B2: Teams matchup — game_action bg
 add(`<div class="teams"><div class="nm">ZAMIN FK</div>
   <div class="vs">VS</div>
-  <div class="nm">MUXLISLAR XI</div></div>`,
+  <div class="nm">MUXLISLAR JAMOASI</div></div>`,
   540, 760, bs(2)+0.1, be(2)+0.1, {fade:0.25});
 
-// Scorebug — appears B2, stays till B5
+// Scorebug — B2 through B5
 add(`<div class="bug">
   <div class="bug-team">ZAMIN FK</div>
   <div class="bug-score" id="scoreL">0</div>
   <div class="bug-sep"> : </div>
   <div class="bug-score" id="scoreR">0</div>
-  <div class="bug-team">MUXLISLAR XI</div>
+  <div class="bug-team">MUXLISLAR</div>
 </div>`, 540, 110, bs(2)+0.4, be(5)+0.5, {fade:0.3, keep:true});
 
 // Minute badge
 add(`<div class="min" id="minbadge">0'</div>`, 540, 1760, bs(2)+0.4, be(5)+0.5, {fade:0.3, keep:true});
 
-// B3 (4.86–8.99): @hasa.n11015 GOAL → 0:1
+// B3: @hasa.n11015 GOAL — goal_celebration bg
 add(`<div class="goal-card">
   <div class="gol">GOL!</div>
   <div class="scorer">@hasa.n11015 ⚽</div>
-  <div class="minute">34'  ·  MUXLISLAR XI</div>
+  <div class="minute">34'  ·  MUXLISLAR JAMOASI</div>
 </div>`, 540, 960, bs(3)+0.4, be(3)+0.3, {fade:0.2});
 
-// B4 (9.19–13.84): Doston equalizer → 1:1
+// B4: Doston equalizer — goal_celebration bg
 add(`<div class="goal-card" style="border-color:#1F4FB8;box-shadow:0 0 60px rgba(31,79,184,.4)">
   <div class="gol" style="color:#fff;-webkit-text-stroke-color:#0D2557">GOL!</div>
   <div class="scorer">Doston ⚽</div>
   <div class="minute" style="color:#9fb6ff">67'  ·  ZAMIN FK</div>
 </div>`, 540, 960, bs(4)+0.4, be(4)+0.3, {fade:0.2});
 
-// B5 (14.09–20.34): @rasuluvich_09 WINNER → 1:2
+// B5: @rasuluvich_09 WINNER — goal_celebration bg
 add(`<div style="text-align:center">
   <div style="font-size:48px;font-weight:900;color:#9fb6ff;letter-spacing:4px;
     text-shadow:0 3px 12px rgba(0,0,0,.9);margin-bottom:12px">89' + QO'SHIMCHA VAQT</div>
   <div class="goal-card" style="border-color:#FFD23F">
     <div class="gol">G'ALABA!</div>
     <div class="scorer">@rasuluvich_09 ⚽</div>
-    <div class="minute">MUXLISLAR XI</div>
+    <div class="minute">MUXLISLAR JAMOASI</div>
   </div>
 </div>`, 540, 920, bs(5)+0.5, be(5)+0.4, {fade:0.2});
 
-// B6 (20.74–25.03): Final scoreline card
+// B6: Final scoreline — game_action bg
 add(`<div class="final">
   <div class="ft">YAKUNIY NATIJA</div>
   <div class="scoreline">1 : 2</div>
   <div class="teams-row">
     <span>ZAMIN FK</span>
-    <span>MUXLISLAR XI</span>
+    <span>MUXLISLAR</span>
   </div>
   <div class="scorers-col">
     Doston 67' &nbsp;|&nbsp; @hasa.n11015 34', @rasuluvich_09 89'
   </div>
 </div>`, 540, 920, bs(6), be(6)+0.3, {fade:0.3});
 
-// B7 (25.33–27.75): B vs C fixture card
+// B7: Fixture card — game_action bg
 add(`<div class="fixture">
   <div class="label">KEYINGI MATCH</div>
   <div class="teams">TEAM B<br>vs<br>TEAM C</div>
   <div class="date">ERTAGA</div>
 </div>`, 540, 960, bs(7), be(7)-0.1, {fade:0.25});
 
-// B8 (28.00–32.13): CTA
+// B8: CTA — game_action bg
 add(`<div class="cta">
   <div class="main">KEYINGI VIDEO<br>SIZDAN</div>
   <div class="sub">Izohda g'oyangizni yozing.<br>Eng creative izoh —<br>keyingi video bo'ladi.</div>
-</div>`, 540, 880, bs(8), END, {fade:0.3});
+</div>`, 540, 880, bs(8), bs(9)-0.2, {fade:0.3});
 
-// @fk_zamin handle (B8 only)
+// @fk_zamin handle (B8)
 add(`<div style="font-size:40px;font-weight:900;color:rgba(255,255,255,.55);
   letter-spacing:3px;text-shadow:0 2px 8px rgba(0,0,0,.8)">
   @<span style="color:#FFD23F">fk_zamin</span></div>`,
-  540, 1760, bs(8), END, {fade:0.3});
+  540, 1760, bs(8), bs(9)-0.2, {fade:0.3});
+
+// B9: Coach shocked — coach_shocked bg
+add(`<div class="coach">
+  <div class="label">MURABBIY SHOKDA</div>
+  <div class="quote">Nima bo'ldi<br>bu...?</div>
+</div>`, 540, 1400, bs(9)+0.3, END, {fade:0.4});
 
 // ── render loop ───────────────────────────────────────────────────────────
 let currentScene = -1;
-let scoreState = {l:0, r:0}; // ZAMIN FK : MUXLISLAR XI
 
 function frameOv(t){
-  // determine scene
   let scene;
   if(t < bs(1)) scene=0;
   else if(t < bs(2)) scene=1;
@@ -235,19 +247,19 @@ function frameOv(t){
   else if(t < bs(6)) scene=5;
   else if(t < bs(7)) scene=6;
   else if(t < bs(8)) scene=7;
-  else scene=8;
+  else if(t < bs(9)) scene=8;
+  else scene=9;
 
-  // scene transitions
   if(scene !== currentScene){
     setGrade(scene);
-    // goal effects
-    if(scene===3){ flash("rgba(255,215,0,.35)",0.4); }  // Muxlislar XI scores
-    if(scene===4){ flash("rgba(31,79,184,.4)",0.4); }   // ZAMIN FK equalizes
-    if(scene===5){ flash("rgba(255,215,0,.5)",0.6); }   // Muxlislar XI winner!
+    if(scene===3){ flash("rgba(255,215,0,.35)",0.4); }
+    if(scene===4){ flash("rgba(31,79,184,.4)",0.4); }
+    if(scene===5){ flash("rgba(255,215,0,.5)",0.6); }
+    if(scene===9){ flash("rgba(0,0,0,.7)",0.8); }
     currentScene = scene;
   }
 
-  // update scorebug
+  // scorebug
   const minEl = document.getElementById("minbadge");
   const sL = document.getElementById("scoreL");
   const sR = document.getElementById("scoreR");
@@ -258,7 +270,7 @@ function frameOv(t){
     else if(t < bs(3)){ sL.textContent="0"; sR.textContent="0"; minEl.textContent="0'"; }
   }
 
-  // fade items in/out
+  // fade items
   for(const item of items){
     const {el, t_in, t_out, opts} = item;
     const fd = opts.fade || 0.25;
@@ -271,20 +283,31 @@ function frameOv(t){
     el.style.opacity = alpha;
   }
 
-  // bg image: preloaded images, toggle display
-  const bg0=document.getElementById("bg0"),bg7=document.getElementById("bg7"),bg8=document.getElementById("bg8");
-  const brt = scene<=1 ? 0 : scene<=5 ? 0.6 : 0.65;
+  // bg switching: 0=black, 1=black, 2=action, 3-5=goal, 6-8=action, 9=coach
+  const bg0=document.getElementById("bg0");
+  const bg_goal=document.getElementById("bg_goal");
+  const bg_coach=document.getElementById("bg_coach");
+  const brt = scene<=1 ? 0 : scene<=5 ? 0.6 : scene===9 ? 0.55 : 0.65;
   const filt = `brightness(${brt}) saturate(1.2) contrast(1.05)`;
-  if(scene===7){ bg0.style.display="none"; bg7.style.display="block"; bg7.style.filter=filt; bg8.style.display="none"; }
-  else if(scene===8){ bg0.style.display="none"; bg7.style.display="none"; bg8.style.display="block"; bg8.style.filter=filt; }
-  else{ bg0.style.display="block"; bg0.style.filter=filt; bg7.style.display="none"; bg8.style.display="none"; }
+
+  if(scene<=1){
+    bg0.style.display="none"; bg_goal.style.display="none"; bg_coach.style.display="none";
+  } else if(scene>=3 && scene<=5){
+    bg0.style.display="none";
+    bg_goal.style.display="block"; bg_goal.style.filter=filt;
+    bg_coach.style.display="none";
+  } else if(scene===9){
+    bg0.style.display="none"; bg_goal.style.display="none";
+    bg_coach.style.display="block"; bg_coach.style.filter=filt;
+  } else {
+    bg0.style.display="block"; bg0.style.filter=filt;
+    bg_goal.style.display="none"; bg_coach.style.display="none";
+  }
 }
 
-// ── playback / renderer entry ─────────────────────────────────────────────
 if(window.RENDER_MODE){
   window.frameOv = frameOv;
 } else {
-  // preview in browser
   let t=0;
   function tick(){
     t += 1/30;

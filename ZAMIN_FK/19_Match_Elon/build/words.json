@@ -8,43 +8,49 @@
  {
   "beat": 2,
   "start": 1.601,
-  "end": 4.562,
-  "text": "Zamin FK — Muxlislar O'n bitta."
+  "end": 4.25,
+  "text": "Zamin FK — Muxlislar Jamoasi."
  },
  {
   "beat": 3,
-  "start": 4.862,
-  "end": 8.989,
+  "start": 4.55,
+  "end": 8.677,
   "text": "O'ttiz to'rtinchi daqiqa — Hasa. GOL! Bir — nol!"
  },
  {
   "beat": 4,
-  "start": 9.189,
-  "end": 13.844,
-  "text": "Oltmish yettinchi daqiqa. Muxlislar o'n bitta tenglashtirdi. Bir — bir."
+  "start": 8.877,
+  "end": 13.341,
+  "text": "Oltmish yettinchi daqiqa. Muxlislar Jamoasi tenglashtirdi. Bir — bir."
  },
  {
   "beat": 5,
-  "start": 14.094,
-  "end": 20.344,
-  "text": "Sakson to'qqizinchi daqiqa. Va... ikki — bir! Muxlislar o'n bitta g'alaba qildi!"
+  "start": 13.591,
+  "end": 19.866,
+  "text": "Sakson to'qqizinchi daqiqa. Va... ikki — bir! Muxlislar Jamoasi g'alaba qildi!"
  },
  {
   "beat": 6,
-  "start": 20.744,
-  "end": 25.025,
-  "text": "Zamin FK — bir. Muxlislar o'n bitta — ikki."
+  "start": 20.266,
+  "end": 24.264,
+  "text": "Zamin FK — bir. Muxlislar Jamoasi — ikki."
  },
  {
   "beat": 7,
-  "start": 25.325,
-  "end": 27.75,
+  "start": 24.564,
+  "end": 26.989,
   "text": "Ertaga: Team B — Team C."
  },
  {
   "beat": 8,
-  "start": 28.0,
-  "end": 32.129,
+  "start": 27.239,
+  "end": 31.368,
   "text": "Keyingi video sizdan. Eng creative izoh — keyingi video bo'ladi."
+ },
+ {
+  "beat": 9,
+  "start": 31.668,
+  "end": 34.762,
+  "text": "Murabbiy esa... hali ham ishonmaydi."
  }
 ]

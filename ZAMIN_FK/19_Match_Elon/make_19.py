@@ -14,7 +14,7 @@ OUT    = E + "/ZFK_match_19.mp4"
 
 # concat trimmed voice clips
 voice_parts = []
-for i in range(8):
+for i in range(9):
     n=f"{i+1:02d}"; p=f"{V}/{n}_fit.wav"
     if os.path.exists(p): voice_parts.append(p)
     else: voice_parts.append(f"{V}/{n}.mp3")
