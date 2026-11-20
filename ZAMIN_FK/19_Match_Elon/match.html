@@ -137,13 +137,13 @@ function add(html, cx, cy, t_in, t_out, opts={}){
 // ── scene definitions ─────────────────────────────────────────────────────
 // B1 (0–1.35): Hook — black + mystery text
 add(`<div class="hook">HECH KIM<br>KUTMAGAN<br>EDI...</div>`,
-  540, 960, bs(1)+0.1, be(1)+0.1, {fade:0.2});
+  540, 960, bs(1)+0.1, be(1)-0.3, {fade:0.2});
 
-// Score flash "1:2" at end of B1
+// Score flash "1:2" after hook clears
 add(`<div style="font-size:220px;font-weight:900;color:#FFD23F;
   text-shadow:0 10px 0 #0D2557,0 20px 50px rgba(0,0,0,.9);
   -webkit-text-stroke:10px #0D2557;paint-order:stroke fill">1:2</div>`,
-  540, 960, be(1)-0.15, bs(2)+0.1, {fade:0.1});
+  540, 960, be(1)-0.05, bs(2)+0.1, {fade:0.12});
 
 // B2 (1.60–4.56): Teams matchup
 add(`<div class="teams"><div class="nm">ZAMIN FK</div>
@@ -206,7 +206,7 @@ add(`<div class="fixture">
   <div class="label">KEYINGI MATCH</div>
   <div class="teams">TEAM B<br>vs<br>TEAM C</div>
   <div class="date">ERTAGA</div>
-</div>`, 540, 960, bs(7), be(7)+0.2, {fade:0.3});
+</div>`, 540, 960, bs(7), be(7)-0.1, {fade:0.25});
 
 // B8 (28.00–32.13): CTA
 add(`<div class="cta">

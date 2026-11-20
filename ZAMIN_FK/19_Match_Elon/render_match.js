@@ -13,6 +13,8 @@ console.log(`Total duration: ${END.toFixed(2)}s  frames: ${TOTAL}`);
   const p=await b.newPage({viewport:{width:1080,height:1920},deviceScaleFactor:1});
   p.on("pageerror",e=>console.error("[err]",e.message));
 
+  // inject W before page scripts run so const W = window.W || [] captures real data
+  await p.addInitScript({content:`window.W=${JSON.stringify(W)};window.RENDER_MODE=true;`});
   await p.goto("file://"+HERE+"/match.html",{waitUntil:"networkidle"});
   await p.evaluate(()=>document.fonts.ready);
   // ensure ALL images loaded (bg0/bg7/bg8 are preloaded)
@@ -20,11 +22,7 @@ console.log(`Total duration: ${END.toFixed(2)}s  frames: ${TOTAL}`);
     [...document.images].map(i=>i.complete?Promise.resolve():
       new Promise((res,rej)=>{i.onload=res;i.onerror=res;}))
   ));
-  await p.waitForTimeout(1000);
   await p.waitForTimeout(500);
-
-  await p.evaluate(W=>{ window.W=W; window.RENDER_MODE=true; },W);
-  await p.waitForTimeout(100);
 
   // single ffmpeg process
   const ff=cp.spawn("ffmpeg",["-y","-f","image2pipe","-vcodec","png",
