@@ -1869,9 +1869,10 @@ function updateLabels(now) {
     const cand = [], step = Math.max(1, Math.floor(fans / 3000));
     for (let k = 0; k < fans; k += step) { const st = seats[order[k]], d = (st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2; cand.push([shownFans.has(st) ? d * .5 : d, st]); }   // names already on screen keep their place
     cand.sort((a, b) => a[0] - b[0]);
-    const LIM = fans <= 60 ? 60 : camR < 110 ? 8 : camR < 180 ? 12 : 6;                                       // fewer names when zoomed out
+    const NAME_R2 = 55 * 55;                                                                                  // names only on figures close to the camera
+    const LIM = fans <= 60 ? 60 : camR < 110 ? 8 : 6;                                                         // fewer names when zoomed out
     const nowShown = new Set();
-    for (const [, st] of cand) { if (nowShown.size >= LIM) break; if (st !== me && place(st, "tag fan", "@" + st.fan)) nowShown.add(st); }
+    for (const [d, st] of cand) { if (nowShown.size >= LIM || d > NAME_R2) break; if (st !== me && placeAt(st.x, st.y + 2.1, st.z, "tag fan", "@" + st.fan)) nowShown.add(st); }
     shownFans = nowShown;
   } else {
     if (PLAZA) placeAt(PLAZA.x, 24, PLAZA.z - 30, "tag lot", T[L].plaza, true);
