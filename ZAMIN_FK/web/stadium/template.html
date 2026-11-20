@@ -433,8 +433,16 @@ const sun = new THREE.DirectionalLight(0xffe2b8, 0.9); sun.position.set(-80, 120
 {
   const cv = document.createElement("canvas"); cv.width = 1050; cv.height = 680;
   const x = cv.getContext("2d");
-  for (let i = 0; i < 14; i++) { x.fillStyle = i % 2 ? "#3f8a3a" : "#468f40"; x.fillRect(i * 75, 0, 75, 680); }
-  for (let i = 0; i < 160; i++) { x.fillStyle = "rgba(110,80,40,.18)"; x.beginPath(); x.ellipse(Math.random() * 1050, Math.random() * 680, 10 + Math.random() * 40, 6 + Math.random() * 20, 0, 0, 7); x.fill(); }
+  // Natural professional turf: alternating mowing lanes, fine tonal variation, no muddy patches.
+  const turf = ["#347b35", "#3d873b", "#367d36", "#418b3d", "#347a34", "#3e8539"];
+  for (let i = 0; i < 18; i++) { x.fillStyle = turf[i % turf.length]; x.fillRect(i * 58.34, 0, 58.5, 680); }
+  for (let i = 0; i < 2400; i++) {
+    const n = (i * 7919) % 1050, m = (i * 3571) % 680;
+    x.fillStyle = i % 2 ? "rgba(10,45,18,.055)" : "rgba(220,245,190,.045)";
+    x.fillRect(n, m, 1 + (i % 3), 2 + (i % 5));
+  }
+  // Fine mowing lines catch daylight without looking like a tiled texture.
+  for (let i = 0; i < 18; i++) { x.fillStyle = "rgba(235,255,220,.045)"; x.fillRect(i * 58.34 + 2, 0, 1, 680); }
   x.strokeStyle = "rgba(255,255,255,.85)"; x.lineWidth = 4;
   x.strokeRect(20, 20, 1010, 640); x.beginPath(); x.moveTo(525, 20); x.lineTo(525, 660); x.stroke();
   x.beginPath(); x.arc(525, 340, 91, 0, 7); x.stroke();
@@ -463,9 +471,15 @@ const sun = new THREE.DirectionalLight(0xffe2b8, 0.9); sun.position.set(-80, 120
 }
 // seats, steps and fans (instanced)
 const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S1 = new THREE.Vector3(1, 1, 1), UP = new THREE.Vector3(0, 1, 0);
-const stepGeo = new THREE.BoxGeometry(SEAT_W, ROW_H, ROW_D), seatGeo = new THREE.BoxGeometry(SEAT_W * 0.8, 0.12, 0.42);
-const steps = new THREE.InstancedMesh(stepGeo, new THREE.MeshLambertMaterial({ color: 0xeef1f6 }), seats.length);
-const chairs = new THREE.InstancedMesh(seatGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), seats.length);
+const stepGeo = new THREE.BoxGeometry(SEAT_W, ROW_H, ROW_D);
+const seatGeo = new THREE.BoxGeometry(SEAT_W * 0.8, 0.12, 0.40);
+const seatBackGeo = new THREE.BoxGeometry(SEAT_W * 0.8, 0.46, 0.11);
+const seatArmGeo = new THREE.BoxGeometry(0.09, 0.16, 0.34);
+const steps = new THREE.InstancedMesh(stepGeo, new THREE.MeshStandardMaterial({ color: 0xeef1f6, roughness: 0.92 }), seats.length);
+const chairMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.68, metalness: 0.025 });
+const chairs = new THREE.InstancedMesh(seatGeo, chairMat, seats.length);
+const chairBacks = new THREE.InstancedMesh(seatBackGeo, chairMat, seats.length);
+const chairArms = new THREE.InstancedMesh(seatArmGeo, chairMat, seats.length * 2);
 const fans = FANS.length, NF = Math.max(1, fans);
 const VIP = new Set(__VIP__);              // honoured fans: gold seat + name on the screen
 // toy-style fans (smooth, faceless, random kit colours)
@@ -497,9 +511,17 @@ seats.forEach((st, i) => {
   const ang = Math.atan2(-st.nx, -st.nz);              // face the pitch
   Q.setFromAxisAngle(UP, ang);
   M.compose(V.set(st.x, st.y - ROW_H / 2, st.z), Q, S1); steps.setMatrixAt(i, M);
-  M.compose(V.set(st.x - st.nx * 0.15, st.y + 0.06, st.z - st.nz * 0.15), Q, S1); chairs.setMatrixAt(i, M);
+  const cx = st.x - st.nx * 0.15, cz = st.z - st.nz * 0.15;
+  M.compose(V.set(cx, st.y + 0.06, cz), Q, S1); chairs.setMatrixAt(i, M);
+  // Separate moulded backrest and paired armrests turn each flat block into a bucket seat.
+  M.compose(V.set(cx + st.nx * 0.16, st.y + 0.31, cz + st.nz * 0.16), Q, S1); chairBacks.setMatrixAt(i, M);
+  const sideX = Math.cos(ang) * (SEAT_W * 0.38), sideZ = -Math.sin(ang) * (SEAT_W * 0.38);
+  M.compose(V.set(cx - sideX, st.y + 0.17, cz - sideZ), Q, S1); chairArms.setMatrixAt(i * 2, M);
+  M.compose(V.set(cx + sideX, st.y + 0.17, cz + sideZ), Q, S1); chairArms.setMatrixAt(i * 2 + 1, M);
   const sec = Math.floor(st.s / st.len * 16);
-  chairs.setColorAt(i, C.set(VIP.has(st.fan) ? 0xFFD23F : st.fan && FAN_META.get(st.fan) && FAN_META.get(st.fan).member ? 0xffe27a : st.stand ? 0x0D2557 : (sec % 4 === 0 ? 0xffffff : 0x1F4FB8)));
+  const seatColor = VIP.has(st.fan) ? 0xFFD23F : st.fan && FAN_META.get(st.fan) && FAN_META.get(st.fan).member ? 0xffe27a : st.stand ? 0x0D2557 : ((sec + st.ring) % 5 === 0 ? 0xf4f6f9 : (sec % 4 === 0 ? 0x17418f : 0x1F4FB8));
+  chairs.setColorAt(i, C.set(seatColor)); chairBacks.setColorAt(i, C.set(seatColor));
+  chairArms.setColorAt(i * 2, C.set(seatColor)); chairArms.setColorAt(i * 2 + 1, C.set(seatColor));
   st.i = i;
   if (!st.fan) return;
   const h = hash(st.fan), f = fi;
@@ -540,7 +562,7 @@ seats.forEach((st, i) => {
   fiSeat[fi] = st; st.fi = fi++;
 });
 const FAN_MESHES = [bodies, heads, shorts, legs, arms, hands, shoes, hair, afro];
-[steps, chairs, ...FAN_MESHES].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
+[steps, chairs, chairBacks, chairArms, ...FAN_MESHES].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; scene.add(m); });
 bodies.count = heads.count = shorts.count = hair.count = afro.count = fi;
 legs.count = arms.count = hands.count = shoes.count = fi * 2;
 const __zfkArchitectureBaseline = new Set(scene.children);
