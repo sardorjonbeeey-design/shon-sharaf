@@ -36,6 +36,8 @@
   .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.96); color:var(--navy); font-weight:700; font-size:11px; letter-spacing:.2px; padding:3px 9px; border-radius:999px; border:1px solid rgba(13,37,87,.14); white-space:nowrap; box-shadow:0 2px 6px rgba(13,37,87,.22); }
   .tag::before { content:""; display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--blue); margin-right:6px; vertical-align:middle; }
   .tag.me { background:var(--yel); font-weight:900; font-size:11px; padding:3px 9px; border:1px solid var(--navy); }
+  /* No usernames or player names floating above the 3D scene. */
+  #labels .tag.fan, #labels .tag.me, #labels .tag.res, #labels .tag.hero { display:none !important; }
   .tag.hero { background:var(--navy); color:#fff; border:1px solid var(--yel); font-weight:900; font-size:11px; padding:3px 9px; }
   .tag.hero::before { content:"★"; color:var(--yel); }
   .tag.squad { background:var(--navy); color:#fff; border:1px solid var(--yel); font-size:10px; font-weight:900; padding:2px 7px; box-shadow:0 2px 6px rgba(13,37,87,.3); }
