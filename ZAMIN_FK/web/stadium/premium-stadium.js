@@ -22,13 +22,13 @@
     const perimeter = rrLen(a, b, r);
     const samples = Math.max(420, Math.ceil(perimeter / 1.6));
     const BLUE = 0x1557d6, NAVY = 0x071a3d, GOLD = 0xd8b45b;
-    const STEEL = 0x9eabbc, GLASS = 0x15375b;
+    const STEEL = 0x416b9d, GLASS = 0x15375b;
 
     const mat = (color, metalness, roughness, extra) =>
       new THREE.MeshStandardMaterial(Object.assign({ color, metalness, roughness }, extra || {}));
-    const concrete = mat(0xcbd3dc, 0.22, 0.72);
-    const darkConcrete = mat(0x26364c, 0.36, 0.55);
-    const blueMetal = mat(0x123d91, 0.72, 0.3);
+    const concrete = mat(0x9eacc2, 0.22, 0.72);
+    const darkConcrete = mat(0x10294f, 0.36, 0.55);
+    const blueMetal = mat(0x1557d6, 0.62, 0.32);
     const goldMetal = mat(GOLD, 0.82, 0.24);
     const steel = mat(STEEL, 0.82, 0.28);
     const glass = new THREE.MeshPhysicalMaterial({
@@ -36,7 +36,7 @@
       opacity: 0.68, clearcoat: 1, clearcoatRoughness: 0.08, side: THREE.DoubleSide
     });
     const roofMat = new THREE.MeshStandardMaterial({
-      color: 0xbfc9d2, metalness: 0.82, roughness: 0.38,
+      color: 0x174ea6, metalness: 0.58, roughness: 0.34,
       side: THREE.DoubleSide, envMapIntensity: 1.1
     });
     const roofUnderside = mat(0x142b4f, 0.62, 0.36, { side: THREE.DoubleSide });
@@ -115,7 +115,7 @@
       dummy.position.set(p[0], 16.2, p[1]);
       dummy.rotation.set(0, -angle, (i % 2 ? 1 : -1) * 0.035);
       dummy.scale.set(1, 1, 1); dummy.updateMatrix(); fins.setMatrixAt(i, dummy.matrix);
-      fins.setColorAt(i, new THREE.Color(i % 5 === 0 ? 0xc7d5e8 : 0x8394aa));
+      fins.setColorAt(i, new THREE.Color(i % 5 === 0 ? 0x7398cc : 0x294f83));
     }
     root.add(fins);
 
@@ -150,7 +150,7 @@
     const HW = R * ROW_H + 3;
     const upperTierTop = HW + 0.9 + 7 * 0.62;
     const roofY = upperTierTop + 3.4;
-    // Sculptural roof: a continuous silver crown with a blue inner soffit, aligned to the seats.
+    // Sculptural roof: a bold ZAMIN royal-blue crown with a deep-navy inner soffit and gold trim.
     ringSurface(roofInner, roofY + 2.6, 12.5, roofY, roofMat);
     ringSurface(roofInner, roofY + 2.55, 12.5, roofY + 2.6, roofUnderside);
     ringSurface(roofInner - 1, roofY + 2.8, roofInner + 0.5, roofY + 2.8, goldMetal);
