@@ -1852,22 +1852,24 @@ function nameTexture(txt, mine) {
     const w = Math.ceil(g.measureText(txt).width) + 40;
     c.width = w; c.height = 72;
     g.font = "bold 44px system-ui, sans-serif";
-    g.fillStyle = mine ? "#FFD23F" : "rgba(255,255,255,.96)"; g.strokeStyle = "#0D2557"; g.lineWidth = 4;
+    g.fillStyle = mine ? "#FFD23F" : "#0D2557"; g.strokeStyle = "#FFD23F"; g.lineWidth = 4;
     g.beginPath(); g.roundRect(4, 6, w - 8, 60, 22); g.fill(); g.stroke();
-    g.fillStyle = "#0D2557"; g.textBaseline = "middle"; g.fillText(txt, 20, 38);
+    g.fillStyle = mine ? "#0D2557" : "#FFFFFF"; g.textBaseline = "middle"; g.fillText(txt, 20, 38);
     nameTex.set(key, { tex: new THREE.CanvasTexture(c), aspect: w / 72 });
   }
   return nameTex.get(key);
 }
 const nameSprites = Array.from({ length: 60 }, () => {
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true }));
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthTest: false }));
+  s.renderOrder = 999;
   s.visible = false; scene.add(s); return s;
 });
 function showName(s, st, txt, mine) {
   const t = nameTexture(txt, mine);
   s.material.map = t.tex; s.material.needsUpdate = true;
-  s.position.set(st.x, st.y + 2.1, st.z);
-  s.scale.set(0.55 * t.aspect, 0.55, 1); s.visible = true;
+  s.position.set(st.x, st.y + 1.95, st.z);                 // just above the head (figure top ≈ 1.65)
+  const k = 0.045 * camera.position.distanceTo(s.position);      // constant on-screen size at any distance
+  s.scale.set(k * t.aspect, k, 1); s.visible = true;
 }
 function updateLabels(now) {
   if (now - lastLabel < 120 && !fly) return; lastLabel = now;
