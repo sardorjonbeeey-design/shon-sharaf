@@ -21,7 +21,7 @@
     const roofMid = roofInner * 0.72;
     const perimeter = rrLen(a, b, r);
     const samples = Math.max(420, Math.ceil(perimeter / 1.6));
-    const BLUE = 0x1557d6, NAVY = 0x071a3d, GOLD = 0xd8b45b;
+    const BLUE = 0x1557d6, NAVY = 0x071a3d;
     const STEEL = 0x416b9d, GLASS = 0x15375b;
 
     const mat = (color, metalness, roughness, extra) =>
@@ -29,19 +29,19 @@
     const concrete = mat(0x9eacc2, 0.22, 0.72);
     const darkConcrete = mat(0x10294f, 0.36, 0.55);
     const blueMetal = mat(0x1557d6, 0.62, 0.32);
-    const goldMetal = mat(GOLD, 0.82, 0.24);
-    const steel = mat(STEEL, 0.82, 0.28);
+    const silverMetal = mat(0xbfc9d2, 0.82, 0.38);
+    const steel = mat(0xbfc9d2, 0.82, 0.38);
     const glass = new THREE.MeshPhysicalMaterial({
       color: GLASS, metalness: 0.28, roughness: 0.12, transparent: true,
       opacity: 0.68, clearcoat: 1, clearcoatRoughness: 0.08, side: THREE.DoubleSide
     });
     const roofMat = new THREE.MeshStandardMaterial({
-      color: 0x174ea6, metalness: 0.58, roughness: 0.34,
+      color: 0xbfc9d2, metalness: 0.82, roughness: 0.38,
       side: THREE.DoubleSide, envMapIntensity: 1.1
     });
     const roofUnderside = mat(0x142b4f, 0.62, 0.36, { side: THREE.DoubleSide });
     const ledMat = new THREE.MeshBasicMaterial({ color: 0x4da8ff });
-    const goldGlow = new THREE.MeshBasicMaterial({ color: 0xffd77a });
+    const silverGlow = new THREE.MeshBasicMaterial({ color: 0xdce8f5 });
 
     function point(t, d) {
       const len = rrLen(a + d, b + d, r + d);
@@ -97,10 +97,10 @@
     // A deep, sculpted outer plinth gives the arena a monumental silhouette.
     ringSurface(5.2, 0.2, 8.8, 1.0, concrete);
     ringSurface(7.8, 1.0, 8.8, 7.8, darkConcrete);
-    ringSurface(7.8, 7.8, 8.2, 8.3, goldMetal);
+    ringSurface(7.8, 7.8, 8.2, 8.3, silverMetal);
     ringSurface(7.9, 8.3, 8.2, 23.5, glass);
     ringSurface(8.2, 23.5, 9.4, 25.0, blueMetal);
-    ringSurface(9.2, 25.0, 9.5, 26.0, goldMetal);
+    ringSurface(9.2, 25.0, 9.5, 26.0, silverMetal);
     ringSurface(8.9, 26.0, 9.6, 27.2, darkConcrete);
 
     // Architectural fins: repeated angled blades catch the stadium light.
@@ -121,7 +121,7 @@
 
     // Continuous illuminated belt: the signature ZAMIN blue/gold line.
     ringSurface(9.52, 22.8, 9.7, 23.2, ledMat);
-    ringSurface(9.55, 7.5, 9.72, 7.72, goldGlow);
+    ringSurface(9.55, 7.5, 9.72, 7.72, silverGlow);
 
     // Four monumental entry portals with illuminated reveals and glass doors.
     const portalOffsets = [0.125, 0.375, 0.625, 0.875];
@@ -136,10 +136,10 @@
       portal.position.y = height / 2 + 0.15; group.add(portal);
       const inset = new THREE.Mesh(new THREE.BoxGeometry(width - 2.2, height - 2.1, 0.45), glass);
       inset.position.set(0, height / 2 + 0.15, 1.05); group.add(inset);
-      const lintel = new THREE.Mesh(new THREE.BoxGeometry(width + 1.2, 0.42, 2.5), goldMetal);
+      const lintel = new THREE.Mesh(new THREE.BoxGeometry(width + 1.2, 0.42, 2.5), silverMetal);
       lintel.position.set(0, height + 0.2, 0.25); group.add(lintel);
       for (const sx of [-1, 1]) {
-        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.22, height - 1.2, 0.3), goldGlow);
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.22, height - 1.2, 0.3), silverGlow);
         strip.position.set(sx * (width / 2 - 0.65), height / 2, 1.35); group.add(strip);
       }
       root.add(group);
@@ -150,10 +150,10 @@
     const HW = R * ROW_H + 3;
     const upperTierTop = HW + 0.9 + 7 * 0.62;
     const roofY = upperTierTop + 3.4;
-    // Sculptural roof: a bold ZAMIN royal-blue crown with a deep-navy inner soffit and gold trim.
+    // Sculptural roof: soft-silver brushed-metal crown with a deep-navy inner soffit.
     ringSurface(roofInner, roofY + 2.6, 12.5, roofY, roofMat);
     ringSurface(roofInner, roofY + 2.55, 12.5, roofY + 2.6, roofUnderside);
-    ringSurface(roofInner - 1, roofY + 2.8, roofInner + 0.5, roofY + 2.8, goldMetal);
+    ringSurface(roofInner - 1, roofY + 2.8, roofInner + 0.5, roofY + 2.8, silverMetal);
     ringSurface(11.7, roofY - 0.05, 13.2, roofY + 0.35, blueMetal);
 
     // Radial roof ribs, perimeter ring beams and diagonal tension members.
@@ -163,7 +163,7 @@
       const pA = point(t, roofInner), pB = point(t, 12.5);
       beam([pA[0], roofY + 2.8, pA[1]], [pB[0], roofY + 0.1, pB[1]], 0.48, 0.7, steel);
       const pC = point(t, roofMid);
-      beam([pC[0], roofY + 1.7, pC[1]], [pB[0], roofY + 0.3, pB[1]], 0.16, 0.18, goldMetal);
+      beam([pC[0], roofY + 1.7, pC[1]], [pB[0], roofY + 0.3, pB[1]], 0.16, 0.18, silverMetal);
     }
     for (const d of [roofInner + 2, roofMid, roofInner * 0.32, -2, 4, 10]) {
       const y = roofY + 2.8 - ((d - roofInner) / (12.5 - roofInner)) * 2.7;
@@ -301,7 +301,7 @@
       const pylonHeight = roofY + 5.5;
       const pylon = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 2.1, pylonHeight, 8), steel);
       pylon.position.set(x, pylonHeight / 2, z); root.add(pylon);
-      const crown = new THREE.Mesh(new THREE.BoxGeometry(7, 1.2, 7), goldMetal);
+      const crown = new THREE.Mesh(new THREE.BoxGeometry(7, 1.2, 7), silverMetal);
       crown.position.set(x, pylonHeight + 0.6, z); root.add(crown);
       const lamp = new THREE.PointLight(0x8bbdff, 0.55, 36);
       lamp.position.set(x, pylonHeight + 1.6, z); root.add(lamp);
