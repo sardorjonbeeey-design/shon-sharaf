@@ -32,8 +32,8 @@ TEXTS = [
     "Sakson to'qqizinchi daqiqa. Va... ikki — bir! Muxlislar Jamoasi g'alaba qildi!",
     "Zamin FK — bir. Muxlislar Jamoasi — ikki.",
     "Ertaga: Team B — Team C.",
-    "Keyingi video sizdan. Eng creative izoh — keyingi video bo'ladi.",
     "Murabbiy esa... hali ham ishonmaydi.",
+    "Keyingi video sizdan. Eng creative izoh — keyingi video bo'ladi.",
 ]
 for i in range(N):
     n = f"{i+1:02d}"
