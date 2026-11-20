@@ -1,0 +1,332 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
+@font-face{font-family:MZ;font-weight:700;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf)}
+html,body{margin:0;background:#02040c;width:1080px;height:1920px;overflow:hidden;font-family:MZ,sans-serif}
+#grade{position:absolute;inset:0}
+#grain{position:absolute;inset:0;opacity:.05;pointer-events:none}
+#ov{position:absolute;inset:0;width:1080px;height:1920px;pointer-events:none}
+.it{position:absolute;transform-origin:50% 50%}
+/* Scorebug */
+.bug{display:flex;align-items:center;justify-content:center;gap:0;width:900px;height:110px;
+  background:rgba(2,4,12,.88);border:3px solid rgba(31,79,184,.6);border-radius:20px;
+  box-shadow:0 0 40px rgba(31,79,184,.3),0 8px 32px rgba(0,0,0,.8)}
+.bug-team{font-size:36px;font-weight:900;color:#fff;letter-spacing:1px;width:300px;
+  text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+.bug-score{font-size:72px;font-weight:900;color:#FFD23F;width:200px;text-align:center;
+  text-shadow:0 4px 0 #0D2557,0 8px 20px rgba(0,0,0,.9);
+  -webkit-text-stroke:4px #0D2557;paint-order:stroke fill}
+.bug-sep{font-size:52px;font-weight:900;color:rgba(255,255,255,.4)}
+/* Minute badge */
+.min{font-size:38px;font-weight:900;color:#FFD23F;letter-spacing:2px;
+  text-shadow:0 3px 0 #0D2557,0 6px 20px rgba(0,0,0,.9)}
+/* Scene text cards */
+.hook{font-size:72px;font-weight:900;color:#fff;text-align:center;line-height:1.1;
+  text-shadow:0 0 60px rgba(31,79,184,.8),0 0 120px rgba(31,79,184,.4),0 6px 20px rgba(0,0,0,.9);
+  letter-spacing:2px}
+.teams{text-align:center}
+.teams .nm{font-size:52px;font-weight:900;color:#9fb6ff;letter-spacing:3px;
+  text-shadow:0 4px 14px rgba(0,0,0,.9)}
+.teams .vs{font-size:40px;font-weight:900;color:rgba(255,255,255,.35);letter-spacing:6px;margin:12px 0}
+/* Goal card */
+.goal-card{background:rgba(2,4,12,.9);border:5px solid #FFD23F;border-radius:24px;
+  padding:20px 44px;text-align:center;box-shadow:0 0 60px rgba(255,210,63,.4),0 0 120px rgba(0,0,0,.8)}
+.goal-card .gol{font-size:88px;font-weight:900;color:#FFD23F;
+  text-shadow:0 6px 0 #0D2557,0 12px 30px rgba(0,0,0,.9);
+  -webkit-text-stroke:5px #0D2557;paint-order:stroke fill}
+.goal-card .scorer{font-size:44px;font-weight:900;color:#fff;margin-top:4px;
+  text-shadow:0 3px 10px rgba(0,0,0,.9)}
+.goal-card .minute{font-size:34px;color:#9fb6ff;font-weight:700;letter-spacing:2px}
+/* Final scoreline */
+.final{text-align:center}
+.final .ft{font-size:34px;font-weight:900;color:#9fb6ff;letter-spacing:8px;margin-bottom:16px}
+.final .scoreline{font-size:140px;font-weight:900;color:#FFD23F;
+  text-shadow:0 8px 0 #0D2557,0 16px 40px rgba(0,0,0,.9);
+  -webkit-text-stroke:7px #0D2557;paint-order:stroke fill;line-height:0.95}
+.final .teams-row{font-size:40px;color:#fff;font-weight:900;letter-spacing:1px;
+  display:flex;justify-content:space-between;padding:0 20px;margin-top:14px}
+.final .scorers-col{font-size:30px;color:rgba(159,182,255,.8);font-weight:700;
+  margin-top:16px;line-height:1.6}
+/* Fixture card */
+.fixture{background:rgba(2,4,12,.88);border:4px solid #1F4FB8;border-radius:24px;
+  padding:36px 60px;text-align:center;
+  box-shadow:0 0 48px rgba(31,79,184,.4),0 0 100px rgba(0,0,0,.8)}
+.fixture .label{font-size:30px;color:#9fb6ff;letter-spacing:8px;font-weight:900;margin-bottom:12px}
+.fixture .teams{font-size:72px;font-weight:900;color:#FFD23F;
+  text-shadow:0 5px 0 #0D2557,0 10px 24px rgba(0,0,0,.9);
+  -webkit-text-stroke:4px #0D2557;paint-order:stroke fill;line-height:1}
+.fixture .date{font-size:38px;color:#fff;font-weight:700;letter-spacing:3px;margin-top:14px}
+/* CTA card */
+.cta{text-align:center}
+.cta .main{font-size:68px;font-weight:900;color:#FFD23F;line-height:1.05;
+  text-shadow:0 5px 0 #0D2557,0 10px 28px rgba(0,0,0,.9);
+  -webkit-text-stroke:4px #0D2557;paint-order:stroke fill}
+.cta .sub{font-size:42px;color:#9fb6ff;font-weight:700;margin-top:16px;
+  text-shadow:0 3px 12px rgba(0,0,0,.9);line-height:1.4}
+/* Coach card */
+.coach{text-align:center}
+.coach .label{font-size:34px;font-weight:900;color:#9fb6ff;letter-spacing:6px;margin-bottom:20px;
+  text-shadow:0 3px 12px rgba(0,0,0,.9)}
+.coach .quote{font-size:62px;font-weight:900;color:#fff;line-height:1.1;
+  text-shadow:0 0 60px rgba(255,60,60,.5),0 6px 20px rgba(0,0,0,.9)}
+/* Flash overlay */
+#flash{position:absolute;inset:0;pointer-events:none;opacity:0}
+</style></head><body>
+
+<!-- preloaded backgrounds, all toggled by display -->
+<img id="bg_stadium_wide" src="../06_Episode_06/assets/K5_wide.png" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<img id="bg_corner" src="assets/goal_corner.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<img id="bg_fans" src="assets/fans_goal.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<img id="bg_hug" src="assets/hug_celebration.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<img id="bg_stadium_full" src="../06_Episode_06/assets/K3_full.png" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<img id="bg_scoreboard" src="assets/scoreboard.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<img id="bg_coach" src="assets/coach_shocked.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<img id="bg_action" src="assets/game_action.jpg" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<div id="grade"></div>
+<canvas id="grain" width="1080" height="1920"></canvas>
+<div id="flash"></div>
+<div id="ov"></div>
+
+<img id="crest" src="../12_Reel_Trial_Stadium/assets/crest.png"
+  style="position:absolute;bottom:52px;right:52px;height:88px;opacity:0.6;
+  filter:drop-shadow(0 0 14px rgba(31,79,184,.5))">
+
+<script>
+// ── timing ──────────────────────────────────────────────────────────────
+const W = window.W || [];
+const bs = b => W[b-1] ? W[b-1].start : 0;
+const be = b => W[b-1] ? W[b-1].end   : 0;
+const END = W.length ? W[W.length-1].end + 2.5 : 40;
+
+// ── helpers ──────────────────────────────────────────────────────────────
+const OVP = document.getElementById("ov");
+const cl = (v,a=0,b=1) => Math.max(a,Math.min(b,v));
+const sm = (a,b,x) => { const t=cl((x-a)/(b-a)); return t*t*(3-2*t); };
+
+// film grain
+(function(){
+  const cv=document.getElementById("grain"),ctx=cv.getContext("2d");
+  const id=ctx.createImageData(1080,1920);const d=id.data;
+  for(let i=0;i<d.length;i+=4){const v=Math.random()*255|0;d[i]=d[i+1]=d[i+2]=v;d[i+3]=255;}
+  ctx.putImageData(id,0,0);
+})();
+
+// grade overlay per scene
+function setGrade(scene){
+  const g = document.getElementById("grade");
+  if(scene===0){
+    g.style.background = "rgba(2,4,12,1)"; return;
+  }
+  if(scene>=6){
+    g.style.background = "linear-gradient(180deg,rgba(2,4,12,.55) 0%,rgba(2,4,12,.0) 40%,rgba(2,4,12,.0) 65%,rgba(2,4,12,.88) 100%)";
+    return;
+  }
+  g.style.background = "linear-gradient(180deg,rgba(2,4,12,.62) 0%,rgba(2,4,12,.0) 30%,rgba(2,4,12,.0) 65%,rgba(2,4,12,.88) 100%)";
+}
+
+// flash
+function flash(col, dur=0.3){
+  const f=document.getElementById("flash");
+  f.style.background=col; f.style.opacity="1";
+  f.style.transition="none";
+  requestAnimationFrame(()=>{
+    f.style.transition=`opacity ${dur}s ease-out`;
+    f.style.opacity="0";
+  });
+}
+
+// ── overlay items ─────────────────────────────────────────────────────────
+const items = [];
+function add(html, cx, cy, t_in, t_out, opts={}){
+  const d = document.createElement("div");
+  d.className = "it"; d.innerHTML = html;
+  d.style.opacity = "0"; d.style.left=cx+"px"; d.style.top=cy+"px";
+  d.style.transform = "translate(-50%,-50%)";
+  OVP.appendChild(d);
+  items.push({el:d, cx, cy, t_in, t_out, opts, born:false});
+}
+
+// ── scene definitions ─────────────────────────────────────────────────────
+// B1 (hook): black bg + mystery text
+add(`<div class="hook">HECH KIM<br>KUTMAGAN<br>EDI...</div>`,
+  540, 960, bs(1)+0.1, be(1)-0.3, {fade:0.2});
+
+// Score flash "1:2" after hook clears
+add(`<div style="font-size:220px;font-weight:900;color:#FFD23F;
+  text-shadow:0 10px 0 #0D2557,0 20px 50px rgba(0,0,0,.9);
+  -webkit-text-stroke:10px #0D2557;paint-order:stroke fill">1:2</div>`,
+  540, 960, be(1)-0.05, bs(2)+0.1, {fade:0.12});
+
+// B2: Teams matchup — game_action bg
+add(`<div class="teams"><div class="nm">ZAMIN FK</div>
+  <div class="vs">VS</div>
+  <div class="nm">MUXLISLAR JAMOASI</div></div>`,
+  540, 760, bs(2)+0.1, be(2)+0.1, {fade:0.25});
+
+// Scorebug — B2 through B5
+add(`<div class="bug">
+  <div class="bug-team">ZAMIN FK</div>
+  <div class="bug-score" id="scoreL">0</div>
+  <div class="bug-sep"> : </div>
+  <div class="bug-score" id="scoreR">0</div>
+  <div class="bug-team">MUXLISLAR</div>
+</div>`, 540, 110, bs(2)+0.4, be(5)+0.5, {fade:0.3, keep:true});
+
+// Minute badge
+add(`<div class="min" id="minbadge">0'</div>`, 540, 1760, bs(2)+0.4, be(5)+0.5, {fade:0.3, keep:true});
+
+// B3: @hasa.n11015 GOAL — goal_celebration bg
+add(`<div class="goal-card">
+  <div class="gol">GOL!</div>
+  <div class="scorer">@hasa.n11015 ⚽</div>
+  <div class="minute">34'  ·  MUXLISLAR JAMOASI</div>
+</div>`, 540, 960, bs(3)+0.4, be(3)+0.3, {fade:0.2});
+
+// B4: Doston equalizer — goal_celebration bg
+add(`<div class="goal-card" style="border-color:#1F4FB8;box-shadow:0 0 60px rgba(31,79,184,.4)">
+  <div class="gol" style="color:#fff;-webkit-text-stroke-color:#0D2557">GOL!</div>
+  <div class="scorer">Doston ⚽</div>
+  <div class="minute" style="color:#9fb6ff">67'  ·  ZAMIN FK</div>
+</div>`, 540, 960, bs(4)+0.4, be(4)+0.3, {fade:0.2});
+
+// B5: @rasuluvich_09 WINNER — goal_celebration bg
+add(`<div style="text-align:center">
+  <div style="font-size:48px;font-weight:900;color:#9fb6ff;letter-spacing:4px;
+    text-shadow:0 3px 12px rgba(0,0,0,.9);margin-bottom:12px">89' + QO'SHIMCHA VAQT</div>
+  <div class="goal-card" style="border-color:#FFD23F">
+    <div class="gol">G'ALABA!</div>
+    <div class="scorer">@rasuluvich_09 ⚽</div>
+    <div class="minute">MUXLISLAR JAMOASI</div>
+  </div>
+</div>`, 540, 920, bs(5)+0.5, be(5)+0.4, {fade:0.2});
+
+// B6: Final scoreline — game_action bg
+add(`<div class="final">
+  <div class="ft">YAKUNIY NATIJA</div>
+  <div class="scoreline">1 : 2</div>
+  <div class="teams-row">
+    <span>ZAMIN FK</span>
+    <span>MUXLISLAR</span>
+  </div>
+  <div class="scorers-col">
+    Doston 67' &nbsp;|&nbsp; @hasa.n11015 34', @rasuluvich_09 89'
+  </div>
+</div>`, 540, 920, bs(6), be(6)+0.3, {fade:0.3});
+
+// B7: Fixture card — game_action bg
+add(`<div class="fixture">
+  <div class="label">KEYINGI MATCH</div>
+  <div class="teams">TEAM B<br>vs<br>TEAM C</div>
+  <div class="date">ERTAGA</div>
+</div>`, 540, 960, bs(7), be(7)-0.1, {fade:0.25});
+
+// B8: Coach shocked — coach_shocked bg
+add(`<div class="coach">
+  <div class="label">MURABBIY SHOKDA</div>
+  <div class="quote">Nima bo'ldi<br>bu...?</div>
+</div>`, 540, 1400, bs(8)+0.3, be(8)+0.4, {fade:0.4});
+
+// B9: CTA — game_action bg
+add(`<div class="cta">
+  <div class="main">KEYINGI VIDEO<br>SIZDAN</div>
+  <div class="sub">Izohda g'oyangizni yozing.<br>Eng creative izoh —<br>keyingi video bo'ladi.</div>
+</div>`, 540, 880, bs(9), END, {fade:0.3});
+
+// @fk_zamin handle (B9)
+add(`<div style="font-size:40px;font-weight:900;color:rgba(255,255,255,.55);
+  letter-spacing:3px;text-shadow:0 2px 8px rgba(0,0,0,.8)">
+  @<span style="color:#FFD23F">fk_zamin</span></div>`,
+  540, 1760, bs(9), END, {fade:0.3});
+
+// ── render loop ───────────────────────────────────────────────────────────
+let currentScene = -1;
+
+function frameOv(t){
+  let scene;
+  if(t < bs(1)) scene=0;
+  else if(t < bs(2)) scene=1;
+  else if(t < bs(3)) scene=2;
+  else if(t < bs(4)) scene=3;
+  else if(t < bs(5)) scene=4;
+  else if(t < bs(6)) scene=5;
+  else if(t < bs(7)) scene=6;
+  else if(t < bs(8)) scene=7;
+  else if(t < bs(9)) scene=8;
+  else scene=9;
+
+  if(scene !== currentScene){
+    setGrade(scene);
+    if(scene===3){ flash("rgba(255,215,0,.35)",0.4); }
+    if(scene===4){ flash("rgba(31,79,184,.4)",0.4); }
+    if(scene===5){ flash("rgba(255,215,0,.5)",0.6); }
+    if(scene===9){ flash("rgba(0,0,0,.7)",0.8); }
+    currentScene = scene;
+  }
+
+  // scorebug
+  const minEl = document.getElementById("minbadge");
+  const sL = document.getElementById("scoreL");
+  const sR = document.getElementById("scoreR");
+  if(minEl && sL && sR){
+    if(t >= bs(3) && t < bs(4)){ sR.textContent="1"; minEl.textContent="34'"; }
+    else if(t >= bs(4) && t < bs(5)){ sL.textContent="1"; minEl.textContent="67'"; }
+    else if(t >= bs(5) && t < bs(6)){ sR.textContent="2"; minEl.textContent="89'"; }
+    else if(t < bs(3)){ sL.textContent="0"; sR.textContent="0"; minEl.textContent="0'"; }
+  }
+
+  // fade items
+  for(const item of items){
+    const {el, t_in, t_out, opts} = item;
+    const fd = opts.fade || 0.25;
+    let alpha;
+    if(t < t_in - fd) alpha=0;
+    else if(t < t_in) alpha = sm(t_in-fd, t_in, t);
+    else if(t < t_out) alpha=1;
+    else if(t < t_out+fd) alpha = 1-sm(t_out, t_out+fd, t);
+    else alpha=0;
+    el.style.opacity = alpha;
+  }
+
+  // bg switching per scene
+  const bgs = {
+    bg_stadium_wide: document.getElementById("bg_stadium_wide"),
+    bg_corner:       document.getElementById("bg_corner"),
+    bg_fans:         document.getElementById("bg_fans"),
+    bg_hug:          document.getElementById("bg_hug"),
+    bg_stadium_full: document.getElementById("bg_stadium_full"),
+    bg_scoreboard:   document.getElementById("bg_scoreboard"),
+    bg_coach:        document.getElementById("bg_coach"),
+    bg_action:       document.getElementById("bg_action"),
+  };
+  const bgMap = {
+    0: null, 1: null,
+    2: "bg_stadium_wide",
+    3: "bg_corner",
+    4: "bg_fans",
+    5: "bg_hug",
+    6: "bg_stadium_full",
+    7: "bg_scoreboard",
+    8: "bg_coach",
+    9: "bg_action",
+  };
+  const brt = scene<=1 ? 0 : 0.62;
+  const filt = `brightness(${brt}) saturate(1.2) contrast(1.05)`;
+  for(const [k,el] of Object.entries(bgs)){
+    if(bgMap[scene]===k){ el.style.display="block"; el.style.filter=filt; }
+    else { el.style.display="none"; }
+  }
+}
+
+if(window.RENDER_MODE){
+  window.frameOv = frameOv;
+} else {
+  let t=0;
+  function tick(){
+    t += 1/30;
+    if(t > END) t=0;
+    frameOv(t);
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
+</script>
+</body></html>

@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1920px;background:#020810;font-family:MZ,sans-serif;overflow:hidden;position:relative}
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45}
+#scrim{position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(2,8,16,.2),rgba(2,8,16,.7) 70%,rgba(2,8,16,.96))}
+#tint{position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,60,80,.5),rgba(0,20,40,.4));mix-blend-mode:multiply}
+#wrap{position:relative;z-index:10;width:1080px;height:1920px;display:flex;flex-direction:column;align-items:center;padding:90px 60px 80px}
+.crest{height:80px;margin-bottom:40px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.8))}
+.label{font-size:38px;letter-spacing:7px;color:#00D4AA;text-shadow:0 0 20px rgba(0,212,170,.5);margin-bottom:14px}
+h1{font-size:106px;line-height:.95;text-align:center;color:#FFD23F;
+   text-shadow:0 8px 0 #0D2557,0 16px 40px rgba(0,0,0,.9);
+   -webkit-text-stroke:7px #0D2557;paint-order:stroke fill;margin-bottom:12px}
+.sub{font-size:46px;color:#fff;text-shadow:0 4px 16px #000;margin-bottom:60px;text-align:center}
+
+/* formation grid */
+.formation{width:900px;display:grid;gap:18px;margin-bottom:50px}
+.row{display:flex;justify-content:center;gap:28px}
+.pos-slot{display:flex;flex-direction:column;align-items:center;gap:10px}
+.circle{width:100px;height:100px;border-radius:50%;border:5px dashed #00D4AA;
+  background:rgba(0,30,30,.8);color:#00D4AA;font-size:36px;line-height:90px;text-align:center;
+  box-shadow:0 0 28px rgba(0,212,170,.4),inset 0 0 20px rgba(0,212,170,.1);font-weight:900}
+.pname{font-size:28px;background:rgba(0,20,20,.9);border:3px solid rgba(0,212,170,.5);
+  border-radius:10px;padding:4px 14px;color:#00D4AA;white-space:nowrap}
+
+.cta-box{background:rgba(0,20,20,.92);border:5px solid #00D4AA;border-radius:30px;
+  padding:28px 50px;text-align:center;box-shadow:0 0 40px rgba(0,212,170,.3);width:900px}
+.cta-box .small{font-size:32px;color:#9fb6ff;letter-spacing:3px;margin-bottom:10px}
+.cta-box .big{font-size:60px;color:#fff;line-height:1.2}
+
+.bottom{margin-top:auto;display:flex;align-items:center;gap:20px;font-size:36px;color:#9fb6ff;letter-spacing:2px}
+</style></head><body>
+<img id="bg" src="top.jpg">
+<div id="scrim"></div><div id="tint"></div>
+<div id="wrap">
+  <img class="crest" src="crest.png">
+  <div class="label">ZAMIN FK</div>
+  <h1>SINOV<br>JAMOASI</h1>
+  <div class="sub">11 ta joy — hammasi bo'sh</div>
+
+  <!-- 4-3-3 formation -->
+  <div class="formation">
+    <div class="row">
+      <div class="pos-slot"><div class="circle">LW</div><div class="pname">?</div></div>
+      <div class="pos-slot"><div class="circle">ST</div><div class="pname">?</div></div>
+      <div class="pos-slot"><div class="circle">RW</div><div class="pname">?</div></div>
+    </div>
+    <div class="row">
+      <div class="pos-slot"><div class="circle">CM</div><div class="pname">?</div></div>
+      <div class="pos-slot"><div class="circle">CAM</div><div class="pname">?</div></div>
+      <div class="pos-slot"><div class="circle">CDM</div><div class="pname">?</div></div>
+    </div>
+    <div class="row">
+      <div class="pos-slot"><div class="circle">LB</div><div class="pname">?</div></div>
+      <div class="pos-slot"><div class="circle">CB</div><div class="pname">?</div></div>
+      <div class="pos-slot"><div class="circle">CB</div><div class="pname">?</div></div>
+      <div class="pos-slot"><div class="circle">RB</div><div class="pname">?</div></div>
+    </div>
+    <div class="row">
+      <div class="pos-slot"><div class="circle">GK</div><div class="pname">?</div></div>
+    </div>
+  </div>
+
+  <div class="cta-box">
+    <div class="small">IZOHGA YOZING 👇</div>
+    <div class="big">POZITSIYA + ISMINGIZ</div>
+  </div>
+
+  <div class="bottom">@fk_zamin &nbsp;•&nbsp; SINOV O'YINI</div>
+</div>
+</body></html>

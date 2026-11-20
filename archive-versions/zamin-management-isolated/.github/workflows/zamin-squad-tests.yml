@@ -1,0 +1,52 @@
+name: ZAMIN squad regression tests
+
+on:
+  push:
+    branches:
+      - zamin-squad-test
+    paths:
+      - "ZAMIN_FK/web/city/club.js"
+      - "ZAMIN_FK/web/city/squad.test.js"
+      - "ZAMIN_FK/web/city/package.json"
+      - "ZAMIN_FK/web/stadium/template.html"
+      - "ZAMIN_FK/web/stadium/build.py"
+      - "ZAMIN_FK/web/stadium/fans_instagram.json"
+      - "ZAMIN_FK/01_Art_Direction/Sprites/**"
+      - "ZAMIN_FK/03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"
+      - ".github/workflows/zamin-squad-tests.yml"
+  pull_request:
+    paths:
+      - "ZAMIN_FK/web/city/club.js"
+      - "ZAMIN_FK/web/city/squad.test.js"
+      - "ZAMIN_FK/web/city/package.json"
+      - "ZAMIN_FK/web/stadium/template.html"
+      - "ZAMIN_FK/web/stadium/build.py"
+      - "ZAMIN_FK/web/stadium/fans_instagram.json"
+      - "ZAMIN_FK/01_Art_Direction/Sprites/**"
+      - "ZAMIN_FK/03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"
+      - ".github/workflows/zamin-squad-tests.yml"
+
+jobs:
+  squad-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ZAMIN_FK/web/city
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run squad regression tests
+        run: npm test
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Rebuild stadium page from source template
+        run: |
+          python -m pip install Pillow
+          cd ../stadium
+          python3 build.py fans_instagram.json
+          grep -q "POS_SPOT" dist/index.html
+          grep -q "benchIndex" dist/index.html
+          grep -q "position_rank" dist/index.html

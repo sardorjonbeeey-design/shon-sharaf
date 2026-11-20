@@ -1,0 +1,229 @@
+ZAMIN FK - ALL VIDEOS: IDEA, SCRIPT, CAPTION, CTA, DESIGN
+Source: repo branch claude/sleepy-carson-2v4ect (scripts, animation files, subtitles, ledger)
+Compiled: 2026-11-09
+
+======================================================================
+GENERAL FORMAT (all videos)
+======================================================================
+- Format: vertical 9:16, 1080x1920, 30 fps, MP4. Language: Uzbek (Latin).
+- Structure (Playbook): HOOK -> PAYOFF/RESULT -> MATCH/TURN -> CONSEQUENCE -> QUESTION (+ outro hook).
+- Daily cycle: Ask -> Close -> Show -> Carry. Viewers vote in comments; the next video shows the result.
+- Mechanics (always labelled "VIRTUAL"): 1 follower = 1 virtual fan; 1 like = 15 000 so'm
+  in the club fund. Start fund: 15 000 000 so'm.
+- Voice: narrator "SARHAD-SIZ" (ElevenLabs voice rwtcHtZgYU6HN2zLNBlf), mono narration only.
+  Day 3 used Poyo ElevenLabs V4 for some lines.
+- Visual style: realistic 3D-style character sprites (cut-out, transparent background) over
+  stadium/office backgrounds; slow zoom/pan (Ken Burns), parallax, blur behind cards.
+- Animation engine: tools/anim (HTML frames -> ffmpeg). Effects: stamp, pop, slideL/R, drop, peek,
+  idle bob/hop/sway/shake/chew/talk; number counters that roll up.
+- Typography/brand: navy #0D2557, blue #1F4FB8, yellow #FFD23F, white; heavy bold titles;
+  yellow "chips" (pill labels); word-by-word captions with highlighted key words (yellow).
+- Safe zones: text kept in top/center; right ~150 px and bottom ~350 px left free for app buttons.
+- Recurring characters/gags: Rustam aka (strict coach, whistle), Bekzod (striker, celebrates before
+  scoring), Jasur (goalkeeper, lost glove/excuses), Aziz (midfielder, serious face), the stadium
+  goat (white-grey, broken horn, blue-white scarf; unnamed), Doston and Sherzod (defenders).
+  President narrates only (no approved image).
+- Recurring end element: "+ OBUNA BO'LING" (follow) button pulsing.
+- Pre-post checklist: first frame understandable without sound; one question, one-word answer;
+  deadline stated; one rewatchable detail; "virtual" stated; captions outside button zones.
+
+======================================================================
+VIDEO 1 - DAY 1 "NOLDAN BOSHLAYMIZ" (We start from zero)
+File: 02_Episode_01/exports/ZFK_EP01_day1_anim.mp4 - 58.8 s
+(an earlier preview version also exists: ZFK_EP01_day1_preview.mp4)
+======================================================================
+IDEA
+- Introduce a forgotten amateur club from Qoratepa, its funny squad and the empty stadium,
+  explain how viewers help (follows = fans, likes = money), and ask the first decision.
+
+SCRIPT (narration = on-screen captions)
+ HOOK      "Bu - Zamin FK stadioni." / "Muxlislar soni... nol." / "Bitta echkini hisoblamasak."
+ CLUB      "Biz - Qoratepadan chiqqan havaskor klubmiz." / "Bizda qattiqqo'l murabbiy bor..." /
+           "o'zini yulduz deb o'ylaydigan hujumchi bor..." /
+           "darvozabonimiz esa qo'lqopini hali ham qidiryapti." /
+           "Klub fondida esa atigi 15 million so'm."
+ GOAL      "Maqsadimiz - eng quyi havaskor ligadan" /
+           "O'zbekiston futbolining eng yuqori pog'onasigacha chiqish." / "Ha... hozircha yo'l uzoq."
+ MECHANIC  "Lekin bu yerda SIZ keraksiz!" / "Har bir obunachi - tribunada bitta virtual muxlis." /
+           "Har bir layk - klub fondiga 15 ming so'm." / "Keling, bu stadionni birga to'ldiramiz!"
+ QUESTION  "Birinchi qarorni SIZ qabul qilasiz:" /
+           "stadion, yangi hujumchi, mashg'ulot bazasi yoki yangi murabbiy?" /
+           "Izohga bitta so'z yozing." / "Eng ko'p layk olgan izoh - 24 soatdan keyin g'olib!"
+ (The preview version said "1 like = 1 dollar"; the animated version says 15 000 so'm.)
+
+DESIGN / SCENES
+ 1. Empty stand + goat chewing; title "1-KUN", chip "NOLDAN BOSHLAYMIZ", chip "+1 ECHKI".
+ 2. Empty dressing room; chip "ZAMIN FK - QORATEPA"; Rustam (whistle) slides in with chip
+    "QATTIQQO'L MURABBIY"; Bekzod (smug) with "\"YULDUZ\" HUJUMCHI"; Jasur (one glove, shaking)
+    with "QO'LQOP QAYERDA?".
+ 3. Office: card "VIRTUAL KLUB FONDI" counting up to 15 000 000 so'm.
+ 4. Empty pitch: chip "MAQSAD: OLIY LIGA"; Rustam shouting; Bekzod celebrating, title "GOOOL?!";
+    goat peeks in, chip "TO'P QAYERDA?"; Aziz calmly brings the ball back.
+ 5. Stand + goat: pulsing "+ OBUNA BO'LISH"; chip "SIZ?"; cards "1 OBUNA = 1 VIRTUAL MUXLIS",
+    "1 LAYK = 15 000 SO'M (VIRTUAL)".
+ 6. Wide stadium (blurred): 4 choice cards.
+ 7. Final: title "IZOHGA YOZING!", chip "STADION - HUJUMCHI - BAZA - MURABBIY", goat peeks
+    from the right (rewatch detail: goat hints at "stadium").
+
+CTA: write one word in comments (Stadion / Hujumchi / Baza / Murabbiy); most-liked comment
+     wins after 24 h; follow.
+
+CAPTION (template from engagement principles)
+ 1-kun. Zamin FK noldan boshlaydi: eski stadion va 15 000 000 so'm virtual fond.
+ Birinchi qadamni SIZ tanlaysiz 👇
+ Stadion / Hujumchi / Baza / Murabbiy - izohga bitta so'z yozing.
+ 24 soatdan keyin eng ko'p layk olgan izoh g'olib.
+ (Fond va muxlislar - virtual o'yin mexanikasi.)
+
+RESULT: STADION won. After Day 1: 74 followers, 161 likes -> fund 17 415 000 so'm.
+
+======================================================================
+VIDEO 2 - DAY 2 "SIZ TANLADINGIZ - STADION!"
+File: 02_Episode_02/exports/ZFK_EP02_day2.mp4 - 45.2 s
+======================================================================
+IDEA
+- Show that the vote mattered: real comments, the result, numbers going up, a renovated stadium
+  with an LED screen showing real fans' names. Then ask the next vote: which defender.
+
+SCRIPT (narration = captions)
+ HOOK      "Siz tanladingiz - STADION!" / "Lekin bitta muammo bor..."
+ RESULTS   "Bir kunda 74 ta muxlis va 161 ta layk!" /
+           "Klub fondida endi 17 million 415 ming so'm."
+ NEWS      "Va katta yangilik!" / "Qoratepa sport jamg'armasi bizga 20 million so'm ajratdi." /
+           "Hammasini stadion ta'miriga sarfladik!"
+ STADIUM   "Mana yangi tribuna... va katta ekran!" / "Endi har kuni ekranda eng yaxshi izoh" /
+           "va yangi muxlislarning ismi chiqadi."
+ QUESTION  "Endi bizga himoyachi kerak." / "22 yoshli Doston yoki 25 yoshli Sherzod?" /
+           "Izohga 1 yoki 2 deb yozing!" / "Va ertaga... echki bilan nima bo'lganini ko'rasiz."
+
+DESIGN / SCENES
+ 1. HOOK: 4 real comment screenshots slam in (alternating left/right, slightly rotated),
+    big stamp "STADION!", chip "SIZ TANLADINGIZ", goat peeks in.
+ 2. RESULTS: blurred wide stadium; badges "MUXLISLAR 74 (VIRTUAL)", "LAYKLAR 161 (1 KUNDA)";
+    fund card rolls to 17 415 000; chip "+161 x 15 000 so'm".
+ 3. INVESTMENT: chip "KATTA YANGILIK!"; card "QORATEPA SPORT JAMG'ARMASI +20 000 000 so'm
+    investitsiya" drops in; fund card; chip "-20 000 000 -> STADION TA'MIRI"; Bekzod hops.
+ 4. NEW STADIUM: renovated stand background; chip "YANGI TRIBUNA ✔"; LED screen shows
+    "KUN IZOHI @kewl.imjay45 \"Stadion\" ❤", then "YANGI MUXLISLAR @bek_.071 @legends00000001
+    @rozakoldasovna"; fan-name chips drop and sway.
+ 5. QUESTION: title "HIMOYACHI KERAK"; two FIFA-style player cards:
+    1 Doston - 22 yosh, OVR 67 (TEZ 82, HIM 66, PAS 61, KUCH 63, DRB 64, ZARB 41)
+    2 Sherzod - 25 yosh, OVR 69 (TEZ 61, HIM 75, PAS 66, KUCH 78, DRB 54, ZARB 47)
+    title "1 yoki 2?".
+ 6. OUTRO HOOK: vignette, close-up of the goat chewing, title "ERTAGA...", chip
+    "ECHKIGA NIMA BO'LDI? 🐐", pulsing "+ OBUNA BO'LING".
+ Extra stories: "ZFK_EP02_story_defender_vote.png" (vote story), "ZFK_story_top_fan_legends.png"
+ (most active fan @legends00000001).
+
+CTA: comment "1" (Doston) or "2" (Sherzod); follow; cliffhanger about the goat.
+
+CAPTION: not saved in the repo (posted by you).
+
+RESULT: Doston won (78% of votes, first comment by @isomova_sabina on Instagram).
+ Followers 127; likes 339 total (178 new) -> fund per ledger 21 690 000 after the +20M donation
+ was spent on renovation. (Numbers in the ledger were later corrected - see Day 3.)
+
+======================================================================
+VIDEO 3 - DAY 3 (FIRST VERSION, SCRIPT) "SIZ TANLADINGIZ: DOSTON!"
+File: an earlier render of 03_Episode_03/exports/ZFK_EP03_day3.mp4 (~35 s, later replaced)
+======================================================================
+IDEA
+- Show the defender result (Doston), the fund, open the city/Telegram bot, ask which club
+  to play a friendly against.
+
+SCRIPT (subtitles of that render)
+ "SIZ TANLADINGIZ: DOSTON!"
+ "Sherzod emas - DOSTON. Rahmat, har bir ovoz uchun."
+ "Klub fondi: 20 085 000 so'm (virtual)"
+ "@zaminfk_bot - jamoaga qo'shiling yoki shaharda ish toping"
+ "Qaysi klubga qarshi o'rtoqlik o'yini o'tkazaylik?"
+ "Ertaga echkiga nima bo'ldi? Klub nomini yozing!"
+ Planned design (script.md): Doston on the pitch with "SIZ TANLADINGIZ"; vote chart; renovated
+ stadium + LED; 3D city and phone showing the "⚽ Klub" button; Bekzod, Jasur, Aziz with an empty
+ spot; goat looking into the camera as the outro.
+
+CTA: write a club name in comments; join the team or find a city job via @zaminfk_bot.
+
+CAPTION (script.md)
+ 3-kun. Doston jamoada! ⚽ Ovoz bergan har bir muxlisga rahmat.
+ Klub fondi: 21 690 000 so'm (virtual). Shahar ochildi - @zaminfk_bot ga kiring 👇
+ Qaysi klubga qarshi o'rtoqlik o'yini o'tkazaylik? Izohga klub nomini yozing.
+ G'olib 10 soatdan keyin e'lon qilinadi. Klub jamoasiga qo'shiling yoki shaharda ish toping:
+ @zaminfk_bot (Fond va muxlislar - virtual o'yin mexanikasi.)
+
+NOTE: the video said 20 085 000 while the caption said 21 690 000 (mismatch).
+RESULT: Paxtakor chosen (4 comments). Followers 142; likes 446 total (+107) -> fund 21 690 000.
+
+======================================================================
+VIDEO 4 - DAY 3 REDESIGN / DAY 4 CONTENT "ECHKI GAPIRYAPTI" (The goat speaks)
+File: 03_Episode_03/exports/ZFK_EP03_day3.mp4 (final, 35.1 s, commit 2026-11-08 23:00)
+This final render combines the Day 4 script (Paxtakor + bus driver) with a new format:
+the goat is the narrator/brand face.
+======================================================================
+IDEA
+- The goat becomes the speaker (brand face). News: Sherzod also joined (free agent),
+  friendly vs Paxtakor (fans' choice), new numbers, and a new problem that needs viewers:
+  nobody to drive the bus to Tashkent -> comment to become the driver.
+
+SCRIPT (narration = captions)
+ HOOK     "Men - echki. Va bugundan men gapiraman! Uchinchi kun - katta yangiliklar!"
+ ROSTER   "Birinchi: jamoamizga yangi himoyachi qo'shildi - Sherzod!"
+ FRIENDLY "Ikkinchi: siz tanladingiz - Paxtakor bilan o'rtoqlik o'yini!"
+ FUND     "Klub fondi: 21 690 000 so'm. Muxlislar: 142."
+ PROBLEM  "Lekin muammo bor: Toshkentga boradigan avtobusni haydaydigan odam yo'q!"
+ OUTRO    "Izohga \"MEN HAYDOVCHIMAN\" deb yozing. Eng ko'p layk olgan izoh -
+           24 soatdan keyin e'lon qilinadi!"
+
+DESIGN / SCENES
+ 1. HOOK: renovated stand (blurred), title "3-KUN", chip "ECHKI GAPIRYAPTI! 🐐", big goat
+    rising from the bottom with a talking motion.
+ 2. ROSTER: chip "JAMOA TARKIBI"; lineup slides in: Jasur, Aziz, Bekzod (with joke tags),
+    Sherzod drops in with tag "SHERZOD - YANGI! ✅" (Doston and Sherzod also seen training).
+ 3. FRIENDLY: chip "O'RTOQLIK O'YINI"; match card: ZAMIN FK crest  VS  ⚽ PAXTAKOR;
+    chip "4 TA IZOH: PAXTAKOR 🔥"; Aziz and Bekzod hop.
+ 4. FUND: fund counter rolls 20 085 000 -> 21 690 000; chip "+107 x 15 000 = 1 605 000 so'm";
+    followers 142.
+ 5. BUS PROBLEM: big 🚌 drives in shaking, chip "TOSHKENT!", card "HAYDOVCHI YO'Q! 😬",
+    goat peeks from the right.
+ 6. OUTRO: chip "HAYDOVCHI BO'LING! 🚌", chip "ENG KO'P LAYK = HAYDOVCHI",
+    chip "⏳ 24 SOATDAN KEYIN E'LON", goat talking, pulsing "+ OBUNA BO'LING".
+
+CTA: comment "MEN HAYDOVCHIMAN"; the most-liked comment becomes the driver (announced after 24 h);
+     follow. (Day 4 script also planned "apply via @zaminfk_bot: Ish -> Shahar ishi ->
+     Avtobus haydovchisi" and the word "BORAMAN".)
+
+CAPTION (Day 4 script.md)
+ 4-kun. Paxtakor bilan o'rtoqlik o'yini! ⚽ Muxlislar tanladi.
+ Toshkentga borish uchun avtobus haydovchisi kerak 🚌
+ Ariza: @zaminfk_bot (Ish -> Shahar ishi -> Avtobus haydovchisi)
+ Izohga BORAMAN deb yozing - ertaga eng yaxshi haydovchi e'lon qilinadi.
+ (Fond va muxlislar - virtual o'yin mexanikasi.)
+ NOTE: the video says "MEN HAYDOVCHIMAN" but this caption says "BORAMAN" - pick one.
+
+OPEN ITEMS (from Day 4 script)
+ - "What happened to the goat?" was promised on Day 2 and Day 3. Day 4 answered it by making
+   the goat the speaker, but no story beat was written.
+ - The bus-driver city job does not exist in the bot yet (city roles: Builder (3D), Designer,
+   Video editor, SMM, Developer, Other).
+
+======================================================================
+NUMBERS TIMELINE (ledger)
+======================================================================
+ Day 1 start: fund 15 000 000; fans 0.
+ After Day 1: 74 followers, 161 likes -> 17 415 000.
+ Day 2: +20 000 000 "Qoratepa sport jamg'armasi" (fictional name, not confirmed), all spent
+        on renovation (new stand + LED screen).
+ After Day 2: 127 followers, 339 likes total.
+ After Day 3 posts: 142 followers, 446 likes total -> fund 21 690 000 (15 000 000 + 446 x 15 000).
+ Votes: Day 1 STADION -> Day 2 DOSTON (78%) -> Day 3 PAXTAKOR (4 comments) -> Day 4 bus driver.
+
+======================================================================
+QUICK OBSERVATIONS FOR ANALYSIS
+======================================================================
+ - Strongest hooks: Day 2 (real comments + "STADION!" stamp) and Day 4 (talking goat).
+   Both show viewers their own impact in the first second.
+ - Weak spots: number mismatches (Day 3 video vs caption), two different CTA words on Day 4,
+   the goat cliffhanger repeated twice without a payoff, Day 1 is long (58.8 s vs 45 s target).
+ - Video length trend: 58.8 s -> 45.2 s -> 35.1 s (shorter is better for completion rate).
+ - Each video ends with one question and one-word answer, plus "follow"; Day 3 and 4 added the
+   Telegram bot. The bot CTA competes with the comment CTA - consider one main CTA per video.

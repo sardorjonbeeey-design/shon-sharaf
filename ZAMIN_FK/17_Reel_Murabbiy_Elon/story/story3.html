@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1920px;background:#020810;font-family:MZ,sans-serif;overflow:hidden;position:relative}
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35}
+#scrim{position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(2,8,16,.15),rgba(2,8,16,.72) 68%,rgba(2,8,16,.97))}
+#tint{position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,60,80,.55),rgba(0,20,40,.4));mix-blend-mode:multiply}
+#wrap{position:relative;z-index:10;width:1080px;height:1920px;display:flex;flex-direction:column;align-items:center;padding:80px 60px 70px}
+.crest{height:76px;margin-bottom:30px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.8))}
+.label{font-size:34px;letter-spacing:7px;color:#00D4AA;text-shadow:0 0 20px rgba(0,212,170,.5);margin-bottom:14px}
+
+/* big number */
+.big-num{font-size:260px;line-height:.85;color:#FFD23F;
+  text-shadow:0 12px 0 #0D2557,0 24px 60px rgba(0,0,0,.95);
+  -webkit-text-stroke:10px #0D2557;paint-order:stroke fill;margin-bottom:0}
+.big-sub{font-size:52px;color:#fff;text-shadow:0 4px 16px #000;
+  letter-spacing:4px;margin-bottom:50px;text-align:center}
+
+/* checklist */
+.checklist{width:900px;display:flex;flex-direction:column;gap:14px;margin-bottom:46px}
+.check-row{display:flex;align-items:center;gap:22px;
+  background:rgba(0,20,20,.82);border:4px solid rgba(0,212,170,.35);border-radius:18px;
+  padding:16px 28px;box-shadow:0 0 16px rgba(0,212,170,.1)}
+.check-box{width:52px;height:52px;border-radius:12px;border:5px dashed #00D4AA;flex-shrink:0;
+  background:rgba(0,30,30,.8);display:flex;align-items:center;justify-content:center;
+  font-size:30px;color:#00D4AA}
+.check-label{font-size:40px;color:#fff;flex:1}
+.check-pos{font-size:34px;color:#00D4AA;font-weight:900;letter-spacing:1px}
+
+/* cta */
+.cta-box{width:900px;background:rgba(0,20,20,.92);border:5px solid #00D4AA;border-radius:26px;
+  padding:24px 44px;text-align:center;box-shadow:0 0 36px rgba(0,212,170,.3)}
+.cta-small{font-size:30px;color:#9fb6ff;letter-spacing:3px;margin-bottom:10px}
+.cta-big{font-size:56px;color:#fff;line-height:1.2}
+
+.bottom{margin-top:auto;font-size:34px;color:#9fb6ff;letter-spacing:2px}
+</style></head><body>
+<img id="bg" src="top.jpg">
+<div id="scrim"></div><div id="tint"></div>
+<div id="wrap">
+  <img class="crest" src="crest.png">
+  <div class="label">ZAMIN FK</div>
+
+  <div class="big-num">11</div>
+  <div class="big-sub">TA JOY — HAMMASI BOSh</div>
+
+  <div class="checklist">
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Darvozabon</div><div class="check-pos">GK</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">O'ng himoyachi</div><div class="check-pos">RB</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Markaziy himoyachi</div><div class="check-pos">CB</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Markaziy himoyachi</div><div class="check-pos">CB</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Chap himoyachi</div><div class="check-pos">LB</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Markaziy yarim</div><div class="check-pos">CM</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Hujumchi o'rta</div><div class="check-pos">CAM</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Himoya o'rta</div><div class="check-pos">CDM</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Chap qanotchi</div><div class="check-pos">LW</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">O'ng qanotchi</div><div class="check-pos">RW</div></div>
+    <div class="check-row"><div class="check-box">?</div><div class="check-label">Hujumchi</div><div class="check-pos">ST</div></div>
+  </div>
+
+  <div class="cta-box">
+    <div class="cta-small">KIM O'YNAYDI? IZOHGA 👇</div>
+    <div class="cta-big">POZITSIYA + ISMINGIZ</div>
+  </div>
+
+  <div class="bottom">@fk_zamin &nbsp;•&nbsp; SINOV O'YINI</div>
+</div>
+</body></html>

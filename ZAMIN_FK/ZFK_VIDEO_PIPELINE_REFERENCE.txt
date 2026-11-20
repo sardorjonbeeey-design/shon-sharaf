@@ -1,0 +1,391 @@
+ZAMIN FK — VIDEO GENERATION PIPELINE REFERENCE
+================================================
+This document describes how Zamin FK reels are built.
+It is a reference of what has been done, not a step-by-step instruction.
+Last updated: 2026-11-17  |  Covers reels 10–17.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. OVERVIEW — THE FULL PIPELINE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every reel is assembled from four layers, produced in this order:
+
+  [CONCEPT]  →  [film.html]  →  [voice]  →  [render.js]  →  [make.py]  →  [MP4]
+
+1. Concept: beats, narrative arc, CTA, visual ideas agreed before building.
+2. film.html: the animated canvas — HTML+CSS+JS, 1080×1920 px.
+3. Voice: narration lines generated per beat via Poyo → ElevenLabs TTS.
+4. prep_voice.py: aligns voice timestamps to a shared timeline → words.json.
+5. render.js: Playwright headless Chromium screenshots every frame → ffmpeg pipe → silent.mp4.
+6. make.py: adds narration, SFX, crowd bed, music → loudnorm → final MP4 + SRT.
+
+Each reel lives in its own folder: ZAMIN_FK/NN_Reel_Name/
+  assets/   images used by film.html
+  voice/    01.mp3 … 06.mp3 + matching .json timestamp files + _fit.wav trims
+  exports/  final MP4 + SRT + caption.txt  (MP4 is git-ignored)
+  build/    temp frames, words.json  (git-ignored)
+  film.html, render.js, prep_voice.py, make.py, script.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. CONCEPT & BEAT PLANNING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A reel is structured as 5–6 beats (scenes). Each beat has:
+  - a header label (small caps, top)
+  - a headline (large bold, gold or white)
+  - a background element (formation, card, screenshot)
+  - a bottom element (band, CTA, follow button)
+  - a voice line (1–2 sentences max)
+
+Typical arc for a Zamin FK reel:
+  B1  Hook / reveal title
+  B2  Main content / data / winner
+  B3  Consequence / next step
+  B4  CTA with mechanics (interactive, low friction)
+  B5  Whisper / secret hook (optional, high engagement)
+  B6  OBUNA (follow) + crest
+
+Beat duration is driven entirely by the voice line length.
+Total target: 20–32 seconds. Under 25 s performs best (avg watch time data).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. VOICE GENERATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Provider: Poyo → ElevenLabs v4 TTS
+  model:         elevenlabs-v4-tts
+  voice_id:      rwtcHtZgYU6HN2zLNBlf  (confirmed for Uzbek)
+  language_code: uz
+  timestamps:    true  (required — returns character-level timing)
+
+Standard settings (normal narration):
+  stability:        0.5
+  similarity_boost: 0.75
+
+Whisper / emotional settings:
+  stability:        0.05–0.10  (very low = breathy, variable)
+  similarity_boost: 0.30
+
+Text rules:
+  - Write all numbers as words: "yetmish olti", not "76"
+  - Write "Zamin FK" not "ZAMIN FK" (the model reads caps awkwardly)
+  - Ellipses (…) add natural pauses
+  - No SSML emotion tags — they are ignored by this model
+  - Keep each line to 1–2 sentences; long lines break the timing alignment
+
+Each beat = one Poyo job. All 6 jobs can be submitted in parallel.
+Output files: NN.mp3 (audio) + timestamps.json (character-level timing)
+Download URL pattern:
+  https://cdn.doculator.org/audios/<TASK_ID>/<TASK_ID>.mp3
+  https://cdn.doculator.org/audios/<TASK_ID>/timestamps.json
+
+Approx cost: 0.3–1.1 credits per line depending on length.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. TIMING EXTRACTION — prep_voice.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+prep_voice.py reads voice/01.mp3 … 06.mp3 and their .json files.
+It trims silence from each clip and lays all 6 onto one shared timeline.
+
+Key parameters:
+  LEAD = 0.25s   (gap before beat 1 starts)
+  GAP  = 0.3s    (gap between beats 1–5; 0.0s before beat 6)
+
+Output: build/words.json
+  Array of 6 beat objects, each with:
+    beat    int (1–6)
+    start   float  (seconds on the final video timeline)
+    end     float
+    words   array of {w, a, b}  (word text, start time, end time)
+    sents   array of {a, b, words}  (sentence boundaries)
+
+This file is consumed by both render.js (injects window.W) and make.py.
+
+Tempo scaling: pass a float argument (e.g. 1.05) to speed up narration
+uniformly if the total exceeds 40 seconds.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. film.html — THE ANIMATED CANVAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5a. STRUCTURE
+  1080×1920 px fixed canvas.
+  Layers (back to front):
+    #stage      the camera-zoomed container
+      #bg       stadium background image (swapped per frame by renderAt)
+      #scrim    dark overlay gradient
+      #tint     optional colour tint (mix-blend-mode: multiply)
+      #darkN    beat-specific dark overlays (e.g. whisper beat)
+      #ovp      pitch elements (player dots, slots) — zooms with camera
+    #ov         UI overlays (headings, cards, buttons) — also zooms
+    #fl         white flash layer (beat transition)
+
+5b. FONTS
+  Montserrat 900 Black + 700 Bold
+  Loaded from: ../web/city/assets/fonts/Montserrat_*.ttf
+  (CDNs are blocked in headless Chromium — always use local paths)
+
+5c. COORDINATE SYSTEM
+  Origin: top-left (0,0). Screen centre: (540, 960).
+  All elements positioned by their CENTRE via transform: translate(-50%,-50%).
+
+  Pitch position lookup table (LAY object):
+    Keys: "A_GK", "A_LB", …, "B_GK", "B_LB", …  (22 positions)
+    A_ = bottom half of screen (y ≈ 1030–1533) — one team end
+    B_ = top half of screen  (y ≈ 387–890)  — other team end
+    Values: [x, y] pixel coordinates
+
+5d. ELEMENT ANIMATION SYSTEM
+  add(parent, html, x, y, appearTime, disappearTime, options)
+  Items animate in with an easeOutBack spring (eob function).
+  Enter modes:
+    "stamp"  — scale 0.3→1.0 fast (0.3s)  — used for headings
+    "pop"    — scale 0.3→1.0 (0.34s)      — used for cards/slots
+    "none"   — instant appear
+
+  Options:
+    keep:  true  — no fade-out at disappear time
+    pulse: true  — gentle scale oscillation (sin wave)
+    glow:  true  — gold drop-shadow oscillation
+    tglow: true  — teal drop-shadow oscillation
+    rot:   deg   — static rotation
+    dim:   fn(t) — dynamic opacity multiplier (e.g. fade during a beat)
+
+  Timing helpers (after words.json is loaded):
+    bs(n)   = beat n start time
+    be(n)   = beat n end time (= beat n+1 start + 0.02s)
+    S(n,i)  = beat n, sentence i  (0-indexed)
+    END     = last beat end + 1.0s
+
+5e. CAMERA
+  window.renderAt(t) is called per frame.
+  Camera is a CSS scale on #stage, applied around centre (540px, 960px).
+
+  Zoom IN  (R16 style): z = 1 + 0.05 * sm(DIVE/FPS, END, t)
+  Zoom OUT (R17 style): z = 1.06 - 0.06 * sm(0, END, t)
+  sm(a, b, x) = smoothstep interpolation, clamped to [0,1]
+
+5f. BACKGROUND — STADIUM TOP VIEW
+  The background is a pre-rendered dive sequence (40 frames) + a static plate.
+  Frames live in build/top/d_000.jpg … d_039.jpg and build/top/top.jpg.
+  These are generated once from the real stadium top-view PNG (assets/top.jpg)
+  by the render harness or reused across reels (identical frames since
+  the same stadium plate is used).
+
+  renderAt swaps the bg image to frame floor(t * 30), capped at frame 40.
+
+5g. HEADING PATTERN
+  hd(label, bigText, appearTime, disappearTime, yPos, options)
+  Renders:  <small>LABEL</small><b>BIG TEXT</b>
+  Positioned centre-x (540), y varies:
+    R16 style: y=170 (near top)
+    R17 style: y=540–640 (mid-screen) — feels more cinematic
+
+5h. BEAT TRANSITION FLASH
+  A white #fl layer flashes briefly (opacity 0.25) at each beat boundary.
+  Driven by: f = max(0, 1 - (t - bs(n)) / 0.12) for n in 1–6
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. IMAGE GENERATION (assets)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Provider: Poyo
+  model:   gpt-image-2.6-fixed
+  version: sunburst
+  size:    9:16
+  resolution: 1K  (output is ~941×1672 regardless of resolution param)
+
+Style block used for stadium/crowd images:
+  "Cinematic realistic 3D animated-film style, small-town football stadium
+   in Uzbekistan, royal-blue (#1F4FB8) plastic bucket seats, plain shirts
+   and scarves, no text, no logos on clothing or structures"
+
+Edits (before/after, adding elements):
+  Pass image_urls with the existing image — model keeps frame near pixel-aligned.
+
+Output URL pattern:
+  https://cdn.doculator.org/images/<TASK_ID>/<TASK_ID>.png
+
+Cost: ~1.7 credits per 1K 9:16 image.
+
+Stories and static overlays are built in HTML (story.html) and
+screenshotted by shot.js (Playwright, 1080×1920, JPEG quality 92).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. RENDERING — render.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Runtime: Node.js + Playwright (Chromium pre-installed, no install needed)
+  require('playwright') works from any directory
+
+Launch flags needed for headless GL:
+  --use-gl=angle
+  --use-angle=swiftshader
+  --enable-unsafe-swiftshader
+  --ignore-gpu-blocklist
+  --allow-file-access-from-files
+
+Workflow:
+  1. Load build/words.json → inject as window.W via addInitScript
+  2. Navigate to file:// path of film.html
+  3. Call window.ready() — preloads all images, fonts
+  4. Read window.END to know total frame count
+  5. For each frame f (0 to END*30):
+       call window.renderAt(f/30)
+       screenshot() → JPEG quality 93
+       pipe to ffmpeg (image2pipe, mjpeg input → libx264 crf18)
+
+Frame check mode:
+  node render.js frames t1,t2,t3
+  Saves individual frames to build/frames/f_T.jpg for quick visual review.
+
+Speed: ~2 frames/second on the cloud container CPU.
+  A 21s reel (633 frames) takes ~5–6 minutes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. AUDIO MIX — make.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Input: build/silent.mp4 (picture) + voice/NN_fit.wav (trimmed narration)
+Output: exports/ZFK_name.mp4
+
+Audio layers (mixed via ffmpeg filter_complex):
+  1. Narration (6 beats)
+     highpass f=90, acompressor, volume 1.0
+  2. BOOM hits  (synthesized bass drum, one per beat start)
+     aevalsrc: decaying sine ~46Hz + 110Hz, 1.5s
+  3. POP ticks  (synthesized high click, end of each beat)
+     aevalsrc: decaying sine ~520Hz, 0.4s
+  4. Whoosh sweeps (pink noise bandpass, 0.5s, before each beat)
+     anoisesrc → bandpass f=1800 w=2600 → volume ramp → afade out
+  5. Crowd bed  (looped from 03_Episode_03/sfx/crowd_bed.wav, vol 0.14)
+  6. Music      (from 06_Episode_06/sfx/music.mp3, vol 0.2)
+     Music has accent hits at 6/12/18s and a final chord at 30s
+
+Final chain: amix → apad → atrim → loudnorm I=-14 TP=-1.5 LRA=9
+Output codec: AAC 192k 48kHz stereo
+
+SRT is written from the words.json sentence boundaries.
+  Format: sentence text, start→end times, 200ms overlap buffer removed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. CAPTION WRITING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Language: Uzbek Latin script
+  Apostrophes: o' g' ' (not regular apostrophe ')
+
+Structure (5 blocks, separated by blank lines):
+  1. HOOK LINE — mirrors beat 1 headline, 1 sentence, emoji
+  2. BODY — 2–3 lines explaining the content / result
+  3. CTA — the interactive mechanic, clearly stated, 👇
+  4. FOLLOW nudge — "Obuna bo'ling" or similar
+  5. DISCLAIMER + HASHTAGS
+     Always end with:
+     (Muxlislar jamoasi — virtual o'yin elementi. Video AI yordamida yaratilgan.)
+     #ZaminFK #futbol #Uzbekiston #SizQurasiz
+
+Caption rules:
+  - Never show fake follower/like counts
+  - Fan-based mechanics labeled as "virtual o'yin elementi"
+  - Any example comment labeled as NAMUNA (in video) or "(misol)" in caption
+  - CTA must be low friction: one clear action
+  - Hashtag limit: 4–5 (over-tagging reduces reach on this account's size)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. STORY IMAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Stories are static JPEG images (1080×1920) built from HTML + Playwright.
+
+story.html structure:
+  - Background: assets/top.jpg (stadium top-view plate)
+  - Dark scrim overlay
+  - Montserrat Black headings (large, gold)
+  - Crest at top-left
+  - CTA text at bottom
+  - Optional countdown / question element
+
+shot.js:
+  argv[2] = HTML path
+  argv[3] = output JPG path
+  Launches Chromium at 1080×1920, screenshots at JPEG quality 92.
+  Usage: node shot.js story2.html story2.jpg
+
+Posting to Instagram via Windsor.ai:
+  connector: instagram
+  action:    create_story
+  account:   17841480304279830  (fk_zamin)
+  params:    { image_url: "<public JPEG URL>" }
+  The raw GitHub URL of a pushed repo file works as a public URL.
+  URL pattern: https://raw.githubusercontent.com/sardorjonbeeey-design/shon-sharaf/<branch>/ZAMIN_FK/path/file.jpg
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11. DESIGN SYSTEM — COLOURS & TYPOGRAPHY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Brand colours:
+  Royal blue:   #1F4FB8   (player dots, borders, club colour)
+  Dark navy:    #0D2557   (text stroke, shadows)
+  Gold:         #FFD23F   (headlines, fan XI slots, highlights)
+  Off-black:    #02040c   (background base)
+  Instagram pink: #E1306C (follow button)
+  Red accent:   #E63946   (warnings, coach label)
+  Teal:         #00D4AA   (Sinov Jamoasi, new team indicators)
+  Soft blue:    #9fb6ff   (sub-labels, reserve text)
+
+Typography:
+  All headings: Montserrat 900 Black
+  Sub-labels: 38–52px, letter-spacing 3–5px, colour #9fb6ff
+  Main headline: 88–104px, gold fill, navy 7px stroke, navy drop-shadow
+  Alternative headline: white fill (cls2="w"), red fill (cls2="r")
+  Body/chip text: Montserrat 700 Bold, 23–50px
+
+Slot sizes:
+  Fan XI (established):  68px diameter, 5px border
+  New/empty slots:       68–78px diameter, 5px dashed border
+  MURABBIY coach card:   custom card element, not a circle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+12. CHARACTERS & CANON ELEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Characters with sprites (01_Art_Direction/Sprites/):
+  Rustam aka (coach), Bekzod, Jasur, Aziz, Doston, Sherzod, the goat
+
+Goat usage:
+  - goat_chew.png (818×1343) — portrait, chewing mouth, used for "peeking/whispering"
+  - goat_side.png (1025×992) — landscape, side view, used for running/reaction
+  - Typically appears as a cameo/surprise in one beat per reel
+  - Positioned partially off-screen for a "peek" effect
+
+Crest: assets/crest.png — always at ~150px height, bottom-left of end card
+  Source: 03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png
+  NEVER modify the crest
+
+Stadium top view: assets/top.jpg — real stadium aerial photograph
+  Used as the base for all formation/pitch reels
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+13. ENGAGEMENT MECHANICS OBSERVED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+What drives comments on this account (data from Nov 6–16, 555 followers):
+  - Position-claim CTAs ("pozitsiyangizni yozing") → 300+ comments in one reel
+  - Comment-to-win mechanics → comments exceed likes (2,848 vs 2,544 total)
+  - Whisper/secret hints → creates secondary sharing ("did you catch this?")
+  - Shares spike on team-reveal and game-mechanic content (up to 65 shares)
+
+Optimal post times (UTC):
+  Reach:      04:00–05:00 UTC (09:00–10:00 Tashkent)
+  Engagement: 15:00–16:00 UTC (20:00–21:00 Tashkent)
+
+Audience (data 450 counted):
+  92% Uzbekistan; top cities Turtkul, Yangier (not Tashkent)
+  Core age: 25–34, significant 13–17 cohort
+  Gender: largely unknown (288/450) — stories/polls would help profile
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

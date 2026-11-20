@@ -1,0 +1,52 @@
+1
+00:00:00,250 --> 00:00:03,115
+Do‘stingiz ZAMIN FK’da kim bo‘lardi?
+
+2
+00:00:03,135 --> 00:00:04,037
+Jasur.
+
+3
+00:00:04,057 --> 00:00:06,001
+Hammani qutqaradigan do‘st!
+
+4
+00:00:06,021 --> 00:00:06,723
+Doston.
+
+5
+00:00:06,843 --> 00:00:09,332
+Hammadan oldin yetib keladigan do‘st!
+
+6
+00:00:09,352 --> 00:00:10,121
+Aziz.
+
+7
+00:00:10,141 --> 00:00:12,174
+Hamma joyda yuguradigan do‘st!
+
+8
+00:00:12,194 --> 00:00:13,239
+Bekzod.
+
+9
+00:00:13,259 --> 00:00:15,172
+Doim zarba beradigan do‘st!
+
+10
+00:00:15,192 --> 00:00:17,500
+Hamma joyda o‘ynaydigan do‘stingiz-chi?
+
+11
+00:00:17,520 --> 00:00:19,267
+Uning o‘rni ham tayyor!
+
+12
+00:00:19,287 --> 00:00:21,376
+Do‘stingizni izohda belgilang.
+
+13
+00:00:21,396 --> 00:00:25,596
+Obuna bo‘ling — keyingi qism eng ko‘p belgilangan o‘yinchi haqida!
+

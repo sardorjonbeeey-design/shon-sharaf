@@ -1,0 +1,62 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:1080px;height:1920px;background:#010508;font-family:MZ,sans-serif;overflow:hidden;position:relative}
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.22}
+#scrim{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(1,5,8,.4),rgba(1,5,8,.82) 60%,rgba(1,5,8,.99))}
+#tint{position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,30,40,.7),rgba(0,10,20,.65));mix-blend-mode:multiply}
+#wrap{position:relative;z-index:10;width:1080px;height:1920px;display:flex;flex-direction:column;align-items:center;padding:80px 60px 70px}
+.crest{height:68px;margin-bottom:28px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.8));opacity:.7}
+.label{font-size:30px;letter-spacing:6px;color:rgba(0,212,170,.6);margin-bottom:60px}
+
+/* goat */
+.goat-wrap{position:relative;width:900px;height:700px;margin-bottom:48px}
+.goat-img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:620px;
+  filter:drop-shadow(0 0 60px rgba(0,212,170,.2))}
+.glow-ring{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  width:420px;height:80px;background:radial-gradient(ellipse,rgba(0,212,170,.18),transparent 70%);
+  border-radius:50%}
+
+/* whisper text */
+.whisper-wrap{text-align:center;margin-bottom:48px}
+.whisper-eyebrow{font-size:34px;letter-spacing:6px;color:rgba(0,212,170,.7);margin-bottom:16px}
+.whisper-main{font-size:68px;line-height:1.05;color:#fff;
+  text-shadow:0 4px 20px rgba(0,0,0,.9);margin-bottom:16px}
+.whisper-main em{font-style:normal;color:#FFD23F;
+  -webkit-text-stroke:4px #0D2557;paint-order:stroke fill}
+.whisper-hint{font-size:38px;color:rgba(255,255,255,.6);letter-spacing:1px}
+
+/* secret box */
+.secret-box{width:900px;background:rgba(0,15,15,.92);border:4px solid rgba(0,212,170,.4);
+  border-radius:24px;padding:26px 44px;text-align:center;
+  box-shadow:0 0 40px rgba(0,212,170,.12),inset 0 0 24px rgba(0,212,170,.04)}
+.s-label{font-size:28px;letter-spacing:5px;color:rgba(0,212,170,.7);margin-bottom:10px}
+.s-text{font-size:46px;color:rgba(255,255,255,.85);line-height:1.2}
+
+.bottom{margin-top:auto;font-size:32px;color:rgba(159,182,255,.5);letter-spacing:2px}
+</style></head><body>
+<img id="bg" src="top.jpg">
+<div id="scrim"></div><div id="tint"></div>
+<div id="wrap">
+  <img class="crest" src="crest.png">
+  <div class="label">ZAMIN FK</div>
+
+  <div class="goat-wrap">
+    <div class="glow-ring"></div>
+    <img class="goat-img" src="goat.png">
+  </div>
+
+  <div class="whisper-wrap">
+    <div class="whisper-eyebrow">🤫 AYTGANCHA...</div>
+    <div class="whisper-main">Eng faol o'yinchi<br><em>asosiy jamoaga</em><br>o'tishi mumkin</div>
+    <div class="whisper-hint">🤭 Shunchaki deyapman...</div>
+  </div>
+
+  <div class="secret-box">
+    <div class="s-label">SINOV O'YINIGA QOLING</div>
+    <div class="s-text">Izohga POZITSIYA + ISMINGIZ</div>
+  </div>
+
+  <div class="bottom">@fk_zamin &nbsp;•&nbsp; SIR SAQLANG</div>
+</div>
+</body></html>

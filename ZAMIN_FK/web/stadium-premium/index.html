@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ZAMIN FK Stadium — 3D Viewer</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07111d;color:#edf5ff}
+#view{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}
+.panel{position:fixed;z-index:2;left:18px;top:18px;width:min(340px,calc(100vw - 36px));padding:16px;border:1px solid #ffffff22;border-radius:18px;background:linear-gradient(145deg,#0b1b2deF,#07111de8);backdrop-filter:blur(18px);box-shadow:0 18px 55px #0008}
+.eyebrow{font-size:10px;letter-spacing:.2em;color:#72d6ff;font-weight:800}.title{font-size:20px;font-weight:800;margin:6px 0 3px}.sub{font-size:12px;color:#9fb3c8;margin-bottom:14px;line-height:1.5}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.btn{border:1px solid #ffffff26;background:#15283b;color:#eaf5ff;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:700;cursor:pointer}.btn:hover{background:#21415d}.btn.primary{background:#087eaa;border-color:#16b8e9}.btn.active{outline:2px solid #50cfff}.hint{font-size:11px;color:#8fa7bd;line-height:1.5;margin-top:10px}.status{font-size:11px;color:#a9c6dc;margin-top:8px;min-height:16px}
+#help{position:fixed;right:18px;bottom:18px;max-width:290px;padding:12px 14px;border-radius:13px;background:#07111ddc;border:1px solid #ffffff22;color:#c6d7e6;font-size:11px;line-height:1.55;backdrop-filter:blur(12px)}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:#07111d;z-index:5;color:#dceeff;font-weight:700;letter-spacing:.04em}#loading small{display:block;color:#8fa7bd;font-weight:400;text-align:center;margin-top:8px}
+@media(max-width:600px){.panel{left:10px;top:10px;padding:12px}.title{font-size:17px}#help{left:10px;right:10px;bottom:10px;max-width:none}}
+</style>
+</head>
+<body>
+<div id="view"></div>
+<div id="loading">LOADING ZAMIN FK STADIUM<small>Preparing the 3D scene… v8</small></div>
+<div id="status" hidden></div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const $=s=>document.querySelector(s)||document.createElement('div');
+const host=$('#view'), status=$('#status'), loading=$('#loading');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x07111d); scene.fog=new THREE.Fog(0x07111d,80,260);
+const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,1000); camera.position.set(48,34,58);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15; host.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xa8d9ff,0x142033,2.0));
+const key=new THREE.DirectionalLight(0xffedcf,2.4); key.position.set(35,65,25); scene.add(key);
+const fill=new THREE.DirectionalLight(0x3d9fff,1.1); fill.position.set(-45,22,-35); scene.add(fill);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(600,600),new THREE.MeshStandardMaterial({color:0x0b1a24,roughness:.94})); ground.rotation.x=-Math.PI/2; ground.position.y=-.08; scene.add(ground);
+const grid=new THREE.GridHelper(300,100,0x24465b,0x173044); grid.position.y=-.04; scene.add(grid);
+const orbit=new OrbitControls(camera,renderer.domElement); orbit.enableDamping=true; orbit.dampingFactor=.06; orbit.minDistance=5; orbit.maxDistance=180; orbit.target.set(0,5,0);
+const walker=new PointerLockControls(camera,renderer.domElement); let mode='orbit', model=null, box=new THREE.Box3(), center=new THREE.Vector3(), size=new THREE.Vector3(), radius=35, flying=false, flyStart=0, flyDuration=18000;
+const fans=["evscruzy","qurbonaliyew_013","jorayev.of","muhriddin.xolmanov","safarkhulov_202","uzb_ttttttttttt","erkin_19_85","sadoqat8698","sardortoshpulatov84","od.il8850","nurkamol1818","mustafoyev_060.720","abbos_xontorayev","temur19930125","berdiyvasliddin","abdushukurovaiulduzkhon","_____diyorbek____2911","aboba_kir77","baxo.dirjon0990","az1co_5999","alisher.normurodov","valijon2555","sanginboyev_19","nozimboydavlatov","akbar_45627","muborakshodmonova","sultonali479","hakimjon.amirxon.usmon","alieva.gulan","eshburievfarkhot","akylajosmonova","hayot_vv","mamajonovadonoxon","roziyeyravshanraufovich","iyogmirov","sha.bnam9224","mirzoikrom178","makhmudjonov_77777","kamran64434","muhabbat.gulomova.3","latofatsaidmurodova433","azizamiraliyev85","fozil.ov99","legends00000001","rajabboyev_04_01_13","qurbanova_salomat","ma.hliyo8819","yigitali._.7","husanjonisroilov99","burxonov__d","zenox1238o","ergashev.berdiyar","farishtamjannatim","fiyalka_1606","xolmerzayevumid","jumamurotovmuyassar","jemuratovikram10","jorayevroziboy25","_abdullo_o.5_","xuday6erganov.01","z14_bella_","khulkar35","sayyora.haydarova1989","xlll_vvv","gulnora_asrorovna","eldor015._","alligator.8374086","_bazarova_zulfiya_","werikal_diyorbek","abdulaziz88775","sh.karamatov","mahbubanizamutdinova700","rasuljon.com1","munira29833","qobilovasrorjon","shaxa_2014_03","ul.fat923","rozakoldasovna","nur_2014141","praim_rafa","muhammadusuf634","solaymanaboalou","mavlonov._tohir","sayyorakodirova2","jumayevmexriddin79","mamadova.komila","abubakir33551","kana.t4400","hakimaquvatovna","nasiba19872026","usarov1325","muhtabarlutfullayeva61","eshpolatovumarjon561","zver_taj_09","ibragimova72351","abdulla_official_0001","meliboyev1707","aslanov._.1","dilshod_bek.uz","kalbay63","saydalievbehzod4","isomova_sabina","babir_58","nurmatov1ch.434","sa.ro5213","iabdu89","1.sarvar_015","kewl.imjay45","otabekraxmonov2603","muhammadsodiq75989","mini_yamal_2017","m_10_2016","dalerrr_19","isomidinov_n","abdulvoxidovhabibulloh","nazarovaozoda65","__abdllv","asatillo_khasanov_","mukhammad20911","mahmudjonov_07_22","elbe.k0716","zavqi3333","madad93236","jalolahmedov84","amirov801_","bekk30d__10","zuuhl7uzxshjos","x__baxti","rasulov__h_"];
+const canLock=typeof document.exitPointerLock==='function'&&'requestPointerLock' in Element.prototype;
+if(!canLock)$('#walk').style.display='none';
+const keys={}; addEventListener('keydown',e=>keys[e.code]=true); addEventListener('keyup',e=>keys[e.code]=false);
+function setMode(m){mode=m; flying=false; orbit.enabled=m==='orbit'; if(m==='walk'){status.textContent='Walk mode: click the 3D scene to look around.';} else {if(walker.isLocked)walker.unlock();status.textContent='Orbit mode enabled.';} $('#orbit').classList.toggle('active',m==='orbit');$('#walk').classList.toggle('active',m==='walk');}
+$('#orbit').onclick=()=>setMode('orbit'); $('#walk').onclick=()=>setMode('walk');
+renderer.domElement.addEventListener('click',()=>{if(mode==='walk'&&!walker.isLocked&&canLock)walker.lock();});
+walker.addEventListener('lock',()=>status.textContent='Walk mode active · WASD to move · Esc to exit.'); walker.addEventListener('unlock',()=>{if(mode==='walk')status.textContent='Walk mode paused. Click the scene to resume.';});
+function frame(pos,target){camera.position.copy(pos);camera.lookAt(target);orbit.target.copy(target);orbit.update();}
+function shot(name){flying=false;setMode('orbit');const c=center, r=radius; if(name==='overview')frame(c.clone().add(new THREE.Vector3(r*1.55,r*1.25,r*1.65)),c);
+if(name==='front')frame(c.clone().add(new THREE.Vector3(0,r*.48,r*1.85)),c.clone().add(new THREE.Vector3(0,2,0)));
+if(name==='pitch')frame(c.clone().add(new THREE.Vector3(r*.18,r*.45,r*.65)),c.clone().add(new THREE.Vector3(0,1,0)));
+if(name==='inside')frame(c.clone().add(new THREE.Vector3(r*.12,r*.2,r*.12)),c.clone().add(new THREE.Vector3(0,2,-r*.4)));
+}
+document.querySelectorAll('[data-shot]').forEach(b=>b.onclick=()=>shot(b.dataset.shot));
+$('#reset').onclick=()=>shot('overview');
+$('#stop').onclick=()=>{flying=false;status.textContent='Camera movement stopped.'};
+$('#fly').onclick=()=>{setMode('orbit');flying=true;flyStart=performance.now();status.textContent='Cinematic fly-through playing…';};
+$('#fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();};
+const fanColors=[0xff6b6b,0x4ecdc4,0x45b7d1,0xf9ca24,0x6c5ce7,0xa29bfe,0xfd79a8,0xfdcb6e,0xffffff];
+let fanMesh=null, fanSeats=[], fanPhase=[];
+const _m=new THREE.Matrix4(), _q=new THREE.Quaternion(), _s=new THREE.Vector3(1,1,1), _p=new THREE.Vector3(), _z=new THREE.Vector3(0,0,1);
+// Seats in the GLB are identical boxes baked at world positions; turn each (stand, material) group into one InstancedMesh.
+function instanceSeats(root){
+  const groups=new Map(), seats=[];
+  root.traverse(o=>{if(o.isMesh&&/^Seat[ _]/.test(o.name)){const k=o.name.slice(0,6)+'|'+o.material.uuid;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(o);}});
+  for(const list of groups.values()){
+    const parent=list[0].parent, tpl=list[0].geometry.clone();
+    tpl.computeBoundingBox(); const c0=tpl.boundingBox.getCenter(new THREE.Vector3()); tpl.translate(-c0.x,-c0.y,-c0.z);
+    const im=new THREE.InstancedMesh(tpl,list[0].material,list.length);
+    list.forEach((o,i)=>{o.geometry.computeBoundingBox();const c=o.geometry.boundingBox.getCenter(new THREE.Vector3());im.setMatrixAt(i,_m.makeTranslation(c.x,c.y,c.z));seats.push({parent,local:c});o.removeFromParent();o.geometry.dispose();});
+    im.computeBoundingSphere(); parent.add(im);
+  }
+  return seats;
+}
+function placeFans(seats){
+  const n=Math.min(fans.length,seats.length), geo=new THREE.CapsuleGeometry(.22,.5,3,8);
+  fanMesh=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({roughness:.6}),n);
+  for(let i=0;i<n;i++){const s=seats[Math.floor(i*seats.length/n)];fanSeats.push(s.local.clone().applyMatrix4(s.parent.matrixWorld));fanPhase.push(Math.random()*Math.PI*2);fanMesh.setColorAt(i,new THREE.Color(fanColors[i%fanColors.length]));}
+  fanMesh.frustumCulled=false; scene.add(fanMesh);
+}
+function updateFans(now){if(!fanMesh)return;const t=now*.001;
+  for(let i=0;i<fanSeats.length;i++){const k=t*3+fanPhase[i];_p.copy(fanSeats[i]);_p.y+=.75+Math.max(0,Math.sin(k))*.35;_q.setFromAxisAngle(_z,Math.sin(k*.5)*.15);fanMesh.setMatrixAt(i,_m.compose(_p,_q,_s));}
+  fanMesh.instanceMatrix.needsUpdate=true;}
+const PF='https://polyfork.dev/cdn/';
+const WOMEN=['poker-pro-da0258','skate-filmer-b9d393','vert-skater-972639','skier-e7ad44','passenger-ac425a','park-ranger-c1697e','cueca-musician-d71a2e','crossing-keeper-e13207','diner-waitress-60f6a1','player-in-a-cardigan-b558c9'];
+const MEN=['suburban-resident-a9db9c','player-in-flannel-d0bae4','teen-player-37865e','organillero-67b687','chinchinero-2cc296','hanga-roa-fisherman-e56812','gas-station-attendant-38bd86','delivery-courier-327e30','street-skater-4ee28b','lounge-bartender-9d425a'];
+const crowd=[], walkers=[], trainers=[];
+const KIT={matchday:1,shirt:'#1f4fb8',denim:'#ffffff',hose:'#1f4fb8',cuff:'#ffffff',stripe:'#1f4fb8',boot:'#1d2024'};
+const GK_KIT={figure:'masculine',shirt:'#2e8b3e',denim:'#2e8b3e',hose:'#2e8b3e',pad:'#1f6b2e',raglan:'#1f6b2e',veeTrim:'#ffffff',cuff:'#2e8b3e',waistband:'#1f6b2e',stripe:'#ffffff',sockBand:'#ffffff',skin:'#c8a282',hair:'#1d2024',brow:'#1d2024'};
+const COACH_KIT={matchday:0,coat:'#1f4fb8',cuff:'#ffffff',shirt:'#1f4fb8',denim:'#1f4fb8',hose:'#1f4fb8',stripe:'#ffffff',boot:'#1d2024',build:1.04,age:'old'};
+// 4-3-3; u: own goal (-1) to attack (+1), v: right (-1) to left (+1)
+const SQUAD=[[1,'JASUR',-.93,0,'gk'],[2,'',-.55,-.7],[5,'',-.62,-.25],[4,'',-.62,.25],[3,'',-.55,.7],[6,'',-.32,0],[8,'AZIZ',-.15,-.35],[10,'',-.08,.35],[7,'',.12,-.7],[9,'BEKZOD',.2,0],[11,'',.12,.7]];
+function shirtTexture(num,name){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.fillStyle='#fff';g.textAlign='center';
+  if(name){g.font='bold 44px sans-serif';g.fillText(name,128,58);}g.font='bold 170px sans-serif';g.fillText(String(num),128,226);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;}
+function patch(obj,tex,w,h,at,back){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
+  m.position.set(...at);if(back)m.rotation.y=Math.PI;obj.updateMatrixWorld(true);let bone=null;obj.traverse(o=>{if(o.isBone&&o.name.endsWith('Spine2'))bone=o;});(bone||obj).attach(m);}
+async function loadTeam(pitch,animate){
+  const [op,gk]=await Promise.all([import(PF+'outfield-player-2b742a.mjs'),import(PF+'goalkeeper-10017a.mjs')]);
+  const crest=await new THREE.TextureLoader().loadAsync('./crest.png');crest.colorSpace=THREE.SRGBColorSpace;
+  const long=pitch.halfX>=pitch.halfZ, L=(long?pitch.halfX:pitch.halfZ)-2, W=(long?pitch.halfZ:pitch.halfX)-3;
+  const at=(u,v)=>long?[pitch.x+u*L,pitch.z+v*W]:[pitch.x+v*W,pitch.z+u*L];
+  const jobs=SQUAD.map(async([num,name,u,v,role])=>{
+    const p=role==='gk'?gk.createAsset(GK_KIT):op.createAsset(KIT);
+    patch(p,crest,.09,.09,[.07,1.3,.15]);patch(p,shirtTexture(num,name),.3,.3,[0,1.22,-.16],true);
+    const [x,z]=at(u,v),[fx,fz]=at(u+.2,v);p.position.set(x,pitch.y,z);p.lookAt(fx,pitch.y,fz);scene.add(p);
+    const a=await animate(p,{clips:['Idle','Walk','Run','Kick']});crowd.push(a);
+    trainers.push({o:p,a,home:new THREE.Vector3(x,pitch.y,z),target:new THREE.Vector3(x,pitch.y,z),wait:Math.random()*2,range:role==='gk'?2.5:9,speed:role==='gk'?1.6:3.4+Math.random()*.8});});
+  const coach=op.createAsset(COACH_KIT);patch(coach,crest,.09,.09,[.07,1.3,.16]);
+  const [cx,cz]=long?[pitch.x,pitch.z+pitch.halfZ+3]:[pitch.x+pitch.halfX+3,pitch.z];coach.position.set(cx,pitch.y,cz);coach.lookAt(pitch.x,pitch.y,pitch.z);scene.add(coach);
+  jobs.push(animate(coach,{clips:['Arms folded','Talking']}).then(a=>{a.play('Arms folded');crowd.push(a);}));
+  await Promise.all(jobs);
+}
+async function loadPeople(pitch){
+  const [{animate},{clone}]=await Promise.all([import(PF+'clips.mjs'),import('three/addons/utils/SkeletonUtils.js')]);
+  const loader=new GLTFLoader(), ids=[...WOMEN,...MEN];
+  const protos=(await Promise.all(ids.map(id=>loader.loadAsync(PF+id+'.glb').then(g=>g.scene).catch(e=>{console.warn(id,e);return null;})))).filter(Boolean);
+  if(!protos.length)throw new Error('no Polyfork models loaded');
+  const add=async(obj,clip)=>{scene.add(obj);const anim=await animate(obj);anim.play(clip);crowd.push(anim);return anim;};
+  const jobs=fanSeats.map(async(s,i)=>{const o=clone(protos[i%protos.length]);o.position.set(s.x,s.y-.25,s.z);o.lookAt(pitch.x,o.position.y,pitch.z);o.translateZ(.2);scene.add(o);
+    const a=await animate(o,{clips:['Sitting','Sitting talking']});a.play(i%3?'Sitting':'Sitting talking');a.mixer.setTime(Math.random()*5);crowd.push(a);});
+  const rx=size.x/2+10, rz=size.z/2+10;
+  protos.forEach((p,i)=>{const o=clone(p);const w={o,a:i/protos.length*Math.PI*2,dir:i%2?1:-1,rx,rz};walkers.push(w);jobs.push(add(o,'Walk'));});
+  jobs.push(loadTeam(pitch,animate).catch(e=>{console.error(e);status.textContent='Team failed: '+(e&&e.message||e);}));
+  await Promise.all(jobs);
+  fanMesh.visible=false;
+  return protos.length;
+}
+function updatePeople(dt){
+  for(const w of walkers){w.a+=w.dir*dt*1.3/((w.rx+w.rz)/2);const x=center.x+Math.cos(w.a)*w.rx,z=center.z+Math.sin(w.a)*w.rz;w.o.lookAt(x,0,z);w.o.position.set(x,0,z);}
+  for(const t of trainers){
+    if(t.wait>0){t.wait-=dt;if(t.wait<=0){t.target.set(t.home.x+(Math.random()*2-1)*t.range,t.home.y,t.home.z+(Math.random()*2-1)*t.range);}continue;}
+    const d=_p.copy(t.target).sub(t.o.position);d.y=0;const dist=d.length();
+    if(dist<.3){t.a.locomotion(0);if(Math.random()<.35){t.a.play('Kick');t.wait=1.4;}else t.wait=.6+Math.random()*1.5;continue;}
+    const step=Math.min(dist,t.speed*dt);t.o.lookAt(t.target.x,t.o.position.y,t.target.z);t.o.position.addScaledVector(d.normalize(),step);t.a.locomotion(t.speed);}
+  for(const a of crowd)a.update(dt);
+}
+new GLTFLoader().load('./wembley_inspired_stadium.glb',g=>{model=g.scene;
+model.rotation.x=-Math.PI/2; // file is Z-up, three.js is Y-up
+const seats=instanceSeats(model); scene.add(model);
+model.updateMatrixWorld(true); box.setFromObject(model); box.getCenter(center); model.position.sub(center); model.position.y+=box.getSize(size).y/2;
+model.updateMatrixWorld(true); box.setFromObject(model); box.getCenter(center); box.getSize(size);
+radius=Math.max(size.x,size.z)*.6; scene.fog.near=radius*2; scene.fog.far=radius*6; orbit.maxDistance=radius*4; camera.far=radius*10; camera.updateProjectionMatrix();
+placeFans(seats); shot('overview'); loading.style.display='none';
+const grass=model.getObjectByName('Natural_grass_pitch'), pb=new THREE.Box3().setFromObject(grass||model), pc=pb.getCenter(new THREE.Vector3());
+const pitch={x:pc.x,y:pb.max.y,z:pc.z,halfX:(pb.max.x-pb.min.x)/2,halfZ:(pb.max.z-pb.min.z)/2};
+loadPeople(pitch).then(n=>{status.textContent=n+' Polyfork characters · '+fanSeats.length+' fans · '+walkers.length+' walkers · 11 players · coach';}).catch(e=>{status.textContent='Characters failed: '+(e&&e.message||e);console.error(e);});
+status.textContent=seats.length+' seats · '+fanSeats.length+' fans in the stands';
+},xhr=>{if(xhr.total)status.textContent='Loading stadium… '+Math.round(xhr.loaded/xhr.total*100)+'%';},err=>{loading.innerHTML='MODEL LOAD FAILED (v8)<small>'+String(err&&err.message||err)+'</small>';console.error(err);});
+function animate(now){requestAnimationFrame(animate);const dt=Math.min(.05,clock.getDelta()); if(mode==='walk'&&walker.isLocked){const speed=18*dt;if(keys.KeyW)walker.moveForward(speed);if(keys.KeyS)walker.moveForward(-speed);if(keys.KeyA)walker.moveRight(-speed);if(keys.KeyD)walker.moveRight(speed);if(keys.Space)camera.position.y+=speed;if(keys.ShiftLeft)camera.position.y-=speed;}
+if(flying&&model){const t=Math.min(1,(now-flyStart)/flyDuration),a=t*Math.PI*2;const p=center.clone().add(new THREE.Vector3(Math.cos(a)*radius*1.45,radius*(.55+.42*Math.sin(t*Math.PI*2)),Math.sin(a)*radius*1.45));camera.position.lerp(p,.035);const target=center.clone().add(new THREE.Vector3(0,Math.sin(t*Math.PI*4)*2,0));camera.lookAt(target);orbit.target.lerp(target,.04);if(t>=1){flying=false;status.textContent='Cinematic fly-through complete.';}}
+updateFans(now); updatePeople(dt);
+if(mode==='orbit')orbit.update();renderer.render(scene,camera);}
+const clock=new THREE.Clock();requestAnimationFrame(animate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+</script>
+</body></html>
