@@ -2,7 +2,6 @@
 @font-face{font-family:MZ;font-weight:900;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
 @font-face{font-family:MZ;font-weight:700;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf)}
 html,body{margin:0;background:#02040c;width:1080px;height:1920px;overflow:hidden;font-family:MZ,sans-serif}
-#bg{position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover}
 #grade{position:absolute;inset:0}
 #grain{position:absolute;inset:0;opacity:.05;pointer-events:none}
 #ov{position:absolute;inset:0;width:1080px;height:1920px;pointer-events:none}
@@ -67,7 +66,9 @@ html,body{margin:0;background:#02040c;width:1080px;height:1920px;overflow:hidden
 #flash{position:absolute;inset:0;pointer-events:none;opacity:0}
 </style></head><body>
 
-<img id="bg" src="../06_Episode_06/assets/K7_pitch.png">
+<img id="bg0" src="../06_Episode_06/assets/K7_pitch.png" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover">
+<img id="bg7" src="../06_Episode_06/assets/K3_half.png" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
+<img id="bg8" src="../06_Episode_06/assets/K3_full.png" style="position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;display:none">
 <div id="grade"></div>
 <canvas id="grain" width="1080" height="1920"></canvas>
 <div id="flash"></div>
@@ -270,15 +271,13 @@ function frameOv(t){
     el.style.opacity = alpha;
   }
 
-  // bg image: show K3_full for B7 (fixture), K3_half for CTA, else K7_pitch
-  const bg = document.getElementById("bg");
-  if(scene===7) bg.src="../06_Episode_06/assets/K3_half.png";
-  else if(scene===8) bg.src="../06_Episode_06/assets/K3_full.png";
-  else bg.src="../06_Episode_06/assets/K7_pitch.png";
-
-  // bg brightness
+  // bg image: preloaded images, toggle display
+  const bg0=document.getElementById("bg0"),bg7=document.getElementById("bg7"),bg8=document.getElementById("bg8");
   const brt = scene<=1 ? 0 : scene<=5 ? 0.6 : 0.65;
-  bg.style.filter = `brightness(${brt}) saturate(1.2) contrast(1.05)`;
+  const filt = `brightness(${brt}) saturate(1.2) contrast(1.05)`;
+  if(scene===7){ bg0.style.display="none"; bg7.style.display="block"; bg7.style.filter=filt; bg8.style.display="none"; }
+  else if(scene===8){ bg0.style.display="none"; bg7.style.display="none"; bg8.style.display="block"; bg8.style.filter=filt; }
+  else{ bg0.style.display="block"; bg0.style.filter=filt; bg7.style.display="none"; bg8.style.display="none"; }
 }
 
 // ── playback / renderer entry ─────────────────────────────────────────────

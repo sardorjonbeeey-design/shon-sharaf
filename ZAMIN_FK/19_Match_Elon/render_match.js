@@ -3,23 +3,24 @@ const {chromium}=require("playwright"),fs=require("fs"),cp=require("child_proces
 const HERE=path.resolve(__dirname);
 const W=JSON.parse(fs.readFileSync(HERE+"/build/words.json","utf8"));
 const END=W[W.length-1].end+1.5;
-const FPS=30, TOTAL=Math.ceil(END*FPS);
+const FPS=15, TOTAL=Math.ceil(END*FPS);
 console.log(`Total duration: ${END.toFixed(2)}s  frames: ${TOTAL}`);
 
 (async()=>{
   const b=await chromium.launch({args:[
-    "--allow-file-access-from-files","--use-gl=angle",
-    "--use-angle=swiftshader","--enable-unsafe-swiftshader","--no-sandbox"]});
+    "--allow-file-access-from-files","--no-sandbox",
+    "--disable-gpu","--disable-software-rasterizer"]});
   const p=await b.newPage({viewport:{width:1080,height:1920},deviceScaleFactor:1});
   p.on("pageerror",e=>console.error("[err]",e.message));
 
   await p.goto("file://"+HERE+"/match.html",{waitUntil:"networkidle"});
   await p.evaluate(()=>document.fonts.ready);
-  // ensure all images loaded (or timed out gracefully)
+  // ensure ALL images loaded (bg0/bg7/bg8 are preloaded)
   await p.evaluate(()=>Promise.allSettled(
     [...document.images].map(i=>i.complete?Promise.resolve():
-      new Promise(r=>{i.onload=r;i.onerror=r;}))
+      new Promise((res,rej)=>{i.onload=res;i.onerror=res;}))
   ));
+  await p.waitForTimeout(1000);
   await p.waitForTimeout(500);
 
   await p.evaluate(W=>{ window.W=W; window.RENDER_MODE=true; },W);
@@ -28,7 +29,7 @@ console.log(`Total duration: ${END.toFixed(2)}s  frames: ${TOTAL}`);
   // single ffmpeg process
   const ff=cp.spawn("ffmpeg",["-y","-f","image2pipe","-vcodec","png",
     "-r",String(FPS),"-i","pipe:0","-vcodec","libx264","-pix_fmt","yuv420p",
-    "-crf","18","-preset","fast",HERE+"/build/silent.mp4"],
+    "-r","30","-crf","18","-preset","fast",HERE+"/build/silent.mp4"],
     {stdio:["pipe","inherit","inherit"]});
 
   for(let f=0;f<TOTAL;f++){
@@ -36,7 +37,7 @@ console.log(`Total duration: ${END.toFixed(2)}s  frames: ${TOTAL}`);
     await p.evaluate(t=>window.frameOv(t),t);
     const png=await p.screenshot({type:"png",timeout:60000});
     ff.stdin.write(png);
-    if(f%90===0)console.log(`frame ${f}/${TOTAL} (${t.toFixed(1)}s)`);
+    if(f%15===0)console.log(`frame ${f}/${TOTAL} (${t.toFixed(1)}s)`);
   }
   ff.stdin.end();
   await new Promise(r=>ff.on("close",r));
