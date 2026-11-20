@@ -2,7 +2,7 @@
 import json, subprocess, os
 H = os.path.dirname(os.path.abspath(__file__))
 V = H + "/voice"; os.makedirs(H + "/build", exist_ok=True)
-N = 9; GAP = [0.25, 0.3, 0.2, 0.25, 0.4, 0.3, 0.25, 0.3, 0.0]; LEAD = 0.0
+N = 9; GAP = [0.25, 0.3, 0.2, 0.25, 0.4, 0.3, 0.25, 2.0, 0.0]; LEAD = 0.0
 
 def dur(p):
     return float(subprocess.check_output(

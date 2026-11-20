@@ -2,7 +2,7 @@
 const {chromium}=require("playwright"),fs=require("fs"),cp=require("child_process"),path=require("path");
 const HERE=path.resolve(__dirname);
 const W=JSON.parse(fs.readFileSync(HERE+"/build/words.json","utf8"));
-const END=W[W.length-1].end+1.5;
+const END=W[W.length-1].end+2.5;
 const FPS=15, TOTAL=Math.ceil(END*FPS);
 console.log(`Total duration: ${END.toFixed(2)}s  frames: ${TOTAL}`);
 

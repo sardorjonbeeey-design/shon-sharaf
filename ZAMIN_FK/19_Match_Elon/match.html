@@ -95,7 +95,7 @@ html,body{margin:0;background:#02040c;width:1080px;height:1920px;overflow:hidden
 const W = window.W || [];
 const bs = b => W[b-1] ? W[b-1].start : 0;
 const be = b => W[b-1] ? W[b-1].end   : 0;
-const END = W.length ? W[W.length-1].end + 1.5 : 40;
+const END = W.length ? W[W.length-1].end + 2.5 : 40;
 
 // ── helpers ──────────────────────────────────────────────────────────────
 const OVP = document.getElementById("ov");
@@ -219,23 +219,23 @@ add(`<div class="fixture">
   <div class="date">ERTAGA</div>
 </div>`, 540, 960, bs(7), be(7)-0.1, {fade:0.25});
 
-// B8: CTA — game_action bg
-add(`<div class="cta">
-  <div class="main">KEYINGI VIDEO<br>SIZDAN</div>
-  <div class="sub">Izohda g'oyangizni yozing.<br>Eng creative izoh —<br>keyingi video bo'ladi.</div>
-</div>`, 540, 880, bs(8), bs(9)-0.2, {fade:0.3});
-
-// @fk_zamin handle (B8)
-add(`<div style="font-size:40px;font-weight:900;color:rgba(255,255,255,.55);
-  letter-spacing:3px;text-shadow:0 2px 8px rgba(0,0,0,.8)">
-  @<span style="color:#FFD23F">fk_zamin</span></div>`,
-  540, 1760, bs(8), bs(9)-0.2, {fade:0.3});
-
-// B9: Coach shocked — coach_shocked bg
+// B8: Coach shocked — coach_shocked bg
 add(`<div class="coach">
   <div class="label">MURABBIY SHOKDA</div>
   <div class="quote">Nima bo'ldi<br>bu...?</div>
-</div>`, 540, 1400, bs(9)+0.3, END, {fade:0.4});
+</div>`, 540, 1400, bs(8)+0.3, be(8)+0.4, {fade:0.4});
+
+// B9: CTA — game_action bg
+add(`<div class="cta">
+  <div class="main">KEYINGI VIDEO<br>SIZDAN</div>
+  <div class="sub">Izohda g'oyangizni yozing.<br>Eng creative izoh —<br>keyingi video bo'ladi.</div>
+</div>`, 540, 880, bs(9), END, {fade:0.3});
+
+// @fk_zamin handle (B9)
+add(`<div style="font-size:40px;font-weight:900;color:rgba(255,255,255,.55);
+  letter-spacing:3px;text-shadow:0 2px 8px rgba(0,0,0,.8)">
+  @<span style="color:#FFD23F">fk_zamin</span></div>`,
+  540, 1760, bs(9), END, {fade:0.3});
 
 // ── render loop ───────────────────────────────────────────────────────────
 let currentScene = -1;
