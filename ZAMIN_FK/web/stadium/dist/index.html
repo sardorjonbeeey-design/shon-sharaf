@@ -1842,6 +1842,33 @@ function tag(i) { if (!pool[i]) { const d = document.createElement("div"); d.cla
 const P = new THREE.Vector3();
 function project(x, y, z) { P.set(x, y, z).project(camera); return [(P.x + 1) / 2 * innerWidth, (1 - P.y) / 2 * innerHeight, P.z]; }
 let lastLabel = 0, used = 0, shownFans = new Set();
+// fan names are 3D billboards attached to the figure's head (no HTML overlay), shown only for figures near the camera
+const nameTex = new Map();
+function nameTexture(txt, mine) {
+  const key = (mine ? "*" : "") + txt;
+  if (!nameTex.has(key)) {
+    const c = document.createElement("canvas"), g = c.getContext("2d");
+    g.font = "bold 44px system-ui, sans-serif";
+    const w = Math.ceil(g.measureText(txt).width) + 40;
+    c.width = w; c.height = 72;
+    g.font = "bold 44px system-ui, sans-serif";
+    g.fillStyle = mine ? "#FFD23F" : "rgba(255,255,255,.96)"; g.strokeStyle = "#0D2557"; g.lineWidth = 4;
+    g.beginPath(); g.roundRect(4, 6, w - 8, 60, 22); g.fill(); g.stroke();
+    g.fillStyle = "#0D2557"; g.textBaseline = "middle"; g.fillText(txt, 20, 38);
+    nameTex.set(key, { tex: new THREE.CanvasTexture(c), aspect: w / 72 });
+  }
+  return nameTex.get(key);
+}
+const nameSprites = Array.from({ length: 60 }, () => {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true }));
+  s.visible = false; scene.add(s); return s;
+});
+function showName(s, st, txt, mine) {
+  const t = nameTexture(txt, mine);
+  s.material.map = t.tex; s.material.needsUpdate = true;
+  s.position.set(st.x, st.y + 2.1, st.z);
+  s.scale.set(0.55 * t.aspect, 0.55, 1); s.visible = true;
+}
 function updateLabels(now) {
   if (now - lastLabel < 120 && !fly) return; lastLabel = now;
   used = 0;
@@ -1860,8 +1887,7 @@ function updateLabels(now) {
     const d = tag(used++); d.className = cls; d.textContent = txt; d.style.left = sx + "px"; d.style.top = sy + "px"; d.style.transform = "translate(-50%,-100%) scale(" + labelScale + ")"; d.style.display = "block";
     return true;
   };
-  const place = (st, cls, txt) => placeAt(st.x, st.y + 1.3, st.z, cls, txt, cls === "tag me");
-  if (me) place(me, "tag me", "@" + me.fan);
+  nameSprites.forEach(s => { s.visible = false; });
   const near = camR < 260;                       // inside the stadium: people; far away: the city
   if (camR >= 260) placeAt(0, OUT_R * ROW_H + 14, 0, "tag big", T[L].stad, true);   // stadium name only when far away
   if (near) {
@@ -1871,8 +1897,9 @@ function updateLabels(now) {
     cand.sort((a, b) => a[0] - b[0]);
     const NAME_R2 = 55 * 55;                                                                                  // names only on figures close to the camera
     const LIM = fans <= 60 ? 60 : camR < 110 ? 8 : 6;                                                         // fewer names when zoomed out
-    const nowShown = new Set();
-    for (const [d, st] of cand) { if (nowShown.size >= LIM || d > NAME_R2) break; if (st !== me && placeAt(st.x, st.y + 2.1, st.z, "tag fan", "@" + st.fan)) nowShown.add(st); }
+    const nowShown = new Set(); let si = 0;
+    if (me && me.fan) { showName(nameSprites[si++], me, "@" + me.fan, true); nowShown.add(me); }
+    for (const [d, st] of cand) { if (si >= LIM || d > NAME_R2) break; if (st === me) continue; showName(nameSprites[si++], st, "@" + st.fan, false); nowShown.add(st); }
     shownFans = nowShown;
   } else {
     if (PLAZA) placeAt(PLAZA.x, 24, PLAZA.z - 30, "tag lot", T[L].plaza, true);
