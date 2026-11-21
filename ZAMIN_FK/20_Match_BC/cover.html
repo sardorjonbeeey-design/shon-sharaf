@@ -4,54 +4,33 @@
 html,body{margin:0;width:1080px;height:1920px;overflow:hidden;font-family:MZ,sans-serif;background:#02040c}
 #bg{position:absolute;left:0;top:0;width:1080px;height:1920px;object-fit:cover}
 #scrim{position:absolute;left:0;top:0;width:1080px;height:1920px;
-  background:linear-gradient(180deg,rgba(2,4,12,.7) 0%,rgba(2,4,12,.2) 35%,rgba(2,4,12,.2) 55%,rgba(2,4,12,.85) 100%)}
-#ov{position:absolute;left:0;top:0;width:1080px;height:1920px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 100px}
-.top{text-align:center}
-.top .zfk{font-size:36px;font-weight:900;color:#9fb6ff;letter-spacing:8px;margin-bottom:16px}
-.top .vs{font-size:120px;font-weight:900;color:#FFD23F;line-height:1.0;
-  text-shadow:0 10px 0 #0D2557,0 18px 40px rgba(0,0,0,.9);
-  -webkit-text-stroke:8px #0D2557;paint-order:stroke fill}
-.top .teams{display:flex;gap:40px;margin-top:20px;align-items:center}
-.top .tname{font-size:52px;font-weight:900;letter-spacing:2px}
-.top .tname.green{color:#2ecc71}
-.top .tname.red{color:#E63946}
-.top .vsx{font-size:40px;color:rgba(255,255,255,.5);font-weight:700}
-.mid{text-align:center}
-.score-big{font-size:220px;font-weight:900;color:#FFD23F;line-height:0.9;
-  text-shadow:0 12px 0 #0D2557,0 20px 50px rgba(0,0,0,.9);
-  -webkit-text-stroke:10px #0D2557;paint-order:stroke fill}
-.goals-tag{font-size:38px;color:#9fb6ff;font-weight:900;letter-spacing:6px;margin-top:10px}
-.bot{text-align:center}
-.bot .scorers{font-size:28px;color:rgba(255,255,255,.8);font-weight:700;line-height:1.8}
-.bot .scorers .g{color:#2ecc71}
-.bot .scorers .r{color:#E63946}
-.bot .scorers .min{color:#FFD23F}
-.crest{height:100px;margin-top:20px}
-.drama{font-size:42px;font-weight:900;color:#fff;letter-spacing:3px;margin-top:16px;
-  background:rgba(230,57,70,.9);padding:10px 36px;border-radius:16px}
+  background:linear-gradient(180deg,rgba(2,4,12,.75) 0%,rgba(2,4,12,.15) 40%,rgba(2,4,12,.1) 60%,rgba(2,4,12,.5) 100%)}
+#ov{position:absolute;left:0;top:0;width:1080px;height:1920px}
+/* top-left label */
+.zfk{position:absolute;top:50px;left:60px;font-size:28px;font-weight:900;color:rgba(255,255,255,.7);letter-spacing:10px}
+/* crest top-right */
+.crest{position:absolute;top:40px;right:50px;height:100px}
+/* label + number */
+.label{position:absolute;top:120px;left:60px;font-size:42px;font-weight:900;color:#fff}
+.num{position:absolute;top:160px;left:50px;font-size:220px;font-weight:900;color:#FFD23F;line-height:0.95;
+  text-shadow:0 8px 0 #0D2557;-webkit-text-stroke:8px #0D2557;paint-order:stroke fill}
+/* big title */
+.title{position:absolute;top:400px;left:60px;font-size:120px;font-weight:900;color:#fff;line-height:1.0;
+  text-shadow:0 6px 30px rgba(0,0,0,.8)}
+/* score accent */
+.score-accent{position:absolute;top:780px;left:60px;font-size:52px;font-weight:900;color:#FFD23F;letter-spacing:3px}
+/* bottom-left handle */
+.handle{position:absolute;bottom:50px;left:60px;font-size:34px;font-weight:900;color:#FFD23F}
 </style></head><body>
-<img id="bg" src="assets/b7_final.png">
+<img id="bg" src="assets/b1_aerial.png">
 <div id="scrim"></div>
 <div id="ov">
-  <div class="top">
-    <div class="zfk">ZAMIN FK</div>
-    <div class="teams">
-      <span class="tname green">TEAM B</span>
-      <span class="vsx">vs</span>
-      <span class="tname red">TEAM C</span>
-    </div>
-  </div>
-  <div class="mid">
-    <div class="score-big">3 : 3</div>
-    <div class="goals-tag">OLTI GOL!</div>
-    <div class="drama">88' TENGLASHISH!</div>
-  </div>
-  <div class="bot">
-    <div class="scorers">
-      <span class="g">@myfclub</span> <span class="min">12'</span> · <span class="r">@amonboyev</span> <span class="min">23'</span> · <span class="r">@_s__d_00</span> <span class="min">31'</span><br>
-      <span class="g">@mirzasharibov_</span> <span class="min">56'</span> · <span class="g">@bunw_fx</span> <span class="min">71'</span> · <span class="r">@shohjahon</span> <span class="min">88'</span>
-    </div>
-    <img class="crest" src="../12_Reel_Trial_Stadium/assets/crest.png">
-  </div>
+  <div class="zfk">ZAMIN FK</div>
+  <img class="crest" src="../12_Reel_Trial_Stadium/assets/crest.png">
+  <div class="label">MATCH</div>
+  <div class="num">1</div>
+  <div class="title">TEAM B<br>vs<br>TEAM C</div>
+  <div class="score-accent">3 : 3 · OLTI GOL!</div>
+  <div class="handle">@fk_zamin</div>
 </div>
 </body></html>
