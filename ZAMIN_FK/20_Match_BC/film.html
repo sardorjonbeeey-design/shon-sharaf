@@ -1,0 +1,199 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
+@font-face{font-family:MZ;font-weight:700;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf)}
+html,body{margin:0;background:#02040c;overflow:hidden;width:1080px;height:1920px;font-family:MZ,sans-serif}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:540px 960px}
+#bg{position:absolute;left:0;top:0;width:1080px;height:1920px;object-fit:cover}
+#scrim{position:absolute;left:0;top:0;width:1080px;height:1920px;
+  background:radial-gradient(ellipse 70% 55% at 50% 50%,rgba(2,8,16,0) 0%,rgba(2,8,16,.55) 65%,rgba(2,8,16,.92) 100%)}
+#tint{position:absolute;left:0;top:0;width:1080px;height:1920px;
+  background:linear-gradient(160deg,rgba(10,30,60,.5) 0%,rgba(0,40,40,.3) 100%);mix-blend-mode:multiply}
+#grain{position:absolute;left:0;top:0;width:1080px;height:1920px;opacity:.04;pointer-events:none}
+#ov{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
+.it{position:absolute;white-space:nowrap;text-align:center;color:#fff;font-weight:900}
+.hd{text-align:center}
+.hd small{display:block;font-size:42px;letter-spacing:5px;text-shadow:0 4px 20px #000;color:#9fb6ff}
+.hd b{display:block;font-size:92px;line-height:1.0;color:#FFD23F;
+  text-shadow:0 8px 0 #0D2557,0 14px 36px rgba(0,0,0,.8);
+  -webkit-text-stroke:7px #0D2557;paint-order:stroke fill}
+.hd b.w{color:#fff}
+.hd b.r{color:#E63946;-webkit-text-stroke:7px #7a1138}
+.hd b.g{color:#2ecc71;-webkit-text-stroke:7px #145a32}
+/* scorebug */
+.bug{display:flex;align-items:center;justify-content:center;gap:0;width:880px;height:100px;
+  background:rgba(2,4,12,.88);border:3px solid rgba(31,79,184,.6);border-radius:20px;
+  box-shadow:0 0 40px rgba(31,79,184,.3),0 8px 32px rgba(0,0,0,.8)}
+.bug-team{font-size:34px;font-weight:900;color:#fff;letter-spacing:1px;width:280px;text-align:center}
+.bug-team.green{color:#2ecc71}
+.bug-team.red{color:#E63946}
+.bug-score{font-size:66px;font-weight:900;color:#FFD23F;width:180px;text-align:center;
+  text-shadow:0 4px 0 #0D2557;-webkit-text-stroke:4px #0D2557;paint-order:stroke fill}
+/* goal card */
+.goal-card{background:rgba(2,4,12,.9);border:5px solid #FFD23F;border-radius:24px;
+  padding:18px 40px;text-align:center;box-shadow:0 0 60px rgba(255,210,63,.4)}
+.goal-card .gol{font-size:82px;font-weight:900;color:#FFD23F;
+  text-shadow:0 6px 0 #0D2557;-webkit-text-stroke:5px #0D2557;paint-order:stroke fill}
+.goal-card .scorer{font-size:38px;font-weight:900;color:#fff;margin-top:4px}
+.goal-card .minute{font-size:30px;color:#9fb6ff;font-weight:700;letter-spacing:2px}
+/* final score */
+.final{text-align:center;width:900px}
+.final .ft{font-size:32px;font-weight:900;color:#9fb6ff;letter-spacing:8px;margin-bottom:14px}
+.final .scoreline{font-size:130px;font-weight:900;color:#FFD23F;
+  text-shadow:0 8px 0 #0D2557,0 16px 40px rgba(0,0,0,.9);
+  -webkit-text-stroke:7px #0D2557;paint-order:stroke fill;line-height:0.95}
+.final .teams-row{font-size:36px;color:#fff;font-weight:900;display:flex;justify-content:space-between;padding:0 40px;margin-top:14px}
+.final .scorers-col{font-size:26px;color:rgba(159,182,255,.85);font-weight:700;margin-top:14px;line-height:1.7;text-align:center}
+/* CTA */
+.cta-box{font-size:46px;background:rgba(0,20,20,.92);border:5px solid #FFD23F;border-radius:28px;
+  padding:22px 38px;line-height:1.5;text-align:center;white-space:normal;width:860px;
+  box-shadow:0 0 40px rgba(255,210,63,.3)}
+.cta-box small{display:block;font-size:28px;color:#FFD23F;letter-spacing:3px;margin-bottom:6px}
+.follow{font-size:60px;color:#fff;background:#E1306C;border-radius:60px;padding:20px 60px;
+  box-shadow:0 10px 0 #7a1138,0 16px 36px rgba(0,0,0,.6)}
+/* lineup tag */
+.ltag{font-size:36px;letter-spacing:4px;padding:8px 28px;border-radius:14px;font-weight:900}
+.ltag.green{background:rgba(46,204,113,.2);border:3px solid #2ecc71;color:#2ecc71}
+.ltag.red{background:rgba(230,57,70,.2);border:3px solid #E63946;color:#E63946}
+#fl{position:absolute;left:0;top:0;width:1080px;height:1920px;background:#fff;opacity:0;z-index:50}
+</style></head><body>
+<div id="stage"><img id="bg"><div id="scrim"></div><div id="tint"></div><canvas id="grain" width="1080" height="1920"></canvas></div>
+<div id="ov"></div><div id="fl"></div>
+<script>
+const W=window.W||[],BS={};W.forEach(b=>BS[b.beat]=b);
+const bs=n=>BS[n]?BS[n].start:0,be=n=>n<9?BS[n+1].start+.02:(W.length?W[W.length-1].end+1.0:44);
+const S=(b,i)=>BS[b].sents[i];
+const END=W.length?W[W.length-1].end+1.0:44;window.END=END;
+const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),sm=(a,b,x)=>{const t=cl((x-a)/(b-a));return t*t*(3-2*t)};
+const eob=x=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)};
+
+const BG_MAP={
+  1:"assets/b1_aerial.png",2:"assets/b2_lineup.png",3:"assets/b3_kickoff.png",
+  4:"assets/b4a_green_goal.png",5:"assets/b5a_green_score.png",6:"assets/b6_header.png",
+  7:"assets/b7_final.png",8:"assets/b8_coach.png",9:"assets/b9_epic.png"
+};
+// sub-images for rapid cuts within beats
+const SUB={
+  "4b":"assets/b4b_red_goal.png",
+  "5b":"assets/b5b_green_celeb.png"
+};
+
+// Ken Burns per beat: z0,z1 (zoom), px,py (pan fraction)
+const KB={
+  1:{z0:1.0,z1:1.12,px:0,py:-0.03},
+  2:{z0:1.1,z1:1.0,px:0,py:0},
+  3:{z0:1.0,z1:1.15,px:0.02,py:0},
+  4:{z0:1.0,z1:1.1,px:-0.03,py:0},
+  5:{z0:1.12,z1:1.0,px:0.02,py:0},
+  6:{z0:1.0,z1:1.18,px:0,py:-0.04},
+  7:{z0:1.15,z1:1.0,px:0,py:0},
+  8:{z0:1.0,z1:1.1,px:-0.02,py:0},
+  9:{z0:1.0,z1:1.2,px:0,py:-0.05}
+};
+
+const items=[],OV=document.getElementById("ov"),FL=document.getElementById("fl"),BG=document.getElementById("bg");
+function add(html,x,y,at,to,o={}){
+  const d=document.createElement("div");d.className="it "+(o.cls||"");d.innerHTML=html;
+  d.style.left=x+"px";d.style.top=y+"px";d.style.display="none";
+  if(o.z)d.style.zIndex=o.z;OV.appendChild(d);items.push({d,at,to:to==null?1e9:to,o});return d;
+}
+const hd=(label,big,at,to,y=580,o={})=>add(`<small>${label}</small><b class="${o.cls2||""}">${big}</b>`,540,y,at,to,{cls:"hd",z:20,enter:"stamp",...o});
+
+function frameOv(t){
+  for(const it of items){
+    const{d,at,to,o}=it;if(!(t>=at&&t<to)){d.style.display="none";continue;}
+    d.style.display="block";const u=t-at,e=o.enter==="none"?1:eob(cl(u/(o.enter==="stamp"?.3:.34))),out=o.keep?1:cl((to-t)/.12);
+    let s=1;if(o.pulse)s=1+.06*Math.sin(u*7+(o.ph||0));if(o.glow)d.style.filter=`drop-shadow(0 0 ${14+10*Math.sin(u*6)}px #FFD23F)`;
+    d.style.opacity=String(cl(u/.08)*out*(o.dim?o.dim(t):1));
+    d.style.transform=`translate(-50%,-50%) scale(${(.3+.7*e)*s})`+(o.rot?` rotate(${o.rot}deg)`:"");
+  }
+  const f=Math.max(0,...[1,2,3,4,5,6,7,8,9].map(i=>BS[i]?1-(t-bs(i))/.12:0));FL.style.opacity=String(cl(f)*.25);
+}
+
+// ── BEAT 1: HOOK ──
+hd("ZAMIN FK","TEAM B vs<br>TEAM C",bs(1),be(1),540,{cls2:"",enter:"stamp"});
+add(`<div style="font-size:36px;letter-spacing:4px;color:#9fb6ff">BIRINCHI MARTA!</div>`,540,730,bs(1)+.3,be(1),{z:20,enter:"pop"});
+
+// ── BEAT 2: TARKIB ──
+hd("TARKIB","11 vs 11",bs(2),be(2),200,{cls2:"w"});
+add(`<div class="ltag green">TEAM B</div>`,280,380,bs(2)+.1,be(2),{z:20,enter:"pop"});
+add(`<div class="ltag red">TEAM C</div>`,800,380,bs(2)+.2,be(2),{z:20,enter:"pop"});
+add(`<div style="font-size:34px;color:#9fb6ff;letter-spacing:2px">MAYDON TAYYOR!</div>`,540,1760,bs(2)+.4,be(2),{z:20,enter:"pop"});
+
+// ── BEAT 3: KICK OFF ──
+add(`<div class="bug"><div class="bug-team green">TEAM B</div><div class="bug-score">0 : 0</div><div class="bug-team red">TEAM C</div></div>`,540,240,bs(3),be(3),{z:22,enter:"pop"});
+hd("","BOSHLANDI!",bs(3)+.15,be(3),960,{cls2:"w",enter:"stamp"});
+
+// ── BEAT 4: FIRST HALF GOALS (1:0 → 1:1 → 1:2) ──
+// Goal 1 (first third of beat)
+const b4d=(be(4)-bs(4))/3;
+add(`<div class="bug"><div class="bug-team green">TEAM B</div><div class="bug-score">1 : 0</div><div class="bug-team red">TEAM C</div></div>`,540,200,bs(4),bs(4)+b4d,{z:22,enter:"pop"});
+add(`<div class="goal-card"><div class="gol">GOL!</div><div class="scorer">@myfclub</div><div class="minute">12'</div></div>`,540,1000,bs(4)+.1,bs(4)+b4d,{z:23,enter:"pop",glow:true});
+// Goal 2
+add(`<div class="bug"><div class="bug-team green">TEAM B</div><div class="bug-score">1 : 1</div><div class="bug-team red">TEAM C</div></div>`,540,200,bs(4)+b4d,bs(4)+2*b4d,{z:22,enter:"pop"});
+add(`<div class="goal-card"><div class="gol" style="color:#E63946;-webkit-text-stroke-color:#7a1138">GOL!</div><div class="scorer">@amonboyev</div><div class="minute">23'</div></div>`,540,1000,bs(4)+b4d+.1,bs(4)+2*b4d,{z:23,enter:"pop",glow:true});
+// Goal 3
+add(`<div class="bug"><div class="bug-team green">TEAM B</div><div class="bug-score">1 : 2</div><div class="bug-team red">TEAM C</div></div>`,540,200,bs(4)+2*b4d,be(4),{z:22,enter:"pop"});
+add(`<div class="goal-card"><div class="gol" style="color:#E63946;-webkit-text-stroke-color:#7a1138">GOL!</div><div class="scorer">@_s__d_00</div><div class="minute">31'</div></div>`,540,1000,bs(4)+2*b4d+.1,be(4),{z:23,enter:"pop",glow:true});
+
+// ── BEAT 5: SECOND HALF GOALS (2:2, 3:2) ──
+const b5d=(be(5)-bs(5))/2;
+add(`<div class="bug"><div class="bug-team green">TEAM B</div><div class="bug-score">2 : 2</div><div class="bug-team red">TEAM C</div></div>`,540,200,bs(5),bs(5)+b5d,{z:22,enter:"pop"});
+add(`<div class="goal-card"><div class="gol" style="color:#2ecc71;-webkit-text-stroke-color:#145a32">GOL!</div><div class="scorer">@mirzasharibov_</div><div class="minute">56'</div></div>`,540,1000,bs(5)+.1,bs(5)+b5d,{z:23,enter:"pop",glow:true});
+add(`<div class="bug"><div class="bug-team green">TEAM B</div><div class="bug-score">3 : 2</div><div class="bug-team red">TEAM C</div></div>`,540,200,bs(5)+b5d,be(5),{z:22,enter:"pop"});
+add(`<div class="goal-card"><div class="gol" style="color:#2ecc71;-webkit-text-stroke-color:#145a32">GOL!</div><div class="scorer">@bunw_fx</div><div class="minute">71'</div></div>`,540,1000,bs(5)+b5d+.1,be(5),{z:23,enter:"pop",glow:true});
+
+// ── BEAT 6: DRAMATIC EQUALIZER (3:3) ──
+add(`<div class="bug"><div class="bug-team green">TEAM B</div><div class="bug-score">3 : 3</div><div class="bug-team red">TEAM C</div></div>`,540,200,bs(6)+.3,be(6),{z:22,enter:"pop"});
+hd("88'","GOL!",bs(6),be(6),800,{cls2:"r",enter:"stamp"});
+add(`<div class="goal-card"><div class="gol" style="color:#E63946;-webkit-text-stroke-color:#7a1138">GOL!</div><div class="scorer">@shohjahon_011</div><div class="minute">88' · TENGLASHISH!</div></div>`,540,1200,bs(6)+.4,be(6),{z:23,enter:"pop",glow:true});
+
+// ── BEAT 7: FINAL SCORE ──
+add(`<div class="final"><div class="ft">YAKUNIY HISOBOT</div><div class="scoreline">3 : 3</div><div class="teams-row"><span style="color:#2ecc71">TEAM B</span><span style="color:#E63946">TEAM C</span></div><div class="scorers-col">@myfclub 12' &nbsp;·&nbsp; @amonboyev 23'<br>@mirzasharibov_ 56' &nbsp;·&nbsp; @_s__d_00 31'<br>@bunw_fx 71' &nbsp;·&nbsp; @shohjahon 88'</div></div>`,540,900,bs(7)+.15,be(7),{z:24,enter:"pop",keep:true});
+
+// ── BEAT 8: COACH ──
+hd("MURABBIY","MAMNUN!",bs(8),be(8),500,{cls2:"",enter:"stamp"});
+add(`<div style="font-size:38px;color:#9fb6ff;text-shadow:0 4px 16px #000;white-space:normal;width:800px;text-align:center;line-height:1.4">Ikkala jamoa ham ajoyib o'ynadi!</div>`,540,700,bs(8)+.4,be(8),{z:20,enter:"pop"});
+
+// ── BEAT 9: CTA ──
+hd("KEYINGI VIDEO","NIMA BO'LSIN?",bs(9),END,480,{cls2:"",keep:true});
+add(`<div class="cta-box"><small>IZOHGA YOZING 👇</small>Keyingi video g'oyangizni yozing!</div>`,540,1200,bs(9)+.3,END,{z:22,enter:"pop",keep:true});
+add(`<div class="follow">OBUNA BO'LING</div>`,540,1760,bs(9)+.6,END,{z:22,enter:"pop",pulse:true,keep:true});
+add(`<img src="../12_Reel_Trial_Stadium/assets/crest.png" style="height:140px">`,130,1770,bs(9)+.6,END,{z:22,enter:"pop",keep:true});
+
+// ── BG switching + Ken Burns camera ──
+const bgImgs={};
+function getBeat(t){for(let i=9;i>=1;i--)if(BS[i]&&t>=bs(i)-.15)return i;return 1;}
+// sub-beat image switching for rapid cuts
+function getBgKey(t){
+  const b=getBeat(t);
+  if(b===4){const u=(t-bs(4))/(be(4)-bs(4));return u>.33&&u<.67?"4b":"4a";}
+  if(b===5){const u=(t-bs(5))/(be(5)-bs(5));return u>.5?"5b":"5a";}
+  return String(b);
+}
+const BG_ALL={"1":"assets/b1_aerial.png","2":"assets/b2_lineup.png","3":"assets/b3_kickoff.png",
+  "4a":"assets/b4a_green_goal.png","4b":"assets/b4b_red_goal.png",
+  "5a":"assets/b5a_green_score.png","5b":"assets/b5b_green_celeb.png",
+  "6":"assets/b6_header.png","7":"assets/b7_final.png","8":"assets/b8_coach.png","9":"assets/b9_epic.png"};
+
+let curBgKey="";
+window.renderAt=async t=>{
+  const bgk=getBgKey(t);
+  if(bgk!==curBgKey&&bgImgs[bgk]){BG.src=bgImgs[bgk].src;curBgKey=bgk;}
+  const b=getBeat(t);const kb=KB[b]||KB[1];
+  const u=cl((t-Math.max(0,bs(b)-.15))/(be(b)-bs(b)+.15));
+  const z=kb.z0+(kb.z1-kb.z0)*u;
+  const px=kb.px*u,py=kb.py*u;
+  document.getElementById("stage").style.transform=`scale(${z}) translate(${px*100}px,${py*100}px)`;
+  frameOv(t);
+};
+window.ready=async()=>{
+  await document.fonts.ready;await document.fonts.load("900 40px MZ");
+  for(const[k,src] of Object.entries(BG_ALL)){const im=new Image();im.src=src;await im.decode();bgImgs[k]=im;}
+  await Promise.all([...document.images].map(i=>i.decode?i.decode().catch(()=>0):0));
+  // init grain
+  const gc=document.getElementById("grain").getContext("2d"),gd=gc.createImageData(1080,1920);
+  for(let i=0;i<gd.data.length;i+=4){const v=Math.random()*255;gd.data[i]=gd.data[i+1]=gd.data[i+2]=v;gd.data[i+3]=255;}
+  gc.putImageData(gd,0,0);
+  return true;
+};
+</script></body></html>
