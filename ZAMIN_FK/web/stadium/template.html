@@ -36,6 +36,8 @@
   .tag { position:absolute; transform:translate(-50%,-100%); background:rgba(255,255,255,.96); color:var(--navy); font-weight:700; font-size:11px; letter-spacing:.2px; padding:3px 9px; border-radius:999px; border:1px solid rgba(13,37,87,.14); white-space:nowrap; box-shadow:0 2px 6px rgba(13,37,87,.22); }
   .tag::before { content:""; display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--blue); margin-right:6px; vertical-align:middle; }
   .tag.me { background:var(--yel); font-weight:900; font-size:11px; padding:3px 9px; border:1px solid var(--navy); }
+  /* No usernames or player names floating above the 3D scene. */
+  #labels .tag.fan, #labels .tag.me, #labels .tag.res, #labels .tag.hero { display:none !important; }
   .tag.hero { background:var(--navy); color:#fff; border:1px solid var(--yel); font-weight:900; font-size:11px; padding:3px 9px; }
   .tag.hero::before { content:"★"; color:var(--yel); }
   .tag.squad { background:var(--navy); color:#fff; border:1px solid var(--yel); font-size:10px; font-weight:900; padding:2px 7px; box-shadow:0 2px 6px rgba(13,37,87,.3); }
@@ -206,7 +208,7 @@
 <div id="count" class="ui pill"><small data-t="fans"></small><b id="n">0</b><i>VIRTUAL</i><div class="homes"><small data-t="pop"></small><b id="nh">0</b></div></div>
 <div id="langs" class="ui"></div>
 <div id="place" class="ui"></div>
-<div id="side" class="ui"><button id="list">👥</button><button id="vip" style="color:#FFD23F">👑</button><button id="view">🏙</button><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button></div>
+<div id="side" class="ui"><button id="list">👥</button><button id="vip" style="color:#FFD23F">👑</button><button id="view">🏙</button><button id="zin">+</button><button id="zout">−</button><button id="home">⌂</button><button id="tour" title="Cinematic tour">🎬</button></div>
 <button id="cta" class="ui" data-t="cta"></button>
 <div id="actions" class="ui"><button id="bClub" class="club">⚽ Klub</button><button id="bHome" data-t="bHome"></button><button id="bJob" data-t="bJob"></button><button id="bShop" class="alt" data-t="bShop"></button></div>
 <div id="club"><div class="ctop"><img id="cCrest" alt=""><div><b>ZAMIN FK</b><small id="cSub">Muxlislar portali</small></div><button id="cX">×</button></div>
@@ -1778,9 +1780,8 @@ function animateTeam(t) {
 
 // ---------- day / night by Uzbekistan time (UTC+5); ?time=night|day|<hour> to preview ----------
 const DN = (() => {
-  const q = new URLSearchParams(location.search).get("time");
-  const hourNow = () => { if (q === "night") return 22.5; if (q === "day") return 13; if (q !== null && q !== "" && !isNaN(+q)) return +q;
-    const d = new Date(); return (d.getUTCHours() + 5) % 24 + d.getUTCMinutes() / 60; };
+  // Premium preview is permanently daytime; ignore clock and ?time=night overrides.
+  const hourNow = () => 13;
   const SUNRISE = 6.9, SUNSET = 17.0;                    // Tashkent, late autumn
   const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
   const C = c => new THREE.Color(c);
@@ -1835,18 +1836,19 @@ const DN = (() => {
 
 // ---------- camera / controls ----------
 const controls = new THREE.OrbitControls(camera, canvas);
-controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.495; controls.minDistance = 2; controls.maxDistance = 1100;
-controls.enablePan = true; controls.screenSpacePanning = false; controls.panSpeed = 1.2; controls.rotateSpeed = 0.8;
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.495; controls.minDistance = 2; controls.maxDistance = 1450;
+controls.enablePan = true; controls.screenSpacePanning = false; controls.panSpeed = 1.25; controls.rotateSpeed = 0.72;
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 const VIEWS = {
-  stadium: { pos: new THREE.Vector3(95, 75, 105), tgt: new THREE.Vector3(0, 2, 0) },
-  city: { pos: new THREE.Vector3(0, 210, 170), tgt: new THREE.Vector3(0, 0, 0) },   // first view: above the stadium
+  stadium: { pos: new THREE.Vector3(250, 175, 270), tgt: new THREE.Vector3(0, 10, 0) },
+  city: { pos: new THREE.Vector3(0, 390, 500), tgt: new THREE.Vector3(0, 0, 0) },
 };
 camera.position.copy(VIEWS[MODE].pos); controls.target.copy(VIEWS[MODE].tgt);
 let fly = null;
 function flyTo(pos, tgt, dur = 1.6) { fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, start: performance.now(), dur }; }
 const viewBtn = document.getElementById("view");
 function setMode(m, animate = true) {
+  stopCinematicTour();
   MODE = m; document.body.classList.toggle("city", m === "city");
   viewBtn.textContent = m === "city" ? "🏟" : "🏙";
   const [n, f] = FOG[m]; scene.fog.near = n; scene.fog.far = f;
@@ -1854,17 +1856,45 @@ function setMode(m, animate = true) {
   if (m === "city") {
     controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE };
     controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
-    controls.panSpeed = 1.6; controls.maxPolarAngle = Math.PI * 0.44;
+    controls.panSpeed = 1.5; controls.maxPolarAngle = Math.PI * 0.46;
   } else {
     controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
     controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
     controls.panSpeed = 1.2; controls.maxPolarAngle = Math.PI * 0.495;
   }
-  if (animate) { me = null; flyTo(VIEWS[m].pos.clone(), VIEWS[m].tgt.clone(), 2.2); }
+  if (animate) { me = null; flyTo(VIEWS[m].pos.clone(), VIEWS[m].tgt.clone(), 2.4); }
 }
 viewBtn.onclick = () => setMode(MODE === "city" ? "stadium" : "city");
-document.getElementById("home").onclick = () => { me = null; flyTo(VIEWS[MODE].pos.clone(), VIEWS[MODE].tgt.clone()); };
-const zoom = f => { const d = camera.position.clone().sub(controls.target).multiplyScalar(f); flyTo(controls.target.clone().add(d), controls.target.clone(), .5); };
+const tourBtn = document.getElementById("tour");
+let cinematicTour = false, tourTimers = [];
+function stopCinematicTour() {
+  cinematicTour = false; tourTimers.forEach(clearTimeout); tourTimers = []; fly = null;
+  controls.enabled = true;
+  if (tourBtn) tourBtn.textContent = "🎬";
+}
+function startCinematicTour() {
+  if (cinematicTour) { stopCinematicTour(); return; }
+  cinematicTour = true; controls.enabled = false; tourBtn.textContent = "✕";
+  const route = [
+    [new THREE.Vector3(0,390,500),new THREE.Vector3(0,0,0),3.1],
+    [new THREE.Vector3(0,105,OUT_B+245),new THREE.Vector3(0,12,0),2.8],
+    [new THREE.Vector3(OUT_A+185,82,-OUT_B-22),new THREE.Vector3(0,10,-OUT_B-10),2.8],
+    [new THREE.Vector3(OUT_A+155,145,OUT_B+145),new THREE.Vector3(0,18,0),3.0],
+    [new THREE.Vector3(0,92,OUT_B+92),new THREE.Vector3(0,13,0),2.8],
+    [new THREE.Vector3(0,390,500),new THREE.Vector3(0,0,0),3.0]
+  ];
+  const step = i => {
+    if (!cinematicTour) return;
+    if (i >= route.length) { stopCinematicTour(); return; }
+    flyTo(route[i][0],route[i][1],route[i][2]);
+    tourTimers.push(setTimeout(() => step(i+1),route[i][2]*1000+180));
+  };
+  step(0);
+}
+tourBtn.onclick = startCinematicTour;
+canvas.addEventListener("pointerdown", () => { if (cinematicTour) stopCinematicTour(); }, { passive:true });
+document.getElementById("home").onclick = () => { stopCinematicTour(); me = null; flyTo(VIEWS[MODE].pos.clone(), VIEWS[MODE].tgt.clone()); };
+const zoom = f => { stopCinematicTour(); const d = camera.position.clone().sub(controls.target).multiplyScalar(f); flyTo(controls.target.clone().add(d), controls.target.clone(), .5); };
 document.getElementById("zin").onclick = () => zoom(0.6);
 document.getElementById("zout").onclick = () => zoom(1.6);
 // web visitors: invite into the Telegram Mini App (seat + home live there)
@@ -1880,35 +1910,7 @@ function tag(i) { if (!pool[i]) { const d = document.createElement("div"); d.cla
 const P = new THREE.Vector3();
 function project(x, y, z) { P.set(x, y, z).project(camera); return [(P.x + 1) / 2 * innerWidth, (1 - P.y) / 2 * innerHeight, P.z]; }
 let lastLabel = 0, used = 0, shownFans = new Set();
-// fan names are 3D billboards attached to the figure's head (no HTML overlay), shown only for figures near the camera
-const nameTex = new Map();
-function nameTexture(txt, mine) {
-  const key = (mine ? "*" : "") + txt;
-  if (!nameTex.has(key)) {
-    const c = document.createElement("canvas"), g = c.getContext("2d");
-    g.font = "bold 44px system-ui, sans-serif";
-    const w = Math.ceil(g.measureText(txt).width) + 40;
-    c.width = w; c.height = 72;
-    g.font = "bold 44px system-ui, sans-serif";
-    g.fillStyle = mine ? "#FFD23F" : "#0D2557"; g.strokeStyle = "#FFD23F"; g.lineWidth = 4;
-    g.beginPath(); g.roundRect(4, 6, w - 8, 60, 22); g.fill(); g.stroke();
-    g.fillStyle = mine ? "#0D2557" : "#FFFFFF"; g.textBaseline = "middle"; g.fillText(txt, 20, 38);
-    nameTex.set(key, { tex: new THREE.CanvasTexture(c), aspect: w / 72 });
-  }
-  return nameTex.get(key);
-}
-const nameSprites = Array.from({ length: 60 }, () => {
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthTest: false }));
-  s.renderOrder = 999;
-  s.visible = false; scene.add(s); return s;
-});
-function showName(s, st, txt, mine) {
-  const t = nameTexture(txt, mine);
-  s.material.map = t.tex; s.material.needsUpdate = true;
-  s.position.set(st.x, st.y + 1.95, st.z);                 // just above the head (figure top ≈ 1.65)
-  const k = 0.045 * camera.position.distanceTo(s.position);      // constant on-screen size at any distance
-  s.scale.set(k * t.aspect, k, 1); s.visible = true;
-}
+
 function updateLabels(now) {
   if (now - lastLabel < 120 && !fly) return; lastLabel = now;
   used = 0;
@@ -1927,7 +1929,8 @@ function updateLabels(now) {
     const d = tag(used++); d.className = cls; d.textContent = txt; d.style.left = sx + "px"; d.style.top = sy + "px"; d.style.transform = "translate(-50%,-100%) scale(" + labelScale + ")"; d.style.display = "block";
     return true;
   };
-  nameSprites.forEach(s => { s.visible = false; });
+  const place = (st, cls, txt) => placeAt(st.x, st.y + 1.3, st.z, cls, txt, cls === "tag me");
+  if (me) place(me, "tag me", "@" + me.fan);
   const near = camR < 260;                       // inside the stadium: people; far away: the city
   if (camR >= 260) placeAt(0, OUT_R * ROW_H + 14, 0, "tag big", T[L].stad, true);   // stadium name only when far away
   if (near) {
@@ -1935,11 +1938,9 @@ function updateLabels(now) {
     const cand = [], step = Math.max(1, Math.floor(fans / 3000));
     for (let k = 0; k < fans; k += step) { const st = seats[order[k]], d = (st.x - camPos.x) ** 2 + (st.y - camPos.y) ** 2 + (st.z - camPos.z) ** 2; cand.push([shownFans.has(st) ? d * .5 : d, st]); }   // names already on screen keep their place
     cand.sort((a, b) => a[0] - b[0]);
-    const NAME_R2 = 90 * 90;                                                                                  // names only on figures close to the camera
-    const LIM = fans <= 60 ? 60 : camR < 110 ? 8 : 6;                                                         // fewer names when zoomed out
-    const nowShown = new Set(); let si = 0;
-    if (me && me.fan) { showName(nameSprites[si++], me, "@" + me.fan, true); nowShown.add(me); }
-    for (const [d, st] of cand) { if (si >= LIM || d > NAME_R2) break; if (st === me) continue; showName(nameSprites[si++], st, "@" + st.fan, false); nowShown.add(st); }
+    const LIM = fans <= 60 ? 60 : camR < 110 ? 8 : camR < 180 ? 12 : 6;                                       // fewer names when zoomed out
+    const nowShown = new Set();
+    for (const [, st] of cand) { if (nowShown.size >= LIM) break; if (st !== me && place(st, "tag fan", "@" + st.fan)) nowShown.add(st); }
     shownFans = nowShown;
   } else {
     if (PLAZA) placeAt(PLAZA.x, 24, PLAZA.z - 30, "tag lot", T[L].plaza, true);
@@ -2705,33 +2706,33 @@ const SKY = (() => {
     const inward = new THREE.Vector3(-p.x, 0, -p.z).normalize();
     if (moveCamera) flyTo(new THREE.Vector3(p.x + inward.x * 22, p.y + 6.5, p.z + inward.z * 22), p.clone().add(new THREE.Vector3(0, 1.8, 0)), 1.8);
     const no = String(c.no).padStart(2, "0");
-    $("cbh").textContent = "\u{1F451} GOLD VIP CABIN " + no;
-    $("cbp").textContent = L === "uz" ? "Yuqori tribuna \xb7 Oltin bezakli shaxsiy lounge" : L === "ru" ? "Верхняя трибуна \xb7 Частный лаунж с золотой отделкой" : "Upper grandstand \xb7 Private gold-finish lounge";
+    $("cbh").textContent = "👑 GOLD VIP CABIN " + no;
+    $("cbp").textContent = L === "uz" ? "Yuqori tribuna · Oltin bezakli shaxsiy lounge" : L === "ru" ? "Верхняя трибуна · Частный лаунж с золотой отделкой" : "Upper grandstand · Private gold-finish lounge";
     const owner = VIP_OWNERS.get(c.no);
     $("cbo").style.display = owner ? "block" : "none";
-    $("cbo").textContent = owner ? "\u{1F451} Owner: @" + owner.username : "";
+    $("cbo").textContent = owner ? "👑 Owner: @" + owner.username : "";
     $("cbcertno").textContent = "VIP " + no;
-    $("cbm").textContent = owner ? "✅ SOLD \xb7 @" + owner.username : "10 000 so‘m \xb7 Payment is collected manually by the admin.";
+    $("cbm").textContent = owner ? "✅ SOLD · @" + owner.username : "10 000 so‘m · Payment is collected manually by the admin.";
     $("cbgo").textContent = L === "uz" ? "To‘lov tizimi tez orada" : L === "ru" ? "Оплата скоро появится" : "PAYMENT SETUP COMING SOON";
     $("cbgo").disabled = true;
     $("cbgo").style.display = "block";
     $("cabin").style.display = "block";
   }
   function list() {
-    $("vh").textContent = L === "uz" ? "\u{1F451} GOLD VIP KABINALAR" : L === "ru" ? "\u{1F451} ЗОЛОТЫЕ VIP-ЛАУНЖИ" : "\u{1F451} GOLD VIP CABINS";
-    $("vintro").textContent = L === "uz" ? "32 ta maxsus lounge \xb7 Har biri 10 000 so‘m \xb7 Egasi nomi oltin lavhada." : L === "ru" ? "32 эксклюзивных лаунжа \xb7 10 000 сум каждый \xb7 Имя владельца на золотой табличке." : "32 exclusive lounges \xb7 10,000 UZS each \xb7 Owner name displayed on a gold plaque.";
+    $("vh").textContent = L === "uz" ? "👑 GOLD VIP KABINALAR" : L === "ru" ? "👑 ЗОЛОТЫЕ VIP-ЛАУНЖИ" : "👑 GOLD VIP CABINS";
+    $("vintro").textContent = L === "uz" ? "32 ta maxsus lounge · Har biri 10 000 so‘m · Egasi nomi oltin lavhada." : L === "ru" ? "32 эксклюзивных лаунжа · 10 000 сум каждый · Имя владельца на золотой табличке." : "32 exclusive lounges · 10,000 UZS each · Owner name displayed on a gold plaque.";
     const pl = $("vlist"); pl.innerHTML = "";
     for (const c of cabins.filter(Boolean)) {
       const b = document.createElement("button");
-      b.innerHTML = "<u>\u{1F451}</u><b></b><i>10 000 so‘m</i><u>›</u>";
+      b.innerHTML = "<u>👑</u><b></b><i>10 000 so‘m</i><u>›</u>";
       const owner = VIP_OWNERS.get(c.no);
-      b.querySelector("b").textContent = "GOLD VIP " + String(c.no).padStart(2, "0") + (owner ? " \xb7 @" + owner.username : "");
+      b.querySelector("b").textContent = "GOLD VIP " + String(c.no).padStart(2, "0") + (owner ? " · @" + owner.username : "");
       b.querySelector("i").textContent = owner ? "SOLD" : "10 000 so‘m";
       b.onclick = () => { $("vpanel").style.display = "none"; details(c, true); };
       pl.appendChild(b);
     }
     const owners = Array.from(VIP_OWNERS.values()).sort((a,b) => Number(a.no)-Number(b.no));
-    $("vwall").querySelector("span").textContent = owners.length ? owners.map(v => "VIP " + String(v.no).padStart(2,"0") + " \xb7 @" + v.username).join(" | ") : "VIP owners appear here after admin confirmation.";
+    $("vwall").querySelector("span").textContent = owners.length ? owners.map(v => "VIP " + String(v.no).padStart(2,"0") + " · @" + v.username).join(" | ") : "VIP owners appear here after admin confirmation.";
     $("vpanel").style.display = "block";
   }
   $("vip").onclick = () => { $("panel").style.display = "none"; $("card").style.display = "none"; $("cabin").style.display = "none"; list(); };
