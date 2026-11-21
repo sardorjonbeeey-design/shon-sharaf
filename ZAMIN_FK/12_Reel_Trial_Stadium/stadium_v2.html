@@ -13,9 +13,6 @@ html,body{margin:0;background:#02040c;overflow:hidden;width:1080px;height:1920px
 .tag{background:#fff;color:#0D2557;border-radius:20px;padding:10px 24px;font-size:38px;border:5px solid #FFD23F;box-shadow:0 10px 30px rgba(0,0,0,.6)}
 .chip{background:rgba(5,14,40,.9);border:4px solid #FFD23F;border-radius:18px;padding:10px 22px;font-size:40px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .chip em{font-style:normal;color:#FFD23F}
-.ring-wrap{position:relative;width:200px;height:200px;display:inline-block}
-.ring-wrap svg{position:absolute;left:0;top:0}
-.ring-wrap .num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;color:#FFD23F;font-weight:900}
 </style></head><body>
 <canvas id="c" width="1080" height="1920"></canvas><canvas id="fx" width="1080" height="1920"></canvas><div id="ov"></div>
 <script src="../09_Episode_09/build/node_modules/three/build/three.min.js"></script>
@@ -32,29 +29,27 @@ const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x
 const b = n => BS[n] ? BS[n].start : 0;
 
 const REAL = 1200, TOTAL_SEATS = 17674;
-// ---------- renderer / scene ----------
+// ---------- renderer / scene (dark, like v1 reference) ----------
 const R = new T.WebGLRenderer({ canvas: document.getElementById("c"), antialias: true }); R.setSize(1080, 1920, false); R.setPixelRatio(1);
-R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 1.1;
-const sc = new T.Scene(); sc.background = new T.Color(0x0a1628);
-sc.fog = new T.FogExp2(0x0a1628, 0.0012);
-const cam = new T.PerspectiveCamera(50, 1080 / 1920, .1, 1800);
-sc.add(new T.HemisphereLight(0x7faeff, 0x0a1030, 1.4));
-const sun = new T.DirectionalLight(0xffffff, 1.0); sun.position.set(-60, 120, 80); sc.add(sun);
+const sc = new T.Scene(); sc.background = new T.Color(0x02040c); sc.fog = new T.Fog(0x02040c, 120, 520);
+const cam = new T.PerspectiveCamera(50, 1080 / 1920, .1, 1200);
+sc.add(new T.HemisphereLight(0x7f9bff, 0x0a1030, 1.15));
+const sun = new T.DirectionalLight(0xffffff, .85); sun.position.set(-40, 90, 60); sc.add(sun);
 const lam = c => new T.MeshLambertMaterial({ color: c }), bas = c => new T.MeshBasicMaterial({ color: c });
 const BOX = new T.BoxGeometry(1, 1, 1);
 const M4 = new T.Matrix4(), Q4 = new T.Quaternion(), V3 = new T.Vector3(), S3 = new T.Vector3(), E4 = new T.Euler();
 function setM(mesh, i, x, y, z, sx, sy, sz, ry = 0) { Q4.setFromEuler(E4.set(0, ry, 0)); M4.compose(V3.set(x, y, z), Q4, S3.set(sx, sy, sz)); mesh.setMatrixAt(i, M4); }
 
 // ---------- pitch ----------
-const PX = 26, PZ = 40;
-const ground = new T.Mesh(new T.PlaneGeometry(3000, 3000), lam(0x050a1c)); ground.rotation.x = -Math.PI / 2; ground.position.y = -.3; sc.add(ground);
+const PX = 22, PZ = 34;
+const ground = new T.Mesh(new T.PlaneGeometry(2400, 2400), lam(0x050a1c)); ground.rotation.x = -Math.PI / 2; ground.position.y = -.3; sc.add(ground);
 for (let i = 0; i < 12; i++) { const m = new T.Mesh(new T.PlaneGeometry(PX * 2, PZ * 2 / 12), lam(i % 2 ? 0x0e7a35 : 0x0a6a2d)); m.rotation.x = -Math.PI / 2; m.position.set(0, 0, -PZ + (i + .5) * PZ * 2 / 12); sc.add(m); }
 function line(x, z, w, d, c = 0x7ffcff) { const m = new T.Mesh(BOX, bas(c)); m.scale.set(w, .05, d); m.position.set(x, .06, z); sc.add(m); }
 line(0, -PZ, PX * 2, .5); line(0, PZ, PX * 2, .5); line(-PX, 0, .5, PZ * 2); line(PX, 0, .5, PZ * 2); line(0, 0, PX * 2, .5);
 for (const s of [-1, 1]) { line(0, s * (PZ - 8), 20, .4); line(-10, s * (PZ - 4), .4, 8); line(10, s * (PZ - 4), .4, 8); }
 const circ = new T.Mesh(new T.RingGeometry(5.7, 6.2, 48), bas(0x7ffcff)); circ.rotation.x = -Math.PI / 2; circ.position.y = .07; sc.add(circ);
 
-// ---------- seats (rounded-rect bowl — Crown Arena scale) ----------
+// ---------- seats (rounded-rect bowl — Crown Arena proportions, ~3200 visual seats for perf) ----------
 function rr(hx, hz, r, s) {
   const a = hx - r, b_ = hz - r, L1 = 2 * a, L2 = 2 * b_, Lc = Math.PI * r / 2, P = 2 * L1 + 2 * L2 + 4 * Lc; s = ((s % P) + P) % P;
   const seg = [[L1, "b"], [Lc, "c1"], [L2, "r"], [Lc, "c2"], [L1, "t"], [Lc, "c3"], [L2, "l"], [Lc, "c4"]]; let o = 0;
@@ -66,24 +61,18 @@ function rr(hx, hz, r, s) {
     default: { const t = u / r; return [-a - r * Math.cos(t), b_ + r * Math.sin(t), -Math.cos(t), Math.sin(t)]; } } } o += L; }
   return [-a, hz, 0, 1];
 }
-// Two-tier bowl: lower 20 rows tight, upper 30 rows with concourse gap
-const TIERS_LOWER = 20, TIERS_UPPER = 30, TIERS = TIERS_LOWER + TIERS_UPPER;
-const seats = [];
+
+// Crown Arena scale: 24 tiers, wider spacing so bowl looks huge but only ~3200 instances
+const TIERS = 24, seats = [];
 for (let i = 0; i < TIERS; i++) {
-  const tierGap = i >= TIERS_LOWER ? 3.5 : 0;
-  const hx = PX + 5 + i * 1.0 + (i >= TIERS_LOWER ? 2 : 0);
-  const hz = PZ + 5 + i * 1.0 + (i >= TIERS_LOWER ? 2 : 0);
-  const r = 10 + i * 1.0 + (i >= TIERS_LOWER ? 2 : 0);
+  const hx = PX + 4 + i * 1.6, hz = PZ + 4 + i * 1.6, r = 9 + i * 1.6;
   const P = 2 * (2 * (hx - r) + 2 * (hz - r)) + 2 * Math.PI * r;
-  const spacing = i >= TIERS_LOWER ? 1.0 : 0.95;
-  const n = Math.floor(P / spacing);
+  const n = Math.floor(P / 1.5);
   for (let k = 0; k < n; k++) {
     const [x, z, nx, nz] = rr(hx, hz, r, k * P / n);
-    seats.push({ x, z, y: .55 + i * 0.72 + tierGap, ry: Math.atan2(-nx, -nz), tier: i, k, n });
+    seats.push({ x, z, y: .55 + i * .85, ry: Math.atan2(-nx, -nz), tier: i, k, n });
   }
 }
-// Trim to TOTAL_SEATS
-while (seats.length > TOTAL_SEATS) seats.pop();
 const NS = seats.length;
 
 let ord = seats.map((_, i) => i).sort((a, b_) => hash(a * 3.1) - hash(b_ * 3.1));
@@ -91,6 +80,9 @@ const pickNear = (x, y, z) => { let b_ = 0, bd = 1e9; seats.forEach((s, i) => { 
 const HERO = pickNear(-30, 4.5, 8);
 ord = [HERO, ...ord.filter(i => i !== HERO)];
 const rank = new Array(NS); ord.forEach((s, i) => rank[s] = i);
+
+// Visual fill ratio: 1200/17674 ≈ 6.8% → fill ~218 of ~3200 visual seats
+const VISUAL_FILL = Math.round(NS * (REAL / TOTAL_SEATS));
 
 const seatM = new T.InstancedMesh(BOX, lam(0xffffff), NS);
 const bodyM = new T.InstancedMesh(BOX, lam(0xffffff), NS);
@@ -106,89 +98,33 @@ seats.forEach((s, i) => {
 
 function updateSeats(K, t) {
   seats.forEach((s, i) => {
-    setM(seatM, i, s.x, s.y, s.z, .88, .45, .82, s.ry);
+    setM(seatM, i, s.x, s.y, s.z, .92, .5, .86, s.ry);
     const u = cl(K - rank[i] + 1, 0, 1), e = u <= 0 ? 0 : eob(u);
-    setM(bodyM, i, s.x, s.y + .55 * e, s.z, .5 * e, .78 * e, .38 * e, s.ry);
-    setM(headM, i, s.x, s.y + 1.1 * e, s.z, .34 * e, .34 * e, .34 * e, s.ry);
+    setM(bodyM, i, s.x, s.y + .62 * e, s.z, .55 * e, .85 * e, .42 * e, s.ry);
+    setM(headM, i, s.x, s.y + 1.28 * e, s.z, .38 * e, .38 * e, .38 * e, s.ry);
   });
   [seatM, bodyM, headM].forEach(m => { m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; });
 }
 
-// Crown Arena exterior — dark navy walls + steel/glass facade
-const wallH = TIERS * 0.72 + 4;
-const outerA = PX + 5 + TIERS * 1.0 + 6, outerB = PZ + 5 + TIERS * 1.0 + 6;
-// outer wall ring
-for (let i = 0; i < 120; i++) {
-  const angle = (i / 120) * Math.PI * 2;
-  const rx = outerA * Math.cos(angle), rz = outerB * Math.sin(angle);
-  const w = new T.Mesh(BOX, lam(0x0a1a3d));
-  w.scale.set(3.5, wallH, 1.8); w.position.set(rx, wallH / 2, rz);
-  w.rotation.y = -angle; sc.add(w);
-  if (i % 4 === 0) {
-    const g = new T.Mesh(BOX, new T.MeshBasicMaterial({ color: 0x1a4a8a, transparent: true, opacity: 0.5 }));
-    g.scale.set(2.8, wallH * 0.7, 0.3); g.position.set(rx * 1.01, wallH * 0.4, rz * 1.01);
-    g.rotation.y = -angle; sc.add(g);
-  }
-}
-
-// Roof ring
-const roofG = new T.RingGeometry(Math.min(outerA, outerB) * 0.55, Math.max(outerA, outerB) + 2, 80);
-const roofM_ = new T.Mesh(roofG, new T.MeshLambertMaterial({ color: 0x2a3f5f, side: T.DoubleSide }));
-roofM_.rotation.x = -Math.PI / 2; roofM_.position.y = wallH + 1; sc.add(roofM_);
-
-// LED rim lights
-const ledRim = (h, c) => {
-  const n = 200;
+// neon bowl edge rims (like v1 reference)
+const rim = (h, c, w = .35) => {
+  const hx = PX + 4 + TIERS * 1.6 + .4, hz = PZ + 4 + TIERS * 1.6 + .4, r = 9 + TIERS * 1.6;
+  const P = 2 * (2 * (hx - r) + 2 * (hz - r)) + 2 * Math.PI * r;
+  const n = Math.floor(P / .9);
   const m = new T.InstancedMesh(BOX, bas(c), n);
   for (let k = 0; k < n; k++) {
-    const angle = (k / n) * Math.PI * 2;
-    const rx = (outerA - 2) * Math.cos(angle), rz = (outerB - 2) * Math.sin(angle);
-    setM(m, k, rx, h, rz, 2.5, 0.3, 2.5, -angle);
+    const [x, z, nx, nz] = rr(hx, hz, r, k * P / n);
+    setM(m, k, x, h, z, w + .6, w, w + .6, Math.atan2(-nx, -nz));
   }
   sc.add(m);
 };
-ledRim(wallH + 0.5, 0x4da8ff);
-ledRim(0.3, 0x4da8ff);
+rim(TIERS * .85 + .9, 0x7ffcff);
+rim(.25, 0x7ffcff, .3);
 
-// ZAMIN FK sign
-const signCanvas = document.createElement("canvas"); signCanvas.width = 512; signCanvas.height = 128;
-const sctx = signCanvas.getContext("2d");
-sctx.fillStyle = "#0D2557"; sctx.fillRect(0, 0, 512, 128);
-sctx.strokeStyle = "#FFD23F"; sctx.lineWidth = 4; sctx.strokeRect(4, 4, 504, 120);
-sctx.fillStyle = "#FFD23F"; sctx.font = "bold 56px sans-serif"; sctx.textAlign = "center";
-sctx.fillText("ZAMIN FK", 256, 60);
-sctx.fillStyle = "#9fb6ff"; sctx.font = "bold 24px sans-serif";
-sctx.fillText("THE CROWN ARENA", 256, 100);
-const signTex = new T.CanvasTexture(signCanvas);
-const sign = new T.Mesh(new T.PlaneGeometry(28, 7), new T.MeshBasicMaterial({ map: signTex }));
-sign.position.set(0, wallH + 6, -(outerB + 3)); sc.add(sign);
-
-// Mountains background
-for (let i = 0; i < 15; i++) {
-  const angle = hash(i * 5.3) * Math.PI * 2;
-  const dist = 500 + hash(i * 3.1) * 400;
-  const h = 80 + hash(i * 7.7) * 180;
-  const mt = new T.Mesh(new T.ConeGeometry(60 + hash(i * 2.1) * 80, h, 4), lam(0x8ba4c8));
-  mt.position.set(Math.cos(angle) * dist, h / 2 - 10, Math.sin(angle) * dist);
-  mt.rotation.y = hash(i * 9.1) * Math.PI; sc.add(mt);
-}
-
-// Floodlight towers
-for (let i = 0; i < 4; i++) {
-  const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
-  const rx = (outerA + 8) * Math.cos(angle), rz = (outerB + 8) * Math.sin(angle);
-  const pole = new T.Mesh(new T.CylinderGeometry(0.5, 0.8, wallH + 20, 8), lam(0x8898aa));
-  pole.position.set(rx, (wallH + 20) / 2, rz); sc.add(pole);
-  const light = new T.Mesh(BOX, bas(0xffffee));
-  light.scale.set(4, 2, 2); light.position.set(rx, wallH + 20, rz); sc.add(light);
-  const spot = new T.PointLight(0xfff5dd, 0.6, 300);
-  spot.position.set(rx, wallH + 18, rz); sc.add(spot);
-}
-
-// ---------- beam (hero highlight) ----------
+// hero beam
 function heroBeam(x, y, z, col) {
   const m = new T.Mesh(new T.CylinderGeometry(.9, .9, 90, 20, 1, true),
-    new T.MeshBasicMaterial({ color: col, transparent: true, opacity: .25, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending }));
+    new T.MeshBasicMaterial({ color: col, transparent: true, opacity: .3, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending }));
   m.position.set(x, y + 45, z); sc.add(m); return m;
 }
 const HP = seats[HERO];
@@ -196,83 +132,79 @@ const beam1 = heroBeam(HP.x, HP.y, HP.z, 0xffd23f);
 
 // ---------- camera choreography for 12 beats ----------
 function placeCam(t) {
-  let p, l, fov = 50;
+  let p, l, fov = 50, upV = false;
   const b1 = b(1), b2 = b(2), b3 = b(3), b4 = b(4), b5 = b(5), b6 = b(6);
   const b7 = b(7), b8 = b(8), b9 = b(9), b10 = b(10), b11 = b(11), b12 = b(12);
 
   if (t < b2) {
-    // Beat 1: top-down → slow pull back
+    // Beat 1: top-down slow descent
     const u = sm(0, b2, t);
-    p = [0, lerp(280, 240, u), lerp(5, 20, u)];
-    l = [0, 0, 0]; fov = lerp(42, 46, u);
-    cam.up.set(0, 1, -0.001).normalize();
+    p = [0, lerp(175, 140, u), lerp(3, 10, u)];
+    l = [0, 0, 0]; fov = lerp(40, 44, u); upV = true;
   } else if (t < b3) {
     // Beat 2: 3/4 overhead orbit
     const u = sm(b2, b3, t);
     const angle = lerp(0.78, 1.2, u);
-    p = [Math.cos(angle) * 180, lerp(160, 140, u), Math.sin(angle) * 180];
+    p = [Math.cos(angle) * 140, lerp(120, 100, u), Math.sin(angle) * 140];
     l = [0, 0, 0]; fov = 48;
   } else if (t < b4) {
-    // Beat 3: approach Crown Arena
+    // Beat 3: approach
     const u = sm(b3, b4, t);
-    p = [0, lerp(90, 65, u), lerp(240, 180, u)];
-    l = [0, lerp(10, 5, u), 0]; fov = lerp(52, 56, u);
+    p = [0, lerp(60, 42, u), lerp(180, 120, u)];
+    l = [0, lerp(8, 5, u), 0]; fov = lerp(52, 56, u);
   } else if (t < b5) {
-    // Beat 4: inside stands, panorama sweep (pulled back to show scale)
+    // Beat 4: inside stands, panorama sweep
     const u = sm(b4, b5, t);
-    const angle = lerp(-0.3, 0.4, u);
-    p = [85 * Math.cos(angle), lerp(28, 34, u), 65 * Math.sin(angle)];
-    l = [lerp(-15, 10, u), 10, lerp(-25, -5, u)]; fov = 64;
+    p = [lerp(34, 34, u), lerp(7, 7, u), lerp(38, -14, u)];
+    l = [lerp(-22, -22, u), lerp(10, 11, u), lerp(26, -30, u)]; fov = 66;
   } else if (t < b6) {
-    // Beat 5: close on fans
+    // Beat 5: close on hero seat + name tag
     const u = sm(b5, b6, t);
-    p = [lerp(42, 48, u), lerp(16, 20, u), lerp(32, 38, u)];
-    l = [lerp(52, 56, u), lerp(13, 15, u), lerp(42, 48, u)]; fov = lerp(44, 48, u);
+    p = [lerp(-17, -20.5, u), lerp(6.4, 5.6, u), lerp(13, 10.6, u)];
+    l = [HP.x, HP.y + lerp(1.2, 1.3, u), HP.z]; fov = lerp(46, 38, u);
   } else if (t < b7) {
     // Beat 6: pitch level sweep
     const u = sm(b6, b7, t);
-    p = [lerp(-5, 5, u), lerp(3, 5, u), lerp(-2, 5, u)];
-    l = [lerp(40, 50, u), lerp(18, 22, u), lerp(25, 35, u)]; fov = lerp(68, 72, u);
+    p = [lerp(0, 0, u), lerp(2.6, 3.2, u), lerp(80, -20, u)];
+    l = [0, lerp(6, 9, u), lerp(0, -70, u)]; fov = lerp(70, 76, u);
   } else if (t < b8) {
-    // Beat 7: corner dramatic orbit
+    // Beat 7: wide orbit showing scale
     const u = sm(b7, b8, t);
-    const angle = lerp(0.78, 1.1, u);
-    p = [Math.cos(angle) * 120, lerp(50, 60, u), Math.sin(angle) * 120];
-    l = [0, lerp(8, 12, u), 0]; fov = 54;
+    p = [lerp(-62, 62, u), lerp(40, 42, u), lerp(78, 78, u)];
+    l = [0, 5, lerp(0, -4, u)]; fov = 56;
   } else if (t < b9) {
     // Beat 8: behind goal looking up
     const u = sm(b8, b9, t);
-    p = [lerp(-3, 3, u), lerp(6, 10, u), lerp(-55, -50, u)];
-    l = [0, lerp(18, 22, u), lerp(15, 25, u)]; fov = lerp(66, 70, u);
+    p = [lerp(-3, 3, u), lerp(6, 10, u), lerp(-55, -48, u)];
+    l = [0, lerp(16, 22, u), lerp(10, 20, u)]; fov = lerp(66, 70, u);
   } else if (t < b10) {
-    // Beat 9: tunnel view, low dramatic
+    // Beat 9: tunnel view
     const u = sm(b9, b10, t);
-    p = [lerp(-52, -48, u), lerp(5, 7, u), lerp(-2, 2, u)];
-    l = [lerp(25, 35, u), lerp(14, 16, u), lerp(-2, 2, u)]; fov = lerp(60, 64, u);
+    p = [lerp(-50, -46, u), lerp(5, 7, u), lerp(-2, 2, u)];
+    l = [lerp(25, 35, u), lerp(14, 16, u), 0]; fov = lerp(60, 64, u);
   } else if (t < b11) {
-    // Beat 10: high side panorama
+    // Beat 10: high overhead, stadium in full
     const u = sm(b10, b11, t);
-    p = [lerp(-130, -120, u), lerp(90, 100, u), lerp(-10, 10, u)];
-    l = [0, lerp(4, 6, u), 0]; fov = lerp(52, 56, u);
+    p = [0, lerp(150, 110, u), lerp(25, 42, u)];
+    l = [0, 0, 0]; fov = lerp(42, 46, u); upV = true;
   } else if (t < b12) {
-    // Beat 11: scoreboard angle
+    // Beat 11: scoreboard / sign angle
     const u = sm(b11, b12, t);
-    p = [lerp(-5, 5, u), lerp(45, 50, u), lerp(-85, -80, u)];
+    p = [lerp(-5, 5, u), lerp(45, 50, u), lerp(-85, -78, u)];
     l = [0, lerp(22, 26, u), lerp(25, 30, u)]; fov = lerp(54, 58, u);
   } else {
-    // Beat 12: aerial pullback for CTA
+    // Beat 12: aerial pullback CTA
     const u = sm(b12, END, t);
-    p = [0, lerp(300, 380, u), lerp(400, 480, u)];
-    l = [0, 0, 0]; fov = lerp(42, 38, u);
+    p = [0, lerp(95, 130, u), lerp(80, 100, u)];
+    l = [0, 0, 0]; fov = 50;
   }
 
   cam.fov = fov; cam.updateProjectionMatrix();
-  if (t >= b2) cam.up.set(0, 1, 0);
+  if (upV) cam.up.set(0, 1, -0.001).normalize(); else cam.up.set(0, 1, 0);
   cam.position.set(p[0], p[1], p[2]); cam.lookAt(l[0], l[1], l[2]);
 }
 
-// ---------- fill level K(t): how many fans are visible ----------
-function K(t) { return REAL; }
+function K(t) { return VISUAL_FILL; }
 
 // ---------- overlay ----------
 const OV = document.getElementById("ov"), items = [];
@@ -284,6 +216,7 @@ function add(html, x, y, at, to, o = {}) {
 }
 const hd = (label, big, at, to, y = 330, w = false) => add(`<small>${label}</small><b class="${w ? "w" : ""}">${big}</b>`, 540, y, at, to, { cls: "hd", z: 20, enter: "stamp" });
 const pill = (small, num, tail, at, to) => add(`<small>${small}</small><b>${num}</b> <i>${tail}</i>`, 540, 1640, at, to, { cls: "pill", z: 21, enter: "pop" });
+function proj(x, y, z) { const v = new T.Vector3(x, y, z).project(cam); if (v.z > 1) return null; return [(v.x + 1) / 2 * 1080, (1 - v.y) / 2 * 1920]; }
 
 function frameOv(t) {
   for (const it of items) {
@@ -298,6 +231,7 @@ function frameOv(t) {
     let tr = `translate(-50%,-50%) scale(${sca})`;
     d.style.transform = tr;
     if (o.live) o.live(d, t);
+    if (o.track) { const p = o.track(t); if (!p) { d.style.display = "none"; continue; } d.style.left = p[0] + "px"; d.style.top = p[1] + "px"; }
   }
 }
 
@@ -313,19 +247,22 @@ add(`<small>O'RINDIQLAR</small><b>0</b>`, 540, 330, b(2), b(3) - .1, { cls: "hd"
 hd("UNI MUXLISLAR", "TO'LDIRADI", b(3), b(4) - .1, 330, true);
 
 // Beat 4: RULE
-hd("HAR BIR OBUNACHI", "= 1 VIRTUAL<br>MUXLIS", b(4), S(4,1).a - .05 || b(5) - .1);
+hd("HAR BIR OBUNACHI", "= 1 VIRTUAL<br>MUXLIS", b(4), S(4,1).a || b(5) - .1);
 hd("STADIONDA", "= 1 O'RIN", S(4,1).a || b(4) + 2.5, b(5) - .1);
+pill("MUXLISLAR (HAQIQIY)", "1,200", "/ 17,674", b(4) + .3, b(5) - .1);
 
 // Beat 5: YOUR NAME
 hd("OBUNA BO'LING", "ISMINGIZ O'Z<br>O'RNINGIZDA!", b(5), b(6) - .1, 330);
-add(`<div class="tag">@sardorjonbeeey</div>`, 540, 1400, b(5) + .5, b(6) - .1, { z: 22, enter: "pop" });
+add(`<div class="tag">@sardorjonbeeey</div>`, 540, 900, b(5) + .5, b(6) - .1, { z: 22, enter: "pop",
+  track: t => { const p = proj(HP.x, HP.y + 2.4, HP.z); return p && [p[0], p[1]]; }
+});
 
 // Beat 6: PROGRESS
-hd("HAR YANGI QISMDA", "STADION<br>TO'LAYOTGANINI<br>KO'RASIZ", b(6), b(7) - .1, 330);
+hd("HAR YANGI QISMDA", "STADION<br>TO'LADI", b(6), b(7) - .1, 330);
 
-// Beat 7: STATUS — counter + progress ring
-pill("MUXLISLAR", "1,200", "/ 17,674", b(7), b(8) - .1);
+// Beat 7: STATUS
 hd("O'N YETTI MING", "OLTI YUZ<br>YETMISH TO'RT", b(7), S(7,1).a || b(8) - .1);
+pill("BAND", "1,200", "/ 17,674", S(7,1).a || b(7) + 2.5, b(8) - .1);
 
 // Beat 8: URGENCY
 hd("YANA 16,000+", "JOY BOR!", b(8), S(8,1).a || b(9) - .1, 330);
@@ -333,7 +270,6 @@ hd("LEKIN TEZLIK BILAN", "TO'LMOQDA!", S(8,1).a || b(8) + 2.2, b(9) - .1, 330);
 
 // Beat 9: FOUNDERS
 hd("BIRINCHI 2,000", "KLUBNING<br>ASOSCHILARI", b(9), b(10) - .1, 330);
-// Milestone chips
 add(`<div class="chip"><em>2K</em> → <em>5K</em> → <em>10K</em> → <em>17,674</em></div>`, 540, 1560, b(9) + .5, b(10) - .1, { z: 21, enter: "pop" });
 
 // Beat 10: SCALE COMPARE
@@ -344,13 +280,13 @@ add(`<div class="chip">🚌 <em>×20 = 1000</em></div>`, 540, 1560, S(10,1).a ||
 // Beat 11: SHARE
 hd("KEYINGI QURILISH", "SIZ<br>TANLAYSIZ", b(11), S(11,1).a || b(11) + 2, 330);
 hd("DO'STINGIZ FUTBOLNI", "YAXSHI KO'RADIMI?", S(11,1).a || b(11) + 2, S(11,2).a || b(11) + 4, 330);
-add(`<div class="chip" style="font-size:46px">➤ ULASHING!</div>`, 540, 1560, S(11,2).a || b(11) + 4, b(12) - .1, { z: 22, enter: "pop" });
+add(`<div class="chip" style="font-size:46px">➤ ULASHING!</div>`, 540, 1560, S(11,2).a || b(11) + 4, b(12) - .1, { z: 22, enter: "pop", pulse: true });
 
 // Beat 12: CTA
-const crest = `<img src="assets/crest.png" style="height:200px;display:block">`;
-add(crest, 540, 220, b(12), null, { z: 25, enter: "stamp" });
-hd("OBUNA BO'LING", "O'RNINGIZNI<br>BAND QILING!", b(12) + .2, null, 520);
-pill("HOZIR", "7%", "BAND", b(12) + .4, null);
+const crest = `<img src="assets/crest.png" style="height:230px;display:block">`;
+add(crest, 540, 250, b(12), null, { z: 25, enter: "stamp" });
+hd("ZAMIN FK STADIONIDA", "JOYINGIZ<br>KUTMOQDA", b(12) + .2, null, 560);
+add(`<div class="hd"><b style="font-size:108px">OBUNA<br>BO'LING</b></div>`, 540, 1450, b(12) + .8, null, { z: 24, enter: "stamp" });
 
 // ---------- FX canvas (speed lines for founders beat) ----------
 const fx = document.getElementById("fx").getContext("2d");
@@ -373,7 +309,6 @@ function fxFrame(t) {
   fx.globalCompositeOperation = "source-over";
 }
 
-// ---------- world update ----------
 function world(t) {
   updateSeats(K(t), t);
   beam1.visible = (t < b(2) - .05) || (t >= b(5) && t < b(6));
