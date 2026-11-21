@@ -1,85 +1,159 @@
-"""Assemble Trial Reel v2 from stadium screenshots + Poyo images + voice + SFX + music.
-Each beat gets one image with Ken Burns zoom/pan, crossfade transitions."""
-import json, os, subprocess, math
+"""Assemble Trial Reel v2 — real stadium shots only + word-by-word captions.
+Ken Burns zoom/pan on each beat, synced text overlay from voice timestamps."""
+import json, os, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-Z = os.path.dirname(HERE)
 BUILD = HERE + "/build"
 SHOTS = BUILD + "/stadium_shots"
-V = HERE + "/voice_v2"
 EXP = HERE + "/exports"
 os.makedirs(EXP, exist_ok=True)
 
+FONT_DIR = os.path.join(os.path.dirname(HERE), "web/city/assets/fonts")
+FONT_BOLD = os.path.join(FONT_DIR, "Montserrat_800ExtraBold.ttf")
+FONT_SEMI = os.path.join(FONT_DIR, "Montserrat_600SemiBold.ttf")
+
 W = json.load(open(BUILD + "/words_v2.json"))
 BS = {b["beat"]: b for b in W}
-b = lambda n: BS[n]["start"]
+b_start = lambda n: BS[n]["start"]
 TOTAL = W[-1]["end"] + 1.0
 FPS = 30
 
-# Beat -> image mapping (alternating real 3D stadium + Poyo cinematic)
+# All real stadium shots — no Poyo
 BEAT_IMG = {
-    1:  "poyo_aerial_night.png",      # INTRO - dramatic aerial
-    2:  "09_top_down.jpg",             # SCALE - real top-down
-    3:  "02_stadium_34.jpg",           # FANS FILL - real 3/4 view
-    4:  "poyo_inside_stands.png",      # RULE - inside stands
-    5:  "10_close_stands.jpg",         # YOUR NAME - real close stands
-    6:  "poyo_pitch_level.png",        # PROGRESS - pitch level
-    7:  "07_high_side.jpg",            # STATUS - real high side
-    8:  "poyo_behind_goal.png",        # URGENCY - behind goal
-    9:  "poyo_tunnel.png",             # FOUNDERS - tunnel
-    10: "01_aerial_wide.jpg",          # SCALE COMPARE - real aerial
-    11: "06_corner.jpg",               # SHARE - real corner
-    12: "poyo_aerial_night.png",       # CTA - dramatic aerial (reuse)
+    1:  "01_aerial_wide.jpg",
+    2:  "09_top_down.jpg",
+    3:  "02_stadium_34.jpg",
+    4:  "03_inside_low.jpg",
+    5:  "10_close_stands.jpg",
+    6:  "04_pitch_level.jpg",
+    7:  "07_high_side.jpg",
+    8:  "05_behind_goal.jpg",
+    9:  "08_tunnel.jpg",
+    10: "06_corner.jpg",
+    11: "02_stadium_34.jpg",
+    12: "01_aerial_wide.jpg",
 }
 
-# Ken Burns: each beat gets zoom direction (in/out) and pan direction
 KB = {
-    1:  {"z0": 1.0, "z1": 1.15, "px": 0, "py": -0.03},     # slow zoom in
-    2:  {"z0": 1.1, "z1": 1.0, "px": 0, "py": 0},            # zoom out
-    3:  {"z0": 1.0, "z1": 1.12, "px": 0.04, "py": 0},        # zoom in + pan right
-    4:  {"z0": 1.05, "z1": 1.15, "px": -0.03, "py": 0.02},   # slow zoom + drift
-    5:  {"z0": 1.1, "z1": 1.0, "px": 0.02, "py": -0.01},     # zoom out
-    6:  {"z0": 1.0, "z1": 1.1, "px": 0, "py": 0.03},         # zoom in + tilt
-    7:  {"z0": 1.08, "z1": 1.0, "px": -0.04, "py": 0},       # zoom out + pan left
-    8:  {"z0": 1.0, "z1": 1.12, "px": 0.02, "py": -0.02},    # zoom in
-    9:  {"z0": 1.0, "z1": 1.18, "px": 0, "py": 0.04},        # zoom into tunnel
-    10: {"z0": 1.12, "z1": 1.0, "px": 0, "py": 0},           # zoom out wide
-    11: {"z0": 1.0, "z1": 1.08, "px": -0.03, "py": 0.01},    # slight zoom
-    12: {"z0": 1.0, "z1": 1.2, "px": 0, "py": -0.05},        # dramatic zoom in
+    1:  {"z0": 1.0, "z1": 1.15, "px": 0, "py": -0.03},
+    2:  {"z0": 1.1, "z1": 1.0, "px": 0, "py": 0},
+    3:  {"z0": 1.0, "z1": 1.12, "px": 0.04, "py": 0},
+    4:  {"z0": 1.05, "z1": 1.15, "px": -0.03, "py": 0.02},
+    5:  {"z0": 1.1, "z1": 1.0, "px": 0.02, "py": -0.01},
+    6:  {"z0": 1.0, "z1": 1.1, "px": 0, "py": 0.03},
+    7:  {"z0": 1.08, "z1": 1.0, "px": -0.04, "py": 0},
+    8:  {"z0": 1.0, "z1": 1.12, "px": 0.02, "py": -0.02},
+    9:  {"z0": 1.0, "z1": 1.18, "px": 0, "py": 0.04},
+    10: {"z0": 1.12, "z1": 1.0, "px": 0, "py": 0},
+    11: {"z0": 1.0, "z1": 1.08, "px": -0.03, "py": 0.01},
+    12: {"z0": 1.0, "z1": 1.2, "px": 0, "py": -0.05},
 }
 
-# Beat timing: start -> next beat start (or TOTAL)
 beat_times = []
 for i in range(1, 13):
-    start = max(0, b(i) - 0.25)  # lead in slightly
-    end = b(i + 1) - 0.25 if i < 12 else TOTAL
+    start = max(0, b_start(i) - 0.25)
+    end = b_start(i + 1) - 0.25 if i < 12 else TOTAL
     beat_times.append((i, start, end))
 
-# Generate frames
 FRAMES_DIR = BUILD + "/frames_v3"
 os.makedirs(FRAMES_DIR, exist_ok=True)
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+
+TW, TH = 1080, 1920
 total_frames = int(TOTAL * FPS)
 
-# Pre-load and resize all images to 1080x1920
+# Load fonts
+font_cap = ImageFont.truetype(FONT_BOLD, 52)
+font_cap_sm = ImageFont.truetype(FONT_SEMI, 44)
+
+# Pre-load images
 imgs = {}
 for beat_n, img_name in BEAT_IMG.items():
     path = os.path.join(SHOTS, img_name)
     img = Image.open(path).convert("RGB")
-    # Scale to cover 1080x1920 (may need crop)
-    tw, th = 1080, 1920
-    # Scale so image covers the target with some extra for Ken Burns
-    scale = max(tw * 1.25 / img.width, th * 1.25 / img.height)
+    scale = max(TW * 1.25 / img.width, TH * 1.25 / img.height)
     nw, nh = int(img.width * scale), int(img.height * scale)
     img = img.resize((nw, nh), Image.LANCZOS)
     imgs[beat_n] = img
 
-print(f"Generating {total_frames} frames...")
+# Build flat word timeline from all beats
+all_words = []
+for beat in W:
+    for w in beat["words"]:
+        all_words.append(w)
+
+def get_caption_at(t):
+    """Return (spoken_so_far, current_word) for time t within a beat's sentence."""
+    for beat in W:
+        if t < beat["start"] - 0.1 or t > beat["end"] + 0.5:
+            continue
+        for sent in beat.get("sents", []):
+            if t < sent["a"] - 0.05:
+                continue
+            words = sent["words"]
+            spoken = []
+            current = None
+            for w in words:
+                if t >= w["a"]:
+                    spoken.append(w["w"])
+                    if t <= w["b"] + 0.15:
+                        current = w["w"]
+            if spoken:
+                return " ".join(spoken), current
+    return None, None
+
+def draw_caption(draw, text, highlight_word, y_pos):
+    """Draw caption text centered with highlighted current word."""
+    if not text:
+        return
+    # Word wrap if too wide
+    max_w = TW - 120
+    lines = []
+    words = text.split()
+    line = ""
+    for w in words:
+        test = (line + " " + w).strip()
+        bbox = draw.textbbox((0, 0), test, font=font_cap)
+        if bbox[2] - bbox[0] > max_w and line:
+            lines.append(line)
+            line = w
+        else:
+            line = test
+    if line:
+        lines.append(line)
+
+    line_h = 64
+    total_h = len(lines) * line_h
+    cy = y_pos - total_h // 2
+
+    for li, line_text in enumerate(lines):
+        # Draw word by word for highlighting
+        line_words = line_text.split()
+        # Measure full line width
+        full_bbox = draw.textbbox((0, 0), line_text, font=font_cap)
+        full_w = full_bbox[2] - full_bbox[0]
+        x = (TW - full_w) // 2
+        y = cy + li * line_h
+
+        # Dark pill background
+        pad = 16
+        pill_rect = [x - pad, y - 6, x + full_w + pad, y + line_h - 6]
+        draw.rounded_rectangle(pill_rect, radius=14, fill=(20, 20, 20))
+
+        # Draw each word
+        cur_x = x
+        for wi, w in enumerate(line_words):
+            is_current = (highlight_word and w == highlight_word)
+            color = (0, 200, 255) if is_current else (255, 255, 255)
+            draw.text((cur_x, y), w, font=font_cap, fill=color)
+            wb = draw.textbbox((0, 0), w + " ", font=font_cap)
+            cur_x += wb[2] - wb[0]
+
+print(f"Generating {total_frames} frames with captions...")
 
 for f in range(total_frames):
     t = f / FPS
-    # Find which beat
     beat_n = 12
     for bn, bs, be in beat_times:
         if t < be:
@@ -87,34 +161,37 @@ for f in range(total_frames):
             break
 
     bs, be = [(s, e) for n, s, e in beat_times if n == beat_n][0]
-    u = max(0, min(1, (t - bs) / (be - bs)))  # 0..1 within beat
+    u = max(0, min(1, (t - bs) / (be - bs)))
 
     img = imgs[beat_n]
     kb = KB[beat_n]
 
-    # Interpolate zoom and pan
     zoom = kb["z0"] + (kb["z1"] - kb["z0"]) * u
     px = kb["px"] * u
     py = kb["py"] * u
 
-    # Crop region from scaled image
-    tw, th = 1080, 1920
-    cw = int(tw / zoom)
-    ch = int(th / zoom)
+    cw = int(TW / zoom)
+    ch = int(TH / zoom)
     cx = int((img.width - cw) / 2 + px * img.width)
     cy = int((img.height - ch) / 2 + py * img.height)
     cx = max(0, min(img.width - cw, cx))
     cy = max(0, min(img.height - ch, cy))
 
-    crop = img.crop((cx, cy, cx + cw, cy + ch)).resize((tw, th), Image.LANCZOS)
+    crop = img.crop((cx, cy, cx + cw, cy + ch)).resize((TW, TH), Image.LANCZOS)
+
+    # Draw caption overlay
+    draw = ImageDraw.Draw(crop)
+    caption_text, current_word = get_caption_at(t)
+    if caption_text:
+        draw_caption(draw, caption_text, current_word, TH - 320)
+
     crop.save(f"{FRAMES_DIR}/f_{f:05d}.jpg", quality=93)
 
-    if f % 100 == 0:
+    if f % 150 == 0:
         print(f"frame {f}/{total_frames}")
 
 print("Frames done, encoding video...")
 
-# Encode to silent video
 silent = BUILD + "/silent_v2.mp4"
 subprocess.run([
     "ffmpeg", "-loglevel", "error", "-y",
