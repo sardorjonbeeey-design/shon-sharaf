@@ -1,72 +1,72 @@
 1
-00:00:00,250 --> 00:00:03,034
+00:00:00,250 --> 00:00:02,627
 Bu — ZAMIN FK stadioni.
 
 2
-00:00:03,054 --> 00:00:05,747
+00:00:02,647 --> 00:00:04,859
 O'n yetti mingdan ortiq o'rindiq.
 
 3
-00:00:05,767 --> 00:00:07,711
+00:00:04,879 --> 00:00:06,766
 Uni muxlislar to'ldiradi.
 
 4
-00:00:07,731 --> 00:00:11,404
+00:00:06,786 --> 00:00:09,819
 Har bir obunachi — bitta virtual muxlis.
 
 5
-00:00:11,424 --> 00:00:13,295
+00:00:09,839 --> 00:00:11,673
 Stadionda bitta o'rin.
 
 6
-00:00:13,315 --> 00:00:18,030
+00:00:11,693 --> 00:00:16,007
 Obuna bo'ling, izoh qoldiring — ismingiz o'z o'rningizda turadi!
 
 7
-00:00:18,050 --> 00:00:21,942
+00:00:16,027 --> 00:00:19,513
 Har yangi qismda stadion qanday to'layotganini ko'rasiz.
 
 8
-00:00:21,971 --> 00:00:24,936
+00:00:19,596 --> 00:00:22,301
 O'n yetti ming olti yuz yetmish to'rt o'rindiq.
 
 9
-00:00:24,976 --> 00:00:27,225
+00:00:22,321 --> 00:00:24,476
 Ming ikki yuz tasi band!
 
 10
-00:00:27,245 --> 00:00:29,982
+00:00:24,496 --> 00:00:26,873
 Yana o'n olti mingdan ko'proq joy bor.
 
 11
-00:00:30,002 --> 00:00:32,120
+00:00:26,893 --> 00:00:28,918
 Lekin tezlik bilan to'lmoqda!
 
 12
-00:00:32,140 --> 00:00:35,906
+00:00:28,938 --> 00:00:32,424
 Birinchi ikki ming muxlis — klubning asoschilari.
 
 13
-00:00:35,926 --> 00:00:38,661
+00:00:32,444 --> 00:00:34,697
 Ellik kishi — to'la avtobus.
 
 14
-00:00:38,741 --> 00:00:41,288
+00:00:34,717 --> 00:00:36,885
 Ming kishi — butun mahalla!
 
 15
-00:00:41,308 --> 00:00:43,879
+00:00:36,905 --> 00:00:39,067
 Keyingi qurilishni ham siz tanlaysiz.
 
 16
-00:00:43,899 --> 00:00:46,199
+00:00:39,087 --> 00:00:41,227
 Do'stingiz futbolni yaxshi ko'radimi?
 
 17
-00:00:46,219 --> 00:00:47,285
+00:00:41,247 --> 00:00:42,151
 Ulashing!
 
 18
-00:00:47,305 --> 00:00:50,326
+00:00:42,171 --> 00:00:45,192
 Obuna bo'ling — o'rningizni band qiling!
 
