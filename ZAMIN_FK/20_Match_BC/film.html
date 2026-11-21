@@ -54,6 +54,15 @@ html,body{margin:0;background:#02040c;overflow:hidden;width:1080px;height:1920px
 .ltag{font-size:36px;letter-spacing:4px;padding:8px 28px;border-radius:14px;font-weight:900}
 .ltag.green{background:rgba(46,204,113,.2);border:3px solid #2ecc71;color:#2ecc71}
 .ltag.red{background:rgba(230,57,70,.2);border:3px solid #E63946;color:#E63946}
+/* lineup roster */
+.roster{text-align:left;white-space:normal;width:460px;background:rgba(2,4,12,.85);border-radius:20px;padding:16px 22px;
+  border:3px solid rgba(31,79,184,.4);box-shadow:0 8px 32px rgba(0,0,0,.7)}
+.roster .r-head{font-size:28px;font-weight:900;letter-spacing:3px;margin-bottom:10px;text-align:center}
+.roster .r-head.green{color:#2ecc71}
+.roster .r-head.red{color:#E63946}
+.roster .r-row{display:flex;align-items:center;gap:10px;padding:3px 0;font-size:22px;font-weight:700;color:#fff;line-height:1.3}
+.roster .r-pos{color:#FFD23F;font-size:18px;font-weight:900;width:42px;text-align:right;flex-shrink:0}
+.roster .r-name{color:#fff;font-size:22px;font-weight:700}
 #fl{position:absolute;left:0;top:0;width:1080px;height:1920px;background:#fff;opacity:0;z-index:50}
 </style></head><body>
 <div id="stage"><img id="bg"><div id="scrim"></div><div id="tint"></div><canvas id="grain" width="1080" height="1920"></canvas></div>
@@ -114,10 +123,39 @@ hd("ZAMIN FK","TEAM B vs<br>TEAM C",bs(1),be(1),540,{cls2:"",enter:"stamp"});
 add(`<div style="font-size:36px;letter-spacing:4px;color:#9fb6ff">BIRINCHI MARTA!</div>`,540,730,bs(1)+.3,be(1),{z:20,enter:"pop"});
 
 // ── BEAT 2: TARKIB ──
-hd("TARKIB","11 vs 11",bs(2),be(2),200,{cls2:"w"});
-add(`<div class="ltag green">TEAM B</div>`,280,380,bs(2)+.1,be(2),{z:20,enter:"pop"});
-add(`<div class="ltag red">TEAM C</div>`,800,380,bs(2)+.2,be(2),{z:20,enter:"pop"});
-add(`<div style="font-size:34px;color:#9fb6ff;letter-spacing:2px">MAYDON TAYYOR!</div>`,540,1760,bs(2)+.4,be(2),{z:20,enter:"pop"});
+hd("TARKIB","11 vs 11",bs(2),be(2),160,{cls2:"w"});
+
+// Team B lineup (green) — 4-3-3
+add(`<div class="roster"><div class="r-head green">TEAM B</div>
+<div class="r-row"><span class="r-pos">GK</span><span class="r-name">@uzrizaa</span></div>
+<div class="r-row"><span class="r-pos">RB</span><span class="r-name">@002_bazza</span></div>
+<div class="r-row"><span class="r-pos">CB</span><span class="r-name">@_jorayv_09</span></div>
+<div class="r-row"><span class="r-pos">CB</span><span class="r-name">@ibragimovjurabek_</span></div>
+<div class="r-row"><span class="r-pos">LB</span><span class="r-name">@sultannovv12</span></div>
+<div class="r-row"><span class="r-pos">CDM</span><span class="r-name">@dur1.i</span></div>
+<div class="r-row"><span class="r-pos">CM</span><span class="r-name">@saidolim_zz11</span></div>
+<div class="r-row"><span class="r-pos">CAM</span><span class="r-name">@bunw_fx</span></div>
+<div class="r-row"><span class="r-pos">LW</span><span class="r-name">@__mamarajabov_1</span></div>
+<div class="r-row"><span class="r-pos">ST</span><span class="r-name">@myfclub</span></div>
+<div class="r-row"><span class="r-pos">RW</span><span class="r-name">@mirzasharibov_</span></div>
+</div>`,280,960,bs(2)+.1,be(2),{z:20,enter:"pop"});
+
+// Team C lineup (red)
+add(`<div class="roster"><div class="r-head red">TEAM C</div>
+<div class="r-row"><span class="r-pos">ST</span><span class="r-name">@amonboyev</span></div>
+<div class="r-row"><span class="r-pos">LW</span><span class="r-name">@denji_1_1</span></div>
+<div class="r-row"><span class="r-pos">RW</span><span class="r-name">@_s__d_00</span></div>
+<div class="r-row"><span class="r-pos">LW</span><span class="r-name">@zuhriddinyuldashev13</span></div>
+<div class="r-row"><span class="r-pos">CDM</span><span class="r-name">@x_7_abdurasulov</span></div>
+<div class="r-row"><span class="r-pos">CB</span><span class="r-name">@__sadikow__304</span></div>
+<div class="r-row"><span class="r-pos">CB</span><span class="r-name">@ibojon_67</span></div>
+<div class="r-row"><span class="r-pos">CB</span><span class="r-name">@_mengqobilv_75</span></div>
+<div class="r-row"><span class="r-pos">CB</span><span class="r-name">@abd1vv.14</span></div>
+<div class="r-row"><span class="r-pos">CM</span><span class="r-name">@shohjahon_011</span></div>
+<div class="r-row"><span class="r-pos">LW</span><span class="r-name">@fayziyev_01_</span></div>
+</div>`,800,960,bs(2)+.2,be(2),{z:20,enter:"pop"});
+
+add(`<div style="font-size:34px;color:#9fb6ff;letter-spacing:2px">MAYDON TAYYOR!</div>`,540,1800,bs(2)+.4,be(2),{z:20,enter:"pop"});
 
 // ── BEAT 3: KICK OFF ──
 add(`<div class="bug"><div class="bug-team green">TEAM B</div><div class="bug-score">0 : 0</div><div class="bug-team red">TEAM C</div></div>`,540,240,bs(3),be(3),{z:22,enter:"pop"});
