@@ -1,0 +1,211 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
+@font-face{font-family:MZ;font-weight:700;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf)}
+html,body{margin:0;background:#02040c;overflow:hidden;width:1080px;height:1920px;font-family:MZ,sans-serif}
+#c{position:absolute;left:0;top:0}#fx{position:absolute;left:0;top:0;pointer-events:none}
+#ov{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
+.it{position:absolute;transform-origin:50% 50%;white-space:nowrap;text-align:center;color:#fff;font-weight:900}
+.hd small{display:block;font-size:40px;letter-spacing:1px;text-shadow:0 4px 14px #000}
+.hd b{display:block;font-size:98px;line-height:1.02;color:#FFD23F;text-shadow:0 6px 0 #0D2557,0 10px 30px #000;-webkit-text-stroke:7px #0D2557;paint-order:stroke fill}
+.hd b.w{color:#fff}
+.pill{background:rgba(5,14,40,.88);border:5px solid #FFD23F;border-radius:26px;padding:14px 34px;box-shadow:0 0 34px rgba(255,210,63,.35)}
+.pill small{display:block;font-size:26px;letter-spacing:3px;color:#9fb6ff}.pill b{font-size:72px;color:#fff}.pill i{font-style:normal;font-size:38px;color:#9fb6ff}
+.tag{background:#fff;color:#0D2557;border-radius:20px;padding:10px 24px;font-size:38px;border:5px solid #FFD23F;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.chip{background:rgba(5,14,40,.9);border:4px solid #FFD23F;border-radius:18px;padding:10px 22px;font-size:40px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.chip em{font-style:normal;color:#FFD23F}
+.cm{background:#fff;color:#0D2557;border-radius:28px;padding:18px 28px;font-size:42px;text-align:left;box-shadow:0 14px 36px rgba(0,0,0,.6);border:5px solid #0D2557}
+.cm s{display:block;text-decoration:none;font-size:28px;color:#5a6a99;font-weight:700}
+.q{font-size:210px;color:#FFD23F;-webkit-text-stroke:10px #0D2557;paint-order:stroke fill;text-shadow:0 12px 30px #000}
+</style></head><body>
+<canvas id="c" width="1080" height="1920"></canvas><canvas id="fx" width="1080" height="1920"></canvas><div id="ov"></div>
+<script src="../09_Episode_09/build/node_modules/three/build/three.min.js"></script>
+<script>
+const T = THREE, W = window.W || [], FPS = 30;
+const BS = {}; W.forEach(b => BS[b.beat] = b); const S = (b, i) => BS[b].sents[i]; const wd = (b, i) => BS[b].words[i].a;
+const END = W[W.length - 1].end + 1.0; window.END = END;
+const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), sm = (a, b, x) => { const t = cl((x - a) / (b - a)); return t * t * (3 - 2 * t); }, lerp = (a, b, t) => a + (b - a) * t;
+const eob = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const REAL = 1240, GOAL = 5000;
+// ---------- renderer / scene ----------
+const R = new T.WebGLRenderer({ canvas: document.getElementById("c"), antialias: true }); R.setSize(1080, 1920, false); R.setPixelRatio(1);
+const sc = new T.Scene(); sc.background = new T.Color(0x02040c); sc.fog = new T.Fog(0x02040c, 120, 520);
+const cam = new T.PerspectiveCamera(50, 1080 / 1920, .1, 1200);
+sc.add(new T.HemisphereLight(0x7f9bff, 0x0a1030, 1.15)); const sun = new T.DirectionalLight(0xffffff, .85); sun.position.set(-40, 90, 60); sc.add(sun);
+const lam = c => new T.MeshLambertMaterial({ color: c }), bas = c => new T.MeshBasicMaterial({ color: c });
+const BOX = new T.BoxGeometry(1, 1, 1);
+const M4 = new T.Matrix4(), Q4 = new T.Quaternion(), V3 = new T.Vector3(), S3 = new T.Vector3(), E4 = new T.Euler();
+function setM(mesh, i, x, y, z, sx, sy, sz, ry = 0) { Q4.setFromEuler(E4.set(0, ry, 0)); M4.compose(V3.set(x, y, z), Q4, S3.set(sx, sy, sz)); mesh.setMatrixAt(i, M4); }
+// ---------- pitch ----------
+const PX = 22, PZ = 34;
+const ground = new T.Mesh(new T.PlaneGeometry(2400, 2400), lam(0x050a1c)); ground.rotation.x = -Math.PI / 2; ground.position.y = -.3; sc.add(ground);
+for (let i = 0; i < 12; i++) { const m = new T.Mesh(new T.PlaneGeometry(PX * 2, PZ * 2 / 12), lam(i % 2 ? 0x0e7a35 : 0x0a6a2d)); m.rotation.x = -Math.PI / 2; m.position.set(0, 0, -PZ + (i + .5) * PZ * 2 / 12); sc.add(m); }
+function line(x, z, w, d, c = 0x7ffcff) { const m = new T.Mesh(BOX, bas(c)); m.scale.set(w, .05, d); m.position.set(x, .06, z); sc.add(m); }
+line(0, -PZ, PX * 2, .5); line(0, PZ, PX * 2, .5); line(-PX, 0, .5, PZ * 2); line(PX, 0, .5, PZ * 2); line(0, 0, PX * 2, .5);
+for (const s of [-1, 1]) { line(0, s * (PZ - 8), 20, .4); line(-10, s * (PZ - 4), .4, 8); line(10, s * (PZ - 4), .4, 8); }
+const circ = new T.Mesh(new T.RingGeometry(5.7, 6.2, 48), bas(0x7ffcff)); circ.rotation.x = -Math.PI / 2; circ.position.y = .07; sc.add(circ);
+// ---------- seats (rounded-rect bowl) ----------
+function rr(hx, hz, r, s) {                         // point + outward normal at perimeter distance s
+  const a = hx - r, b = hz - r, L1 = 2 * a, L2 = 2 * b, Lc = Math.PI * r / 2, P = 2 * L1 + 2 * L2 + 4 * Lc; s = ((s % P) + P) % P;
+  const seg = [[L1, "b"], [Lc, "c1"], [L2, "r"], [Lc, "c2"], [L1, "t"], [Lc, "c3"], [L2, "l"], [Lc, "c4"]]; let o = 0;
+  for (const [L, k] of seg) { if (s <= o + L) { const u = s - o; switch (k) {
+    case "b": return [-a + u, hz, 0, 1]; case "r": return [hx, b - u, 1, 0]; case "t": return [a - u, -hz, 0, -1]; case "l": return [-hx, -b + u, -1, 0];
+    case "c1": { const t = u / r; return [a + r * Math.sin(t), b + r * Math.cos(t), Math.sin(t), Math.cos(t)]; }
+    case "c2": { const t = u / r; return [a + r * Math.cos(t), -b - r * Math.sin(t), Math.cos(t), -Math.sin(t)]; }
+    case "c3": { const t = u / r; return [-a - r * Math.sin(t), -b - r * Math.cos(t), -Math.sin(t), -Math.cos(t)]; }
+    default: { const t = u / r; return [-a - r * Math.cos(t), b + r * Math.sin(t), -Math.cos(t), Math.sin(t)]; } } } o += L; }
+  return [-a, hz, 0, 1];
+}
+const TIERS = 14, seats = [];
+for (let i = 0; i < TIERS; i++) {
+  const hx = PX + 4 + i * 1.15, hz = PZ + 4 + i * 1.15, r = 9 + i * 1.15, P = 2 * (2 * (hx - r) + 2 * (hz - r)) + 2 * Math.PI * r, n = Math.floor(P / 1.12);
+  for (let k = 0; k < n; k++) { const [x, z, nx, nz] = rr(hx, hz, r, k * P / n); seats.push({ x, z, y: .55 + i * .85, ry: Math.atan2(-nx, -nz), tier: i, k, n }); }
+}
+const NS = seats.length;
+// fill order: seeded shuffle; the hero seats are fixed
+let ord = seats.map((_, i) => i).sort((a, b) => hash(a * 3.1) - hash(b * 3.1));
+const pickNear = (x, y, z) => { let b = 0, bd = 1e9; seats.forEach((s, i) => { const d = (s.x - x) ** 2 + (s.y - y) ** 2 + (s.z - z) ** 2; if (d < bd) { bd = d; b = i; } }); return b; };
+const HERO = pickNear(-30, 4.5, 8), HERO2 = pickNear(30, 5.3, -14);
+ord = [HERO, ...ord.filter(i => i !== HERO && i !== HERO2)]; ord.push(HERO2);                 // hero first (always lit), hero2 last (empty until a full house)
+const rank = new Array(NS); ord.forEach((s, i) => rank[s] = i);
+const seatM = new T.InstancedMesh(BOX, lam(0xffffff), NS), bodyM = new T.InstancedMesh(BOX, lam(0xffffff), NS), headM = new T.InstancedMesh(BOX, lam(0xffffff), NS);
+const SEATC = [0x1a3fb0, 0x1f4fb8, 0x16348f], KIT = [0x2f6bff, 0xffffff, 0x2f6bff, 0xffd23f, 0xffffff, 0xe63946, 0x2f6bff, 0x34d399, 0xff8a3d, 0xc084fc];
+seats.forEach((s, i) => { seatM.setColorAt(i, new T.Color(SEATC[(s.k + s.tier) % 3])); bodyM.setColorAt(i, new T.Color(KIT[Math.floor(hash(i * 7.7) * KIT.length)])); headM.setColorAt(i, new T.Color([0xf2c8a0, 0xd9a577, 0xb98760][Math.floor(hash(i * 2.9) * 3)])); });
+[seatM, bodyM, headM].forEach(m => { m.frustumCulled = false; sc.add(m); });
+function updateSeats(K, t) {
+  seats.forEach((s, i) => { setM(seatM, i, s.x, s.y, s.z, .92, .5, .86, s.ry); const u = cl(K - rank[i] + 1, 0, 1), e = u <= 0 ? 0 : eob(u);
+    // legs/body sits slightly behind the seat front, towards the stand
+    const bx = s.x, bz = s.z; setM(bodyM, i, bx, s.y + .62 * e, bz, .55 * e, .85 * e, .42 * e, s.ry); setM(headM, i, bx, s.y + 1.28 * e, bz, .38 * e, .38 * e, .38 * e, s.ry); });
+  [seatM, bodyM, headM].forEach(m => { m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; });
+}
+// neon bowl edge + roof lights
+const rim = (h, c, w = .35) => { const g = new T.Group(); const hx = PX + 4 + TIERS * 1.15 + .4, hz = PZ + 4 + TIERS * 1.15 + .4, r = 9 + TIERS * 1.15, P = 2 * (2 * (hx - r) + 2 * (hz - r)) + 2 * Math.PI * r, n = Math.floor(P / .9);
+  const m = new T.InstancedMesh(BOX, bas(c), n); for (let k = 0; k < n; k++) { const [x, z, nx, nz] = rr(hx, hz, r, k * P / n); setM(m, k, x, h, z, w + .6, w, w + .6, Math.atan2(-nx, -nz)); } sc.add(m); };
+rim(TIERS * .85 + .9, 0x7ffcff); rim(.25, 0x7ffcff, .3);
+const innerRim = (() => { const m = new T.Mesh(new T.RingGeometry(1, 1.05, 4), bas(0)); return m; })();
+// outer wall (dark glass look)
+const wall = new T.Mesh(BOX, lam(0x08133a)); wall.scale.set((PX + 4 + TIERS * 1.15) * 2 + 4, 1.5, (PZ + 4 + TIERS * 1.15) * 2 + 4); wall.position.y = -.4; 
+// beams
+function beam(x, y, z, col) { const m = new T.Mesh(new T.CylinderGeometry(.9, .9, 90, 20, 1, true), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: .3, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending })); m.position.set(x, y + 45, z); sc.add(m); return m; }
+const beam1 = beam(seats[HERO].x, seats[HERO].y, seats[HERO].z, 0xffd23f), beam2 = beam(seats[HERO2].x, seats[HERO2].y, seats[HERO2].z, 0xffd23f);
+// ---------- bus (50) and school (500) scene, far to the east ----------
+const BX = 260; const bus = new T.Group(); sc.add(bus);
+const bm = (w, h, d, c, x, y, z, mat = lam) => { const m = new T.Mesh(BOX, mat(c)); m.scale.set(w, h, d); m.position.set(x, y, z); bus.add(m); return m; };
+bm(24, 3.4, 8, 0xffc400, BX, 2.3, 0); bm(24.2, 1.0, 8.2, 0x1a1a1a, BX, 1.2, 0); for (const wx of [-8, 8]) for (const wz of [-4, 4]) bm(3.2, 3.2, 1.2, 0x111111, BX + wx, 1.6, wz);
+const busPpl = new T.InstancedMesh(BOX, lam(0xffffff), 50); bus.add(busPpl); const busHd = new T.InstancedMesh(BOX, lam(0xffffff), 50); bus.add(busHd);
+for (let i = 0; i < 50; i++) { busPpl.setColorAt(i, new T.Color(KIT[Math.floor(hash(i * 5.3) * KIT.length)])); busHd.setColorAt(i, new T.Color(0xe3b48a)); }
+const SCX = BX, SCZ = -70; const school = new T.Group(); sc.add(school);
+const sm_ = (w, h, d, c, x, y, z, mat = lam) => { const m = new T.Mesh(BOX, mat(c)); m.scale.set(w, h, d); m.position.set(x, y, z); school.add(m); return m; };
+sm_(70, 18, 20, 0xe8ecf7, SCX, 9, SCZ - 40); sm_(72, 2, 22, 0xc0392b, SCX, 19, SCZ - 40); for (let r = 0; r < 3; r++) for (let c = 0; c < 12; c++) sm_(3, 3.2, .4, 0x2f6bff, SCX - 31 + c * 5.6, 4 + r * 5, SCZ - 29.7, bas);
+const schPpl = new T.InstancedMesh(BOX, lam(0xffffff), 500), schHd = new T.InstancedMesh(BOX, lam(0xffffff), 500); school.add(schPpl); school.add(schHd);
+for (let i = 0; i < 500; i++) { schPpl.setColorAt(i, new T.Color(KIT[Math.floor(hash(i * 4.1) * KIT.length)])); schHd.setColorAt(i, new T.Color(0xe3b48a)); }
+function updateCrowd(t0, t1, t) {
+  for (let i = 0; i < 50; i++) { const u = eob(cl((t - t0 - i * .045) / .4)); const c = i % 10, r = Math.floor(i / 10); setM(busPpl, i, BX - 10 + c * 2.1, 4.6 + .0, -2.8 + r * 1.4, .8 * u, 1.4 * u, .7 * u); setM(busHd, i, BX - 10 + c * 2.1, 5.6, -2.8 + r * 1.4, .55 * u, .55 * u, .55 * u); }
+  for (let i = 0; i < 500; i++) { const u = eob(cl((t - t1 - i * .006) / .35)); const c = i % 36, r = Math.floor(i / 36); const x = SCX - 30 + c * 1.7, z = SCZ - 24 + r * 1.9; setM(schPpl, i, x, .9 * u, z, .8 * u, 1.6 * u, .7 * u); setM(schHd, i, x, 2.0 * u, z, .55 * u, .55 * u, .55 * u); }
+  [busPpl, busHd, schPpl, schHd].forEach(m => { m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; });
+}
+// ---------- plots (city) for "next build" ----------
+const PLX = -300; const plots = new T.Group(); sc.add(plots); const rings = [];
+for (let i = 0; i < 3; i++) { const g = new T.Mesh(new T.PlaneGeometry(40, 40), lam(0x0a1a44)); g.rotation.x = -Math.PI / 2; g.position.set(PLX + (i - 1) * 56, 0, (i === 1 ? -20 : 0)); plots.add(g);
+  const e = new T.Mesh(new T.RingGeometry(23, 24.2, 4, 1, Math.PI / 4), bas(0x7ffcff)); e.rotation.x = -Math.PI / 2; e.position.set(PLX + (i - 1) * 56, .1, (i === 1 ? -20 : 0)); e.rotation.z = 0; plots.add(e); rings.push(e); }
+// the yellow seat (end shot)
+const ys = new T.Group(); sc.add(ys); const yb = (w, h, d, x, y, z) => { const m = new T.Mesh(BOX, lam(0xffd23f)); m.scale.set(w, h, d); m.position.set(x, y, z); ys.add(m); };
+yb(2.4, .7, 2.2, 0, .35, 0); yb(2.4, 2.2, .6, 0, 1.6, -.8); ys.position.set(seats[HERO2].x, seats[HERO2].y + 1.2, seats[HERO2].z); ys.scale.setScalar(.0001);
+// ---------- hidden legacy props (bus/school/plots from v1) ----------
+bus.visible = false; school.visible = false; plots.visible = false;
+// ---------- the goat: our mascot sits on the first seat; 3D sprite + stadium upgrade ----------
+const goatTex = new T.TextureLoader().load("assets/goat_side.png");
+const goat = new T.Sprite(new T.SpriteMaterial({ map: goatTex, transparent: true, depthWrite: false })); goat.center.set(.5, 0); goat.scale.set(2.8, 2.7, 1); sc.add(goat);
+goat.position.set(seats[HERO].x + 1.6, seats[HERO].y + .2, seats[HERO].z); goat.visible = false;
+const UP = new T.Group(); sc.add(UP); UP.visible = false;
+{ const OX = PX + 4 + TIERS * 1.15, OZ = PZ + 4 + TIERS * 1.15;
+  const led = document.createElement("canvas"); led.width = 1024; led.height = 256; const g = led.getContext("2d");
+  g.fillStyle = "#06122c"; g.fillRect(0, 0, 1024, 256); g.strokeStyle = "#ffd23f"; g.lineWidth = 10; g.strokeRect(8, 8, 1008, 240); g.fillStyle = "#fff"; g.font = "900 96px MZ, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("ZAMIN FK", 512, 100); g.fillStyle = "#ffd23f"; g.font = "900 70px MZ, sans-serif"; g.fillText("5 000 MUXLIS", 512, 190);
+  const screen = new T.Mesh(new T.PlaneGeometry(64, 16), new T.MeshBasicMaterial({ map: new T.CanvasTexture(led) })); screen.position.set(0, 20, -OZ - 3); UP.add(screen);
+  const frame = new T.Mesh(BOX, bas(0xffd23f)); frame.scale.set(66.5, 18.5, .6); frame.position.set(0, 20, -OZ - 3.4); UP.add(frame);
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const p = new T.Mesh(BOX, lam(0x9fb6ff)); p.scale.set(1.2, 34, 1.2); p.position.set(x * (OX + 9), 17, z * (OZ + 9)); UP.add(p);
+    const h = new T.Mesh(BOX, bas(0xffffff)); h.scale.set(7, 2.2, 3); h.position.set(x * (OX + 9), 35, z * (OZ + 9)); h.lookAt(0, 10, 0); UP.add(h);
+    const b = new T.Mesh(new T.CylinderGeometry(.6, 7, 70, 20, 1, true), new T.MeshBasicMaterial({ color: 0xbcd0ff, transparent: true, opacity: .16, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending })); b.position.set(x * (OX + 9) * .55, 17, z * (OZ + 9) * .55); b.lookAt(0, 0, 0); b.rotateX(Math.PI / 2); UP.add(b); }
+  const gr = new T.InstancedMesh(BOX, bas(0xffd23f), 160); { const hx = OX + .8, hz = OZ + .8, r = 9 + TIERS * 1.15, P = 2 * (2 * (hx - r) + 2 * (hz - r)) + 2 * Math.PI * r; for (let k = 0; k < 160; k++) { const [x, z, nx, nz] = rr(hx, hz, r, k * P / 160); setM(gr, k, x, TIERS * .85 + 3.2, z, .9, .5, .9, Math.atan2(-nx, -nz)); } } UP.add(gr); }
+// ---------- camera shots ----------
+const b = n => BS[n].start, HP = seats[HERO], H2 = seats[HERO2];
+const findW = (n, p) => { const w = BS[n].words.find(x => x.w.toLowerCase().replace(/[^a-zʻ'‘’]/g, "").startsWith(p)); return w ? w.a : BS[n].start; };
+const SH = [
+ [[0, [0, 175, 3], [0, 0, 0], 40, 1], [2.2, [0, 140, 3], [0, 0, 0], 40, 1], [4.2, [-10, 60, 30], [-30, 4, 8], 52, 0], [b(2) - .05, [-12, 12, 26], [HP.x, HP.y + 1, HP.z], 56, 0]],
+ [[b(2), [34, 7, 38], [-22, 10, 26], 66], [b(2) + 2.4, [34, 7, 10], [-22, 11, -6], 66], [b(3) - .02, [34, 7, -14], [-22, 10, -30], 66]],
+ [[b(3), [-17, 6.4, 13], [HP.x, HP.y + 1.2, HP.z], 46], [b(4) - .02, [-20.5, 5.6, 10.6], [HP.x, HP.y + 1.3, HP.z], 38]],
+ [[b(4), [-62, 40, 78], [0, 5, 0], 56], [S(4, 1).a - .05, [62, 42, 78], [0, 5, -4], 56], [S(4, 1).a + .1, [0, 150, 25], [0, 0, 0], 42, 1], [b(5) - .02, [0, 120, 34], [0, 0, 0], 44, 1]],
+ [[b(5), [0, 130, 40], [0, 0, 0], 44, 1], [b(5) + 1.6, [-8, 46, 96], [0, 12, -10], 62], [findW(5, "sotib") - .1, [40, 26, 76], [0, 14, -30], 64], [b(6) - .02, [0, 70, 104], [0, 10, -10], 58]],
+ [[b(6), [H2.x - 5, H2.y + 3.8, H2.z + 7], [H2.x, H2.y + 1.5, H2.z], 46], [b(6) + 1.6, [H2.x - 12, H2.y + 16, H2.z + 22], [0, 2, 0], 56], [END, [0, 95, 80], [0, 0, 0], 50]],
+];
+const beatShot = t => { let bi = 0; for (let i = 1; i <= 6; i++) if (t >= BS[i].start - 1e-6) bi = i - 1; return SH[bi]; };
+function placeCam(t) {
+  const k = beatShot(t); let i = 0; while (i < k.length - 1 && t >= k[i + 1][0]) i++;
+  const a = k[i], c = k[Math.min(i + 1, k.length - 1)], u = a === c ? 0 : sm(a[0], c[0], t);
+  const L = (p, q) => [lerp(p[0], q[0], u), lerp(p[1], q[1], u), lerp(p[2], q[2], u)];
+  const p = L(a[1], c[1]), l = L(a[2], c[2]); cam.fov = lerp(a[3], c[3], u); cam.updateProjectionMatrix();
+  const up = lerp(a[4] || 0, c[4] || 0, u); cam.up.set(0, 1 - up, -up).normalize(); cam.position.set(p[0], p[1], p[2]); cam.lookAt(l[0], l[1], l[2]);
+}
+// fill level K(t): lit fans (real 1 240; 5 000 is the labelled imagination)
+function K(t) {
+  let k = REAL;
+  if (t >= S(4, 1).a && t < b(6) - .6) k = lerp(REAL, GOAL, sm(S(4, 1).a + .3, S(4, 1).a + 3.0, t));
+  if (t >= b(6) - .6 && t < b(6) + .3) k = lerp(GOAL, REAL, sm(b(6) - .6, b(6) + .3, t));
+  return k;
+}
+// ---------- overlay ----------
+const OV = document.getElementById("ov"), items = [];
+function add(html, x, y, at, to, o = {}) { const d = document.createElement("div"); d.className = "it " + (o.cls || ""); d.innerHTML = html; d.style.left = x + "px"; d.style.top = y + "px"; d.style.display = "none"; if (o.z) d.style.zIndex = o.z; OV.appendChild(d); items.push({ d, at, to: to == null ? 1e9 : to, o }); return d; }
+const hd = (label, big, at, to, y = 330, w = false) => add(`<small>${label}</small><b class="${w ? "w" : ""}">${big}</b>`, 540, y, at, to, { cls: "hd", z: 20, enter: "stamp" });
+const pill = (small, num, tail, at, to, id) => add(`<small>${small}</small><b>${num}</b> <i>${tail}</i>`, 540, 1640, at, to, { cls: "pill", z: 21, enter: "pop", id });
+function frameOv(t) {
+  for (const it of items) { const { d, at, to, o } = it; const on = t >= at && t < to; if (!on) { d.style.display = "none"; continue; }
+    d.style.display = "block"; const u = (t - at), e = o.enter === "none" ? 1 : eob(cl(u / (o.enter === "stamp" ? .32 : .36))), out = cl((to - t) / .12);
+    let sx = 1, sy = 1; if (o.pulse) { const p = 1 + .05 * Math.sin(u * 7); sx = sy = p; }
+    const sca = (.3 + .7 * e) * sx; d.style.opacity = String(cl(u / .08) * out); let tr = `translate(-50%,-50%) scale(${sca})`; if (o.rot) tr += ` rotate(${o.rot}deg)`; if (o.track) { const p = o.track(t); if (!p) { d.style.display = "none"; continue; } d.style.left = p[0] + "px"; d.style.top = p[1] + "px"; }
+    d.style.transform = tr; if (o.live) o.live(d, t); }
+}
+function proj(x, y, z) { const v = new T.Vector3(x, y, z).project(cam); if (v.z > 1) return null; return [(v.x + 1) / 2 * 1080, (1 - v.y) / 2 * 1920]; }
+const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+// ---------- script ----------
+const cnt = add(`<small>MUXLISLAR</small><b>0</b>`, 540, 330, 0, S(1, 0).a + .2, { cls: "hd", z: 20, enter: "none", live: (d, t) => { d.querySelector("b").textContent = fmt(REAL * sm(.15, 2.4, t)); } });
+hd("ZAMIN FK", "STADIONI", S(1, 0).a + .2, S(1, 1).a - .05, 330, true);
+hd("VA ULARDAN BIRIDA", "SIZNING<br>ISMINGIZ BOR", S(1, 1).a - .1, b(2) - .1);
+hd("HAR BIR OBUNACHI", "= 1 VIRTUAL<br>MUXLIS", b(2) + .05, S(2, 1).a - .05);
+hd("STADIONDA", "= 1 O‘RIN", S(2, 1).a - .02, b(3) - .1);
+hd("SIZNING ISMINGIZ", "O‘Z O‘RNINGIZDA", b(3) + .05, b(4) - .1);
+hd("HOZIR", `<span style="font-size:130px">${fmt(REAL)}</span>`, b(4) + .05, S(4, 1).a - .05);
+hd("MAQSAD", `<span style="font-size:130px">${fmt(GOAL)}</span>`, S(4, 1).a - .02, b(5) - .1);
+hd("5 000 GA YETSAK", "STADION<br>YANGILANADI", b(5) + .05, findW(5, "sotib") - .1);
+hd("VA TOP O‘YINCHILAR", "TRANSFERI!", findW(5, "sotib") - .05, b(6) - .1);
+// progress bars (real vs goal) and labelled imagination
+add(`<small>MUXLISLAR (HAQIQIY)</small><b>${fmt(REAL)}</b> <i>/ ${fmt(GOAL)}</i><div style="margin-top:10px;width:640px;height:26px;border-radius:13px;background:#14234d;overflow:hidden;border:3px solid #FFD23F"><div style="width:${REAL / GOAL * 100}%;height:100%;background:linear-gradient(90deg,#FFD23F,#ffb300)"></div></div>`, 540, 1630, 1.2, b(2) - .1, { cls: "pill", z: 21, enter: "pop" });
+add(`<small>MUXLISLAR (HAQIQIY)</small><b>${fmt(REAL)}</b> <i>/ ${fmt(GOAL)}</i><div style="margin-top:10px;width:640px;height:26px;border-radius:13px;background:#14234d;overflow:hidden;border:3px solid #FFD23F"><div style="width:${REAL / GOAL * 100}%;height:100%;background:linear-gradient(90deg,#FFD23F,#ffb300)"></div></div>`, 540, 1630, b(4) + .2, S(4, 1).a + .4, { cls: "pill", z: 21, enter: "pop" });
+pill("TASAVVUR · MUXLISLAR", fmt(GOAL), `/ ${fmt(GOAL)}`, S(4, 1).a + 3.1, b(6) - .6, "sim");
+// tag on the hero seat, comment "+" card
+add(`<div class="tag" style="font-size:34px">@sizning_ism</div>`, 540, 600, S(1, 1).a + 1.0, b(2) - .1, { z: 22, enter: "pop", track: t => { const p = proj(HP.x, HP.y + 2.6, HP.z); return p && [p[0], p[1]]; } });
+add(`@sizning_ism`, 540, 900, b(3) + .5, b(4) - .1, { cls: "tag", z: 22, enter: "pop", track: t => { const p = proj(HP.x, HP.y + 2.4, HP.z); return p && [p[0], p[1]]; } });
+add(`<s>@sizning_ism</s><span style="font-size:70px;color:#34d399">+</span>`, 540, 1280, b(3) + .6, b(4) - .1, { cls: "cm", z: 23, enter: "pop", rot: -3 });
+// transfer card: a star silhouette, unknown player
+add(`<div style="width:400px;height:520px;border-radius:34px;border:7px solid #FFD23F;background:linear-gradient(160deg,#2a62d6,#0D2557 75%);box-shadow:0 0 60px rgba(255,210,63,.55);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:70px;width:170px;height:170px;margin-left:-85px;border-radius:50%;background:#050e3c"></div><div style="position:absolute;left:50%;top:230px;width:330px;height:300px;margin-left:-165px;border-radius:160px 160px 0 0;background:#050e3c"></div><div style="position:absolute;left:0;right:0;top:110px;text-align:center;font-size:130px;color:#FFD23F">?</div><div style="position:absolute;left:24px;top:14px;font-size:72px;color:#fff">9?</div><div style="position:absolute;left:0;right:0;bottom:14px;text-align:center;font-size:44px;color:#FFD23F;background:rgba(5,14,60,.85);padding:8px 0">TOP O‘YINCHI</div></div>`, 540, 1000, findW(5, "sotib") - .05, b(6) - .1, { z: 22, enter: "pop", rot: 3, pulse: true });
+// outro: goat + crest + call to action
+const crest = `<img src="assets/crest.png" style="height:210px;display:block">`;
+add(crest, 300, 250, b(6) + .05, null, { z: 25, enter: "stamp" });
+add(`<img src="assets/goat_side.png" style="height:260px;display:block;filter:drop-shadow(0 10px 24px #000)">`, 800, 270, b(6) + .15, null, { z: 25, enter: "stamp", pulse: true });
+hd("OBUNA BO‘LING", "VA IZOHGA<br><span style='color:#34d399;font-size:200px'>+</span>", b(6) + .3, findW(6, "stadionda") - .1, 600);
+hd("O‘RNINGIZ STADIONDA", "ABADIY!", findW(6, "stadionda") - .05, null, 600);
+add(`<div class="hd"><b style="font-size:96px">OBUNA<br>BO‘LING</b></div>`, 540, 1450, b(6) + 1.3, null, { z: 24, enter: "stamp" });
+for (let i = 0; i < 7; i++) add(`<div class="q" style="font-size:${90 + i % 3 * 30}px;color:#34d399">+</div>`, 120 + i * 140, 1500, b(6) + .6 + i * .25, null, { z: 21, enter: "none", live: (d, t) => { const u = ((t - b(6) - .6 - i * .25) * .5) % 1; d.style.top = (1650 - u * 900) + "px"; d.style.opacity = String(Math.sin(Math.PI * u)); } });
+function world(t) {
+  updateSeats(K(t), t);
+  beam1.visible = (t < b(2) - .05) || (t >= b(3) && t < b(4) - .1); beam1.material.opacity = .22 + .1 * Math.sin(t * 5);
+  beam2.visible = (t >= b(6)); beam2.material.opacity = t > b(6) + 1 ? .45 : .18;
+  const ysU = cl((t - (b(6) + .3)) / .5); ys.scale.setScalar(Math.max(.0001, eob(ysU) * 1.0)); ys.rotation.y = t * 2.2; ys.position.y = H2.y + 1.2 + Math.sin(t * 3) * .25;
+  goat.visible = t >= b(3) - .02; goat.position.y = seats[HERO].y + .2 + Math.abs(Math.sin(t * 3)) * .35;
+  const upU = cl((t - (b(5) + .4)) / 1.4), downU = cl((t - (b(6) - .6)) / .5); UP.visible = upU > 0 && t < b(6) + .0 - .01; UP.scale.setScalar(.2 + .8 * eob(upU));
+}
+const fx = document.getElementById("fx").getContext("2d");
+function fxFrame(t) { fx.clearRect(0, 0, 1080, 1920); }
+window.renderAt = t => { world(t); placeCam(t); R.render(sc, cam); frameOv(t); fxFrame(t); };
+window.ready = () => document.fonts.ready.then(() => document.fonts.load("900 40px MZ")).then(() => true);
+</script></body></html>
