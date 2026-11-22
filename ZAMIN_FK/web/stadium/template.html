@@ -1661,7 +1661,7 @@ const LANDMARK_OBJS = [];
     const pcab = pts.map(([x, z, ry], i) => [x, y + 1.6, z, (ry ? 4.2 : 1.9) * (ry ? .5 : .9), .7, (ry ? 1.9 : 4.2) * (ry ? .9 : .5)]); inst(mB(0xffffff), pc, cc); inst(mB(0x2b3440), pcab); };
   const umbrella = (x, z, col) => { box(mB(0xd8d8d8), .12, 3, .12, x, 1.5, z); const u = new THREE.Mesh(new THREE.ConeGeometry(2, .9, 10), mB(col)); u.position.set(x, 3.3, z); grp.add(u); };
   const pitchMat = new THREE.MeshLambertMaterial({ color: 0x3e9a3a }), lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const newGrp0 = (x, z) => { grp = new THREE.Group(); grp.position.set(x, 0, z); scene.add(grp); return grp; };       // entrance faces south (+z), toward the stadium
+  const newGrp0 = (x, z) => { grp = new THREE.Group(); grp.name = "zfkreq"; grp.position.set(x, 0, z); scene.add(grp); return grp; };       // entrance faces south (+z), toward the stadium
   const tagObj = (x, z, h, emoji, name) => { const o = new THREE.Group(); o.position.set(x, 0, z); o.userData = { h, info: { emoji, name } }; scene.add(o); LANDMARK_OBJS.push(o); };
 
   // ================= FAST FOOD (plaza north of the stadium gate) =================
