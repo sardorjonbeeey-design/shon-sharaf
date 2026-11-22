@@ -35,6 +35,7 @@ const COVERS=[
   {n:17, label:"REEL",  num:"17",   title:"MURABBIY\nE'LON",        accent:"#00C85A", bright:0.72},
   {n:18, label:"VIRAL", num:"🔥",   title:"SINOV\nJAMOASI",        accent:"#FF4500", bright:0.52},
   {n:19, label:"REEL",  num:"19",   title:"KUTILMAGAN\nG'ALABA",   accent:"#F87171", bright:0.65},
+  {n:21, label:"REEL",  num:"21",   title:"SIZ SO'RADINGIZ\nBIZ QURDIK", accent:"#FFD23F", bright:0.95, bg:HERE+"/../21_Reel_Siz_Soradingiz/assets/cover_bg.jpg", extra:"KIMNI SOTIB OLAMIZ?  1 yoki 2"},
 ];
 
 function numSize(num){
@@ -48,7 +49,7 @@ function titleSize(title){
 }
 
 function makeHtml(c){
-  const bg=`${ASSETS}/${K[c.n]}.png`;
+  const bg=c.bg||`${ASSETS}/${K[c.n]}.png`;
   const ns=numSize(c.num), ts=titleSize(c.title);
   const numTop=c.label?118:88;
   const titleTop=numTop+Math.round(ns*0.9)+16;
@@ -105,6 +106,7 @@ ${c.label?`<div style="position:absolute;top:88px;left:62px;
   font-size:36px;color:rgba(255,255,255,.55);font-weight:900;letter-spacing:2px;
   text-shadow:0 2px 8px rgba(0,0,0,.8)">@<span style="color:${c.accent}">fk_zamin</span></div>
 
+${c.extra?`<div style="position:absolute;bottom:110px;left:60px;right:60px;height:104px;border-radius:52px;background:#FFD23F;color:#0D2557;font-size:44px;font-weight:900;display:flex;align-items:center;justify-content:center;border:5px solid #0D2557;box-shadow:0 8px 30px rgba(0,0,0,.5)">${c.extra}</div>`:""}
 <script>
 (function(){
   const cv=document.getElementById("gr"),ctx=cv.getContext("2d");
@@ -122,6 +124,7 @@ ${c.label?`<div style="position:absolute;top:88px;left:62px;
   const p=await b.newPage({viewport:{width:1080,height:1920},deviceScaleFactor:1});
   p.on("pageerror",e=>console.error("[err]",String(e).slice(0,200)));
   for(const c of COVERS){
+    if(process.argv[2]&&String(c.n)!==process.argv[2])continue;
     fs.writeFileSync(HERE+"/current.html",makeHtml(c),"utf8");
     await p.goto("file://"+HERE+"/current.html");
     await p.evaluate(()=>document.fonts.ready);
