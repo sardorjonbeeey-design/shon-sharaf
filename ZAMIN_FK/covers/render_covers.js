@@ -35,7 +35,7 @@ const COVERS=[
   {n:17, label:"REEL",  num:"17",   title:"MURABBIY\nE'LON",        accent:"#00C85A", bright:0.72},
   {n:18, label:"VIRAL", num:"🔥",   title:"SINOV\nJAMOASI",        accent:"#FF4500", bright:0.52},
   {n:19, label:"REEL",  num:"19",   title:"KUTILMAGAN\nG'ALABA",   accent:"#F87171", bright:0.65},
-  {n:21, label:"REEL",  num:"21",   title:"SIZ SO'RADINGIZ\nBIZ QURDIK", accent:"#FFD23F", bright:0.95, bg:HERE+"/../21_Reel_Siz_Soradingiz/assets/cover_bg.jpg", extra:"KIMNI SOTIB OLAMIZ?  1 yoki 2"},
+  {n:21, label:"REEL",  num:"21",   title:"SO'RADINGIZ\nQURDIK", accent:"#FFD23F", bright:0.66, bg:HERE+"/../21_Reel_Siz_Soradingiz/assets/cover_poyo.png"},
 ];
 
 function numSize(num){
