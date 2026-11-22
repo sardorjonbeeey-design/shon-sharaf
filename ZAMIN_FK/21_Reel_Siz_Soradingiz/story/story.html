@@ -1,0 +1,55 @@
+<!doctype html><meta charset=utf-8><style>
+@font-face{font-family:M;src:url(../../web/city/assets/fonts/Montserrat_900Black.ttf)}
+@font-face{font-family:Mb;src:url(../../web/city/assets/fonts/Montserrat_800ExtraBold.ttf)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1080px;height:1920px;overflow:hidden;background:#050e3c;font-family:M,sans-serif;color:#fff;position:relative}
+.bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.sh{position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,6,24,.55) 0%,rgba(2,6,24,.25) 35%,rgba(2,6,24,.6) 100%)}
+.bar{position:absolute;left:0;right:0;height:7px;background:linear-gradient(90deg,#0D2557,#1F4FB8,#0D2557);box-shadow:0 0 32px rgba(31,79,184,.75)}
+.t{position:absolute;left:0;right:0;text-align:center;-webkit-text-stroke:8px rgba(5,14,60,.92);paint-order:stroke fill}
+.kick{top:150px;font-size:40px;color:#FFD23F;letter-spacing:6px}
+.pill{position:absolute;left:90px;right:90px;height:104px;line-height:94px;text-align:center;border-radius:52px;background:#FFD23F;color:#0D2557;font-size:44px;border:5px solid #0D2557;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+.chip{position:absolute;height:88px;line-height:80px;border-radius:44px;padding:0 36px;background:rgba(5,14,60,.9);border:4px solid #1F4FB8;box-shadow:0 0 30px rgba(31,79,184,.5);font-size:40px;white-space:nowrap}
+.chip.g{background:#FFD23F;color:#0D2557;border-color:#fff}
+.dash{position:absolute;left:120px;right:120px;border:5px dashed rgba(255,255,255,.55);border-radius:40px;display:flex;align-items:center;justify-content:center;font:800 34px Mb;color:rgba(255,255,255,.7);background:rgba(255,255,255,.06)}
+.crest{position:absolute;top:60px;right:56px;height:100px;filter:drop-shadow(0 0 16px rgba(31,79,184,.6))}
+.tag{position:absolute;bottom:60px;left:0;right:0;text-align:center;font:900 34px M;color:rgba(255,255,255,.6);letter-spacing:2px}.tag b{color:#FFD23F}
+.tile{position:absolute;left:50px;width:980px;height:440px;border-radius:36px;overflow:hidden;border:6px solid #1F4FB8;box-shadow:0 14px 40px rgba(0,0,0,.55)}
+.tile img.p{position:absolute;width:980px;left:0}
+.tile img.c{position:absolute;left:0;top:0;width:980px}
+.ok{position:absolute;right:24px;bottom:20px;height:76px;line-height:70px;border-radius:38px;padding:0 30px;background:#00C85A;color:#04210f;font-size:36px;border:4px solid #fff}
+</style><body>
+<script>
+const q=new URLSearchParams(location.search).get("s")||"1";
+const H=[];const add=h=>document.body.insertAdjacentHTML("beforeend",h);
+const frame=()=>add(`<div class=bar style="top:0"></div><div class=bar style="bottom:0"></div><img class=crest src="assets/crest.png"><div class=tag>@<b>fk_zamin</b></div>`);
+if(q==="1"){ // POLL — Day 2 vote layout, our new defenders
+ add(`<div class=bg style="background-image:url(assets/bg_cta.png);filter:blur(8px) brightness(.75);transform:scale(1.08)"></div><div class=sh></div>`);
+ add(`<div class="t kick">ZAMIN FK • TRANSFER OVOZI</div><div class=t style="top:215px;font-size:150px;line-height:1">HIMOYACHI</div><div class=t style="top:395px;font-size:64px">KIMNI SOTIB OLAMIZ?</div>`);
+ add(`<img src="assets/pcard_1.png" style="position:absolute;left:85px;top:540px;width:430px;transform:rotate(-1.5deg)"><img src="assets/pcard_2.png" style="position:absolute;left:565px;top:540px;width:430px;transform:rotate(1.5deg)">`);
+ add(`<div class=t style="top:1290px;font-size:46px;line-height:1.3">1 — <span style="color:#7fa6ff">KWAME</span> · 20 000 000<br>2 — <span style="color:#7fa6ff">JASURBEK</span> · 12 500 000</div>`);
+ add(`<div class=t style="top:1500px;font-size:50px;line-height:1.2">Reelimizdagi izohga<br><span style="color:#FFD23F">1 yoki 2</span> yozing 👇</div><div class=pill style="top:1690px;font-size:36px">Eng ko‘p layk olgan izoh — transfer</div>`);
+}
+if(q==="2"){ // BUDGET
+ add(`<div class=bg style="background-image:url(assets/bg_cta.png);transform:scale(1.15)"></div><div class=sh></div>`);
+ add(`<div class="t kick">ZAMIN FK • KLUB</div><div class=t style="top:230px;font-size:84px;color:#FFD23F">KLUB BYUDJETI</div>`);
+ add(`<div class=t style="top:430px;font-size:158px;line-height:1;-webkit-text-stroke:0;text-shadow:0 0 60px rgba(111,155,255,.95)">79 875 000</div><div class=t style="top:610px;font-size:74px;color:#9fb6ff;-webkit-text-stroke:0">so‘m</div>`);
+ add(`<div class=chip style="left:90px;right:90px;top:790px;text-align:center;font-size:46px">❤ 4 325 layk × 15 000 so‘m</div><div class=chip style="left:90px;right:90px;top:900px;text-align:center;font-size:46px">= 64 875 000 so‘m</div><div class="chip g" style="left:90px;right:90px;top:1010px;text-align:center;font-size:42px">+ 15 000 000 boshlang‘ich balans</div>`);
+ add(`<div class=t style="top:1210px;font-size:60px;line-height:1.15">1 layk = <span style="color:#FFD23F">15 000 so‘m</span><br>Layk bosing — klub o‘sadi ❤</div>`);
+ add(`<div class=pill style="top:1530px">Murabbiy: himoyani kuchaytiramiz</div>`);
+}
+if(q==="3"){ // SIZ SO'RADINGIZ — BIZ QURDIK
+ add(`<div class=bg style="background-image:url(assets/bg_hook.png);filter:blur(10px) brightness(.55);transform:scale(1.1)"></div><div class=sh></div>`);
+ add(`<div class=t style="top:112px;font-size:74px;line-height:1.05">SIZ SO‘RADINGIZ<br><span style="color:#7fa6ff">BIZ QURDIK</span></div>`);
+ const T=[["ff","🍔 FAST FOOD",1,285],["pk","🅿️ PARKING",2,755],["ac","⚽ AKADEMIYA",3,1225]];
+ T.forEach(([k,l,c,y])=>add(`<div class=tile style="top:${y}px;height:330px"><img class=p src="assets/${k}.jpg" style="top:0;width:980px;height:330px;object-fit:cover"><div class=ok style="top:18px;bottom:auto">✓ ${l}</div></div><img src="assets/card_${c}.png" style="position:absolute;left:100px;top:${y+262}px;width:880px;filter:drop-shadow(0 10px 20px rgba(0,0,0,.6))">`));
+}
+if(q==="4"){ // MANAGER + next idea
+ add(`<div class=bg style="background-image:url(assets/ac.jpg);background-size:cover;background-position:50% 70%;filter:brightness(.62) saturate(1.15)"></div><div class=sh></div>`);
+ add(`<div class="t kick">YOSHLAR AKADEMIYASI</div><div class=t style="top:215px;font-size:128px;line-height:1">YANGI<br><span style="color:#FFD23F">MENEJER</span></div>`);
+ add(`<img src="assets/card_3.png" style="position:absolute;left:50px;top:640px;width:980px;transform:rotate(-1.2deg);filter:drop-shadow(0 12px 28px rgba(0,0,0,.65))"><div class="chip g" style="left:90px;right:90px;top:920px;text-align:center;font-size:46px">👔 @alijonov.cls — menejer</div>`);
+ add(`<div class=t style="top:1110px;font-size:70px;line-height:1.1">KEYINGI QURILISH<br><span style="color:#7fa6ff">NIMA BO‘LSIN?</span></div>`);
+ add(`<div class=t style="top:1330px;font-size:50px;line-height:1.2">Reelimizdagi izohga<br><span style="color:#FFD23F">g‘oyangizni</span> yozing 👇</div><div class=pill style="top:1590px;font-size:36px">Eng ko‘p layk olgan g‘oya quriladi</div>`);
+}
+frame();
+</script>
