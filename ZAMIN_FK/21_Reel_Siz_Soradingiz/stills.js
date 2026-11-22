@@ -1,10 +1,11 @@
 // node stills.js <time> shot1,shot2,...   -> build/still_<time>_<shot>.png   (1080x1920 unless shot is "top*")
 const path=require("path"),G3=path.resolve(__dirname,"../09_Episode_09/goals3d"),{open}=require(path.join(G3,"harness.js"));
 const S={
- top:[[0,300,-100],[0,0,-100],55,1400,1400,[0,0,-1]],
- ff:[[-62,10,-77],[-32,5,-92],72],
- gar:[[146,15,-62],[98,6,-88],70],
- ac:[[-136,13,-64],[-112,5,-84],72],
+ top:[[-10,330,-110],[-10,0,-110],55,1400,1400,[0,0,-1]],
+ ff:[[-52,11,-92],[-98,5,-121],70],
+ pk:[[56,13,-120],[98,5,-90],72],
+ ac:[[-54,13,-76],[-100,4,-92],72],
+ ac2:[[-56,12,-98],[-98,4,-86],72],
 };
 (async()=>{const time=process.argv[2]||"night",names=(process.argv[3]||"ff_hero").split(",");
 const SC=+process.env.SC||1;const {page,close}=await open({time,w:1080*SC,h:1920*SC});

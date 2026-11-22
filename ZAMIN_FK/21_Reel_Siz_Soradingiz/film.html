@@ -1,0 +1,115 @@
+<!doctype html><meta charset=utf-8><style>
+@font-face{font-family:M;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
+@font-face{font-family:Mb;src:url(../web/city/assets/fonts/Montserrat_800ExtraBold.ttf)}
+html,body{margin:0;background:#000;overflow:hidden}
+#st{position:relative;width:1080px;height:1920px;overflow:hidden;background:#050e3c;font-family:M,sans-serif;color:#fff}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+#bp{background-size:cover;background-position:center;will-change:transform}
+#vig{background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 55%,rgba(2,6,24,.62) 100%)}
+.a{position:absolute;opacity:0;will-change:transform,opacity}
+.chip{left:50px;height:88px;line-height:80px;border-radius:44px;padding:0 38px;display:block;font:900 40px M;background:rgba(5,14,60,.88);border:4px solid #1F4FB8;box-shadow:0 0 30px rgba(31,79,184,.5);white-space:nowrap}
+.chip.g{background:#FFD23F;color:#0D2557;border-color:#fff}
+.cap{left:60px;width:960px;bottom:170px;text-align:center;font:900 62px/1.12 M;text-shadow:0 0 0 #000;-webkit-text-stroke:0;paint-order:stroke fill;-webkit-text-stroke:10px rgba(5,14,60,.95);opacity:0}
+.cap span{display:inline-block;margin:0 9px}
+.dot{width:14px;height:14px;border-radius:50%;background:rgba(160,190,255,.55);filter:blur(1px)}
+.pill{height:104px;line-height:94px;text-align:center;border-radius:52px;background:#FFD23F;color:#0D2557;font:900 46px M;border:5px solid #0D2557;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.big{font:900 150px/1 M;text-shadow:0 0 50px rgba(111,155,255,.9)}
+</style>
+<div id=st>
+ <img id=b3 class=full style="display:none">
+ <div id=bp class=full></div>
+ <div id=dim class=full style="background:#02061a;opacity:0"></div>
+ <div id=fx class=full></div>
+ <div id=vig class=full></div>
+ <div id=ov class=full></div>
+</div>
+<script>
+const A = "assets/", FPS = 30;
+const S = { hook: 0, ff: 3.2, pk: 8.6, ac: 14.0, bud: 20.0, coach: 26.2, c1: 30.6, c2: 36.6, cta: 43.4 }; window.END = 50.4;
+const N3 = { ff: 162, pk: 162, ac: 174 };
+const BG = { hook: "bg_hook.png", bud: "bg_cta.png", coach: "bg_coach.png", c1: "bg_cta.png", c2: "bg_cta.png", cta: "bg_cta.png" };
+const $ = id => document.getElementById(id), ov = $("ov"), clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const eo = x => 1 - Math.pow(1 - clamp(x), 3), sp = x => { x = clamp(x); return x < 1 ? 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2) : 1; };   // overshoot
+const seg = t => { let k = "hook"; for (const n in S) if (t >= S[n]) k = n; return k; };
+function el(html, cls = "a", style = "") { const d = document.createElement("div"); d.className = cls; d.style.cssText = style; d.innerHTML = html; ov.appendChild(d); return d; }
+function set(e, { x = 0, y = 0, s = 1, r = 0, o = 1 }) { e.style.opacity = o; e.style.transform = `translate(${x}px,${y}px) rotate(${r}deg) scale(${s})`; }
+const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+// ---- elements ----
+const cards = [1, 2, 3].map(i => el(`<img src="${A}card_${i}.png" style="width:980px">`, "a", "left:50px;top:0"));
+const title = el(`SIZ SO‘RADINGIZ<br><span style="color:#6f9bff">BIZ QURDIK</span>`, "a", "left:0;width:1080px;top:150px;text-align:center;font:900 96px/1.05 M;-webkit-text-stroke:8px rgba(5,14,60,.9);paint-order:stroke fill");
+const chipFF = el("🍔 FAST FOOD · QURILDI ✓", "a chip", "top:1290px"), chipPK = el("🅿️ PARKING · QURILDI ✓", "a chip", "top:1290px");
+const chipAC = el("⚽ YOSHLAR AKADEMIYASI · BIZDA BOR EDI", "a chip", "top:1290px"), chipMG = el("👔 YANGI MENEJER · @alijonov.cls", "a chip g", "top:1400px");
+const budT = el("KLUB BYUDJETI", "a", "left:0;width:1080px;top:520px;text-align:center;font:900 60px M;color:#FFD23F;letter-spacing:4px");
+const budN = el("0", "a big", "left:0;width:1080px;top:610px;text-align:center"), budU = el("so‘m", "a", "left:0;width:1080px;top:790px;text-align:center;font:900 64px M;color:#9fb6ff");
+const bL1 = el("", "a chip", "left:90px;top:960px;width:900px;text-align:center;font-size:44px"), bL2 = el("", "a chip", "left:90px;top:1070px;width:900px;text-align:center;font-size:44px"), bL3 = el("+ 15 000 000 so‘m — boshlang‘ich balans", "a chip g", "left:90px;top:1180px;width:900px;text-align:center;font-size:38px");
+const coachSp = el(`<img src="${A}rustam.png" style="height:1050px;display:block">`, "a", "left:520px;top:700px"), coachB = el("HIMOYA ZAIF!", "a", "left:60px;top:300px;height:130px;padding:0 50px;border-radius:65px;background:#fff;color:#0D2557;font:900 64px/130px M;box-shadow:0 10px 40px rgba(0,0,0,.45)");
+const coachC = el("MURABBIY RUSTAM AKA", "a chip g", "left:60px;top:1450px;font-size:36px"), coachD = el("2 TA HIMOYACHI KERAK", "a chip", "left:60px;top:1330px");
+const pc = [1, 2].map(i => el(`<img src="${A}pcard_${i}.png" style="width:430px;height:720px;display:block">`, "a", "left:0;top:0"));
+const topB = el("BYUDJET · <span style='color:#FFD23F'>79 875 000</span> so‘m", "a chip", "left:60px;top:84px;width:960px;text-align:center;font-size:44px");
+const head = el("KIMNI<br><span style='color:#FFD23F'>SOTIB</span> OLAMIZ?", "a", "left:0;width:1080px;top:196px;text-align:center;font:900 66px/1.05 M;-webkit-text-stroke:8px rgba(5,14,60,.9);paint-order:stroke fill");
+const price = [el("20 000 000 so‘m", "a pill", "left:85px;top:1170px;width:430px"), el("12 500 000 so‘m", "a pill", "left:565px;top:1170px;width:430px")];
+const left = [el("Qoladi: <b style='color:#FFD23F'>59 875 000</b>", "a", "left:85px;top:1290px;width:430px;text-align:center;font:800 34px M;color:#cfe0ff"), el("Qoladi: <b style='color:#FFD23F'>67 375 000</b>", "a", "left:565px;top:1290px;width:430px;text-align:center;font:800 34px M;color:#cfe0ff")];
+const vs = el("1 — <span style='color:#6f9bff'>KWAME</span> &nbsp;•&nbsp; 2 — <span style='color:#6f9bff'>JASURBEK</span>", "a", "left:0;width:1080px;top:1370px;text-align:center;font:900 52px M;-webkit-text-stroke:8px rgba(5,14,60,.9);paint-order:stroke fill");
+const cta = el("Izohga <b>1</b> yoki <b>2</b> yozing 👇", "a pill", "left:110px;top:1470px;width:860px;font-size:50px"), cta2 = el("Eng ko‘p layk olgan izoh — TRANSFER", "a", "left:0;width:1080px;top:1610px;text-align:center;font:900 38px M;color:#9fb6ff");
+const cap = el("", "a cap");
+const dots = Array.from({ length: 22 }, (_, i) => { const d = el("", "dot", "opacity:.0"); d.dataset.k = i; d.style.left = (i * 97 % 1040) + "px"; return d; });
+const fxl = dots;
+// ---- captions from voice words ----
+const cues = []; for (const b of window.W) for (const s of b.sents) cues.push({ a: s.a, b: s.b, w: s.words, beat: b.beat });
+// ---- per-frame ----
+window.ready = async () => { await document.fonts.ready; const imgs = [...document.images]; await Promise.all(imgs.map(i => i.decode().catch(() => 0))); for (const f of Object.values(BG)) { const i = new Image(); i.src = A + f; await i.decode().catch(() => 0); } };
+async function frame3d(k, t) { const i = clamp(Math.floor((t - S[k]) * FPS), 0, N3[k] - 1), im = $("b3"); im.src = `build/3d/${k}/f_${String(i).padStart(4, "0")}.jpg`; try { await im.decode(); } catch (e) { } }
+window.renderAt = async t => {
+  const k = seg(t), s0 = S[k], lt = t - s0, is3 = k in N3;
+  for (const e of ov.children) e.style.opacity = 0;
+  $("b3").style.display = is3 ? "block" : "none"; $("bp").style.display = is3 ? "none" : "block"; $("dim").style.opacity = 0;
+  if (is3) await frame3d(k, t);
+  else { const bg = BG[k]; $("bp").style.backgroundImage = `url(${A}${bg})`; const z = 1.04 + .10 * clamp(lt / 8) + (k === "c1" || k === "c2" || k === "cta" ? .02 * Math.sin(t * .6) : 0); $("bp").style.transform = `scale(${z}) translate(${Math.sin(t * .5) * 14}px,${Math.cos(t * .4) * 10}px)`; if (k === "bud" || k === "c1" || k === "c2" || k === "cta") $("dim").style.opacity = .35; }
+  // drifting dust
+  fxl.forEach((d, i) => { const y = 1950 - ((t * (40 + i % 5 * 14) + i * 131) % 2050), x = (i * 97 % 1040) + Math.sin(t * .8 + i) * 30; d.style.opacity = is3 ? 0 : .5; d.style.transform = `translate(${x}px,${y}px) scale(${.6 + i % 4 * .35})`; d.style.left = "0"; d.style.top = "0"; });
+  // ---- hook ----
+  if (k === "hook") {
+    const ys = [350, 600, 850], rot = [-2.2, 1.6, -1.2], st = [.35, .95, 1.55];
+    cards.forEach((c, i) => { const p = sp((t - st[i]) / .35); set(c, { y: ys[i], r: rot[i], s: t < st[i] ? 0 : p, o: t < st[i] ? 0 : (t > 3.0 ? clamp((3.2 - t) / .2) : 1) }); });
+    const p = sp(t / .45); set(title, { s: .8 + .2 * p, o: clamp(t / .15) });
+  }
+  // ---- builds ----
+  const B = { ff: [0, chipFF], pk: [1, chipPK], ac: [2, chipAC] };
+  if (is3) {
+    const [ci, chip] = B[k], c = cards[ci], dur = k === "ac" ? 6.0 : 5.4;
+    set(c, { y: -260 + 400 * eo(lt / .35) + Math.sin(t * 2) * 4, r: -1 + Math.sin(t * 1.3) * .4, o: clamp(lt / .1) * clamp((dur - lt) / .3) });
+    set(chip, { x: -900 + 900 * eo((lt - 1.7) / .4), o: clamp((lt - 1.7) / .1) * clamp((dur - lt) / .3) });
+    if (k === "ac") set(chipMG, { x: -900 + 900 * eo((lt - 3.2) / .4), s: sp((lt - 3.2) / .5) * 0 + 1, o: clamp((lt - 3.2) / .1) * clamp((6.0 - lt) / .3) });
+  }
+  // ---- budget ----
+  if (k === "bud") {
+    const u = eo((lt - .5) / 2.8), v = 15000000 + (79875000 - 15000000) * u;
+    set(budT, { y: -40 * (1 - eo(lt / .3)), o: clamp(lt / .2) }); budN.textContent = fmt(v); set(budN, { s: .9 + .1 * sp((lt - .2) / .4) + (u > .98 ? .04 * Math.sin((lt - 3.4) * 9) * clamp(1 - (lt - 3.4)) : 0), o: clamp((lt - .2) / .2) }); set(budU, { o: clamp((lt - .6) / .3) });
+    bL1.textContent = `❤ ${fmt(4325 * eo((lt - 1) / 2.4))} layk`; set(bL1, { s: sp((lt - 1) / .4), o: lt > 1 ? 1 : 0 });
+    bL2.textContent = `× 15 000 so‘m = ${fmt(64875000 * eo((lt - 1) / 2.4))}`; set(bL2, { s: sp((lt - 1.5) / .4), o: lt > 1.5 ? 1 : 0 });
+    set(bL3, { s: sp((lt - 2.2) / .4), o: lt > 2.2 ? 1 : 0 });
+  }
+  // ---- coach ----
+  if (k === "coach") {
+    set(coachSp, { x: 700 * (1 - eo(lt / .5)), r: Math.sin(t * 2) * 1.4, o: clamp(lt / .1) });
+    set(coachB, { s: sp((lt - .5) / .4), o: lt > .5 ? 1 : 0, r: -3 + Math.sin(t * 5) * 1 });
+    set(coachD, { x: -900 + 900 * eo((lt - 1.4) / .4), o: lt > 1.4 ? 1 : 0 }); set(coachC, { x: -900 + 900 * eo((lt - .8) / .4), o: lt > .8 ? 1 : 0 });
+  }
+  // ---- player cards + CTA ----
+  if (k === "c1" || k === "c2" || k === "cta") {
+    set(topB, { y: -120 * (1 - eo(lt / .35)) * (k === "c1" ? 1 : 0) , o: 1 });
+    const t1 = t - S.c1, t2 = t - S.c2, tc = t - S.cta, base = [{ x: 85, y: 420 }, { x: 565, y: 420 }];
+    const sw = i => Math.sin(t * 1.4 + i * 2) * 1.1, fl = i => Math.sin(t * 1.9 + i) * 6;
+    set(pc[0], { x: base[0].x - 900 * (1 - eo(t1 / .5)), y: base[0].y + fl(0), r: sw(0) + (t1 < .5 ? -6 * (1 - eo(t1 / .5)) : 0), o: t1 > 0 ? 1 : 0 });
+    set(pc[1], { x: base[1].x + 900 * (1 - eo(t2 / .5)), y: base[1].y + fl(1), r: sw(1) + (t2 < .5 ? 6 * (1 - eo(t2 / .5)) : 0), o: t2 > 0 ? 1 : 0 });
+    if (t1 > .7) { set(price[0], { s: sp((t1 - .7) / .4), o: 1 }); set(left[0], { o: clamp((t1 - 1.5) / .3) }); }
+    if (t2 > .7) { set(price[1], { s: sp((t2 - .7) / .4), o: 1 }); set(left[1], { o: clamp((t2 - 1.5) / .3) }); }
+    if (k === "cta") { set(head, { s: .85 + .15 * sp(tc / .4), o: clamp(tc / .15) }); set(vs, { y: 0, s: sp((tc - .8) / .4), o: tc > .8 ? 1 : 0 }); set(cta, { s: sp((tc - 2.2) / .4) * (1 + .03 * Math.sin(tc * 6)), o: tc > 2.2 ? 1 : 0 }); set(cta2, { o: clamp((tc - 3.2) / .3) }); }
+  }
+  // ---- captions ----
+  const cue = cues.find(c => t >= c.a - .05 && t <= c.b + .4);
+  if (cue) { const ws = cue.w.filter(w => t >= w.a - .02); cap.innerHTML = ws.map(w => `<span>${w.w.replace("Zamin", "ZAMIN")}</span>`).join(""); cap.style.opacity = 1; cap.style.bottom = (k === "c1" || k === "c2" || k === "cta" ? 150 : 190) + "px"; cap.style.transform = "none"; } else cap.style.opacity = 0;
+  if (k === "cta" && cue) cap.style.opacity = 0;      // the CTA graphics carry the line
+  await new Promise(r => requestAnimationFrame(() => r()));
+};
+</script>

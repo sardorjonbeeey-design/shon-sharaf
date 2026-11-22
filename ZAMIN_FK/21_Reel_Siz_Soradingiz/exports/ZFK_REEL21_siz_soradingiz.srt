@@ -1,0 +1,68 @@
+1
+00:00:00,250 --> 00:00:02,812
+Siz so'radingiz — biz qurdik!
+
+2
+00:00:03,200 --> 00:00:05,008
+Birinchi — fast food.
+
+3
+00:00:05,028 --> 00:00:07,108
+Nomonjonov Asadbek so'radi.
+
+4
+00:00:08,600 --> 00:00:11,281
+Ikkinchi — stadion yoniga parking.
+
+5
+00:00:11,301 --> 00:00:12,661
+Xaytboy so'radi.
+
+6
+00:00:14,000 --> 00:00:16,439
+Yoshlar akademiyamiz avvaldan bor edi.
+
+7
+00:00:16,459 --> 00:00:19,980
+Endi uning menejeri — Alijonov nuqta cls!
+
+8
+00:00:20,000 --> 00:00:25,275
+Layklaringiz bilan klub byudjeti — yetmish to'qqiz million sakkiz yuz yetmish besh ming so'm!
+
+9
+00:00:26,200 --> 00:00:28,311
+Murabbiy: himoya zaif.
+
+10
+00:00:28,331 --> 00:00:29,971
+Ikki himoyachi tanladi.
+
+11
+00:00:30,600 --> 00:00:34,491
+Birinchi — Kwame Mensah, Gana, yigirma besh yosh.
+
+12
+00:00:34,511 --> 00:00:36,431
+Narxi — yigirma million.
+
+13
+00:00:36,600 --> 00:00:40,851
+Ikkinchi — Jasurbek Rahimov, O'zbekiston, o'n to'qqiz yosh.
+
+14
+00:00:40,871 --> 00:00:43,351
+Narxi — o'n ikki million besh yuz ming.
+
+15
+00:00:43,400 --> 00:00:44,673
+Kimni sotib olamiz?
+
+16
+00:00:44,693 --> 00:00:47,273
+Bir yoki ikki — izohga yozing!
+
+17
+00:00:47,293 --> 00:00:49,213
+Eng ko'p layk — transfer!
+

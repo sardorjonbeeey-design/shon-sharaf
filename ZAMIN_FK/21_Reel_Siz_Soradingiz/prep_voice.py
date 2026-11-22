@@ -3,7 +3,7 @@ build/words.json: per beat start/end, per sentence start/end, per word start/end
 No speed-up unless the film would exceed 40 s (then a uniform tempo 1.03-1.08)."""
 import json, subprocess, numpy as np, os, re, sys
 H = os.path.dirname(os.path.abspath(__file__)); V = H + "/voice"; os.makedirs(H + "/build", exist_ok=True)
-N = 6; STARTS = [0.25, 3.3, 11.5, 19.7, 27.9, 31.9]; LEAD = 0.25
+N = 9; STARTS = [0.25, 3.2, 8.6, 14.0, 20.0, 26.2, 30.6, 36.6, 43.4]; LEAD = 0.25
 TEMPO = float(sys.argv[1]) if len(sys.argv) > 1 else 1.0
 def pcm(p):
     return np.frombuffer(subprocess.check_output(["ffmpeg", "-loglevel", "error", "-i", p, "-f", "s16le", "-ac", "1", "-ar", "48000", "-"]), np.int16).astype(float) / 32768
