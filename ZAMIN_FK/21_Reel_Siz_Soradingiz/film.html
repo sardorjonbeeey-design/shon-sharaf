@@ -49,7 +49,7 @@ const topB = el("BYUDJET · <span style='color:#FFD23F'>79 875 000</span> so‘m
 const head = el("KIMNI<br><span style='color:#FFD23F'>SOTIB</span> OLAMIZ?", "a", "left:0;width:1080px;top:196px;text-align:center;font:900 66px/1.05 M;-webkit-text-stroke:8px rgba(5,14,60,.9);paint-order:stroke fill");
 const price = [el("20 000 000 so‘m", "a pill", "left:85px;top:1170px;width:430px"), el("12 500 000 so‘m", "a pill", "left:565px;top:1170px;width:430px")];
 const left = [el("Qoladi: <b style='color:#FFD23F'>59 875 000</b>", "a", "left:85px;top:1290px;width:430px;text-align:center;font:800 34px M;color:#cfe0ff"), el("Qoladi: <b style='color:#FFD23F'>67 375 000</b>", "a", "left:565px;top:1290px;width:430px;text-align:center;font:800 34px M;color:#cfe0ff")];
-const vs = el("1 — <span style='color:#6f9bff'>KWAME</span> &nbsp;•&nbsp; 2 — <span style='color:#6f9bff'>JASURBEK</span>", "a", "left:0;width:1080px;top:1370px;text-align:center;font:900 52px M;-webkit-text-stroke:8px rgba(5,14,60,.9);paint-order:stroke fill");
+const vs = el("1 — <span style='color:#6f9bff'>KWAME</span> · 20 000 000<br>2 — <span style='color:#6f9bff'>JASURBEK</span> · 12 500 000", "a", "left:0;width:1080px;top:1230px;text-align:center;font:900 50px/1.25 M;-webkit-text-stroke:8px rgba(5,14,60,.9);paint-order:stroke fill");
 const cta = el("Izohga <b>1</b> yoki <b>2</b> yozing 👇", "a pill", "left:110px;top:1470px;width:860px;font-size:50px"), cta2 = el("Eng ko‘p layk olgan izoh — TRANSFER", "a", "left:0;width:1080px;top:1610px;text-align:center;font:900 38px M;color:#9fb6ff");
 const cap = el("", "a cap");
 const dots = Array.from({ length: 22 }, (_, i) => { const d = el("", "dot", "opacity:.0"); d.dataset.k = i; d.style.left = (i * 97 % 1040) + "px"; return d; });
@@ -102,8 +102,6 @@ window.renderAt = async t => {
     const sw = i => Math.sin(t * 1.4 + i * 2) * 1.1, fl = i => Math.sin(t * 1.9 + i) * 6;
     set(pc[0], { x: base[0].x - 900 * (1 - eo(t1 / .5)), y: base[0].y + fl(0), r: sw(0) + (t1 < .5 ? -6 * (1 - eo(t1 / .5)) : 0), o: t1 > 0 ? 1 : 0 });
     set(pc[1], { x: base[1].x + 900 * (1 - eo(t2 / .5)), y: base[1].y + fl(1), r: sw(1) + (t2 < .5 ? 6 * (1 - eo(t2 / .5)) : 0), o: t2 > 0 ? 1 : 0 });
-    if (t1 > .7) { set(price[0], { s: sp((t1 - .7) / .4), o: 1 }); set(left[0], { o: clamp((t1 - 1.5) / .3) }); }
-    if (t2 > .7) { set(price[1], { s: sp((t2 - .7) / .4), o: 1 }); set(left[1], { o: clamp((t2 - 1.5) / .3) }); }
     if (k === "cta") { set(head, { s: .85 + .15 * sp(tc / .4), o: clamp(tc / .15) }); set(vs, { y: 0, s: sp((tc - .8) / .4), o: tc > .8 ? 1 : 0 }); set(cta, { s: sp((tc - 2.2) / .4) * (1 + .03 * Math.sin(tc * 6)), o: tc > 2.2 ? 1 : 0 }); set(cta2, { o: clamp((tc - 3.2) / .3) }); }
   }
   // ---- captions ----
