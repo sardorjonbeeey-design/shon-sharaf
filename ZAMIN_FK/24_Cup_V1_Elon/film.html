@@ -1,0 +1,111 @@
+<!doctype html><meta charset=utf-8><style>
+@font-face{font-family:M;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
+@font-face{font-family:Mb;src:url(../web/city/assets/fonts/Montserrat_800ExtraBold.ttf)}
+html,body{margin:0;background:#000;overflow:hidden}
+#st{position:relative;width:1080px;height:1920px;overflow:hidden;background:#050e3c;font-family:M,sans-serif;color:#fff}
+.full{position:absolute;left:0;top:0;width:1080px;height:1920px}
+#bp{background-size:cover;background-position:center;will-change:transform}
+#glow{background:radial-gradient(ellipse at 50% 34%,rgba(60,110,230,.22) 0%,rgba(0,0,0,0) 62%)}
+#vig{background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 52%,rgba(2,6,24,.68) 100%)}
+.a{position:absolute;opacity:0;will-change:transform,opacity}
+.chip{height:92px;line-height:84px;border-radius:46px;padding:0 40px;display:block;font:900 42px M;
+  background:rgba(5,14,60,.9);border:4px solid #1F4FB8;box-shadow:0 0 32px rgba(31,79,184,.5);white-space:nowrap}
+.chip.g{background:#FFD23F;color:#0D2557;border-color:#fff}
+.cap{left:60px;width:960px;bottom:168px;text-align:center;font:900 60px/1.14 M;paint-order:stroke fill;
+  -webkit-text-stroke:10px rgba(5,14,60,.95);opacity:0}
+.cap span{display:inline-block;margin:0 9px}
+.pill{height:108px;line-height:98px;text-align:center;border-radius:54px;background:#FFD23F;color:#0D2557;font:900 46px M;
+  border:5px solid #0D2557;box-shadow:0 10px 34px rgba(0,0,0,.45)}
+.dot{width:12px;height:12px;border-radius:50%;background:rgba(170,200,255,.5);filter:blur(1px)}
+.ttl{-webkit-text-stroke:9px rgba(5,14,60,.92);paint-order:stroke fill}
+</style>
+<div id=st>
+  <img id=b3 class=full style="display:none">
+  <div id=bp class=full></div>
+  <div id=dim class=full style="background:#02061a;opacity:0"></div>
+  <div id=glow class=full></div>
+  <div id=vig class=full></div>
+  <div id=ov class=full></div>
+</div>
+<script>
+const A = "assets/", FPS = 30;
+// beats: s1 = LED four empty crests (3D) · s2 = founder card on the LED (3D) · dive = aerial→top (3D) · br = pitch bracket · cta = goat
+const S = { s1: 0, s2: 8.4, dive: 15.2, br: 17.3, cta: 20.6 }; window.END = 28.6;
+const N3 = { s1: 120, s2: 99, dive: 30 };                 // 15 fps plates, each held for two video frames
+const NBR = 99;                                           // pitch-bracket draw-on, 30 fps
+const $ = id => document.getElementById(id), ov = $("ov"), clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const eo = x => 1 - Math.pow(1 - clamp(x), 3), sp = x => { x = clamp(x); return x < 1 ? 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2) : 1; };
+const seg = t => { let k = "s1"; for (const n in S) if (t >= S[n]) k = n; return k; };
+function el(html, cls = "a", style = "") { const d = document.createElement("div"); d.className = cls; d.style.cssText = style; d.innerHTML = html; ov.appendChild(d); return d; }
+function set(e, { x = 0, y = 0, s = 1, r = 0, o = 1 }) { e.style.opacity = o; e.style.transform = `translate(${x}px,${y}px) rotate(${r}deg) scale(${s})`; }
+// ---- titles ----
+const t1 = el(`4 TA KLUB<br><span style="color:#FFD23F">TUG‘ILADI</span>`, "a ttl", "left:0;width:1080px;top:170px;text-align:center;font:900 92px/1.04 M");
+const t2 = el(`MUXLISLAR<br><span style="color:#FFD23F">KUBOGI</span>`, "a ttl", "left:0;width:1080px;top:180px;text-align:center;font:900 88px/1.04 M");
+const t3a = el("NOMNI SIZ YOZASIZ", "a ttl", "left:0;width:1080px;top:200px;text-align:center;font:900 72px M");
+const t3b = el("ASOSCHI — <span style='color:#FFD23F'>SIZ</span>", "a ttl", "left:0;width:1080px;top:300px;text-align:center;font:900 76px M");
+const t3c = el("eng ko‘p layk olgan nom — klub", "a chip", "left:140px;top:1500px;width:800px;text-align:center;font-size:38px");
+// ---- CTA ----
+const goat = el(`<img src="${A}goat_talk.png" style="height:900px;display:block">`, "a", "left:10px;top:990px");
+const bub = el("Klub nomini<br>yozing!", "a", "left:440px;top:520px;width:520px;padding:30px 36px;box-sizing:border-box;border-radius:44px;background:#fff;color:#0D2557;font:900 60px/1.12 M;box-shadow:0 12px 40px rgba(0,0,0,.5);text-align:center");
+const cm = [1, 2].map(i => el(`<img src="${A}comment_${i}.png" style="width:620px;display:block;border-radius:20px">`, "a", "left:430px;top:0"));
+const pill = el("Izohga klub nomini yozing 👇", "a pill", "left:100px;top:1500px;width:880px;font-size:48px");
+const note = el("24 soat · eng ko‘p layk olgan 4 ta nom", "a", "left:0;width:1080px;top:1640px;text-align:center;font:900 38px M;color:#cfe0ff;-webkit-text-stroke:8px rgba(5,14,60,.9);paint-order:stroke fill");
+const rules = el("nom bir-ikki so‘z · haqoratsiz · real klub yoki odam nomi emas", "a", "left:0;width:1080px;top:1716px;text-align:center;font:800 28px Mb;color:rgba(205,222,255,.95);-webkit-text-stroke:7px rgba(5,14,60,.9);paint-order:stroke fill");
+const cap = el("", "a cap");
+const dots = Array.from({ length: 20 }, (_, i) => el("", "dot", "opacity:0"));
+const cues = []; for (const b of window.W) for (const s of b.sents) cues.push({ a: s.a, b: s.b, w: s.words });
+window.ready = async () => {
+  await document.fonts.ready;
+  await Promise.all([...document.images].map(i => i.decode().catch(() => 0)));
+  for (const f of ["bg_cta.png", "pitch_bracket.png"]) { const i = new Image(); i.src = f === "pitch_bracket.png" ? "build/" + f : A + f; await i.decode().catch(() => 0); }
+};
+async function frame3d(k, t) {
+  const i = clamp(Math.floor((t - S[k]) * 15), 0, N3[k] - 1), im = $("b3");
+  im.src = k === "dive" ? `build/top/d_${String(i).padStart(3, "0")}.jpg` : `build/3d/${k}/f_${String(i).padStart(4, "0")}.jpg`;
+  try { await im.decode(); } catch (e) { }
+}
+window.renderAt = async t => {
+  const k = seg(t), lt = t - S[k], is3 = k in N3;
+  for (const e of ov.children) e.style.opacity = 0;
+  $("b3").style.display = is3 ? "block" : "none"; $("bp").style.display = is3 ? "none" : "block"; $("dim").style.opacity = 0;
+  if (is3) { await frame3d(k, t); $("b3").style.transform = "none"; }
+  else if (k === "br") {                                   // pitch bracket: its own 30 fps draw-on sequence
+    const i = clamp(Math.round(lt * FPS), 0, NBR - 1), im = $("b3");
+    $("b3").style.display = "block"; $("bp").style.display = "none";
+    im.src = `build/br/f_${String(i).padStart(4, "0")}.jpg`;
+    try { await im.decode(); } catch (e) { }
+    im.style.transform = `scale(${1 + .03 * clamp(lt / 3.3)})`;
+  } else {                                                 // CTA over a soft stadium plate
+    $("bp").style.backgroundImage = `url(${A}bg_cta.png)`;
+    const z = 1.06 + .05 * clamp(lt / 8); $("bp").style.transform = `scale(${z}) translate(${Math.sin(t * .4) * 10}px,${Math.cos(t * .3) * 8}px)`;
+    $("dim").style.opacity = .42;
+  }
+  dots.forEach((d, i) => { const y = 1950 - ((t * (34 + i % 5 * 12) + i * 137) % 2050), x = (i * 103 % 1040) + Math.sin(t * .7 + i) * 26;
+    d.style.opacity = is3 ? 0 : .45; d.style.transform = `translate(${x}px,${y}px) scale(${.6 + i % 4 * .3})`; });
+  // ---- beat overlays ----
+  if (k === "s1") {
+    set(t1, { s: .86 + .14 * sp(t / .5), y: -14 * (1 - eo(t / .6)), o: clamp(t / .18) * clamp((3.9 - t) / .35) });
+    set(t2, { s: .9 + .1 * sp((lt - 4.0) / .5), o: clamp((t - 4.1) / .3) * clamp((8.2 - t) / .3) });
+  }
+  if (k === "s2") {
+    set(t3a, { y: -30 * (1 - eo(lt / .5)), o: clamp(lt / .25) * clamp((6.4 - lt) / .4) });
+    set(t3b, { s: .88 + .12 * sp((lt - 2.6) / .45), o: clamp((lt - 2.6) / .25) * clamp((6.4 - lt) / .4) });
+    set(t3c, { o: clamp((lt - 4.0) / .3) * clamp((6.4 - lt) / .4) });
+  }
+  if (k === "cta") {
+    set(goat, { x: -480 * (1 - eo(lt / .55)), s: 1 + .015 * Math.sin(t * 1.6), o: clamp(lt / .2) });
+    set(bub, { s: sp((lt - .5) / .4) * (1 + .02 * Math.sin((lt - .5) * 5)), r: -2 + Math.sin(t * 2.2) * .7, o: lt > .5 ? 1 : 0 });
+    cm.forEach((c, i) => { const a = lt - 2.1 - i * .5; set(c, { x: 700 * (1 - eo(a / .5)), y: 1000 + i * 190, o: a > 0 ? clamp(a * 4) : 0 }); });
+    set(pill, { s: sp((lt - 4.3) / .45) * (1 + .025 * Math.sin(lt * 6)), o: lt > 4.3 ? 1 : 0 });
+    set(note, { o: clamp((lt - 5.0) / .3) });
+    set(rules, { o: clamp((lt - 5.6) / .4) });
+  }
+  // ---- captions (graphics carry the CTA line) ----
+  const cue = cues.find(c => t >= c.a - .05 && t <= c.b + .4);
+  if (cue && k !== "cta" && k !== "br") {
+    cap.innerHTML = cue.w.filter(w => t >= w.a - .02).map(w => `<span>${w.w.replace("Zamin", "ZAMIN")}</span>`).join("");
+    cap.style.opacity = 1; cap.style.bottom = "168px"; cap.style.transform = "none";
+  } else cap.style.opacity = 0;
+  await new Promise(r => requestAnimationFrame(() => r()));
+};
+</script>
