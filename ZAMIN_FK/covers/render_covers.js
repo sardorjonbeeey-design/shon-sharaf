@@ -36,6 +36,7 @@ const COVERS=[
   {n:18, label:"VIRAL", num:"🔥",   title:"SINOV\nJAMOASI",        accent:"#FF4500", bright:0.52},
   {n:19, label:"REEL",  num:"19",   title:"KUTILMAGAN\nG'ALABA",   accent:"#F87171", bright:0.65},
   {n:21, label:"REEL",  num:"21",   title:"SO'RADINGIZ\nQURDIK", accent:"#FFD23F", bright:0.66, bg:HERE+"/../21_Reel_Siz_Soradingiz/assets/cover_poyo.png"},
+  {n:23, label:"REEL",  num:"23",   title:"JASURBEK\nBIZDA!",   accent:"#FFD23F", bright:0.78, bg:HERE+"/../23_Reel_Transfer_Jasurbek/assets/cover_bg_23.png", extra:"64% OVOZ · SIZ TANLADINGIZ"},
 ];
 
 function numSize(num){
