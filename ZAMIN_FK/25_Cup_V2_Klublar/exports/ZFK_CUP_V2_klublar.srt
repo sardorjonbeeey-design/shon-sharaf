@@ -1,0 +1,56 @@
+1
+00:00:00,250 --> 00:00:03,351
+Siz nom yozdingiz — to‘rtta klub tanlandi.
+
+2
+00:00:03,800 --> 00:00:05,257
+Prime Avangard.
+
+3
+00:00:05,277 --> 00:00:06,577
+Prime Fc.
+
+4
+00:00:06,597 --> 00:00:07,817
+Wakanda team.
+
+5
+00:00:07,837 --> 00:00:09,157
+Qayrat Fc.
+
+6
+00:00:09,400 --> 00:00:10,737
+Qur‘a tashlandi.
+
+7
+00:00:10,777 --> 00:00:14,017
+Yarim final bir: Wakanda team — Prime Fc.
+
+8
+00:00:14,137 --> 00:00:17,857
+Yarim final ikki: Qayrat Fc — Prime Avangard.
+
+9
+00:00:18,200 --> 00:00:20,858
+Nom yozgan to‘rt muxlis — kapitan.
+
+10
+00:00:20,878 --> 00:00:22,678
+Jamoani ular tanlaydi.
+
+11
+00:00:23,000 --> 00:00:29,343
+Jamoaga kirish uchun izohga pozitsiyangizni yozing: darvozabon, himoya, markaz yoki hujum.
+
+12
+00:00:29,363 --> 00:00:30,443
+Obuna shart.
+
+13
+00:00:30,800 --> 00:00:32,244
+Yigirma to‘rt soat.
+
+14
+00:00:32,264 --> 00:00:35,104
+Keyingi videoda kapitanlar sizni tanlaydi.
+

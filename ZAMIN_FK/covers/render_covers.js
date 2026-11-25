@@ -36,6 +36,7 @@ const COVERS=[
   {n:18, label:"VIRAL", num:"🔥",   title:"SINOV\nJAMOASI",        accent:"#FF4500", bright:0.52},
   {n:19, label:"REEL",  num:"19",   title:"KUTILMAGAN\nG'ALABA",   accent:"#F87171", bright:0.65},
   {n:21, label:"REEL",  num:"21",   title:"SO'RADINGIZ\nQURDIK", accent:"#FFD23F", bright:0.66, bg:HERE+"/../21_Reel_Siz_Soradingiz/assets/cover_poyo.png"},
+  {n:25, label:"KUBOK", num:"2",    title:"4 TA KLUB\nTANLANDI", accent:"#FFD23F", bright:0.86, bg:HERE+"/../25_Cup_V2_Klublar/assets/cover_bg_25.png", extra:"Pozitsiyangizni izohga yozing"},
   {n:24, label:"KUBOK", num:"1",    title:"KLUB NOMINI\nSIZ YOZASIZ", accent:"#FFD23F", bright:0.80, bg:HERE+"/../24_Cup_V1_Elon/assets/cover_bg_24.png", extra:"4 KLUB · 3 O‘YIN · 1 G‘OLIB"},
   {n:23, label:"REEL",  num:"23",   title:"JASURBEK\nBIZDA!",   accent:"#FFD23F", bright:0.78, bg:HERE+"/../23_Reel_Transfer_Jasurbek/assets/cover_bg_23.png", extra:"64% OVOZ · SIZ TANLADINGIZ"},
 ];
