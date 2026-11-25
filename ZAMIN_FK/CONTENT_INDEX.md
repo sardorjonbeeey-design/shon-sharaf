@@ -7,6 +7,8 @@ One place for everything content-related: where files live, how videos are made,
 ## Canon
 - Club ZAMIN FK, town Qoratepa, royal blue `#1F4FB8` + white. Crest locked: `03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png`.
 - All content text in Uzbek (Latin), apostrophes as `o‘ g‘ ’`. Chat with the user in English, very short.
+- Wording: never «tug‘ildi» for clubs/teams appearing — it means literal birth and reads wrong. Use «tanlandi», «tayyor», «ochildi».
+- Usernames: keep digits as digits everywhere (on screen and in narration) — `@rasuluvich_09`, never «nol to‘qqiz». The write-numbers-as-words rule for TTS applies to amounts and counts only, not to usernames.
 - 1 follower = 1 virtual fan = 1 seat in the stadium. 1 like = 15 000 so‘m. Numbers: `LEDGER.md`.
 - Fan-seat identity (from Day 6): each follower is one blue fan seat; never show fake seat counts or imply numbered/reserved seats.
 - Next milestone: 500 followers → new feature reveal (feature is secret). Playing ZAMIN FK is free.
