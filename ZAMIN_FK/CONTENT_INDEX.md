@@ -13,6 +13,7 @@ One place for everything content-related: where files live, how videos are made,
 - Fan-seat identity (from Day 6): each follower is one blue fan seat; never show fake seat counts or imply numbered/reserved seats.
 - Next milestone: 500 followers → new feature reveal (feature is secret). Playing ZAMIN FK is free.
 - Characters: Rustam aka (coach), Bekzod, Jasur, Aziz, Doston, Sherzod, the goat. Sprites: `01_Art_Direction/Sprites/`.
+- Muxlislar kubogi positions: on screen show the codes stacked one per line — `GK`, `CB`, `CM`, `ST` (big, each on its own line, Uzbek word small underneath); the narration says the Uzbek word instead of the code: GK → «darvozabon», CB → «himoya», CM → «markaz», ST → «hujum».
 - Rules/checklists: `00_ENGAGEMENT_PRINCIPLES.md`, `DAILY_RUNBOOK.md`. Older context: `HANDOFF_NEXT_CHAT.md`.
 
 ## Episodes
