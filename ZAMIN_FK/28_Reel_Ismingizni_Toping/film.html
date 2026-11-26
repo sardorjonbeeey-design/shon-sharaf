@@ -1,0 +1,272 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;font-weight:900;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf)}
+@font-face{font-family:MZ;font-weight:700;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf)}
+html,body{margin:0;background:#02040c;overflow:hidden;width:1080px;height:1920px;font-family:MZ,sans-serif}
+#c{position:absolute;left:0;top:0}
+#nm{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
+#ov{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
+.nm{position:absolute;white-space:nowrap;color:#fff;font-weight:700;letter-spacing:.5px;
+    transform:translate(-50%,-50%);paint-order:stroke fill;-webkit-text-stroke-color:#061026;
+    text-shadow:0 3px 10px rgba(0,0,0,.75)}
+.it{position:absolute;transform-origin:50% 50%;white-space:nowrap;text-align:center;color:#fff;font-weight:900}
+.hd small{display:block;font-size:40px;letter-spacing:1px;text-shadow:0 4px 14px #000}
+.hd b{display:block;font-size:98px;line-height:1.02;color:#FFD23F;text-shadow:0 6px 0 #0D2557,0 10px 30px #000;-webkit-text-stroke:7px #0D2557;paint-order:stroke fill}
+.hd b.w{color:#fff}
+.pill{background:rgba(5,14,40,.88);border:5px solid #FFD23F;border-radius:26px;padding:14px 34px;box-shadow:0 0 34px rgba(255,210,63,.35)}
+.pill small{display:block;font-size:26px;letter-spacing:3px;color:#9fb6ff}.pill b{font-size:72px;color:#fff}.pill i{font-style:normal;font-size:38px;color:#9fb6ff}
+.tag{background:#fff;color:#0D2557;border-radius:20px;padding:10px 26px;font-size:44px;border:5px solid #FFD23F;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.chip{background:rgba(5,14,40,.9);border:4px solid #FFD23F;border-radius:18px;padding:12px 26px;font-size:46px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.chip em{font-style:normal;color:#FFD23F}
+.cm{background:#fff;color:#0D2557;border-radius:28px;padding:16px 34px;font-size:44px;text-align:center;box-shadow:0 14px 36px rgba(0,0,0,.6);border:5px solid #0D2557}
+.cm s{display:block;text-decoration:none;font-size:28px;color:#5a6a99;font-weight:700;letter-spacing:3px}
+.q{font-size:160px;color:#34d399;-webkit-text-stroke:10px #0D2557;paint-order:stroke fill;text-shadow:0 12px 30px #000}
+</style></head><body>
+<canvas id="c" width="1080" height="1920"></canvas><div id="nm"></div><div id="ov"></div>
+<script src="../09_Episode_09/build/node_modules/three/build/three.min.js"></script>
+<script>
+const T = THREE, W = window.W || [], FANS = window.FANS || [];
+const BS = {}; W.forEach(b => BS[b.beat] = b); const S = (b, i) => BS[b].sents[i]; const b = n => BS[n].start;
+const END = W[W.length - 1].end + 1.0; window.END = END;
+const cl = (v, a = 0, bb = 1) => Math.max(a, Math.min(bb, v)), sm = (a, bb, x) => { const t = cl((x - a) / (bb - a)); return t * t * (3 - 2 * t); }, lerp = (a, bb, t) => a + (bb - a) * t;
+const eob = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const REAL = FANS.length, GOAL = 5000;
+// ---------- renderer / scene ----------
+const R = new T.WebGLRenderer({ canvas: document.getElementById("c"), antialias: true }); R.setSize(1080, 1920, false); R.setPixelRatio(1);
+const sc = new T.Scene(); sc.background = new T.Color(0x02040c); sc.fog = new T.Fog(0x02040c, 150, 620);
+const cam = new T.PerspectiveCamera(45, 1080 / 1920, .1, 1400);
+sc.add(new T.HemisphereLight(0x7f9bff, 0x0a1030, 1.2)); const sun = new T.DirectionalLight(0xffffff, .9); sun.position.set(-40, 90, 60); sc.add(sun);
+const lam = c => new T.MeshLambertMaterial({ color: c }), bas = c => new T.MeshBasicMaterial({ color: c });
+const BOX = new T.BoxGeometry(1, 1, 1);
+const M4 = new T.Matrix4(), Q4 = new T.Quaternion(), V3 = new T.Vector3(), S3 = new T.Vector3(), E4 = new T.Euler();
+function setM(mesh, i, x, y, z, sx, sy, sz, ry = 0) { Q4.setFromEuler(E4.set(0, ry, 0)); M4.compose(V3.set(x, y, z), Q4, S3.set(sx, sy, sz)); mesh.setMatrixAt(i, M4); }
+// ---------- pitch ----------
+const PX = 22, PZ = 34;
+const ground = new T.Mesh(new T.PlaneGeometry(2400, 2400), lam(0x050a1c)); ground.rotation.x = -Math.PI / 2; ground.position.y = -.3; sc.add(ground);
+for (let i = 0; i < 12; i++) { const m = new T.Mesh(new T.PlaneGeometry(PX * 2, PZ * 2 / 12), lam(i % 2 ? 0x0e7a35 : 0x0a6a2d)); m.rotation.x = -Math.PI / 2; m.position.set(0, 0, -PZ + (i + .5) * PZ * 2 / 12); sc.add(m); }
+function line(x, z, w, d, c = 0x7ffcff) { const m = new T.Mesh(BOX, bas(c)); m.scale.set(w, .05, d); m.position.set(x, .06, z); sc.add(m); }
+line(0, -PZ, PX * 2, .5); line(0, PZ, PX * 2, .5); line(-PX, 0, .5, PZ * 2); line(PX, 0, .5, PZ * 2); line(0, 0, PX * 2, .5);
+for (const s of [-1, 1]) { line(0, s * (PZ - 8), 20, .4); line(-10, s * (PZ - 4), .4, 8); line(10, s * (PZ - 4), .4, 8); }
+const circ = new T.Mesh(new T.RingGeometry(5.7, 6.2, 48), bas(0x7ffcff)); circ.rotation.x = -Math.PI / 2; circ.position.y = .07; sc.add(circ);
+// ---------- bowl geometry ----------
+function rr(hx, hz, r, s) {                         // point + outward normal at perimeter distance s
+  const a = hx - r, bb = hz - r, L1 = 2 * a, L2 = 2 * bb, Lc = Math.PI * r / 2, P = 2 * L1 + 2 * L2 + 4 * Lc; s = ((s % P) + P) % P;
+  const seg = [[L1, "b"], [Lc, "c1"], [L2, "r"], [Lc, "c2"], [L1, "t"], [Lc, "c3"], [L2, "l"], [Lc, "c4"]]; let o = 0;
+  for (const [L, k] of seg) { if (s <= o + L) { const u = s - o; switch (k) {
+    case "b": return [-a + u, hz, 0, 1]; case "r": return [hx, bb - u, 1, 0]; case "t": return [a - u, -hz, 0, -1]; case "l": return [-hx, -bb + u, -1, 0];
+    case "c1": { const t = u / r; return [a + r * Math.sin(t), bb + r * Math.cos(t), Math.sin(t), Math.cos(t)]; }
+    case "c2": { const t = u / r; return [a + r * Math.cos(t), -bb - r * Math.sin(t), Math.cos(t), -Math.sin(t)]; }
+    case "c3": { const t = u / r; return [-a - r * Math.sin(t), -bb - r * Math.cos(t), -Math.sin(t), -Math.cos(t)]; }
+    default: { const t = u / r; return [-a - r * Math.cos(t), bb + r * Math.sin(t), -Math.cos(t), Math.sin(t)]; } } } o += L; }
+  return [-a, hz, 0, 1];
+}
+const TIERS = 14, TG = [], seats = [];
+for (let i = 0; i < TIERS; i++) {
+  const hx = PX + 4 + i * 1.15, hz = PZ + 4 + i * 1.15, r = 9 + i * 1.15, P = 2 * (2 * (hx - r) + 2 * (hz - r)) + 2 * Math.PI * r, n = Math.floor(P / 1.12);
+  TG.push({ hx, hz, r, P, n, y: .55 + i * .85, a: hx - r });
+  for (let k = 0; k < n; k++) { const s = k * P / n, [x, z, nx, nz] = rr(hx, hz, r, s); seats.push({ x, z, y: .55 + i * .85, ry: Math.atan2(-nx, -nz), tier: i, k, s, nx, nz }); }
+}
+const NS = seats.length;
+const SEATC = [0x16348f, 0x1a3fb0, 0x122a74], DARK = 0x0a1537;
+const KIT = [0x2f6bff, 0xffffff, 0x2f6bff, 0xffd23f, 0xffffff, 0xe63946, 0x2f6bff, 0x34d399, 0xff8a3d, 0xc084fc];
+// path coordinate: tier 3 perimeter, s=0 at the south-west end of the main stand, centre at TG[3].a
+const PT = 3, CS = TG[PT].a;                        // centre of the main (south) stand
+const sOf = (tier, s) => s / TG[tier].P * TG[PT].P; // tier s -> path s
+const dsOf = seat => { let d = sOf(seat.tier, seat.s) - CS; const P = TG[PT].P; d = ((d % P) + P) % P; return d > P / 2 ? d - P : d; };
+// ---------- who sits where: the crowd grows out from the centre of the main stand ----------
+const RES_DS = 26.0, RES_TIER = 3;                  // the reserved (empty) seat the film ends on
+let resI = 0, bd = 1e9;
+seats.forEach((s, i) => { const d = Math.abs(dsOf(s) - RES_DS) + Math.abs(s.tier - RES_TIER) * 4; if (d < bd) { bd = d; resI = i; } });
+const cand = seats.map((s, i) => i).filter(i => i !== resI)
+  .sort((p, q) => (Math.abs(dsOf(seats[p])) + 1.6 * seats[p].tier) - (Math.abs(dsOf(seats[q])) + 1.6 * seats[q].tier));
+const taken = cand.slice(0, REAL);                  // one seat per real follower
+const nameOf = new Array(NS).fill(null); taken.forEach((si, i) => nameOf[si] = FANS[i]);
+const HERO = taken[0], HP = seats[HERO], RES = seats[resI];
+// seats (all) + fans (taken only)
+const seatM = new T.InstancedMesh(BOX, lam(0xffffff), NS); seatM.frustumCulled = false; sc.add(seatM);
+seats.forEach((s, i) => { seatM.setColorAt(i, new T.Color(nameOf[i] ? SEATC[(s.k + s.tier) % 3] : DARK));
+  setM(seatM, i, s.x, s.y, s.z, .92, .5, .86, s.ry); });
+seatM.setColorAt(HERO, new T.Color(0xFFD23F)); seatM.setColorAt(resI, new T.Color(0x071029));
+seatM.instanceMatrix.needsUpdate = true; seatM.instanceColor.needsUpdate = true;
+// ---------- the crowd: stylised low-poly fans in club colours ----------
+const NF = taken.length;
+const TOR = [0x1F4FB8, 0x1F4FB8, 0x1F4FB8, 0xffffff, 0xffffff, 0x2f6bff, 0x2f6bff, 0xFFD23F, 0x0D2557, 0xe63946];
+const SCARF = [0xffffff, 0xFFD23F, 0x0D2557, 0x7ffcff], SKIN = [0xf2c8a0, 0xd9a577, 0xb98760];
+const mk = n => { const m = new T.InstancedMesh(BOX, lam(0xffffff), n); m.frustumCulled = false; sc.add(m); return m; };
+const torsoM = mk(NF), shoM = mk(NF), headM = mk(NF), armLM = mk(NF), armRM = mk(NF), scarfM = mk(NF), poleM = mk(NF), flagM = mk(NF);
+const FM = [torsoM, shoM, headM, armLM, armRM, scarfM, poleM, flagM];
+const fan = taken.map((si, i) => { const h1 = hash(si * 7.7), h2 = hash(si * 2.9), h3 = hash(si * 5.1), h4 = hash(si * 11.3), h5 = hash(si * 3.3);
+  return { si, s: seats[si], tor: TOR[Math.floor(h1 * TOR.length)], skin: SKIN[Math.floor(h2 * 3)],
+    cheer: h3 < .34, stand: h4 < .12, scarf: h5 < .42 ? SCARF[Math.floor(h2 * 4)] : null, flag: h3 > .94,
+    ph: h1 * 6.283, sc: .92 + h2 * .16 }; });
+Object.assign(fan[0], { tor: 0xffffff, scarf: 0xFFD23F, cheer: true, stand: false, sc: 1.04 });   // the one seat the film opens on
+fan.forEach((f, i) => { const c = new T.Color(f.tor);
+  torsoM.setColorAt(i, c); shoM.setColorAt(i, c); armLM.setColorAt(i, c); armRM.setColorAt(i, c);
+  headM.setColorAt(i, new T.Color(f.skin)); scarfM.setColorAt(i, new T.Color(f.scarf == null ? 0 : f.scarf));
+  poleM.setColorAt(i, new T.Color(0xcbd5ff)); flagM.setColorAt(i, new T.Color(hash(f.si * 17) < .5 ? 0x1F4FB8 : 0xffffff)); });
+FM.forEach(m => m.instanceColor.needsUpdate = true);
+const HIDE = (m, i) => setM(m, i, 0, -60, 0, 0, 0, 0);
+function updateFans(t) {
+  for (let i = 0; i < NF; i++) {
+    const f = fan[i], s = f.s, rx = Math.cos(s.ry), rz = -Math.sin(s.ry), k = f.sc * (f.stand ? 1.06 : 1);
+    const base = s.y + (f.stand ? .60 : .18) + (f.cheer ? .085 : .03) * Math.sin(t * (f.cheer ? 3.4 : 2.0) + f.ph);
+    setM(torsoM, i, s.x, base + .40 * k, s.z, .50 * k, .80 * k, .38 * k, s.ry);
+    setM(shoM, i, s.x, base + .78 * k, s.z, .64 * k, .15 * k, .42 * k, s.ry);
+    const hy = base + 1.06 * k; setM(headM, i, s.x, hy, s.z, .34 * k, .36 * k, .34 * k, s.ry);
+    const sway = f.cheer ? .06 * Math.sin(t * 4 + f.ph) : 0, ax = .33 * k + sway;
+    const ay = base + (f.cheer ? 1.20 : .44) * k, al = (f.cheer ? .54 : .56) * k;
+    setM(armLM, i, s.x - rx * ax, ay, s.z - rz * ax, .13 * k, al, .15 * k, s.ry);
+    setM(armRM, i, s.x + rx * ax, ay, s.z + rz * ax, .13 * k, al, .15 * k, s.ry);
+    if (f.scarf != null) setM(scarfM, i, s.x, base + .70 * k, s.z, .57 * k, .13 * k, .43 * k, s.ry); else HIDE(scarfM, i);
+    if (f.flag) { const px = s.x + rx * .36 * k, pz = s.z + rz * .36 * k;
+      setM(poleM, i, px, hy + .52, pz, .05, 1.15, .05, s.ry); setM(flagM, i, px + rx * .25, hy + .95, pz + rz * .25, .46, .30, .04, s.ry); }
+    else { HIDE(poleM, i); HIDE(flagM, i); }
+  }
+  FM.forEach(m => m.instanceMatrix.needsUpdate = true);
+}
+updateFans(0);
+// neon rims
+const rim = (h, c, w = .35) => { const hx = PX + 4 + TIERS * 1.15 + .4, hz = PZ + 4 + TIERS * 1.15 + .4, r = 9 + TIERS * 1.15, P = 2 * (2 * (hx - r) + 2 * (hz - r)) + 2 * Math.PI * r, n = Math.floor(P / .9);
+  const m = new T.InstancedMesh(BOX, bas(c), n); m.frustumCulled = false; for (let k = 0; k < n; k++) { const [x, z, nx, nz] = rr(hx, hz, r, k * P / n); setM(m, k, x, h, z, w + .6, w, w + .6, Math.atan2(-nx, -nz)); } sc.add(m); };
+rim(TIERS * .85 + .9, 0x7ffcff); rim(.25, 0x7ffcff, .3);
+// reserved seat: yellow ring + beam
+const resRing = new T.Mesh(new T.RingGeometry(.44, .60, 32), new T.MeshBasicMaterial({ color: 0xFFD23F, transparent: true, opacity: .9, side: T.DoubleSide }));
+resRing.position.set(RES.x, RES.y + .30, RES.z); resRing.rotation.x = -Math.PI / 2; sc.add(resRing);
+function beam(x, y, z, col, op) { const m = new T.Mesh(new T.CylinderGeometry(.9, .9, 90, 20, 1, true), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: op, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending })); m.position.set(x, y + 45, z); sc.add(m); return m; }
+const beamH = beam(HP.x, HP.y, HP.z, 0xffd23f, .22), beamR = beam(RES.x, RES.y, RES.z, 0xffd23f, .3);
+beamH.visible = false; beamR.visible = false;
+const pin = new T.Mesh(new T.CylinderGeometry(.20, .26, 5.2, 18, 1, true), new T.MeshBasicMaterial({ color: 0xFFD23F, transparent: true, opacity: .5, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending }));
+pin.position.set(RES.x, RES.y + 2.8, RES.z); sc.add(pin); pin.visible = false;
+// goat on the reserved seat's neighbour
+const goat = new T.Sprite(new T.SpriteMaterial({ map: new T.TextureLoader().load("assets/goat_side.png"), transparent: true, depthWrite: false }));
+goat.center.set(.5, 0); goat.scale.set(1.5, 1.45, 1); sc.add(goat); goat.visible = false;
+const GSEAT = seats[(resI + 2) % NS];
+// ---------- camera: ONE continuous move, no cuts ----------
+const stand = (s, tier, dy) => { const g = TG[tier], ss = s / TG[PT].P * g.P, [x, z, nx, nz] = rr(g.hx, g.hz, g.r, ss); return { p: [x, g.y + dy, z], n: [nx, nz] }; };
+// a pose family: a point on the bowl path, pulled inward over the pitch, looking ahead along the stand
+function pose(s, dist, y, ahead, fov, ly = 4.0) {
+  const A = stand(s, PT, 0), B = stand(s + ahead, PT, 0);
+  return [[A.p[0] - A.n[0] * dist, y, A.p[2] - A.n[1] * dist], [B.p[0], ly, B.p[2]], fov];
+}
+const DRIFT0 = b(3) - 0.5, DRIFT1 = b(4) - 0.15, SPAN = RES_DS;
+const prof = (() => { const N = 600, r = .14; let c = 0; const out = [0];
+  for (let i = 0; i < N; i++) { const u = (i + .5) / N; const k = u < r ? sm(0, r, u) : u > 1 - r ? sm(1, 1 - r, u) : 1; c += k; out.push(c); }
+  return out.map(x => x / c); })();
+const sAt = t => { const u = cl((t - DRIFT0) / (DRIFT1 - DRIFT0)), i = u * (prof.length - 1); const i0 = Math.floor(i); return CS + SPAN * lerp(prof[i0], prof[Math.min(i0 + 1, prof.length - 1)], i - i0); };
+const driftPose = t => pose(sAt(t), 15.0, 8.8, 12.0, 44, 4.2);
+const HN = [HP.nx, HP.nz], RN = [RES.nx, RES.nz];
+const K0 = driftPose(DRIFT0), K1 = driftPose(DRIFT1);
+const KEYS = [
+  [0.00, [HP.x - HN[0] * 12.5, HP.y + 4.2, HP.z - HN[1] * 12.5], [HP.x, HP.y + 3.4, HP.z], 34],
+  [S(1, 1).a - .2, [HP.x - HN[0] * 15.0, HP.y + 5.2, HP.z - HN[1] * 15.0], [HP.x, HP.y + 3.6, HP.z], 36],
+  [b(2) - .1, [HP.x - HN[0] * 20, HP.y + 8.5, HP.z - HN[1] * 20], [HP.x, HP.y + 4.2, HP.z], 44],
+  [b(2) + 2.4, ...pose(CS - 22, 30, 23, 32, 52, 6.0)],
+  [b(3) - 2.6, ...pose(CS - 11, 22, 15.5, 23, 48, 5.0)],
+  [DRIFT0, K0[0], K0[1], K0[2]],
+  [DRIFT1, K1[0], K1[1], K1[2]],
+  [b(4) + .55, [RES.x - RN[0] * 7.2, RES.y + 4.6, RES.z - RN[1] * 7.2], [RES.x, RES.y + .40, RES.z], 40],
+  [b(5) + .2, [RES.x - RN[0] * 13, RES.y + 8.5, RES.z - RN[1] * 13], [RES.x, RES.y + .8, RES.z], 46],
+  [b(5) + 3.6, ...pose(CS + 4, 34, 26, 30, 54, 7.0)],
+  [END + .8, ...pose(CS + 2, 46, 34, 30, 54, 7.0)],
+];
+function placeCam(t) {
+  if (t >= DRIFT0 && t <= DRIFT1) { const [p, l, f] = driftPose(t); cam.fov = f; cam.updateProjectionMatrix(); cam.up.set(0, 1, 0); cam.position.set(p[0], p[1], p[2]); cam.lookAt(l[0], l[1], l[2]); return; }
+  let i = 0; while (i < KEYS.length - 2 && t >= KEYS[i + 1][0]) i++;
+  const a = KEYS[i], c = KEYS[i + 1], u = sm(a[0], c[0], t);
+  const L = (p, q) => [lerp(p[0], q[0], u), lerp(p[1], q[1], u), lerp(p[2], q[2], u)];
+  const p = L(a[1], c[1]), l = L(a[2], c[2]); cam.fov = lerp(a[3], c[3], u); cam.updateProjectionMatrix();
+  cam.up.set(0, 1, 0); cam.position.set(p[0], p[1], p[2]); cam.lookAt(l[0], l[1], l[2]);
+}
+// ---------- name labels (DOM, crisp, de-cluttered, legible-or-hidden) ----------
+const NMC = document.getElementById("nm"), nodes = taken.map((si, i) => { const d = document.createElement("div"); d.className = "nm"; d.textContent = "@" + FANS[i]; d.style.display = "none"; NMC.appendChild(d); return d; });
+const PV = new T.Vector3();
+const proj = (x, y, z) => { PV.set(x, y, z).project(cam); if (PV.z > 1) return null; return [(PV.x + 1) / 2 * 1080, (1 - PV.y) / 2 * 1920, PV.z]; };
+const PER = 7.6, ONT = 3.0, FADE = .4;              // each name shows ~3 s, then gives its place away
+const sched = i => { const ph = ((hash(i * 1.37) * PER) + 1e3) % PER, u = ((/*t*/0)); return ph; };
+const PHASE = taken.map((_, i) => hash(i * 1.37) * PER);
+const swAt = (i, t) => { let u = (t - PHASE[i]) % PER; if (u < 0) u += PER; if (u > ONT) return 0; return Math.min(cl(u / FADE), cl((ONT - u) / FADE)); };
+const COLW = 58, ROWH = 60, MAXL = 30;
+let prevShown = new Set();
+function labels(t) {
+  const on = t < b(4) - .3, gfade = cl((t - b(2) + .1) / .7) * (1 - sm(b(4) - .9, b(4) - .3, t));
+  if (!on || gfade <= 0) { for (const d of nodes) if (d.style.display !== "none") d.style.display = "none"; prevShown = new Set(); return; }
+  const heroOnly = t < b(2) - .1; if (heroOnly) { for (const d of nodes) if (d.style.display !== "none") d.style.display = "none"; prevShown = new Set(); return; }
+  const cp = cam.position, list = [];
+  for (let i = 0; i < taken.length; i++) {
+    const sw = swAt(i, t); if (sw <= 0) continue;
+    const s = seats[taken[i]]; const dx = s.x - cp.x, dy = s.y - cp.y, dz = s.z - cp.z, dd = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (dd > 30 || dd < 2.2) continue;
+    const q = proj(s.x, s.y + 2.15, s.z); if (!q) continue;
+    if (q[1] < 260 || q[1] > 1520) continue;
+    const q2 = proj(s.x + Math.cos(s.ry) * 1.12, s.y + 2.15, s.z - Math.sin(s.ry) * 1.12);
+    const pitch = q2 ? Math.hypot(q2[0] - q[0], q2[1] - q[1]) : 0;
+    const L = nodes[i].textContent.length, f = Math.min(42, pitch * 1.5, 420 / (.54 * L));
+    if (f < 24) continue;
+    const wpx = .54 * f * L + 26; if (q[0] - wpx / 2 < 46 || q[0] + wpx / 2 > 1034) continue;
+    list.push([(prevShown.has(i) ? 0 : 1e4) + dd, i, q[0], q[1], f, dd, sw, wpx]);
+  }
+  list.sort((a, c) => a[0] - c[0]);
+  const used = new Set(), live = new Set(); let shown = 0;
+  for (const [, i, x, y, f, dd, sw, w] of list) {
+    if (shown >= MAXL) break;
+    const row = Math.round(y / ROWH), c0 = Math.floor((x - w / 2) / COLW), c1 = Math.floor((x + w / 2) / COLW);
+    let free = true; for (let c = c0; c <= c1 && free; c++) if (used.has(row + ":" + c)) free = false;
+    if (!free) continue;
+    for (let c = c0; c <= c1; c++) used.add(row + ":" + c);
+    live.add(i); shown++;
+    const d = nodes[i]; d.style.display = "block"; d.style.left = x + "px"; d.style.top = y + "px";
+    d.style.fontSize = f.toFixed(1) + "px"; d.style.webkitTextStrokeWidth = (f * .085).toFixed(2) + "px";
+    d.style.opacity = String(gfade * sw * cl((30 - dd) / 7));
+  }
+  for (let i = 0; i < nodes.length; i++) if (!live.has(i) && nodes[i].style.display !== "none") nodes[i].style.display = "none";
+  prevShown = live;
+}
+// ---------- overlay ----------
+const OV = document.getElementById("ov"), items = [];
+function add(html, x, y, at, to, o = {}) { const d = document.createElement("div"); d.className = "it " + (o.cls || ""); d.innerHTML = html; d.style.left = x + "px"; d.style.top = y + "px"; d.style.display = "none"; if (o.z) d.style.zIndex = o.z; OV.appendChild(d); items.push({ d, at, to: to == null ? 1e9 : to, o }); return d; }
+const hd = (label, big, at, to, y = 330, w = false) => add(`<small>${label}</small><b class="${w ? "w" : ""}">${big}</b>`, 540, y, at, to, { cls: "hd", z: 20, enter: "stamp" });
+const fmt = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+function pr(x, y, z) { const q = proj(x, y, z); return q && [q[0], q[1]]; }
+// beat 1 — one seat, one name
+add(`@${FANS[0]}`, 540, 900, .22, b(2) - .15, { cls: "tag", z: 24, enter: "pop", track: () => pr(HP.x, HP.y + 2.15, HP.z) });
+hd("BU — BITTA O‘RIN", "VA UNDA<br>ISM BOR", .8, b(2) - .15);
+// beat 2 — 1 306 names
+const cnt = add(`<small>HOZIR STADIONDA</small><b>0</b>`, 540, 330, b(2) + .05, S(2, 1).a - .15, { cls: "hd", z: 20, enter: "none", live: (d, t) => { d.querySelector("b").textContent = fmt(REAL * sm(b(2) + .15, b(2) + 2.6, t)) + " ISM"; } });
+hd("HAR BIR ISM", "HAQIQIY<br>OBUNACHI", S(2, 1).a - .1, b(3) - .3);
+add(`<small>MUXLISLAR (HAQIQIY)</small><b>${fmt(REAL)}</b> <i>/ ${fmt(GOAL)}</i><div style="margin-top:10px;width:640px;height:26px;border-radius:13px;background:#14234d;overflow:hidden;border:3px solid #FFD23F"><div style="width:${REAL / GOAL * 100}%;height:100%;background:linear-gradient(90deg,#FFD23F,#ffb300)"></div></div>`, 540, 1640, b(2) + 1.2, b(3) - .3, { cls: "pill", z: 21, enter: "pop" });
+// beat 3 — the drift: one small chip, nothing else
+add(`<em>ISMINGIZNI</em> TOPING`, 540, 215, b(3) + .15, b(4) - .3, { cls: "chip", z: 22, enter: "pop", pulse: true });
+// beat 4 — the empty seat
+add(`@ ?`, 540, 900, b(4) + .25, b(5) + 1.2, { cls: "tag", z: 24, enter: "pop", pulse: true, track: () => pr(RES.x, RES.y + 1.45, RES.z) });
+hd("BU O‘RIN ESA", "HALI BO‘SH", b(4) + .1, b(5) - .1);
+// beat 5 — CTA
+hd("SIZ HAM O‘Z ISMINGIZNI", "<span style='font-size:112px'>QOLDIRASIZMI?</span>", b(5) + .1, S(5, 1).a - .1, 300);
+hd("OBUNA BO‘LING", "VA IZOHGA:", S(5, 1).a - .05, S(5, 2).a - .1, 380);
+add(`<s>izoh</s><span style="font-size:120px;color:#34d399;line-height:.9">+</span>`, 540, 760, S(5, 1).a + .05, S(5, 2).a - .1, { cls: "cm", z: 24, enter: "pop", rot: -3 });
+hd("O‘RNINGIZ", "ABADIY<br>SIZDA QOLADI", S(5, 2).a - .05, null, 380);
+add(`<img src="assets/crest.png" style="height:200px;display:block">`, 300, 1500, b(5) + 2.2, null, { z: 25, enter: "stamp" });
+add(`<img src="assets/goat_side.png" style="height:230px;display:block;filter:drop-shadow(0 10px 24px #000)">`, 790, 1510, b(5) + 2.4, null, { z: 25, enter: "stamp", pulse: true });
+for (let i = 0; i < 7; i++) add(`<div class="q">+</div>`, 110 + i * 145, 1500, b(5) + .5 + i * .22, null, { z: 19, enter: "none", live: (d, t) => { const u = ((t - b(5) - .5 - i * .22) * .42) % 1; d.style.top = (1700 - u * 1000) + "px"; d.style.opacity = String(Math.sin(Math.PI * u) * .9); } });
+function frameOv(t) {
+  for (const it of items) { const { d, at, to, o } = it; const on = t >= at && t < to; if (!on) { d.style.display = "none"; continue; }
+    d.style.display = "block"; const u = (t - at), e = o.enter === "none" ? 1 : eob(cl(u / (o.enter === "stamp" ? .32 : .36))), out = cl((to - t) / .12);
+    let sx = 1; if (o.pulse) sx = 1 + .04 * Math.sin(u * 6);
+    const sca = (.3 + .7 * e) * sx; d.style.opacity = String(cl(u / .08) * out);
+    if (o.track) { const p = o.track(t); if (!p) { d.style.display = "none"; continue; } d.style.left = p[0] + "px"; d.style.top = p[1] + "px"; }
+    d.style.transform = `translate(-50%,-50%) scale(${sca})`; if (o.live) o.live(d, t); }
+}
+// ---------- world ----------
+function world(t) {
+  updateFans(t);
+
+  const rOn = t > b(4) - 1.2;
+  resRing.material.opacity = rOn ? .55 + .45 * Math.abs(Math.sin(t * 3.2)) : 0;
+  pin.visible = rOn && t < b(5) + 1.6; const pu = cl((t - (b(4) - 1.2)) / .5);
+  pin.scale.set(1, pu, 1); pin.position.y = RES.y + .25 + 2.6 * pu; pin.material.opacity = .20 + .14 * Math.abs(Math.sin(t * 3.2));
+  resRing.position.y = RES.y + .45 + (rOn ? .1 * Math.sin(t * 3.2) : 0);
+
+  goat.visible = t > b(4) + .35 && t < b(5) + 1.4; goat.position.set(GSEAT.x, GSEAT.y + .3 + Math.abs(Math.sin(t * 3)) * .3, GSEAT.z);
+}
+window.renderAt = t => { world(t); placeCam(t); R.render(sc, cam); labels(t); frameOv(t); };
+window.ready = () => document.fonts.ready.then(() => document.fonts.load("900 40px MZ")).then(() => document.fonts.load("700 40px MZ")).then(() => ({ seats: NS, fans: REAL, hero: FANS[0], end: END }));
+</script></body></html>

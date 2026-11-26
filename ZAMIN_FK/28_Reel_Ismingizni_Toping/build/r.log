@@ -1,0 +1,26 @@
+ready {"seats":3587,"fans":1306,"hero":"_begjon_777","end":36.086}
+frame 0/1083
+frame 100/1083
+frame 200/1083
+frame 300/1083
+frame 400/1083
+frame 500/1083
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.screenshot: Target page, context or browser has been closed
+Call log:
+[2m  - taking page screenshot[22m
+[2m  - waiting for fonts to load...[22m
+[2m  - fonts loaded[22m
+
+    at /workspace/shon-sharaf/ZAMIN_FK/28_Reel_Ismingizni_Toping/render.js:16:107 {
+  log: [
+    '  - taking page screenshot',
+    '  - waiting for fonts to load...',
+    '  - fonts loaded'
+  ]
+}
+
+Node.js v22.23.5
