@@ -1,0 +1,131 @@
+{
+ "seed": 20261126,
+ "home": "WAKANDA TEAM",
+ "away": "PRIME FC",
+ "result": [
+  3,
+  2
+ ],
+ "kicks": [
+  {
+   "team": "Z",
+   "handle": "1simple.uz",
+   "num": "2",
+   "scored": true,
+   "after": [
+    1,
+    0
+   ]
+  },
+  {
+   "team": "S",
+   "handle": "islom.muhammadov7",
+   "num": "51",
+   "scored": false,
+   "after": [
+    1,
+    0
+   ]
+  },
+  {
+   "team": "Z",
+   "handle": "nuraddin_2012_",
+   "num": "4",
+   "scored": false,
+   "after": [
+    1,
+    0
+   ]
+  },
+  {
+   "team": "S",
+   "handle": "tojiboyevvv.x",
+   "num": "4",
+   "scored": true,
+   "after": [
+    1,
+    1
+   ]
+  },
+  {
+   "team": "Z",
+   "handle": "_1xudayberganovv",
+   "num": "5",
+   "scored": false,
+   "after": [
+    1,
+    1
+   ]
+  },
+  {
+   "team": "S",
+   "handle": "sh.ahzod0717",
+   "num": "5",
+   "scored": true,
+   "after": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "Z",
+   "handle": "barca_1899._",
+   "num": "3",
+   "scored": false,
+   "after": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "S",
+   "handle": "ganiyev_.7._",
+   "num": "3",
+   "scored": false,
+   "after": [
+    1,
+    2
+   ]
+  },
+  {
+   "team": "Z",
+   "handle": "14_xt_12",
+   "num": "6",
+   "scored": true,
+   "after": [
+    2,
+    2
+   ]
+  },
+  {
+   "team": "S",
+   "handle": "topilov_sh",
+   "num": "6",
+   "scored": false,
+   "after": [
+    2,
+    2
+   ]
+  },
+  {
+   "team": "Z",
+   "handle": "a.farhodjon",
+   "num": "8",
+   "scored": true,
+   "after": [
+    3,
+    2
+   ]
+  },
+  {
+   "team": "S",
+   "handle": "yuldoshev.31",
+   "num": "8",
+   "scored": false,
+   "after": [
+    3,
+    2
+   ]
+  }
+ ]
+}

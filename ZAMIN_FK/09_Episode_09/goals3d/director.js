@@ -7,11 +7,12 @@ const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x
 
 // ---------- lineups (source: club lineup poster of 13 Nov for ZAMIN FK; the owner's STAR BOYS list) ----------
 // spot = [depth from own goal line (m), z across the pitch (attacking view: + = right wing)]
-const ZAMIN = [
+const CUP = window.CUP || null;                 // Muxlislar kubogi: two fan clubs instead of the Day 9 lineups
+const ZAMIN = CUP ? CUP.home.lineup : [
   ["YULDOSHEV", "1", "GK", 4, 0], ["DUSCHANOV", "4", "LB", 30, -24], ["TEMIRMALIK", "12", "CB", 26, -8], ["URUNOV", "21", "CB", 26, 8], ["MUHAMMADYASIN", "24", "RB", 30, 24],
   ["RIZAYEV", "5", "CDM", 42, 9], ["MAXMUDOV", "19", "CM", 46, -12], ["ABDULLAYEV", "6", "CAM", 56, 0],
   ["JOVOHIR", "7", "LW", 68, -22], ["YORQULOV", "9", "ST", 74, 0], ["IXTIYORBEK", "10", "RW", 68, 22]];
-const STAR = [
+const STAR = CUP ? CUP.away.lineup : [
   ["VARTA", "1", "GK", 4, 0], ["USMON", "2", "LB", 30, -24], ["MAHMUD", "10", "CB", 26, -8], ["KAMRON", "", "CB", 26, 8], ["ULUG‘BEK", "4", "RB", 30, 24],
   ["ALPOMOSH", "5", "CDM", 40, 0], ["AMIRHON", "3", "CM", 50, -9], ["BEKZOD", "10", "CM", 50, 9],
   ["AZAMAT", "12", "LM", 60, -24], ["MIRJALOL", "13", "RM", 60, 24], ["SHERZOD", "3", "CAM", 66, 0]];
@@ -164,23 +165,30 @@ function hud() {
   #mh_live{position:absolute;left:50%;top:300px;transform:translateX(-50%);font-size:24px;letter-spacing:3px;background:rgba(13,37,87,.82);padding:6px 18px;border-radius:0 0 12px 12px;color:#9DB8FF}
   #mh_gol{position:absolute;left:0;right:0;top:420px;text-align:center;font-size:230px;line-height:1;letter-spacing:6px;color:#FFD23F;-webkit-text-stroke:10px #0D2557;paint-order:stroke fill;text-shadow:0 14px 0 rgba(13,37,87,.55)}
   #mh_card{position:absolute;left:60px;right:60px;bottom:330px;border-radius:26px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.5);display:flex;align-items:stretch;background:#0D2557}
-  #mh_card .no{font-size:150px;line-height:1;padding:26px 34px;min-width:230px;text-align:center;display:flex;align-items:center;justify-content:center}
-  #mh_card .tx{padding:26px 30px;display:flex;flex-direction:column;justify-content:center;gap:8px} #mh_card .nm{font-size:74px;line-height:1.02} #mh_card .sub{font-size:34px;font-weight:700;color:#FFD23F}`;
+  #mh_card .no{font-size:150px;line-height:1;padding:26px 30px;min-width:200px;flex:0 0 auto;text-align:center;display:flex;align-items:center;justify-content:center}
+  #mh_card .tx{padding:26px 24px;display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0;flex:1} #mh_card .nm{font-size:62px;line-height:1.02;word-break:break-all} #mh_card .sub{font-size:34px;font-weight:700;color:#FFD23F}`;
   document.head.appendChild(st);
   const h = document.createElement("div"); h.id = "hud";
-  h.innerHTML = `<div id="mh_bug"><div class="z">ZAMIN FK</div><div class="sc" id="mh_sc"></div><div class="s">STAR BOYS</div><div class="tm" id="mh_tm"></div></div><div id="mh_live">QORATEPA · ZAMIN FK STADIONI</div><div id="mh_gol">GOOOL!</div><div id="mh_card"><div class="no" id="mh_cno"></div><div class="tx"><div class="nm" id="mh_cnm"></div><div class="sub" id="mh_csub"></div></div></div>`;
+  h.innerHTML = `<div id="mh_bug"><div class="z">${NM.Z}</div><div class="sc" id="mh_sc"></div><div class="s">${NM.S}</div><div class="tm" id="mh_tm"></div></div><div id="mh_live">${(CUP && "MUXLISLAR KUBOGI · PENALTI") || "QORATEPA · ZAMIN FK STADIONI"}</div><div id="mh_gol">GOOOL!</div><div id="mh_card"><div class="no" id="mh_cno"></div><div class="tx"><div class="nm" id="mh_cnm"></div><div class="sub" id="mh_csub"></div></div></div>`;
   document.body.appendChild(h);
 }
+const NM = { Z: (CUP && CUP.home.name) || "ZAMIN FK", S: (CUP && CUP.away.name) || "STAR BOYS" };
+const HEX = { blue: "#1F4FB8", red: "#B8131F", amber: "#C98A05", green: "#1E7A3C", purple: "#6A33B8", slate: "#44506B", teal: "#107C8C" };
+const TCOL = { Z: HEX[(CUP && CUP.home.kit) || "blue"], S: HEX[(CUP && CUP.away.kit) || "red"] };
 function drawHud(G, t) {
-  const scored = t >= G.tGoal, sc = scored ? G.after : G.before, $ = id => document.getElementById(id);
+  const scored = t >= G.tGoal && !(G.pen && !G.scored), sc = scored ? G.after : G.before, $ = id => document.getElementById(id);
   $("mh_sc").textContent = sc[0] + " : " + sc[1];
-  const secs = Math.max(0, Math.round((G.minute - 1) * 60 + 60 - (G.tGoal - Math.min(t, G.tGoal)) - 3)), mm = Math.floor(secs / 60), ss = secs % 60; $("mh_tm").textContent = mm + ":" + String(ss).padStart(2, "0");
-  const g = $("mh_gol"), a = t - G.tGoal - .15; g.style.opacity = a > 0 && a < 1.7 ? Math.min(1, a * 8) * (1 - sm(1.35, 1.7, a)) : 0; g.style.transform = `scale(${a > 0 ? 1 + .35 * Math.exp(-a * 7) * Math.cos(a * 16) + Math.max(0, .5 - a * 5) : 1})`;
+  if (G.pen) $("mh_tm").textContent = (G.minute - 90) + "/" + (G.kicks || "");
+  else { const secs = Math.max(0, Math.round((G.minute - 1) * 60 + 60 - (G.tGoal - Math.min(t, G.tGoal)) - 3)), mm = Math.floor(secs / 60), ss = secs % 60; $("mh_tm").textContent = mm + ":" + String(ss).padStart(2, "0"); }
+  const g = $("mh_gol"), a = (G.pen && !G.scored) ? -9 : t - G.tGoal - .15; g.style.opacity = a > 0 && a < 1.7 ? Math.min(1, a * 8) * (1 - sm(1.35, 1.7, a)) : 0; g.style.transform = `scale(${a > 0 ? 1 + .35 * Math.exp(-a * 7) * Math.cos(a * 16) + Math.max(0, .5 - a * 5) : 1})`;
   const c = $("mh_card"), b = t - G.tGoal - 1.5; c.style.opacity = b > 0 ? Math.min(1, b * 6) : 0; c.style.transform = `translateY(${b > 0 ? 60 * Math.exp(-b * 9) : 60}px)`;
-  const col = G.team === "Z" ? "#1F4FB8" : "#B8131F"; $("mh_cno").style.background = col; $("mh_cno").textContent = G.num; $("mh_cnm").textContent = G.scorer; $("mh_csub").textContent = `⚽ ${G.minute}’ · ${G.team === "Z" ? "ZAMIN FK" : "STAR BOYS"} · ${G.after[0]}–${G.after[1]}`;
+  const col = TCOL[G.team]; $("mh_cno").style.background = col; $("mh_cno").textContent = G.num;
+  $("mh_cnm").textContent = G.handle ? "@" + G.handle : G.scorer;
+  $("mh_csub").textContent = G.pen ? `${G.scored ? "⚽ GOL" : "✖ TO‘XTATILDI"} · ${NM[G.team]} · ${G.after[0]}–${G.after[1]}`
+                                   : `⚽ ${G.minute}’ · ${NM[G.team]} · ${G.after[0]}–${G.after[1]}`;
   const key = sc.join("-") + G.minute; if (S.scr !== key && window.__SC) { S.scr = key; const x = __SC.scv.getContext("2d");
-    x.fillStyle = "#06122c"; x.fillRect(0, 0, 1024, 512); x.fillStyle = "#1F4FB8"; x.fillRect(0, 0, 1024, 80); x.fillStyle = "#fff"; x.textAlign = "center"; x.font = "900 50px MZ, sans-serif"; x.fillText("ZAMIN FK STADIONI", 512, 58);
-    x.font = "900 64px MZ, sans-serif"; x.fillStyle = "#9DB8FF"; x.fillText("ZAMIN FK", 256, 190); x.fillStyle = "#ff8f8f"; x.fillText("STAR BOYS", 768, 190);
+    x.fillStyle = "#06122c"; x.fillRect(0, 0, 1024, 512); x.fillStyle = "#1F4FB8"; x.fillRect(0, 0, 1024, 80); x.fillStyle = "#fff"; x.textAlign = "center"; x.font = "900 50px MZ, sans-serif"; x.fillText((CUP && "MUXLISLAR KUBOGI") || "ZAMIN FK STADIONI", 512, 58);
+    x.font = "900 64px MZ, sans-serif"; x.fillStyle = "#9DB8FF"; x.fillText(NM.Z, 256, 190); x.fillStyle = "#ff8f8f"; x.fillText(NM.S, 768, 190);
     x.fillStyle = "#fff"; x.font = "900 230px MZ, sans-serif"; x.fillText(sc[0] + " : " + sc[1], 512, 410); x.fillStyle = "#FFD23F"; x.font = "900 54px MZ, sans-serif"; x.fillText(G.minute + "’", 512, 490); __SC.scTex.needsUpdate = true; }
 }
 
@@ -195,8 +203,19 @@ const D = window.D = {
       else if (g.width === 6000) o.position.y = -1.0; });
     Z.RIG.mesh.material.emissive.setScalar(.6);
     for (const o of Z.scene.children) if (o.isGroup && o.position.lengthSq() < 1e-6) { const b = new T.Box3().setFromObject(o); if (!b.isEmpty() && b.getSize(new T.Vector3()).x < 8) o.visible = false; }   // city cars / walkers parked at the origin while the town is not simulated
-    const red = kitMaterial((r, g, b) => [Math.min(255, b * 1.0), r * .55, r * .6]), gkZ = kitMaterial((r, g, b) => [r, Math.min(255, b * .86), g * .55]), gkS = kitMaterial((r, g, b) => [Math.min(255, b * 1.25), Math.min(255, b * 1.08), r]);
-    D.kitZ = kitMaterial((r, g, b) => [Math.min(255, r * 1.25 + 14), Math.min(255, g * 1.5 + 34), Math.min(255, b * 1.55 + 60)]); addTeam(ZAMIN, "Z", D.kitZ, gkZ); addTeam(STAR, "S", red, gkS); nets(); ballSkin(); shadows(); hud(); await document.fonts.load("900 40px MZ"); await document.fonts.load("700 40px MZ");
+    const KIT = {                                                  // recipes on the baked blue cloth
+      blue:   (r, g, b) => [Math.min(255, r * 1.25 + 14), Math.min(255, g * 1.5 + 34), Math.min(255, b * 1.55 + 60)],
+      red:    (r, g, b) => [Math.min(255, b * 1.0), r * .55, r * .6],
+      amber:  (r, g, b) => [Math.min(255, b * 1.05), Math.min(255, b * .78), r * .3],
+      green:  (r, g, b) => [r * .45, Math.min(255, b * 1.0), g * .5],
+      purple: (r, g, b) => [Math.min(255, b * .78), r * .45, Math.min(255, b * 1.02)],
+      slate:  (r, g, b) => [r * .5, g * .5, b * .45],
+      teal:   (r, g, b) => [r * .35, Math.min(255, b * .92), Math.min(255, b * .95)],
+    };
+    const gkZ = kitMaterial((r, g, b) => [r, Math.min(255, b * .86), g * .55]), gkS = kitMaterial(KIT.slate);
+    D.kitZ = kitMaterial(KIT[(CUP && CUP.home.kit) || "blue"]);
+    const kitA = kitMaterial(KIT[(CUP && CUP.away.kit) || "red"]);
+    addTeam(ZAMIN, "Z", D.kitZ, CUP ? gkS : gkZ); addTeam(STAR, "S", kitA, gkS); nets(); ballSkin(); shadows(); hud(); await document.fonts.load("900 40px MZ"); await document.fonts.load("700 40px MZ");
   },
   frame(gi, t) {                    // sequential playback is O(1); seeking re-simulates from 0
     const G = GOALS[gi]; if (S.goal !== gi || t < S.t - 1e-6) reset(gi);
