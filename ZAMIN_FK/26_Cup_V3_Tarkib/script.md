@@ -1,4 +1,4 @@
-# 26-video — «Muxlislar kubogi: 4 ta tarkib» (Reel, 52.0 s)
+# 26-video — «Muxlislar kubogi: 4 ta tarkib» (Reel, 53.0 s)
 
 Ovoz: Poyo `elevenlabs-v4-tts`, `voice rwtcHtZgYU6HN2zLNBlf`, `uz`.
 3D: `web/stadium/dist/index.html` (Day 9 harness) — stadion va maydon ustidan ko‘rinish.
@@ -24,8 +24,8 @@ kapitan sariq doirada. Zaxira — sxema ostida bitta qator.
 | 14 | 34.5 | 5.5 | 4-3-3 to‘ladi | «Oxirgi o‘rin ham egasini topdi.» |
 | 15 | 40.0 | 2.0 | Zaxira qatori (6 ta) | — |
 | 16 | 42.0 | 3.0 | To‘rt sxema bir ekranga kichrayadi, setka yonadi; kubok savol belgisi bilan | «Endi bitta savol qoldi: g‘olibni qanday aniqlaymiz?» |
-| 17 | 45.0 | 4.5 | **CTA — uch variant ekranda, har biri alohida qatorda:**  `1 — O‘YIN` (3D o‘yin, natija hakamsiz hal qiladi) · `2 — OVOZ` (izohdagi layklar hisoblanadi) · `3 — PENALTI` (faqat 11 metrlik zarbalar) | «Bir — o‘yin o‘ynaymiz. Ikki — layklar hal qiladi. Uch — penalti. Izohga raqamni yozing.» |
-| 18 | 49.5 | 2.5 | End card: gerb + «QOIDANI SIZ TANLAYSIZ» | — (yakuniy akkord) |
+| 17 | 45.0 | 5.5 | **CTA — uch variant ekranda, har biri alohida qatorda:**  `1 — IZOH = GOL` (har 25 ta izoh — bitta gol) · `2 — O‘YIN` (3D o‘yin, tarkib kuchiga qarab) · `3 — PENALTI` (faqat 11 metrlik zarbalar) | «Bir — izohlaringiz gol bo‘ladi: har yigirma beshta izoh — bitta gol. Ikki — o‘yin o‘ynaymiz. Uch — penalti. Izohga raqamni yozing.» |
+| 18 | 50.5 | 2.5 | End card: gerb + «QOIDANI SIZ TANLAYSIZ» | — (yakuniy akkord) |
 
 ## Qoidalar
 - Tarkib va zaxira — faqat 25-video izohlari + 2026-11-25 obunachilar eksportidan
@@ -34,6 +34,17 @@ kapitan sariq doirada. Zaxira — sxema ostida bitta qator.
 - Username’lardagi raqamlar raqam bo‘lib qoladi (ovozda ham).
 - 4-2-3-1 yozuvidagi CAM — 4-3-3 da uchinchi markaz (CM) sifatida ko‘rsatiladi.
 - Klublar, kubok va muxlislar — virtual o‘yin mexanikasi (caption’da eslatiladi).
+
+## «IZOH = GOL» mexanikasi (1-variant)
+- Keyingi videodagi o‘yinda har klubning **noyob** izoh yozuvchilari sanaladi
+  (bir odam — bitta izoh, obuna shart; 25-videodagi qoidaning o‘zi).
+- **Har 25 ta izoh — bitta gol.** Maksimum 5 gol. Teng bo‘lsa — penalti.
+- Son oldindan e’lon qilinadi, natija sanab chiqiladi: hech narsa yashirilmaydi.
+- 3D render aynan shuncha golni ko‘rsatadi; gol urgan o‘yinchi tarkibdan layk
+  bo‘yicha tanlanadi, ekranda esa golni «ochgan» izoh egasi chiqadi
+  («25-izoh — @username → GOL»).
+- Shu sababli bu variant eng arzon va eng tez: golni muxlislar o‘zi yozadi,
+  bizga faqat shuncha epizodni render qilish qoladi.
 
 ## Yig‘ish (rejalashtirilgan)
 `prep_voice.py` → `render3d.js` (stadion plitalari) → `film.html` (4-3-3 sxema animatsiyasi,
