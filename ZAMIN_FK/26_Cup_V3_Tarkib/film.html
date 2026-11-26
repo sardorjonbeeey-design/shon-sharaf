@@ -8,15 +8,31 @@ html,body{width:1080px;height:1920px;background:#06122c;font-family:MZ;color:#ff
 #plate{position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;transform-origin:50% 45%}
 #veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,18,44,.55) 0%,rgba(6,18,44,.25) 35%,rgba(6,18,44,.72) 100%);opacity:0}
 .grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:4px 4px;pointer-events:none}
+/* --- intro card --- */
+#intro{position:absolute;left:60px;right:60px;top:210px;text-align:center;opacity:0}
+#intro .k{font-weight:700;font-size:32px;letter-spacing:.34em;opacity:.85}
+#intro .b{font-weight:900;font-size:104px;line-height:.98;margin-top:20px;text-shadow:0 16px 44px rgba(0,0,0,.6)}
+#intro .y{color:#FFD23F;font-weight:900;font-size:56px;margin-top:22px}
+#intro .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-top:40px}
+#intro .chip{font-weight:900;font-size:34px;padding:14px 26px;border-radius:999px;border:4px solid rgba(255,255,255,.5);
+  background:rgba(7,22,62,.88);opacity:0;transform:scale(.8)}
+/* --- bracket --- */
+#brk{position:absolute;left:60px;right:60px;top:420px;opacity:0}
+#brk .t{text-align:center;font-weight:900;font-size:46px;letter-spacing:.14em;margin-bottom:28px}
+#brk .m{display:flex;align-items:center;gap:22px;background:rgba(7,22,62,.92);border:5px solid rgba(255,255,255,.35);
+  border-radius:20px;padding:26px 30px;margin-bottom:22px}
+#brk .m .l{flex:1;font-weight:900;font-size:44px;text-align:center;line-height:1.05}
+#brk .m .v{font-weight:900;font-size:36px;color:#FFD23F}
+#brk .n{text-align:center;font-weight:700;font-size:30px;opacity:.85;margin-top:6px}
 /* --- title slam --- */
-#slam{position:absolute;left:0;right:0;top:150px;text-align:center;opacity:0}
+#slam{position:absolute;left:0;right:0;top:230px;text-align:center;opacity:0}
 #slam .k{font-weight:700;font-size:30px;letter-spacing:.34em;opacity:.85}
 #slam .c{font-weight:900;font-size:100px;line-height:1;margin-top:18px;text-shadow:0 14px 40px rgba(0,0,0,.55)}
 #slam .c.sm{font-size:82px}
 #slam .a{margin-top:16px;font-weight:600;font-size:34px;opacity:.92}
 #slam .f{display:inline-block;margin-top:18px;font-weight:900;font-size:27px;letter-spacing:.2em;border:3px solid rgba(255,255,255,.6);border-radius:999px;padding:8px 24px}
 /* --- tactics card --- */
-#card{position:absolute;left:60px;right:60px;top:500px;height:1030px;border:4px solid rgba(255,255,255,.45);border-radius:14px;
+#card{position:absolute;left:60px;right:60px;top:420px;height:980px;border:4px solid rgba(255,255,255,.45);border-radius:14px;
   background:linear-gradient(180deg,rgba(14,52,136,.62) 0%,rgba(10,38,104,.70) 100%);opacity:0;
   box-shadow:0 30px 80px rgba(0,0,0,.45)}
 #card:before{content:"";position:absolute;left:0;right:0;top:50%;height:4px;background:rgba(255,255,255,.28)}
@@ -28,17 +44,17 @@ html,body{width:1080px;height:1920px;background:#06122c;font-family:MZ;color:#ff
 .pl.cap .s{background:#FFD23F;color:#123a86}
 .pl .p{margin-top:7px;font-weight:900;font-size:24px;letter-spacing:.12em}
 .pl .u{margin-top:1px;font-weight:700;font-size:22px;line-height:1.15;word-break:break-all}
-#hdr{position:absolute;left:60px;right:60px;top:300px;text-align:center;opacity:0}
+#hdr{position:absolute;left:60px;right:60px;top:232px;text-align:center;opacity:0}
 #hdr .c{font-weight:900;font-size:62px;line-height:1}
 #hdr .c.sm{font-size:52px}
 #hdr .a{margin-top:8px;font-weight:700;font-size:28px;opacity:.85}
 #hdr .f{display:inline-block;margin-top:10px;font-weight:900;font-size:22px;letter-spacing:.2em;border:3px solid rgba(255,255,255,.55);border-radius:999px;padding:5px 18px}
-#subs{position:absolute;left:60px;right:60px;top:1580px;opacity:0}
+#subs{position:absolute;left:60px;right:60px;top:1420px;opacity:0}
 #subs .t{font-weight:900;font-size:26px;letter-spacing:.22em;opacity:.8;margin-bottom:10px}
 #subs .l{font-weight:700;font-size:26px;line-height:1.45}
 /* --- CTA --- */
 #cta{position:absolute;inset:0;opacity:0}
-#cta .q{position:absolute;left:60px;right:60px;top:150px;text-align:center;font-weight:900;font-size:62px;line-height:1.1}
+#cta .q{position:absolute;left:60px;right:60px;top:170px;text-align:center;font-weight:900;font-size:62px;line-height:1.1}
 #cta .q span{display:block;color:#FFD23F;font-size:52px;margin-top:12px}
 .row{position:absolute;left:60px;right:60px;height:270px;border-radius:22px;border:5px solid rgba(255,255,255,.3);
   background:rgba(7,22,62,.95);display:flex;align-items:center;gap:36px;padding:0 40px;opacity:1;transform:scale(.97)}
@@ -48,21 +64,27 @@ html,body{width:1080px;height:1920px;background:#06122c;font-family:MZ;color:#ff
 .row .tx{font-weight:900;font-size:60px;line-height:1.05;color:rgba(255,255,255,.72)}
 .row.on .tx{color:#fff}
 .row .tx span{display:block;font-weight:700;font-size:34px;opacity:.85;margin-top:10px}
-#r1{top:430px}#r2{top:730px}#r3{top:1030px}
-#ctafoot{position:absolute;left:60px;right:60px;top:1370px;text-align:center;font-weight:900;font-size:46px;line-height:1.25}
+#r1{top:420px}#r2{top:710px}#r3{top:1000px}
+#ctafoot{position:absolute;left:60px;right:60px;top:1312px;text-align:center;font-weight:900;font-size:46px;line-height:1.25}
 #ctafoot span{display:block;font-weight:700;font-size:32px;opacity:.85;margin-top:12px}
 /* --- end card --- */
-#end{position:absolute;inset:0;background:radial-gradient(900px 700px at 50% 35%,#2a62cf 0%,#123a86 55%,#0a2252 100%);opacity:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+#end{position:absolute;inset:0;background:radial-gradient(900px 700px at 50% 32%,#2a62cf 0%,#123a86 55%,#0a2252 100%);opacity:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding-bottom:380px}
 #end img{width:300px;height:300px}
 #end .t{font-weight:900;font-size:76px;text-align:center;line-height:1.1}
 #end .s{font-weight:700;font-size:34px;opacity:.85}
 /* --- subtitles --- */
-#sub{position:absolute;left:70px;right:70px;bottom:52px;text-align:center;font-weight:900;font-size:36px;line-height:1.3;text-shadow:0 6px 22px rgba(0,0,0,.75)}
+#sub{position:absolute;left:70px;right:70px;bottom:330px;text-align:center;font-weight:900;font-size:36px;line-height:1.3;text-shadow:0 6px 22px rgba(0,0,0,.75)}
 #sub i{font-style:normal;opacity:.45}
 </style></head><body>
 <div id="stage">
   <img id="plate"><div id="veil"></div>
+  <div id="intro"><div class="k">MUXLISLAR KUBOGI</div><div class="b">4 TA TARKIB<br>TAYYOR</div><div class="y">TANLOVNI SIZ QILDINGIZ</div>
+    <div class="chips"><div class="chip">PRIME AVANGARD</div><div class="chip">PRIME FC</div><div class="chip">WAKANDA TEAM</div><div class="chip">QAYRAT FC</div></div></div>
+  <div id="brk"><div class="t">YARIM FINAL</div>
+    <div class="m"><div class="l">WAKANDA<br>TEAM</div><div class="v">VS</div><div class="l">PRIME<br>FC</div></div>
+    <div class="m"><div class="l">QAYRAT<br>FC</div><div class="v">VS</div><div class="l">PRIME<br>AVANGARD</div></div>
+    <div class="n">Asoschi — kapitan · tarkib izohlardan</div></div>
   <div id="slam"><div class="k">MUXLISLAR KUBOGI</div><div class="c"></div><div class="a"></div><div class="f">4 — 3 — 3</div></div>
   <div id="hdr"><div class="c"></div><div class="a"></div><div class="f">4 — 3 — 3</div></div>
   <div id="card"><div class="pbox t"></div><div class="pbox b"></div></div>
@@ -112,7 +134,7 @@ function plate(seg,t0,t){
   el.style.transform="none";
   const n=Math.round(LEN[seg]*FPS3), f=cl(Math.floor((t-t0)*FPS3),0,n-1);
   el.src=`build/3d/${seg}/f_${String(f).padStart(4,"0")}.jpg`; }
-function hideAll(){ $("#slam").style.opacity=0; $("#hdr").style.opacity=0; card.style.opacity=0; $("#subs").style.opacity=0;
+function hideAll(){ $("#slam").style.opacity=0; $("#hdr").style.opacity=0; $("#intro").style.opacity=0; $("#brk").style.opacity=0; card.style.opacity=0; $("#subs").style.opacity=0;
   $("#cta").style.opacity=0; $("#end").style.opacity=0;
   card.querySelectorAll(".pl").forEach(e=>{e.style.opacity=0;}); }
 function subtitle(t){
@@ -127,8 +149,17 @@ window.renderAt=function(t){
   for(const k in S){ const [a,b,s]=S[k]; if(t>=a&&t<b){seg=s;t0=a;t1=b;break;} }
   if(!seg){ seg="end"; t0=S.end[0]; t1=S.end[1]; }
   plate(seg,t0,t);
-  $("#veil").style.opacity = (seg==="cta")?1:(seg[0]==="t"?0.6:0.75);
-  if(seg==="s1"||seg==="s2"){ /* plate + subtitle only */ }
+  $("#veil").style.opacity = (seg==="cta")?1:(seg[0]==="t"?0.6:(seg==="s1"?0.5:0.7));
+  if(seg==="s1"){ const u=t-t0;
+    $("#intro").style.opacity=String(sm(u/0.5));
+    document.querySelectorAll("#intro .chip").forEach((c,i)=>{ const k=sm((u-(1.9+i*0.34))/0.3);
+      c.style.opacity=String(k); c.style.transform=`scale(${0.8+0.2*k})`; });
+  }
+  else if(seg==="s2"){ const u=t-t0;
+    $("#brk").style.opacity=String(sm(u/0.4));
+    document.querySelectorAll("#brk .m").forEach((m,i)=>{ const k=sm((u-(0.25+i*0.45))/0.35);
+      m.style.opacity=String(k); m.style.transform=`translateX(${(i%2?22:-22)*(1-k)}px)`; });
+  }
   else if(seg[0]==="t"){
     const T=(window.T||[])[+seg[1]-1]; if(T){ buildCard(T);
       const u=t-t0;
