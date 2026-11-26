@@ -15,17 +15,17 @@ body{background:
 .wrap{position:relative;padding:92px 86px 0}
 .kicker{font-weight:700;font-size:34px;letter-spacing:.34em;opacity:.8}
 .cup{font-weight:900;font-size:62px;letter-spacing:.06em;margin-top:14px}
-.club{font-weight:900;font-size:96px;line-height:1.02;margin-top:52px;letter-spacing:-.01em}
+.club{font-weight:900;font-size:92px;line-height:1.02;margin-top:40px;letter-spacing:-.01em}
 .club.sm{font-size:78px}
 .capt{margin-top:22px;font-weight:600;font-size:36px;opacity:.9}
 .capt b{font-weight:900}
-.rule{height:5px;background:#fff;opacity:.9;margin:44px 0 34px;width:220px;border-radius:3px}
+.rule{height:5px;background:#fff;opacity:.9;margin:36px 0 26px;width:220px;border-radius:3px}
 table{width:100%;border-collapse:collapse}
-td{padding:24px 0;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.14)}
-td.p{width:112px;font-weight:900;font-size:40px}
-td.n{font-weight:700;font-size:40px}
-td.u{text-align:right;font-weight:600;font-size:27px;opacity:.72;white-space:nowrap}
-.cap-badge{display:inline-block;margin-left:14px;font-size:22px;font-weight:900;background:#fff;color:#1F4FB8;border-radius:6px;padding:4px 10px;vertical-align:3px}
+td{padding:13px 0;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.14)}
+td.num{width:118px;font-weight:900;font-size:54px;opacity:.55;letter-spacing:-.02em}
+td.p{width:146px;font-weight:900;font-size:44px}
+td.u{font-weight:700;font-size:39px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cap-badge{display:inline-block;margin-left:16px;font-size:24px;font-weight:900;background:#fff;color:#1F4FB8;border-radius:6px;padding:5px 11px;vertical-align:6px}
 .foot{position:absolute;left:86px;right:86px;bottom:74px;display:flex;align-items:center;gap:26px}
 .foot img{width:112px;height:112px}
 .foot .t{font-weight:900;font-size:34px;line-height:1.25}
@@ -45,12 +45,10 @@ td.u{text-align:right;font-weight:600;font-size:27px;opacity:.72;white-space:now
   <div class="t">ZAMIN FK<span>Tarkibni muxlislar izohlari tanladi</span></div>
 </div>
 <script>
-const UZ={GK:"Darvozabon",RB:"O‘ng himoyachi",CB:"Markaziy himoyachi",LB:"Chap himoyachi",
-CM:"Markaz",RW:"O‘ng qanot",CAM:"Hujumchi markaz",LW:"Chap qanot",ST:"Hujumchi"};
 const q=new URLSearchParams(location.search), D=JSON.parse(decodeURIComponent(q.get("d")));
 document.getElementById("club").textContent=D.club;
 if(D.club.length>13) document.getElementById("club").classList.add("sm");
 document.getElementById("capt").textContent="@"+D.capt;
 document.getElementById("t").innerHTML=D.rows.map(r=>
- `<tr><td class="p">${r[0]}</td><td class="n">${UZ[r[0]]}</td><td class="u">@${r[1]}${r[1]===D.capt?'<span class="cap-badge">C</span>':''}</td></tr>`).join("");
+ `<tr><td class="num">${r[2]}</td><td class="p">${r[0]}</td><td class="u">@${r[1]}${r[1]===D.capt?'<span class="cap-badge">C</span>':''}</td></tr>`).join("");
 </script></body></html>

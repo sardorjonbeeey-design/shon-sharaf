@@ -10,7 +10,13 @@ const blocks = [...src.matchAll(/## (.+?) — asoschi\/kapitan @(\S+)\n([\s\S]*?
   const p = await b.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 2 });
   p.on("pageerror", e => console.log("[pageerror]", String(e).slice(0, 300)));
   for (const [, club, capt, body] of blocks) {
-    const rows = body.trim().split("\n").map(l => l.trim().match(/^- (\S+)\s+@(\S+)\s+\d+ ❤/)).filter(Boolean).map(m => [m[1], m[2]]);
+    const NUM = { GK: 1, LB: 3, RB: 2, CB: 4, CM: 6, RW: 7, CAM: 10, LW: 11, ST: 9 };
+    const SECOND = { CB: 5, CM: 8 };                       // ikkinchi CB/CM uchun
+    const WISH = { "islom.muhammadov7": 51 };              // muxlis so'ragan raqam
+    const used = {};
+    const rows = body.trim().split("\n").map(l => l.trim().match(/^- (\S+)\s+@(\S+)\s+\d+ ❤/)).filter(Boolean)
+      .map(m => { const p = m[1], u = m[2]; used[p] = (used[p] || 0) + 1;
+        const n = WISH[u] || (used[p] > 1 && SECOND[p] ? SECOND[p] : NUM[p]); return [p, u, n]; });
     const d = encodeURIComponent(JSON.stringify({ club, capt, rows }));
     await p.goto("file://" + HERE + "/story.html?d=" + d);
     await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(250);

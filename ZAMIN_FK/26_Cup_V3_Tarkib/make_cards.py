@@ -1,18 +1,19 @@
-import re,os
+# python3 make_cards.py -> 0X_<CLUB>.txt (nomer + pozitsiya kodi + username)
+import re
 src=open("TARKIB.md",encoding="utf-8").read()
 blocks=re.findall(r"## (.+?) — asoschi/kapitan @(\S+)\n(.*?)\n  zaxira: (.*?)\n",src,re.S)
-FN={"PRIME AVANGARD":"01_PRIME_AVANGARD.txt","PRIME FC":"02_PRIME_FC.txt","WAKANDA TEAM":"03_WAKANDA_TEAM.txt","QAYRAT FC":"04_QAYRAT_FC.txt"}
-UZ={"GK":"darvozabon","RB":"o‘ng himoyachi","CB":"markaziy himoyachi","LB":"chap himoyachi",
-    "CM":"markaz","RW":"o‘ng qanot","CAM":"hujumchi markaz","LW":"chap qanot","ST":"hujumchi"}
-for name,capt,body,zax in blocks:
-    rows=[]
+FN={"PRIME AVANGARD":"01_PRIME_AVANGARD.txt","PRIME FC":"02_PRIME_FC.txt",
+    "WAKANDA TEAM":"03_WAKANDA_TEAM.txt","QAYRAT FC":"04_QAYRAT_FC.txt"}
+NUM={"GK":1,"LB":3,"RB":2,"CB":4,"CM":6,"RW":7,"CAM":10,"LW":11,"ST":9}
+SECOND={"CB":5,"CM":8}
+WISH={"islom.muhammadov7":51}
+for club,capt,body,zax in blocks:
+    used={}; out=["🏆 MUXLISLAR KUBOGI — TARKIB","","🔵 %s"%club,"Asoschi / kapitan: @%s"%capt,""]
     for ln in body.strip().split("\n"):
-        m=re.match(r"- (\S+)\s+@(\S+)\s+(\d+) ❤\s+\((.+)\)",ln.strip())
-        if m: rows.append(m.groups())
-    out=["🏆 MUXLISLAR KUBOGI — TARKIB","","🔵 %s"%name,"Asoschi / kapitan: @%s"%capt,""]
-    for pos,u,lk,why in rows:
-        tag=" (kapitan)" if u==capt else ""
-        out.append("%-3s  %-18s  @%s%s"%(pos,UZ[pos],u,tag))
+        m=re.match(r"- (\S+)\s+@(\S+)\s+\d+ ❤",ln.strip())
+        if not m: continue
+        p,u=m.group(1),m.group(2); used[p]=used.get(p,0)+1
+        n=WISH.get(u) or (SECOND[p] if used[p]>1 and p in SECOND else NUM[p])
+        out.append("%2d  %-3s  @%s%s"%(n,p,u," (C)" if u==capt else ""))
     out+=["","Zaxira: "+zax.strip()]
-    open(FN[name],"w",encoding="utf-8").write("\n".join(out)+"\n")
-    print(FN[name])
+    open(FN[club],"w",encoding="utf-8").write("\n".join(out)+"\n"); print(FN[club])
