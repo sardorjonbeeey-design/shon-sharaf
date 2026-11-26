@@ -1,0 +1,154 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf);font-weight:900}
+@font-face{font-family:MZ;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf);font-weight:700}
+@font-face{font-family:MZ;src:url(../web/city/assets/fonts/Montserrat_600SemiBold.ttf);font-weight:600}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;background:#06122c;font-family:MZ;color:#fff;overflow:hidden}
+#stage{position:absolute;inset:0;overflow:hidden}
+#plate{position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;transform-origin:50% 45%}
+#veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,18,44,.55) 0%,rgba(6,18,44,.25) 35%,rgba(6,18,44,.72) 100%);opacity:0}
+.grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:4px 4px;pointer-events:none}
+/* --- title slam --- */
+#slam{position:absolute;left:0;right:0;top:150px;text-align:center;opacity:0}
+#slam .k{font-weight:700;font-size:30px;letter-spacing:.34em;opacity:.85}
+#slam .c{font-weight:900;font-size:100px;line-height:1;margin-top:18px;text-shadow:0 14px 40px rgba(0,0,0,.55)}
+#slam .c.sm{font-size:82px}
+#slam .a{margin-top:16px;font-weight:600;font-size:34px;opacity:.92}
+#slam .f{display:inline-block;margin-top:18px;font-weight:900;font-size:27px;letter-spacing:.2em;border:3px solid rgba(255,255,255,.6);border-radius:999px;padding:8px 24px}
+/* --- tactics card --- */
+#card{position:absolute;left:60px;right:60px;top:500px;height:1030px;border:4px solid rgba(255,255,255,.45);border-radius:14px;
+  background:linear-gradient(180deg,rgba(14,52,136,.62) 0%,rgba(10,38,104,.70) 100%);opacity:0;
+  box-shadow:0 30px 80px rgba(0,0,0,.45)}
+#card:before{content:"";position:absolute;left:0;right:0;top:50%;height:4px;background:rgba(255,255,255,.28)}
+#card:after{content:"";position:absolute;left:50%;top:50%;width:210px;height:210px;margin:-105px 0 0 -105px;border:4px solid rgba(255,255,255,.28);border-radius:50%}
+.pbox{position:absolute;left:50%;transform:translateX(-50%);width:430px;height:140px;border:4px solid rgba(255,255,255,.28)}
+.pbox.t{top:-4px;border-top:none}.pbox.b{bottom:-4px;border-bottom:none}
+.pl{position:absolute;transform:translate(-50%,-50%) scale(.6);text-align:center;width:240px;opacity:0}
+.pl .s{width:88px;height:88px;margin:0 auto;border-radius:50%;background:#fff;color:#1F4FB8;font-weight:900;font-size:42px;line-height:88px;box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.pl.cap .s{background:#FFD23F;color:#123a86}
+.pl .p{margin-top:7px;font-weight:900;font-size:24px;letter-spacing:.12em}
+.pl .u{margin-top:1px;font-weight:700;font-size:23px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hdr{position:absolute;left:60px;right:60px;top:300px;text-align:center;opacity:0}
+#hdr .c{font-weight:900;font-size:62px;line-height:1}
+#hdr .c.sm{font-size:52px}
+#hdr .a{margin-top:8px;font-weight:700;font-size:28px;opacity:.85}
+#hdr .f{display:inline-block;margin-top:10px;font-weight:900;font-size:22px;letter-spacing:.2em;border:3px solid rgba(255,255,255,.55);border-radius:999px;padding:5px 18px}
+#subs{position:absolute;left:60px;right:60px;top:1580px;opacity:0}
+#subs .t{font-weight:900;font-size:26px;letter-spacing:.22em;opacity:.8;margin-bottom:10px}
+#subs .l{font-weight:700;font-size:26px;line-height:1.45}
+/* --- CTA --- */
+#cta{position:absolute;inset:0;opacity:0}
+#cta .q{position:absolute;left:60px;right:60px;top:150px;text-align:center;font-weight:900;font-size:62px;line-height:1.1}
+#cta .q span{display:block;color:#FFD23F;font-size:52px;margin-top:12px}
+.row{position:absolute;left:60px;right:60px;height:270px;border-radius:22px;border:5px solid rgba(255,255,255,.3);
+  background:rgba(7,22,62,.95);display:flex;align-items:center;gap:36px;padding:0 40px;opacity:1;transform:scale(.97)}
+.row.on{opacity:1;transform:scale(1);border-color:#FFD23F;background:rgba(12,44,116,.97);box-shadow:0 18px 44px rgba(0,0,0,.5)}
+.row .n{width:150px;height:150px;flex:0 0 150px;border-radius:50%;background:#fff;color:#1F4FB8;font-weight:900;font-size:92px;line-height:150px;text-align:center}
+.row.on .n{background:#FFD23F;color:#123a86}
+.row .tx{font-weight:900;font-size:60px;line-height:1.05;color:rgba(255,255,255,.72)}
+.row.on .tx{color:#fff}
+.row .tx span{display:block;font-weight:700;font-size:34px;opacity:.85;margin-top:10px}
+#r1{top:430px}#r2{top:730px}#r3{top:1030px}
+#ctafoot{position:absolute;left:60px;right:60px;top:1370px;text-align:center;font-weight:900;font-size:46px;line-height:1.25}
+#ctafoot span{display:block;font-weight:700;font-size:32px;opacity:.85;margin-top:12px}
+/* --- end card --- */
+#end{position:absolute;inset:0;background:radial-gradient(900px 700px at 50% 35%,#2a62cf 0%,#123a86 55%,#0a2252 100%);opacity:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+#end img{width:300px;height:300px}
+#end .t{font-weight:900;font-size:76px;text-align:center;line-height:1.1}
+#end .s{font-weight:700;font-size:34px;opacity:.85}
+/* --- subtitles --- */
+#sub{position:absolute;left:70px;right:70px;bottom:52px;text-align:center;font-weight:900;font-size:36px;line-height:1.3;text-shadow:0 6px 22px rgba(0,0,0,.75)}
+#sub i{font-style:normal;opacity:.45}
+</style></head><body>
+<div id="stage">
+  <img id="plate"><div id="veil"></div>
+  <div id="slam"><div class="k">MUXLISLAR KUBOGI</div><div class="c"></div><div class="a"></div><div class="f">4 — 3 — 3</div></div>
+  <div id="hdr"><div class="c"></div><div class="a"></div><div class="f">4 — 3 — 3</div></div>
+  <div id="card"><div class="pbox t"></div><div class="pbox b"></div></div>
+  <div id="subs"><div class="t">ZAXIRA</div><div class="l"></div></div>
+  <div id="cta">
+    <div class="q">G‘OLIBNI QANDAY ANIQLAYMIZ?<span>IZOHGA RAQAMNI YOZING</span></div>
+    <div class="row" id="r1"><div class="n">1</div><div class="tx">IZOH = GOL<span>har 50 ta izoh — 1 gol</span></div></div>
+    <div class="row" id="r2"><div class="n">2</div><div class="tx">O‘YIN<span>3D o‘yin o‘ynaymiz</span></div></div>
+    <div class="row" id="r3"><div class="n">3</div><div class="tx">PENALTI<span>faqat 11 metrlik zarbalar</span></div></div>
+    <div id="ctafoot">1, 2 YOKI 3<span>obuna bo‘lish shart · 24 soat</span></div>
+  </div>
+  <div id="end"><img src="../03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"><div class="t">QOIDANI<br>SIZ TANLAYSIZ</div><div class="s">ZAMIN FK · MUXLISLAR KUBOGI</div></div>
+  <div class="grain"></div><div id="sub"></div>
+</div>
+<script>
+const S={intro:[0,5.0,"s1"],bracket:[5.0,7.6,"s2"],t1:[7.6,15.0,"t1"],t2:[15.0,22.4,"t2"],
+        t3:[22.4,29.8,"t3"],t4:[29.8,37.2,"t4"],q:[37.2,41.3,"q"],cta:[41.3,54.6,"cta"],end:[54.6,56.6,"end"]};
+window.END=56.6;
+const FPS3=10, LEN={s1:5.0,s2:2.6,t1:7.4,t2:7.4,t3:7.4,t4:7.4,q:4.1,cta:13.3,end:2.0};
+const SPOT={GK:[50,91],LB:[14,72],CB1:[37,74],CB2:[63,74],RB:[86,72],
+            CML:[20,49],CMC:[50,52],CMR:[80,49],LW:[16,26],ST:[50,13],RW:[84,26]};
+const ORDER=["GK","LB","CB1","CB2","RB","CML","CMC","CMR","LW","ST","RW"];
+const CT=[41.55,46.40,50.10];                        // CTA rows light with voice 08/09/10
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)), sm=x=>{x=cl(x,0,1);return x*x*(3-2*x);};
+const $=s=>document.querySelector(s), card=$("#card");
+let built=null;
+function buildCard(T){
+  if(built===T.club) return;
+  built=T.club; card.querySelectorAll(".pl").forEach(e=>e.remove());
+  for(const pl of T.xi){ const [x,y]=SPOT[pl.spot];
+    const d=document.createElement("div"); d.className="pl"+(pl.u===T.capt?" cap":""); d.dataset.spot=pl.spot;
+    d.style.left=x+"%"; d.style.top=y+"%";
+    d.innerHTML=`<div class="s">${pl.n}</div><div class="p">${pl.pos}</div><div class="u">@${pl.u}</div>`;
+    card.appendChild(d); }
+  $("#subs .l").textContent=T.subs.map(s=>"@"+s).join("  ·  ");
+  $("#slam .c").textContent=T.club; $("#slam .c").className="c"+(T.club.length>13?" sm":"");
+  $("#slam .a").textContent="Asoschi / kapitan: @"+T.capt;
+  $("#hdr .c").textContent=T.club; $("#hdr .c").className="c"+(T.club.length>13?" sm":"");
+  $("#hdr .a").textContent="Asoschi / kapitan: @"+T.capt;
+}
+function plate(seg,t0,t){
+  const el=$("#plate");
+  if(seg==="cta"){                                  // Poyo crowd still with a slow push
+    const u=cl((t-t0)/LEN.cta,0,1);
+    el.src="assets/crowd_cta.png";
+    el.style.transform=`scale(${1.06+0.08*u}) translateY(${-10*u}px)`; return; }
+  el.style.transform="none";
+  const n=Math.round(LEN[seg]*FPS3), f=cl(Math.floor((t-t0)*FPS3),0,n-1);
+  el.src=`build/3d/${seg}/f_${String(f).padStart(4,"0")}.jpg`; }
+function hideAll(){ $("#slam").style.opacity=0; $("#hdr").style.opacity=0; card.style.opacity=0; $("#subs").style.opacity=0;
+  $("#cta").style.opacity=0; $("#end").style.opacity=0;
+  card.querySelectorAll(".pl").forEach(e=>{e.style.opacity=0;}); }
+function subtitle(t){
+  let html="";
+  for(const b of (window.W||[])) if(t>=b.start-0.05&&t<=b.end+0.35)
+    for(const s of b.sents) if(t>=s.a-0.05&&t<=s.b+0.35)
+      html=s.words.map(w=>t>=w.a-0.02?w.w:`<i>${w.w}</i>`).join(" ");
+  $("#sub").innerHTML=html;
+}
+window.renderAt=function(t){
+  hideAll(); let seg=null,t0=0,t1=0;
+  for(const k in S){ const [a,b,s]=S[k]; if(t>=a&&t<b){seg=s;t0=a;t1=b;break;} }
+  if(!seg){ seg="end"; t0=S.end[0]; t1=S.end[1]; }
+  plate(seg,t0,t);
+  $("#veil").style.opacity = (seg==="cta")?1:(seg[0]==="t"?0.6:0.75);
+  if(seg==="s1"||seg==="s2"){ /* plate + subtitle only */ }
+  else if(seg[0]==="t"){
+    const T=(window.T||[])[+seg[1]-1]; if(T){ buildCard(T);
+      const u=t-t0;
+      $("#slam").style.opacity=String(sm(u/0.45)*(1-sm((u-1.9)/0.5)));
+      card.style.opacity=String(sm((u-0.9)/0.5));
+      $("#hdr").style.opacity=String(sm((u-1.6)/0.5));
+      ORDER.forEach((sp,i)=>{ const el=card.querySelector(`.pl[data-spot="${sp}"]`); if(!el) return;
+        const a=1.15+i*0.26, k=sm((u-a)/0.33);
+        el.style.opacity=String(k);
+        const pulse=(sp==="ST"||el.classList.contains("cap"))&&u>4.7?1+0.06*Math.sin((u-4.7)*7):1;
+        el.style.transform=`translate(-50%,-50%) scale(${(0.6+0.4*k)*pulse})`; });
+      $("#subs").style.opacity=String(sm((u-5.5)/0.5));
+    }
+  }
+  else if(seg==="q"){ $("#cta").style.opacity=String(sm((t-t0)/0.6)); $("#r1").classList.remove("on");$("#r2").classList.remove("on");$("#r3").classList.remove("on"); }
+  else if(seg==="cta"){ $("#cta").style.opacity=1;
+    [["#r1",CT[0]],["#r2",CT[1]],["#r3",CT[2]]].forEach(([id,at])=>$(id).classList.toggle("on",t>=at-0.15)); }
+  else if(seg==="end"){ $("#end").style.opacity=String(sm((t-t0)/0.5)); }
+  subtitle(t);
+};
+window.ready=async function(){ await document.fonts.load("900 40px MZ"); await document.fonts.load("700 40px MZ");
+  if(window.T&&window.T[0]) buildCard(window.T[0]); return true; };
+</script></body></html>

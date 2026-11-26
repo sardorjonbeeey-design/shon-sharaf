@@ -1,0 +1,10 @@
+01|0.25|To‘rtta klub. To‘rtta tarkib. Hammasi sizning izohlaringizdan.
+02|3.45|Yarim finalgacha bir qadam qoldi.
+03|6.40|Prime Avangard. Kapitan — sakkizinchi raqamda.
+04|13.40|Prime Fc. Ellik bir raqamini o‘zingiz so‘radingiz — oldingiz.
+05|20.40|Wakanda team. Bu tarkib butunlay yangi muxlislardan yig‘ildi.
+06|27.40|Qayrat Fc. Oxirgi o‘rin ham egasini topdi.
+07|34.30|Endi bitta savol qoldi: g‘olibni qanday aniqlaymiz?
+08|37.90|Bir — izohlaringiz gol bo‘ladi: har ellikta izoh — bitta gol.
+09|42.30|Ikki — o‘yin o‘ynaymiz. Uch — penalti.
+10|45.20|Izohga bir, ikki yoki uch deb yozing. Obuna bo‘lish shart.
