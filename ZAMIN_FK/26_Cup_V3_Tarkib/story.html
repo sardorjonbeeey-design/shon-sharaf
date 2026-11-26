@@ -1,0 +1,56 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:M;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf);font-weight:900}
+@font-face{font-family:M;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf);font-weight:700}
+@font-face{font-family:M;src:url(../web/city/assets/fonts/Montserrat_600SemiBold.ttf);font-weight:600}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;font-family:M}
+body{background:
+  radial-gradient(1200px 900px at 50% -10%,#2f6fe0 0%,rgba(47,111,224,0) 60%),
+  linear-gradient(180deg,#1b47a6 0%,#1F4FB8 38%,#143a8c 100%);
+  color:#fff;overflow:hidden;position:relative}
+.grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:4px 4px}
+.pitch{position:absolute;left:-10%;right:-10%;bottom:-6%;height:46%;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 60px,rgba(255,255,255,0) 60px 120px);
+  transform:perspective(900px) rotateX(62deg);border-top:3px solid rgba(255,255,255,.18)}
+.wrap{position:relative;padding:92px 86px 0}
+.kicker{font-weight:700;font-size:34px;letter-spacing:.34em;opacity:.8}
+.cup{font-weight:900;font-size:62px;letter-spacing:.06em;margin-top:14px}
+.club{font-weight:900;font-size:96px;line-height:1.02;margin-top:52px;letter-spacing:-.01em}
+.club.sm{font-size:78px}
+.capt{margin-top:22px;font-weight:600;font-size:36px;opacity:.9}
+.capt b{font-weight:900}
+.rule{height:5px;background:#fff;opacity:.9;margin:44px 0 34px;width:220px;border-radius:3px}
+table{width:100%;border-collapse:collapse}
+td{padding:24px 0;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.14)}
+td.p{width:112px;font-weight:900;font-size:40px}
+td.n{font-weight:700;font-size:40px}
+td.u{text-align:right;font-weight:600;font-size:27px;opacity:.72;white-space:nowrap}
+.cap-badge{display:inline-block;margin-left:14px;font-size:22px;font-weight:900;background:#fff;color:#1F4FB8;border-radius:6px;padding:4px 10px;vertical-align:3px}
+.foot{position:absolute;left:86px;right:86px;bottom:74px;display:flex;align-items:center;gap:26px}
+.foot img{width:112px;height:112px}
+.foot .t{font-weight:900;font-size:34px;line-height:1.25}
+.foot .t span{display:block;font-weight:600;font-size:26px;opacity:.75}
+</style></head><body>
+<div class="grain"></div><div class="pitch"></div>
+<div class="wrap">
+  <div class="kicker">MUXLISLAR KUBOGI</div>
+  <div class="cup">TARKIB E’LON QILINDI</div>
+  <div class="club" id="club">CLUB</div>
+  <div class="capt">Asoschi / kapitan: <b id="capt">@x</b></div>
+  <div class="rule"></div>
+  <table id="t"></table>
+</div>
+<div class="foot">
+  <img src="../03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png">
+  <div class="t">ZAMIN FK<span>Tarkibni muxlislar izohlari tanladi</span></div>
+</div>
+<script>
+const UZ={GK:"Darvozabon",RB:"O‘ng himoyachi",CB:"Markaziy himoyachi",LB:"Chap himoyachi",
+CM:"Markaz",RW:"O‘ng qanot",CAM:"Hujumchi markaz",LW:"Chap qanot",ST:"Hujumchi"};
+const q=new URLSearchParams(location.search), D=JSON.parse(decodeURIComponent(q.get("d")));
+document.getElementById("club").textContent=D.club;
+if(D.club.length>13) document.getElementById("club").classList.add("sm");
+document.getElementById("capt").textContent="@"+D.capt;
+document.getElementById("t").innerHTML=D.rows.map(r=>
+ `<tr><td class="p">${r[0]}</td><td class="n">${UZ[r[0]]}</td><td class="u">@${r[1]}${r[1]===D.capt?'<span class="cap-badge">C</span>':''}</td></tr>`).join("");
+</script></body></html>

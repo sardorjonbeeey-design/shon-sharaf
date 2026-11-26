@@ -101,3 +101,6 @@ Qayta hisoblash: `python3 split_teams.py` (Windsor izoh natijasi va
 - Egasi qo‘shgan ikki o‘yinchi (ikkisi ham obunachi): @barca_1899._ → WAKANDA TEAM LB
   (CB so‘ragan, ikki CB o‘rni ko‘proq layk olganlarga ketgan), @alijonov.cls → QAYRAT FC CM.
   O‘rni pozitsiya yozmagan muxlislar turgan joydan olindi: @_sss_0_0_29 va @met1nov_ zaxiraga tushdi.
+
+Story rasmlari: `node render_story.js` → `story_01..04_*.png` (1080×1920 @2x,
+`story.html` dan). Matn fayllari: `python3 make_cards.py`.
