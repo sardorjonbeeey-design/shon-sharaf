@@ -54,12 +54,17 @@ for i,r in enumerate(rest):
 # qolgan tarkibga tegilmaydi (oldin e'lon qilingan tarkib buzilmasin).
 OVERRIDE=[("WAKANDA TEAM","LB","barca_1899._","egasi qo'shdi (CB so'ragan, CB o'rinlari to'lgan)"),
           ("QAYRAT FC","CM","alijonov.cls","egasi qo'shdi")]
+SWAP=[("PRIME AVANGARD","LW","WAKANDA TEAM","LW")]   # egasi: @002_bazza Prime Avangard LW
 for c,p_,u,why in OVERRIDE:
     slot=team[c][p_]
     idx=next((i for i,(_,w) in enumerate(slot) if "yozmagan" in w), len(slot)-1)
     outu,_=slot[idx]; slot[idx]=(u,why); taken.add(u)
     for cc in bench: bench[cc][:]=[b for b in bench[cc] if b[0]!=u]
     bench[c].append((outu,"—",U.get(outu,{"likes":0})["likes"]))
+
+for c1,p1,c2,p2 in SWAP:
+    a=team[c1][p1][0]; b=team[c2][p2][0]
+    team[c1][p1][0]=(b[0],"egasi belgilagan"); team[c2][p2][0]=(a[0],"almashdi")
 
 out=[]
 for c in ORDER:

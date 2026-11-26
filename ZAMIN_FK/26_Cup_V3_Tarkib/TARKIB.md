@@ -28,7 +28,7 @@ Qoida:
 - CM  @204.ded                   1 ❤  (pozitsiya)
 - RW  @boburbek_012_2            1 ❤  (klub+pozitsiya)
 - CAM @djumaevv_111              1 ❤  (pozitsiya)
-- LW  @uzb13900                  3 ❤  (pozitsiya)
+- LW  @002_bazza                22 ❤  (egasi belgilagan)
 - ST  @rasuluvich_09             0 ❤  (kapitan)
   zaxira: @_rah1mav_ ST 11❤, @ammoraxii RW 2❤, @bexa___edit7 ST 2❤, @shananov____9 ST 1❤, @jalgas.2010.7 GK 1❤, @menlimuratov_19 RW 1❤, @umarxan.oo6 GK 1❤
 
@@ -56,7 +56,7 @@ Qoida:
 - CM  @a.farhodjon               1 ❤  (pozitsiya yozmagan)
 - RW  @qassob_bola80             2 ❤  (pozitsiya)
 - CAM @gulomov046                3 ❤  (pozitsiya)
-- LW  @002_bazza                22 ❤  (pozitsiya)
+- LW  @uzb13900                  3 ❤  (almashdi)
 - ST  @3wx.hamrokulov            0 ❤  (kapitan)
   zaxira: @jahongir_m2014 ST 2❤, @shamshoduz70 ST 2❤, @behruz_45_47 CB 1❤, @nurullayev__nurmuhammad GK 1❤, @_sss_0_0_29 — 2❤
 
@@ -80,7 +80,7 @@ Noyob izoh yozuvchi: 84 · obuna: 62 · obuna emas: 22 · tarkibda: 44 · zaxira
 @uzd.7t GK 3❤, @umrzoqdilnoza1991 RB 3❤, @narzullaev._.13 ST 2❤, @murodovbotir34 CM 2❤, @uzzssssssssss CB 2❤, @shermatov3602 RW 2❤, @sardor_khamrayev1 CM 2❤, @akhunov.__ GK 2❤, @ilashevv_23 CAM 2❤, @_dav1at.bek GK 1❤, @why.muhaa GK 1❤, @prastoyparen0907 — 1❤, @camel.60230075 LB/RB 1❤, @nurbonujaloliddinova ST 1❤, @uzbxonda_odil.jr17 RB 1❤, @rjbvv701 CB 1❤, @kolakamol — 1❤, @oli_mov.12 CM 1❤, @abdullaev_ex_9 LW 1❤, @aaaaaaaa721sssssssss ST 1❤, @olloyor__22 CB 1❤, @robitov.x7 CB 1❤
 
 ### Obuna, pozitsiya so‘ragan, lekin o‘rin to‘lgan
-@_rah1mav_(ST), @shoxmid(ST), @jahongir_m2014(ST), @nj10.forever(LW), @ammoraxii(RW), @oblokhulov_18(ST), @shamshoduz70(ST), @_islamov_lw_17_(CB), @bexa___edit7(ST), @mirzabek_985(GK), @behruz_45_47(CB), @abdullaabdujabborov52(GK), @shananov____9(ST), @nargiza698782(ST), @nurullayev__nurmuhammad(GK), @azim_jon_1_1_(GK), @jalgas.2010.7(GK), @tojiboyev_o1_o2(CB), @menlimuratov_19(RW), @callmekhonda(GK), @umarxan.oo6(GK)
+@_rah1mav_(ST), @shoxmid(ST), @jahongir_m2014(ST), @nj10.forever(LW), @ammoraxii(RW), @oblokhulov_18(ST), @shamshoduz70(ST), @_islamov_lw_17_(CB), @bexa___edit7(ST), @mirzabek_985(GK), @behruz_45_47(CB), @abdullaabdujabborov52(GK), @shananov____9(ST), @nargiza698782(ST), @nurullayev__nurmuhammad(GK), @azim_jon_1_1_(GK), @jalgas.2010.7(GK), @tojiboyev_o1_o2(CB), @menlimuratov_19(RW), @callmekhonda(GK), @umarxan.oo6(GK), @barca_1899._(CB)
 
 ## Diqqat
 - Obunachilar ro‘yxati 2026-11-25 eksportidan; shundan keyin obuna bo‘lganlar
@@ -104,3 +104,5 @@ Qayta hisoblash: `python3 split_teams.py` (Windsor izoh natijasi va
 
 Story rasmlari: `node render_story.js` → `story_01..04_*.png` (1080×1920 @2x,
 `story.html` dan). Matn fayllari: `python3 make_cards.py`.
+- Egasi: PRIME AVANGARD kapitani @rasuluvich_09 — **8-raqam**; @002_bazza (22 ❤)
+  PRIME AVANGARD LW ga o‘tdi, @uzb13900 esa WAKANDA TEAM LW ga almashdi.
