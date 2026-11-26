@@ -50,6 +50,17 @@ for c in ORDER:
 rest=full+nopos
 for i,r in enumerate(rest):
     c=r["club"] or ORDER[i%4]; bench[c].append((r["u"],"/".join(r["pos"]) or "—",r["likes"])); taken.add(r["u"])
+# Egasi keyin qo'shgan o'yinchilar: o'rni pozitsiya yozmagan muxlis turgan joydan olinadi,
+# qolgan tarkibga tegilmaydi (oldin e'lon qilingan tarkib buzilmasin).
+OVERRIDE=[("WAKANDA TEAM","LB","barca_1899._","egasi qo'shdi (CB so'ragan, CB o'rinlari to'lgan)"),
+          ("QAYRAT FC","CM","alijonov.cls","egasi qo'shdi")]
+for c,p_,u,why in OVERRIDE:
+    slot=team[c][p_]
+    idx=next((i for i,(_,w) in enumerate(slot) if "yozmagan" in w), len(slot)-1)
+    outu,_=slot[idx]; slot[idx]=(u,why); taken.add(u)
+    for cc in bench: bench[cc][:]=[b for b in bench[cc] if b[0]!=u]
+    bench[c].append((outu,"—",U.get(outu,{"likes":0})["likes"]))
+
 out=[]
 for c in ORDER:
     out.append("## %s — asoschi/kapitan @%s"%(c,CAPT[c])); cnt=collections.Counter()
