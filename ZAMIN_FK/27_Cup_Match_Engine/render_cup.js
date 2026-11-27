@@ -8,9 +8,9 @@ const B = path.join(__dirname, "build"); fs.mkdirSync(B, { recursive: true });
 (async () => {
   const S = buildShootout(HOME, AWAY, +SEED);
   fs.writeFileSync(B + "/shootout.json", JSON.stringify({ seed: +SEED, home: HOME, away: AWAY, result: S.result,
-    kicks: S.GOALS.map(g => ({ team: g.team, handle: g.handle, num: g.num, scored: g.scored, after: g.after })) }, null, 1));
-  S.GOALS.forEach(g => { g.kicks = S.GOALS.length; });
-  console.log(`${HOME} ${S.result[0]}-${S.result[1]} ${AWAY}  (${S.GOALS.length} kicks, seed ${SEED})`);
+    kicks: S.GOALS.filter(g => !g.celebration).map(g => ({ team: g.team, handle: g.handle, num: g.num, scored: g.scored, after: g.after })) }, null, 1));
+  const nk = S.GOALS.filter(g => !g.celebration).length; S.GOALS.forEach(g => { g.kicks = nk; });
+  console.log(`${HOME} ${S.result[0]}-${S.result[1]} ${AWAY}  (${nk} kicks + celebration, seed ${SEED})`);
   const low = MODE === "preview";
   const { page, close } = await open({ time: process.env.ZT || "16.7", w: low ? 360 : 1080, h: low ? 640 : 1920 });
   await page.evaluate(C => { window.CUP = C; }, S.CUP);

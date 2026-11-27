@@ -30,6 +30,12 @@ node render_cup.js "WAKANDA TEAM" "PRIME FC" 20261126 video build/shootout.mp4
 ```
 `build/shootout.json` — seed, natija va har zarbaning yozuvi (kim, raqami, gol/to‘xtatildi).
 
+**Nishonlash:** har zarbadan keyin yakka nishonlash yo‘q. Seriya tugagach bitta
+qo‘shimcha sahna qo‘shiladi (`teamCelebration`, oxirgi indeks, 6 s): **faqat g‘olib
+klub** butun tarkibi bilan birga yugurib chiqadi, qo‘llar keng yoyilgan
+(`wide2` akti), yutqazgan darvozabon cho‘kadi. Kadr keng — `preview <oxirgi> 16`
+bilan ko‘riladi; HUD’da yakuniy hisob turadi, GOOOL/karta chiqmaydi.
+
 ## Narx
 ~1 kadr/s, 1080×1920. Bitta zarba 4.4 s ≈ 2.5 daq. To‘liq seriya (10–12 zarba)
 ≈ 25–30 daqiqa render. Ovoz va montaj alohida (26-video’dagi `prep_voice.py` / `make.py` uslubida).
