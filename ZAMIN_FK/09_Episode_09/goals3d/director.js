@@ -141,9 +141,9 @@ function rotWorld(p, name, axis, ang) {         // rotate a bone about a WORLD a
   parentQuat(b, _pq); _aq.setFromAxisAngle(axis, ang);
   b.quaternion.premultiply(_dq.copy(_pq).invert().multiply(_aq).multiply(_pq));
 }
-const ARMC = { up: 2.30, wide: 2.50, fwd: .12, elbow: .45, wrist: .85, asym: .055, wob: .06 };
+const ARMC = { legacy: 0, up: 2.30, wide: 2.50, fwd: .12, elbow: .45, wrist: .85, asym: .055, wob: .06 };
 function armsUp(p, k, wide) {
-  if (!CUP) return armsUpEP09(p, k, wide);
+  if (!CUP || ARMC.legacy) return armsUpEP09(p, k, wide);   // ARMC.legacy: A/B against the Day 9 pose
   const yaw = p.g ? p.g.rotation.y : 0, c = Math.cos(yaw), s2 = Math.sin(yaw);
   const FWD = _AX.set(s2, 0, c).clone(), LAT = new T.Vector3(c, 0, -s2);   // body forward / sideways in world
   const t = (S.t || 0) + p.id * .7, base = k * (wide ? ARMC.wide : ARMC.up);
