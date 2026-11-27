@@ -115,6 +115,7 @@ function applyActs(G, p, t) {
       const hd = bell(t, a.t, .16); rot(p, "Spine", -.3 * k + hd * .75, 0, 0); rot(p, "neck", hd * .5, 0, 0); } }
     if (a.type === "dive") { const u = cl((t - a.t) / a.dur); if (t > a.t) { const k = sm(0, 1, u); roll += (a.roll || a.dir) * k * 1.35; y += Math.sin(Math.min(1, u * 1.15) * Math.PI) * a.h + k * .12; p._dz = a.dir * a.dist * k * (a.sx || 1);
       armsUp(p, k); } }
+    if (a.type === "cross") { const k = sm(a.t0, a.t0 + .45, t) * (a.t1 ? 1 - sm(a.t1 - .3, a.t1, t) : 1); if (k > 0) armsCross(p, k); }
     if (a.type === "arms") { const k = sm(a.t0, a.t0 + .35, t) * (a.t1 ? 1 - sm(a.t1 - .3, a.t1, t) : 1); if (k > 0) armsUp(p, k * (a.k || 1), a.wide); }
     if (a.type === "slump") { const k = sm(a.t0, a.t0 + .5, t); rot(p, "Spine", .45 * k, 0, 0); rot(p, "neck", .5 * k, 0, 0); rot(p, "Head", .2 * k, 0, 0); }
     if (a.type === "hop") { if (t > a.t0) y += Math.abs(Math.sin((t - a.t0) * 7.5)) * (a.h || .35); }
@@ -142,6 +143,43 @@ function rotWorld(p, name, axis, ang) {         // rotate a bone about a WORLD a
   b.quaternion.premultiply(_dq.copy(_pq).invert().multiply(_aq).multiply(_pq));
 }
 const ARMC = { legacy: 0, up: 2.30, wide: 2.50, fwd: .12, elbow: .45, wrist: .85, asym: .055, wob: .06 };
+// «X» celebration: aim the bones at real targets (elbows out, each hand on the opposite shoulder),
+// so the open scan hands end up flat on the chest instead of facing the camera.
+const XC = { elbowOut: .40, elbowFwd: .24, elbowDown: .22, handFwd: .17, handUp: .12, wrist: .9, wob: .05, asym: .04 };
+const _v1 = new T.Vector3(), _v2 = new T.Vector3(), _v3 = new T.Vector3(), _t1 = new T.Vector3(),
+      _d0 = new T.Vector3(), _d1 = new T.Vector3(), _qa = new T.Quaternion(), _qb = new T.Quaternion();
+const wpos = (b, out) => out.setFromMatrixPosition(b.matrixWorld);
+function aimBone(p, boneName, childName, target, k) {   // turn bone so its child points at `target` (world space)
+  const b = p.bones[boneName], c = p.bones[childName]; if (!b || !c) return;
+  _d0.copy(wpos(c, _v1)).sub(wpos(b, _v2)).normalize();
+  _d1.copy(target).sub(_v2).normalize();
+  _qa.setFromUnitVectors(_d0, _d1); _qb.identity().slerp(_qa, k);
+  parentQuat(b, _pq);
+  b.quaternion.premultiply(_dq.copy(_pq).invert().multiply(_qb).multiply(_pq));
+  b.updateMatrixWorld(true);
+}
+function armsCross(p, k) {
+  p.r.root.updateMatrixWorld(true);
+  const LS = p.bones.LeftShoulder, RS = p.bones.RightShoulder, HD = p.bones.Head, HF = p.bones.headfront;
+  if (!LS || !RS) return;
+  const left = _v3.copy(wpos(LS, _v1)).sub(wpos(RS, _v2)).normalize();           // the body's own axes
+  const up = new T.Vector3(0, 1, 0), fwd = new T.Vector3();
+  if (HF && HD) fwd.copy(wpos(HF, _v1)).sub(wpos(HD, _v2)).setY(0).normalize();
+  else fwd.crossVectors(up, left).normalize();
+  const L = left.clone(), F = fwd.clone(), t = (S.t || 0) + p.id * .7;
+  for (const [sd, sg] of [["Left", 1], ["Right", -1]]) {
+    const wob = Math.sin(t * 3.2 + (sg > 0 ? 0 : 1.1)) * XC.wob * k, a = 1 + sg * XC.asym;
+    const sh = wpos(p.bones[sd + "Shoulder"], new T.Vector3());
+    const opp = wpos(p.bones[(sg > 0 ? "Right" : "Left") + "Arm"], new T.Vector3());   // the far shoulder joint: the forearms really cross
+    const elbow = sh.clone().addScaledVector(L, sg * (XC.elbowOut + wob) * a)
+                           .addScaledVector(F, XC.elbowFwd).addScaledVector(up, -XC.elbowDown);
+    aimBone(p, sd + "Arm", sd + "ForeArm", elbow, k);
+    const hand = opp.clone().addScaledVector(F, XC.handFwd).addScaledVector(up, XC.handUp);
+    aimBone(p, sd + "ForeArm", sd + "Hand", hand, k);
+    const h = p.bones[sd + "Hand"]; if (h) h.quaternion.slerp(_ID, k * XC.wrist);
+  }
+}
+
 function armsUp(p, k, wide) {
   if (!CUP || ARMC.legacy) return armsUpEP09(p, k, wide);   // ARMC.legacy: A/B against the Day 9 pose
   const yaw = p.g ? p.g.rotation.y : 0, c = Math.cos(yaw), s2 = Math.sin(yaw);
@@ -151,8 +189,8 @@ function armsUp(p, k, wide) {
     const wob = Math.sin(t * 5.2 + (sg > 0 ? 0 : 1.4)) * ARMC.wob * k;     // never two arms frozen in a mirror
     const a = base * (1 + sg * ARMC.asym) + wob;
     rotWorld(p, sd + "Arm", FWD, -a * sg);                                  // raise sideways-up
-    rotWorld(p, sd + "Arm", LAT, k * ARMC.fwd);                             // and a little in front of the body
-    rotWorld(p, sd + "ForeArm", LAT, k * ARMC.elbow * sg);                  // soft elbow, mirrored per side
+    rotWorld(p, sd + "Arm", LAT, -k * ARMC.fwd);                            // and a little in front of the body
+    rotWorld(p, sd + "ForeArm", LAT, -k * ARMC.elbow * sg);                 // soft elbow, mirrored per side
     const h = p.bones[sd + "Hand"]; if (h) h.quaternion.slerp(_ID, k * ARMC.wrist);  // unbend the wrist
   }
 }
@@ -225,7 +263,7 @@ function drawHud(G, t) {
 }
 
 const D = window.D = {
-  P, pl, ARM: v => { ARM = v; }, ARMC, armc: v => Object.assign(ARMC, v),
+  P, pl, ARM: v => { ARM = v; }, ARMC, armc: v => Object.assign(ARMC, v), XC, xc: v => Object.assign(XC, v),
   async setup() {
     Z.loadRig(); await new Promise(ok => { const w = () => Z.RIG.base ? ok() : setTimeout(w, 50); w(); });
     Z.heroObjs.forEach(o => { o.visible = false; }); Z.SQUAD.forEach(s => Z.scene.remove(s.g)); Z.controls.enabled = false;

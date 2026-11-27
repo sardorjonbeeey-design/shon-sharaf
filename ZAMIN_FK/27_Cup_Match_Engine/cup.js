@@ -33,7 +33,8 @@ function kick({ shooter, keeper, team, other, idx, scored, corner, diveDir, scor
     { type: "kick", p: me(shooter.rig), t: T_KICK },
     { type: "dive", p: them(keeper.rig), t: T_KICK + .06, dur: .52, dir: diveDir, roll: diveDir, dist: 2.4, h: 1.0 },
   ];
-  if (scored) acts.push({ type: "arms", p: me(shooter.rig), t0: T_HIT + .2, wide: true });
+  if (scored) acts.push({ type: "cross", p: me(shooter.rig), t0: T_HIT + .2 },     // arms crossed on the chest
+    { type: "face", p: me(shooter.rig), t0: T_HIT + .25, yaw: Math.atan2(4.6, 3.4) });  // ...turned to the camera
   else acts.push({ type: "slump", p: me(shooter.rig), t0: T_HIT + .3 });
   return {
     minute: 90 + idx, kicks: 0, team, scorer: shooter.rig, num: shooter.num, before: score.before, after: score.after,
@@ -48,7 +49,9 @@ function kick({ shooter, keeper, team, other, idx, scored, corner, diveDir, scor
     cam: [
       { t0: 0, t1: T_KICK, pos: [27.5, 3.4, 12.0], pos1: [32.0, 2.8, 9.0], look: "ball", fov: 44, fov1: 38, smooth: .2 },
       { t0: T_KICK, t1: T_HIT + .5, pos: [60.5, 3.4, 0.5], pos1: [58.0, 3.1, 0.5], look: "ball", fov: 42, fov1: 38, smooth: .3 },
-      { t0: T_HIT + .5, look: scored ? `${team}:${shooter.rig}` : `${other}:${keeper.rig}`, rel: [-3.0, 1.8, 7.5], rel1: [-1.6, 1.7, 6.0], fov: 35, smooth: .25 },
+      scored
+        ? { t0: T_HIT + .5, look: `${team}:${shooter.rig}`, rel: [4.6, 1.75, 3.4], rel1: [3.4, 1.65, 2.2], fov: 38, fov1: 34, off: [0, .05, 0], smooth: .25 }   // in front: the crossed arms face the camera
+        : { t0: T_HIT + .5, look: `${other}:${keeper.rig}`, rel: [-3.0, 1.8, 7.5], rel1: [-1.6, 1.7, 6.0], fov: 35, smooth: .25 },
     ],
   };
 }
