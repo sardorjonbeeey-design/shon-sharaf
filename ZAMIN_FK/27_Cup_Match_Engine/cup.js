@@ -33,7 +33,7 @@ function kick({ shooter, keeper, team, other, idx, scored, corner, diveDir, scor
     { type: "kick", p: me(shooter.rig), t: T_KICK },
     { type: "dive", p: them(keeper.rig), t: T_KICK + .06, dur: .52, dir: diveDir, roll: diveDir, dist: 2.4, h: 1.0 },
   ];
-  if (scored) acts.push({ type: "cross", p: me(shooter.rig), t0: T_HIT + .2 },     // arms crossed on the chest
+  if (scored) acts.push({ type: "wide2", p: me(shooter.rig), t0: T_HIT + .2 },     // arms stretched wide
     { type: "face", p: me(shooter.rig), t0: T_HIT + .25, yaw: Math.atan2(4.6, 3.4) });  // ...turned to the camera
   else acts.push({ type: "slump", p: me(shooter.rig), t0: T_HIT + .3 });
   return {

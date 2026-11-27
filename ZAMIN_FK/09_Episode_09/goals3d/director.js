@@ -115,6 +115,7 @@ function applyActs(G, p, t) {
       const hd = bell(t, a.t, .16); rot(p, "Spine", -.3 * k + hd * .75, 0, 0); rot(p, "neck", hd * .5, 0, 0); } }
     if (a.type === "dive") { const u = cl((t - a.t) / a.dur); if (t > a.t) { const k = sm(0, 1, u); roll += (a.roll || a.dir) * k * 1.35; y += Math.sin(Math.min(1, u * 1.15) * Math.PI) * a.h + k * .12; p._dz = a.dir * a.dist * k * (a.sx || 1);
       armsUp(p, k); } }
+    if (a.type === "wide2") { const k = sm(a.t0, a.t0 + .4, t) * (a.t1 ? 1 - sm(a.t1 - .3, a.t1, t) : 1); if (k > 0) armsWide(p, k); }
     if (a.type === "cross") { const k = sm(a.t0, a.t0 + .45, t) * (a.t1 ? 1 - sm(a.t1 - .3, a.t1, t) : 1); if (k > 0) armsCross(p, k); }
     if (a.type === "arms") { const k = sm(a.t0, a.t0 + .35, t) * (a.t1 ? 1 - sm(a.t1 - .3, a.t1, t) : 1); if (k > 0) armsUp(p, k * (a.k || 1), a.wide); }
     if (a.type === "slump") { const k = sm(a.t0, a.t0 + .5, t); rot(p, "Spine", .45 * k, 0, 0); rot(p, "neck", .5 * k, 0, 0); rot(p, "Head", .2 * k, 0, 0); }
@@ -157,6 +158,26 @@ function aimBone(p, boneName, childName, target, k) {   // turn bone so its chil
   parentQuat(b, _pq);
   b.quaternion.premultiply(_dq.copy(_pq).invert().multiply(_qb).multiply(_pq));
   b.updateMatrixWorld(true);
+}
+// «Samolyot» celebration (the Yamal one): both arms stretched out wide and a little behind, palms down —
+// the open scan hands sit naturally in this pose instead of facing the lens.
+const WC = { out: 1.25, back: .45, down: .02, drop: .16, straight: .92, wrist: .85, wob: .07, asym: .05 };
+function armsWide(p, k) {
+  p.r.root.updateMatrixWorld(true);
+  const LS = p.bones.LeftShoulder, RS = p.bones.RightShoulder, HD = p.bones.Head, HF = p.bones.headfront;
+  if (!LS || !RS) return;
+  const L = wpos(LS, _v1).clone().sub(wpos(RS, _v2)).normalize(), up = new T.Vector3(0, 1, 0), F = new T.Vector3();
+  if (HF && HD) F.copy(wpos(HF, _v1)).sub(wpos(HD, _v2)).setY(0).normalize(); else F.crossVectors(up, L).normalize();
+  const t = (S.t || 0) + p.id * .7;
+  for (const [sd, sg] of [["Left", 1], ["Right", -1]]) {
+    const wob = Math.sin(t * 4.1 + (sg > 0 ? 0 : 1.2)) * WC.wob * k, a = 1 + sg * WC.asym;
+    const sh = wpos(p.bones[sd + "Shoulder"], new T.Vector3());
+    const dir = L.clone().multiplyScalar(sg * WC.out * a).addScaledVector(F, -WC.back).addScaledVector(up, -WC.down + wob);
+    aimBone(p, sd + "Arm", sd + "ForeArm", sh.clone().add(dir), k);
+    const el = wpos(p.bones[sd + "ForeArm"], new T.Vector3());
+    aimBone(p, sd + "ForeArm", sd + "Hand", el.clone().add(dir.clone().multiplyScalar(WC.straight)).addScaledVector(up, -WC.drop), k);
+    const h = p.bones[sd + "Hand"]; if (h) h.quaternion.slerp(_ID, k * WC.wrist);
+  }
 }
 function armsCross(p, k) {
   p.r.root.updateMatrixWorld(true);
@@ -263,7 +284,7 @@ function drawHud(G, t) {
 }
 
 const D = window.D = {
-  P, pl, ARM: v => { ARM = v; }, ARMC, armc: v => Object.assign(ARMC, v), XC, xc: v => Object.assign(XC, v),
+  P, pl, ARM: v => { ARM = v; }, ARMC, armc: v => Object.assign(ARMC, v), XC, xc: v => Object.assign(XC, v), WC, wc: v => Object.assign(WC, v),
   async setup() {
     Z.loadRig(); await new Promise(ok => { const w = () => Z.RIG.base ? ok() : setTimeout(w, 50); w(); });
     Z.heroObjs.forEach(o => { o.visible = false; }); Z.SQUAD.forEach(s => Z.scene.remove(s.g)); Z.controls.enabled = false;
