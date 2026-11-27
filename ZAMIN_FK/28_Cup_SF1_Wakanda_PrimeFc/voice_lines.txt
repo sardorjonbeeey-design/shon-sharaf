@@ -1,10 +1,12 @@
-01|0.25|Mana shu zarba hal qiladi. To‘xtating.
-02|3.20|Hisob uch — ikki. Sizningcha, urdimi yoki to‘xtatdimi?
-03|6.20|Ikkala tarkibni ham siz tanlagansiz. O‘n ikki zarba.
-04|10.20|Prime Fc oldinga chiqdi.
-05|13.70|Keyin Wakanda uchta zarbani ketma-ket urdi.
-06|17.70|Va o‘sha oxirgi zarba… to‘xtatildi!
-07|22.30|Wakanda Team — finalda.
-08|27.20|Bu klubni oddiy muxlis ochgan edi. Endi u finalda.
-09|31.20|Endi ikkinchi yarim final: Qayrat Fc — Prime Avangard.
-10|37.20|Izohga qaysi klubni yozsangiz — o‘sha klub birinchi zarbani uradi. Yigirma to‘rt soat. Obuna shart.
+01|0.25|To‘qson birinchi daqiqa. Hisob ikki — ikki.
+02|3.60|Bu zarbani sizlardan biri urdi. Kim — oxirida.
+03|7.40|Ikkala tarkib ham siz tanlagansiz.
+04|9.90|Hisobni Prime Fc ochdi.
+05|12.30|Javob darhol keldi.
+06|14.30|Prime Fc yana oldinga chiqdi.
+07|16.70|Va yana tenglik.
+08|18.60|Mana o‘sha zarba. Sakkiz raqamli o‘yinchi — g‘alaba goli.
+09|22.60|Uch — ikki.
+10|24.40|Gol urganlarning ismi ekranda. Hammasi — muxlislar.
+11|28.60|Ertaga ikkinchi yarim final: Qayrat Fc — Prime Avangard.
+12|33.30|Izohga qaysi klub yutishini yozing. To‘g‘ri topganlardan uch kishi final tarkibiga kiradi. Yigirma to‘rt soat, obuna shart.

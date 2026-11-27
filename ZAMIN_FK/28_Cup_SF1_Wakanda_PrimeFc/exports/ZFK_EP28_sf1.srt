@@ -1,64 +1,72 @@
 1
-00:00:00,250 --> 00:00:01,981
-Mana shu zarba hal qiladi.
+00:00:00,250 --> 00:00:01,697
+To‘qson birinchi daqiqa.
 
 2
-00:00:02,001 --> 00:00:02,961
-To‘xtating.
+00:00:01,717 --> 00:00:03,580
+Hisob ikki — ikki.
 
 3
-00:00:03,050 --> 00:00:04,836
-Hisob uch — ikki.
+00:00:03,600 --> 00:00:05,822
+Bu zarbani sizlardan biri urdi.
 
 4
-00:00:04,856 --> 00:00:07,736
-Sizningcha, urdimi yoki to‘xtatdimi?
+00:00:05,842 --> 00:00:07,362
+Kim — oxirida.
 
 5
-00:00:07,850 --> 00:00:10,135
-Ikkala tarkibni ham siz tanlagansiz.
+00:00:07,400 --> 00:00:09,863
+Ikkala tarkib ham siz tanlagansiz.
 
 6
-00:00:10,155 --> 00:00:11,355
-O‘n ikki zarba.
+00:00:09,900 --> 00:00:12,280
+Hisobni Prime Fc ochdi.
 
 7
-00:00:11,450 --> 00:00:13,680
-Prime Fc oldinga chiqdi.
+00:00:12,300 --> 00:00:14,146
+Javob darhol keldi.
 
 8
-00:00:13,850 --> 00:00:17,182
-Keyin Wakanda uchta zarbani ketma-ket urdi.
+00:00:14,300 --> 00:00:16,680
+Prime Fc yana oldinga chiqdi.
 
 9
-00:00:17,300 --> 00:00:20,501
-Va o‘sha oxirgi zarba… to‘xtatildi!
+00:00:16,700 --> 00:00:18,539
+Va yana tenglik.
 
 10
-00:00:20,700 --> 00:00:22,921
-Wakanda Team — finalda.
+00:00:18,600 --> 00:00:19,864
+Mana o‘sha zarba.
 
 11
-00:00:23,100 --> 00:00:25,470
-Bu klubni oddiy muxlis ochgan edi.
+00:00:19,884 --> 00:00:22,580
+Sakkiz raqamli o‘yinchi — g‘alaba goli.
 
 12
-00:00:25,490 --> 00:00:27,090
-Endi u finalda.
+00:00:22,600 --> 00:00:24,262
+Uch — ikki.
 
 13
-00:00:27,300 --> 00:00:31,688
-Endi ikkinchi yarim final: Qayrat Fc — Prime Avangard.
+00:00:24,400 --> 00:00:26,494
+Gol urganlarning ismi ekranda.
 
 14
-00:00:31,900 --> 00:00:35,754
-Izohga qaysi klubni yozsangiz — o‘sha klub birinchi zarbani uradi.
+00:00:26,514 --> 00:00:28,474
+Hammasi — muxlislar.
 
 15
-00:00:35,774 --> 00:00:37,274
-Yigirma to‘rt soat.
+00:00:28,600 --> 00:00:33,146
+Ertaga ikkinchi yarim final: Qayrat Fc — Prime Avangard.
 
 16
-00:00:37,294 --> 00:00:38,454
-Obuna shart.
+00:00:33,300 --> 00:00:35,539
+Izohga qaysi klub yutishini yozing.
+
+17
+00:00:35,559 --> 00:00:38,539
+To‘g‘ri topganlardan uch kishi final tarkibiga kiradi.
+
+18
+00:00:38,559 --> 00:00:40,959
+Yigirma to‘rt soat, obuna shart.
 

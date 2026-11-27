@@ -2,7 +2,7 @@
 -> build/words.json: per beat start/end, per sentence and per word times on the final video timeline."""
 import json, subprocess, numpy as np, os, re, sys
 H = os.path.dirname(os.path.abspath(__file__)); V = H + "/voice"; os.makedirs(H + "/build", exist_ok=True)
-STARTS = [0.25, 3.05, 7.85, 11.45, 13.85, 17.30, 20.70, 23.10, 27.30, 31.90]
+STARTS = [0.25, 3.60, 7.40, 9.90, 12.30, 14.30, 16.70, 18.60, 22.60, 24.40, 28.60, 33.30]
 TEMPO = float(sys.argv[1]) if len(sys.argv) > 1 else 1.0
 def pcm(p):
     return np.frombuffer(subprocess.check_output(["ffmpeg", "-loglevel", "error", "-i", p, "-f", "s16le", "-ac", "1", "-ar", "48000", "-"]), np.int16).astype(float) / 32768

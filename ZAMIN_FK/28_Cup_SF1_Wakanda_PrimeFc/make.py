@@ -3,12 +3,12 @@ Order: node render_seq.js ; python3 prep_voice.py 1.0 ; node render.js video bui
 import json, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); Z = os.path.dirname(HERE)
 B, EXP, V = HERE + "/build", HERE + "/exports", HERE + "/voice"
-W = json.load(open(B + "/words.json")); END = 41.0
-CUT = [0.0, 3.05, 7.85, 11.45, 13.85, 17.30, 20.70, 23.70, 27.30, 31.90]   # shot boundaries
-KICK = [12.55, 14.95, 18.40]            # ball struck in each 3D kick (shot start + 1.1)
-SAVE = 18.75                            # the keeper pushes it away
-ROAR = 20.70                            # the winners run in
-CT   = [31.90, 34.20, 36.30]            # CTA rows
+W = json.load(open(B + "/words.json")); END = 44.0
+CUT = [0.0, 3.30, 7.40, 9.90, 12.30, 14.30, 16.70, 18.60, 22.60, 24.40, 28.60, 33.30, 41.60]   # shot boundaries
+KICK = [12.30, 14.30, 16.70, 20.05]     # the four goals land here (white flash in the cut)
+SAVE = 20.05                            # the winning goal
+ROAR = 22.60                            # the winners run in
+CT   = [33.45, 36.10, 38.40]            # CTA rows
 ins, fc, mix, k = ["-i", B + "/silent.mp4"], [], [], 0
 def add(src, at, vol=1.0, pre="", lav=False):
     global k
@@ -28,7 +28,7 @@ for c in CUT[1:]:                                   # riser into every cut
         "bandpass=f=1800:w=2600,volume='pow(min(t/0.42,1),2.2)':eval=frame,afade=t=out:st=0.4:d=0.1,", lav=True)
 k += 1; ins += ["-stream_loop", "-1", "-i", Z + "/03_Episode_03/sfx/crowd_bed.wav"]   # crowd, louder on the goals
 fc.append(f"[{k}:a]aresample=48000,atrim=0:{END:.2f},volume='0.16+0.26*between(t,{ROAR-0.3:.2f},{ROAR+4.0:.2f})"
-          f"+0.14*between(t,11.45,20.70)':eval=frame,afade=t=in:d=0.4,afade=t=out:st={END-1.2:.2f}:d=1.2[cr]")
+          f"+0.14*between(t,9.90,22.60)':eval=frame,afade=t=in:d=0.4,afade=t=out:st={END-1.2:.2f}:d=1.2[cr]")
 mix.append("[cr]")
 k += 1; ins += ["-i", Z + "/06_Episode_06/sfx/music.mp3"]
 fc.append(f"[{k}:a]aresample=48000,aloop=loop=-1:size=2e9,atrim=0:{END:.2f},volume=0.19,afade=t=in:d=0.5,"
@@ -44,18 +44,21 @@ cues = [(s["a"], s["b"] + .2, " ".join(w["w"] for w in s["words"])) for x in W f
 with open(EXP + "/ZFK_EP28_sf1.srt", "w", encoding="utf-8") as f:
     for n, (a, c, t) in enumerate(cues, 1):
         f.write(f"{n}\n{ts(a)} --> {ts(min(c, cues[n][0]-.02) if n < len(cues) else c)}\n{t}\n\n")
-open(EXP + "/caption.txt", "w", encoding="utf-8").write("""1-YARIM FINAL TUGADI 🏆
+open(EXP + "/caption.txt", "w", encoding="utf-8").write("""1-YARIM FINAL: WAKANDA TEAM 3–2 PRIME FC 🏆
 
-WAKANDA TEAM 3–2 PRIME FC (penalti, 12 zarba)
-Tarkiblarni siz tanlagansiz, g‘olibni esa oxirgi zarba hal qildi.
-🟢 WAKANDA TEAM — FINALDA (asoschi @3wx.hamrokulov)
+Gollarni sizning o‘yinchilaringiz urdi:
+⚽ 12’ @golibjon.2ta — PRIME FC
+⚽ 29’ @uzb13900 — WAKANDA TEAM
+⚽ 41’ @zuhriddinyuldashev13 — PRIME FC
+⚽ 67’ @gulomov046 — WAKANDA TEAM
+⚽ 89’ @a.farhodjon — WAKANDA TEAM (g‘alaba goli)
 
-Endi 2-YARIM FINAL: QAYRAT FC — PRIME AVANGARD
+🟢 WAKANDA TEAM — FINALDA (asoschi/kapitan @3wx.hamrokulov)
+
+Ertaga 2-YARIM FINAL: QAYRAT FC — PRIME AVANGARD
 👇 Izohga klub nomini yozing: QAYRAT yoki AVANGARD
-Eng ko‘p ovoz olgan klub 2-yarim finalda BIRINCHI ZARBANI uradi.
-Bir odam — bitta ovoz. ⏳ 24 soat · obuna shart.
-
-Natija seedli va tekshiriladi — keyingi videoda seed e’lon qilinadi.
+TO‘G‘RI TOPGAN 3 KISHI final tarkibiga kiradi.
+Bir odam — bitta izoh. ⏳ 24 soat · obuna shart.
 
 (Klublar, kubok va muxlislar — virtual o‘yin mexanikasi.)
 #zaminfk #muxlislarkubogi #football #futbol #uzbekistan #reels

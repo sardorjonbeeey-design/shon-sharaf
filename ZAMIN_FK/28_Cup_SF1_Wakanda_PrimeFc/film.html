@@ -4,130 +4,162 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:1080px;height:1920px;background:#06122c;font-family:MZ;color:#fff;overflow:hidden}
 #stage{position:absolute;inset:0;overflow:hidden}
-#plate{position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;transform-origin:50% 46%}
-#veil{position:absolute;inset:0;opacity:0;background:linear-gradient(180deg,rgba(6,18,44,.70) 0%,rgba(6,18,44,.15) 38%,rgba(6,18,44,.80) 100%)}
+#plate{position:absolute;left:50%;top:50%;width:1080px;height:1920px;object-fit:cover;transform-origin:50% 50%}
+#veil{position:absolute;inset:0;opacity:0;background:linear-gradient(180deg,rgba(6,18,44,.80) 0%,rgba(6,18,44,.10) 34%,rgba(6,18,44,.86) 100%)}
+#flash{position:absolute;inset:0;background:#fff;opacity:0}
 .grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:4px 4px}
-/* hook */
-#hook{position:absolute;left:50px;right:50px;top:300px;text-align:center;opacity:0}
-#hook .k{font-weight:700;font-size:34px;letter-spacing:.34em;color:#cfe0ff}
-#hook .b{font-weight:900;font-size:132px;line-height:.95;margin-top:18px;color:#FFD23F;-webkit-text-stroke:12px #0D2557;paint-order:stroke fill}
-/* score block on the freeze */
-#frz{position:absolute;left:50px;right:50px;top:250px;text-align:center;opacity:0}
-#frz .row{display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:34px}
-#frz .cl{font-weight:900;font-size:60px;line-height:1.02;max-width:330px}
-#frz .sc{font-weight:900;font-size:120px;color:#FFD23F;-webkit-text-stroke:10px #0D2557;paint-order:stroke fill}
-#frz .q{font-weight:900;font-size:76px;line-height:1.08;margin-top:10px;text-shadow:0 14px 40px rgba(0,0,0,.7)}
-#frz .s{font-weight:700;font-size:40px;color:#cfe0ff;margin-top:22px;letter-spacing:.06em}
+/* live scorebug — never shows the final score early */
+#bug{position:absolute;left:70px;right:70px;top:110px;display:flex;align-items:stretch;border-radius:20px;overflow:hidden;
+  box-shadow:0 14px 40px rgba(0,0,0,.55);opacity:0;font-weight:900}
+#bug .t{flex:1;padding:22px 26px;font-size:38px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bug .w{background:#1a7f3c}#bug .p{background:#c7a008;text-align:right}
+#bug .n{background:#fff;color:#0D2557;padding:22px 30px;font-size:46px}
+#min{position:absolute;left:70px;top:200px;background:#0D2557;border:5px solid #1F4FB8;border-radius:16px;padding:12px 24px;
+  font-weight:900;font-size:44px;opacity:0}
+/* hook text */
+#hook{position:absolute;left:60px;right:60px;top:620px;text-align:center;opacity:0}
+#hook .b{font-weight:900;font-size:96px;line-height:1.02;-webkit-text-stroke:12px #0D2557;paint-order:stroke fill}
+#hook .y{color:#FFD23F}
+#names{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:40px}
+#names div{font-weight:900;font-size:36px;padding:14px 24px;border-radius:999px;border:4px solid rgba(255,255,255,.45);
+  background:rgba(7,22,62,.9);opacity:0}
+/* goal name card */
+#goal{position:absolute;left:60px;right:60px;bottom:430px;opacity:0;text-align:center}
+#goal .u{font-weight:900;font-size:78px;line-height:1.05;word-break:break-all;-webkit-text-stroke:12px #0D2557;paint-order:stroke fill}
+#goal .s{font-weight:900;font-size:40px;color:#FFD23F;margin-top:14px;letter-spacing:.08em}
+#gol{position:absolute;left:0;right:0;top:470px;text-align:center;font-weight:900;font-size:190px;color:#FFD23F;
+  -webkit-text-stroke:12px #0D2557;paint-order:stroke fill;opacity:0}
 /* teams */
-#tm{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:#06122c}
-#tm img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:1560px;border-radius:26px;box-shadow:0 20px 60px rgba(0,0,0,.55)}
-#tm .l{position:absolute;top:120px;left:0;right:0;text-align:center;z-index:3}
-#tm .l{font-weight:900;font-size:46px;letter-spacing:.1em;color:#FFD23F}
-/* score bug during the kicks */
-#tag{position:absolute;left:60px;right:60px;top:330px;text-align:center;font-weight:900;font-size:56px;opacity:0;
-  -webkit-text-stroke:10px rgba(5,14,60,.92);paint-order:stroke fill}
-/* final card */
-#fin{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;
-  background:radial-gradient(circle at 50% 42%,rgba(26,127,60,.55),rgba(6,18,44,.96) 68%)}
-#fin .c{font-weight:900;font-size:118px;line-height:.98;text-align:center;-webkit-text-stroke:12px #0D2557;paint-order:stroke fill}
-#fin .f{font-weight:900;font-size:86px;color:#FFD23F;letter-spacing:.14em}
-#fin .u{font-weight:700;font-size:44px;color:#cfe0ff}
+#tm{position:absolute;inset:0;opacity:0;background:#06122c}
+#tm img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:1560px;border-radius:24px}
+#tm .l{position:absolute;top:110px;left:0;right:0;text-align:center;font-weight:900;font-size:44px;letter-spacing:.1em;color:#FFD23F;z-index:3}
+/* scorers list */
+#sc{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:linear-gradient(180deg,rgba(6,18,44,.92),rgba(6,18,44,.97))}
+#sc .h{font-weight:900;font-size:50px;letter-spacing:.12em;color:#FFD23F;margin-bottom:10px}
+#sc .row{width:900px;display:flex;align-items:center;gap:20px;background:rgba(10,30,80,.92);border-radius:18px;padding:22px 26px;opacity:0}
+#sc .row .m{font-weight:900;font-size:40px;color:#FFD23F;min-width:110px}
+#sc .row .u{font-weight:900;font-size:46px;word-break:break-all}
+#sc .fin{font-weight:900;font-size:72px;margin-top:26px;opacity:0;text-align:center;line-height:1.05}
 /* semifinal 2 */
-#sf2{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;background:#06122c}
-#sf2 .t{font-weight:900;font-size:52px;letter-spacing:.12em;color:#cfe0ff}
-#sf2 .card{width:880px;border-radius:26px;padding:40px 30px;text-align:center;font-weight:900;font-size:74px;opacity:0;transform:scale(.9)}
-#sf2 .v{font-weight:900;font-size:60px;color:#FFD23F}
+#sf2{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:#06122c}
+#sf2 .t{font-weight:900;font-size:50px;letter-spacing:.12em;color:#cfe0ff}
+#sf2 .card{width:880px;border-radius:26px;padding:38px 30px;text-align:center;font-weight:900;font-size:72px;opacity:0}
+#sf2 .v{font-weight:900;font-size:56px;color:#FFD23F}
+#sf2 .d{font-weight:700;font-size:40px;color:#cfe0ff;margin-top:10px}
 /* CTA */
-#cta{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
+#cta{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;
   background:linear-gradient(180deg,#0a1b45 0%,#06122c 100%)}
-#cta .r{width:930px;border-radius:28px;background:rgba(10,30,80,.96);border:7px solid #1F4FB8;padding:40px 34px;text-align:center;opacity:0}
-#cta .r .h{font-weight:900;font-size:72px;line-height:1.04}
-#cta .r .s{font-weight:700;font-size:40px;color:#cfe0ff;margin-top:14px}
-#cta .w{font-weight:900;font-size:46px;color:#FFD23F;opacity:0}
-#sub{position:absolute;left:70px;right:70px;bottom:210px;text-align:center;font-weight:900;font-size:52px;line-height:1.18;
+#cta .r{width:930px;border-radius:28px;background:rgba(10,30,80,.96);border:7px solid #1F4FB8;padding:38px 32px;text-align:center;opacity:0}
+#cta .r .h{font-weight:900;font-size:66px;line-height:1.06}
+#cta .r .s{font-weight:700;font-size:38px;color:#cfe0ff;margin-top:12px}
+#end{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:#06122c}
+#end img{width:260px}#end .t{font-weight:900;font-size:56px;letter-spacing:.14em}#end .s{font-weight:700;font-size:34px;color:#8fb0ee}
+#sub{position:absolute;left:70px;right:70px;bottom:230px;text-align:center;font-weight:900;font-size:50px;line-height:1.18;
   -webkit-text-stroke:11px rgba(5,14,60,.92);paint-order:stroke fill}
 #sub i{opacity:.35;font-style:normal}
-#crest{position:absolute;left:50%;transform:translateX(-50%);bottom:55px;width:108px;opacity:0}
 </style></head><body><div id="stage">
   <img id="plate"><div id="veil"></div>
-  <div id="hook"><div class="k">MUXLISLAR KUBOGI · 1-YARIM FINAL</div><div class="b">OXIRGI<br>ZARBA</div></div>
-  <div id="frz">
-    <div class="row"><div class="cl">WAKANDA<br>TEAM</div><div class="sc">3 : 2</div><div class="cl">PRIME<br>FC</div></div>
-    <div class="q">URDIMI YOKI<br>TO‘XTATDIMI?</div><div class="s">12 / 12 · PENALTI</div></div>
-  <div id="tm"><div class="l">TARKIBLARNI SIZ TANLAGANSIZ</div>
-    <img src="../26_Cup_V3_Tarkib/story_03_WAKANDA_TEAM.png"><img id="tm2" src="../26_Cup_V3_Tarkib/story_02_PRIME_FC.png"></div>
-  <div id="tag"></div>
-  <div id="fin"><div class="c">WAKANDA TEAM</div><div class="f">FINALDA</div><div class="u">asoschi / kapitan @3wx.hamrokulov</div></div>
+  <div id="bug"><div class="t w">WAKANDA</div><div class="n" id="bugn">0 : 0</div><div class="t p">PRIME FC</div></div>
+  <div id="min">89’</div>
+  <div id="hook"><div class="b">SHU ZARBANI<br><span class="y">SIZLARDAN BIRI</span><br>URDI</div>
+    <div id="names"><div>@uzb13900</div><div>@gulomov046</div><div>@a.farhodjon</div><div>@qassob_bola80</div></div></div>
+  <div id="gol">GOOOL!</div>
+  <div id="goal"><div class="u" id="gu">@username</div><div class="s" id="gs">12’ · WAKANDA TEAM</div></div>
+  <div id="tm"><div class="l">TARKIBNI SIZ TANLAGANSIZ</div>
+    <img id="tmA" src="../26_Cup_V3_Tarkib/story_03_WAKANDA_TEAM.png"><img id="tmB" src="../26_Cup_V3_Tarkib/story_02_PRIME_FC.png"></div>
+  <div id="sc"><div class="h">GOL URGANLAR</div>
+    <div class="row" id="s1"><div class="m">12’</div><div class="u">@golibjon.2ta</div></div>
+    <div class="row" id="s2"><div class="m">29’</div><div class="u">@uzb13900</div></div>
+    <div class="row" id="s3"><div class="m">41’</div><div class="u">@zuhriddinyuldashev13</div></div>
+    <div class="row" id="s4"><div class="m">67’</div><div class="u">@gulomov046</div></div>
+    <div class="row" id="s5"><div class="m">89’</div><div class="u">@a.farhodjon</div></div>
+    <div class="fin" id="sfin">WAKANDA TEAM<br><span style="color:#FFD23F">FINALDA</span></div></div>
   <div id="sf2"><div class="t">2-YARIM FINAL</div>
     <div class="card" id="c1" style="background:#5b2d8e;border:7px solid #b48bff">QAYRAT FC</div>
     <div class="v">—</div>
-    <div class="card" id="c2" style="background:#8e1f1f;border:7px solid #ff8b8b">PRIME AVANGARD</div></div>
+    <div class="card" id="c2" style="background:#8e1f1f;border:7px solid #ff8b8b">PRIME AVANGARD</div>
+    <div class="d">ertaga</div></div>
   <div id="cta">
     <div class="r" id="r1"><div class="h">IZOHGA KLUB NOMINI YOZING</div><div class="s">QAYRAT yoki AVANGARD</div></div>
-    <div class="r" id="r2"><div class="h">KO‘P OVOZ OLGAN KLUB —<br>BIRINCHI ZARBA</div><div class="s">bir odam — bitta ovoz</div></div>
-    <div class="r" id="r3"><div class="h">24 SOAT · OBUNA SHART</div><div class="s">natija keyingi videoda</div></div>
-    <div class="w" id="w1">#muxlislarkubogi</div></div>
-  <img id="crest" src="../03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png">
-  <div class="grain"></div><div id="sub"></div>
+    <div class="r" id="r2"><div class="h">TO‘G‘RI TOPGAN 3 KISHI —<br>FINAL TARKIBIDA</div><div class="s">bir odam — bitta izoh</div></div>
+    <div class="r" id="r3"><div class="h">24 SOAT · OBUNA SHART</div><div class="s">natija keyingi videoda</div></div></div>
+  <div id="end"><img src="../03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"><div class="t">MUXLISLAR KUBOGI</div><div class="s">1-yarim final · 3–2</div></div>
+  <div id="flash"></div><div class="grain"></div><div id="sub"></div>
 </div>
 <script>
-window.END=41.0;
-// seg: [t0, t1, plate source, offset into the clip, speed]
-const S=[["hook",0.00,3.05,"s1",0.00,0.583],["frz",3.05,7.85,"stop",0,0],["teams",7.85,11.45,null,0,0],
-         ["k6",11.45,13.85,"s4",1.10,1],["k11",13.85,17.30,"s5",0.55,1],["k12",17.30,20.70,"s6",1.00,1],
-         ["cel",20.70,23.70,"s7",2.00,1],["fin",23.70,27.30,"s7",4.60,0],["sf2",27.30,31.90,null,0,0],
-         ["cta",31.90,41.00,null,0,0]];
-const NF={s1:54,s4:106,s5:121,s6:133,s7:151};          // frames available per clip (30 fps)
+window.END=44.0;
+// [name, t0, t1, image, zoom from, zoom to, pan x, pan y]
+const S=[
+ ["hook",  0.00, 3.30,"assets/hook_shot.png",   1.14,1.02,  40,-20],
+ ["frz",   3.30, 7.40,"assets/hook_shot.png",   1.02,1.08,   0, 10],
+ ["teams", 7.40, 9.90, null,                    1,1,0,0],
+ ["g1",    9.90,12.30,"assets/goal1_amber.png", 1.10,1.00, -30, 10],
+ ["g2",   12.30,14.30,"assets/goal2_green.png", 1.00,1.10,  20,  0],
+ ["g3",   14.30,16.70,"assets/goal3_amber.png", 1.12,1.02,  30,-10],
+ ["g4",   16.70,18.60,"assets/goal4_green.png", 1.02,1.12, -20,  0],
+ ["win",  18.60,22.60,"assets/winner_net.png",  1.16,1.00,   0,  0],
+ ["cel",  22.60,24.40,"assets/celebration.png", 1.00,1.12,   0, 20],
+ ["scor", 24.40,28.60,"assets/celebration.png", 1.12,1.18,   0, 20],
+ ["sf2",  28.60,33.30, null,1,1,0,0],
+ ["cta",  33.30,41.60, null,1,1,0,0],
+ ["end",  41.60,44.00, null,1,1,0,0]];
+const GOALS={g1:["@golibjon.2ta","12’ · PRIME FC","0 : 1"],g2:["@uzb13900","29’ · WAKANDA TEAM","1 : 1"],
+             g3:["@zuhriddinyuldashev13","41’ · PRIME FC","1 : 2"],g4:["@gulomov046","67’ · WAKANDA TEAM","2 : 2"],
+             win:["@a.farhodjon","89’ · WAKANDA TEAM","3 : 2"]};
 const cl=(x,a,b)=>Math.max(a,Math.min(b,x)), sm=x=>{x=cl(x,0,1);return x*x*(3-2*x);};
 const $=s=>document.querySelector(s);
-function plate(seg,t0,t){
-  const el=$("#plate"), [,,,src,off,sp]=seg;
-  if(!src){ el.style.opacity=0; return; }
-  el.style.opacity=1;
-  if(src==="stop"){ el.src="build/seq/stop.png"; const u=cl((t-t0)/4.8,0,1);
-    el.style.transform=`scale(${1.04+0.06*u})`; return; }
-  const f=cl(Math.round((off+(t-t0)*sp)*30),0,NF[src]-1);
-  el.src=`build/3d/${src}/f_${String(f).padStart(4,"0")}.jpg`;
-  el.style.transform=seg[0]==="cel"?`scale(${1.02+0.04*cl((t-t0)/3,0,1)})`:"none";
-}
-function hide(){ for(const id of ["hook","frz","tm","tag","fin","sf2","cta","crest"]) $("#"+id).style.opacity=0;
-  for(const id of ["r1","r2","r3","w1"]) $("#"+id).style.opacity=0;
-  for(const id of ["c1","c2"]){ $("#"+id).style.opacity=0; $("#"+id).style.transform="scale(.9)"; } }
+function hide(){ for(const id of ["bug","min","hook","goal","gol","tm","sc","sf2","cta","end"]) $("#"+id).style.opacity=0;
+  for(const id of ["s1","s2","s3","s4","s5","sfin","c1","c2","r1","r2","r3"]) $("#"+id).style.opacity=0;
+  document.querySelectorAll("#names div").forEach(d=>d.style.opacity=0); }
 function subtitle(t){ let html="";
   for(const b of (window.W||[])) if(t>=b.start-0.05&&t<=b.end+0.35)
     for(const s of b.sents) if(t>=s.a-0.05&&t<=s.b+0.35)
       html=s.words.map(w=>t>=w.a-0.02?w.w:`<i>${w.w}</i>`).join(" ");
   $("#sub").innerHTML=html; }
-const CT=[31.90,34.20,36.30];                          // CTA rows light one by one
 window.renderAt=function(t){
   hide(); let seg=S[S.length-1];
   for(const s of S) if(t>=s[1]&&t<s[2]){ seg=s; break; }
-  const [name,t0,t1]=seg, u=t-t0;
-  plate(seg,t0,t);
-  $("#veil").style.opacity = name==="hook"?0.55 : (["k6","k11","k12","cel"].includes(name)?0.45 : name==="frz"?0.72:0);
-  if(name==="hook"){ $("#hook").style.opacity=String(sm((u-0.35)/0.5)); }
-  else if(name==="frz"){ $("#frz").style.opacity=String(sm(u/0.35));
-    $("#frz").style.transform=`scale(${1+0.02*sm(u/2)})`; }
-  else if(name==="teams"){ $("#tm").style.opacity=String(sm(u/0.3));
-    const second=u>1.75; $("#tm2").style.opacity=second?"1":"0";
-    $("#tm").querySelector("img").style.opacity=second?"0":"1"; }
-  else if(["k6","k11","k12"].includes(name)){
-    const T={k6:"PRIME FC OLDINDA",k11:"WAKANDA JAVOB QAYTARDI",k12:"TO‘XTATILDI!"}[name];
-    const show = name==="k12" ? u>1.45 : u>0.9;
-    $("#tag").textContent=T; $("#tag").style.opacity=show?String(sm((u-(name==="k12"?1.45:0.9))/0.25)):"0";
-    $("#tag").style.transform=`scale(${show?1+0.08*Math.exp(-(u-1)*6):1})`; }
-  else if(name==="fin"){ $("#fin").style.opacity=String(sm(u/0.4)); $("#crest").style.opacity=String(sm((u-0.8)/0.6)); }
+  const [name,t0,t1,img,z0,z1,px,py]=seg, u=t-t0, k=cl(u/(t1-t0),0,1), p=$("#plate");
+  if(img){ p.style.opacity=1; p.src=img;
+    const z=z0+(z1-z0)*k;
+    p.style.transform=`translate(-50%,-50%) scale(${z}) translate(${px*k}px,${py*k}px)`; }
+  else p.style.opacity=0;
+  $("#veil").style.opacity = name==="frz"?0.86 : ["hook","g1","g2","g3","g4","win","cel","scor"].includes(name)?0.5:0;
+  // white flash on each goal
+  const FL=[12.30,14.30,16.70,20.05];
+  let fl=0; for(const f of FL) fl=Math.max(fl, t>=f&&t<f+0.18 ? 0.55*(1-(t-f)/0.18) : 0);
+  $("#flash").style.opacity=String(fl);
+  if(["hook","frz","g1","g2","g3","g4","win","cel"].includes(name)){
+    $("#bug").style.opacity="1";
+    const SCO={hook:"2 : 2",frz:"2 : 2",g1:"0 : 1",g2:"1 : 1",g3:"1 : 2",g4:"2 : 2",win:"2 : 2",cel:"3 : 2"};
+    const MIN={hook:"89’",frz:"89’",g1:"12’",g2:"29’",g3:"41’",g4:"67’",win:"89’",cel:"90’"};
+    let sc=SCO[name]; if(name==="win"&&u>1.45) sc="3 : 2";
+    $("#bugn").textContent=sc; $("#min").textContent=MIN[name]; $("#min").style.opacity="1"; }
+  if(name==="hook"){ /* image + bug only: the answer stays hidden */ }
+  else if(name==="frz"){ $("#hook").style.opacity=String(sm(u/0.4));
+    document.querySelectorAll("#names div").forEach((d,i)=>{ d.style.opacity=String(sm((u-(1.5+i*0.22))/0.25)); }); }
+  else if(name==="teams"){ $("#tm").style.opacity=String(sm(u/0.25));
+    const second=u>1.25; $("#tmA").style.opacity=second?"0":"1"; $("#tmB").style.opacity=second?"1":"0"; }
+  else if(GOALS[name]){ const [un,sub2]=GOALS[name], late=name==="win"?1.45:0.25;
+    if(u>late){ $("#goal").style.opacity=String(sm((u-late)/0.3));
+      $("#gu").textContent=un; $("#gs").textContent=sub2;
+      $("#goal").style.transform=`scale(${1+0.06*Math.exp(-(u-late)*7)})`;
+      $("#gol").style.opacity=String(sm((u-late)/0.2)*(1-sm((u-late-0.9)/0.4)));
+      $("#gol").style.transform=`scale(${1+0.25*Math.exp(-(u-late)*8)})`; } }
+  else if(name==="scor"){ $("#sc").style.opacity=String(sm(u/0.3));
+    ["s1","s2","s3","s4","s5"].forEach((id,i)=>{ const q=sm((u-(0.35+i*0.33))/0.28);
+      $("#"+id).style.opacity=String(q); $("#"+id).style.transform=`translateX(${(1-q)*-50}px)`; });
+    $("#sfin").style.opacity=String(sm((u-2.3)/0.4)); }
   else if(name==="sf2"){ $("#sf2").style.opacity=String(sm(u/0.3));
-    [["c1",0.35],["c2",0.95]].forEach(([id,d])=>{ const k=sm((u-d)/0.35);
-      $("#"+id).style.opacity=String(k); $("#"+id).style.transform=`scale(${0.9+0.1*k})`; }); }
-  else if(name==="cel"){ /* the 3D plate carries the whole shot */ }
+    [["c1",0.3],["c2",0.85]].forEach(([id,d])=>{ const q=sm((u-d)/0.3);
+      $("#"+id).style.opacity=String(q); $("#"+id).style.transform=`scale(${0.92+0.08*q})`; }); }
   else if(name==="cta"){ $("#cta").style.opacity=String(sm(u/0.3));
-    CT.forEach((c,i)=>{ const k=sm((t-c)/0.3); $("#r"+(i+1)).style.opacity=String(k);
-      $("#r"+(i+1)).style.transform=`translateY(${(1-k)*40}px)`; });
-    $("#w1").style.opacity=String(sm((t-38.4)/0.5));
-    $("#crest").style.opacity=String(sm((t-38.4)/0.5)); }
+    [33.45,36.10,38.40].forEach((c,i)=>{ const q=sm((t-c)/0.3);
+      $("#r"+(i+1)).style.opacity=String(q); $("#r"+(i+1)).style.transform=`translateY(${(1-q)*40}px)`; }); }
+  else if(name==="end"){ $("#end").style.opacity=String(sm(u/0.4)); }
   subtitle(t);
 };
 window.ready=async function(){ await document.fonts.load("900 40px MZ"); await document.fonts.load("700 40px MZ");
-  await new Promise(r=>setTimeout(r,300)); };
+  await new Promise(r=>setTimeout(r,400)); };
 </script></body></html>
