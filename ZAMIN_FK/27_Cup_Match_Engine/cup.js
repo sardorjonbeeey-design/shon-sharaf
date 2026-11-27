@@ -53,32 +53,40 @@ function kick({ shooter, keeper, team, other, idx, scored, corner, diveDir, scor
   };
 }
 
-// --- the winners' celebration: one scene at the end, the whole winning XI running in together ---
-function teamCelebration({ win, lose, winXI, loseGK, score, kicks }) {
-  const GX = 34, GZ = 0, DUR = 6.0, paths = {}, acts = [];
-  winXI.forEach((p, i) => {
-    const ang = -1.15 + i * (2.30 / Math.max(1, winXI.length - 1));          // a loose arc, all facing the camera
-    const ux = Math.sin(ang), uz = Math.cos(ang), lane = (i % 2 ? .6 : 1);
+// --- the winners' celebration: one scene at the end, the whole XI piling in on the hero ---
+function teamCelebration({ win, lose, winXI, loseGK, hero, score, kicks }) {
+  const GX = 36, GZ = 0, DUR = 6.4, paths = {}, acts = [];
+  const H = hero || winXI[0], rest = winXI.filter(p => p !== H);
+  // the hero waits at the gather point, arms wide, bouncing
+  paths[`${win}:${H.rig}#${H.num}`] = [[0, GX - 3.0, GZ], [DUR * .35, GX - .6, GZ], [DUR, GX, GZ]];
+  acts.push({ type: "wide2", p: [win, H.rig], t0: .1 },
+             { type: "hop", p: [win, H.rig], t0: 1.5, h: .30 },
+             { type: "face", p: [win, H.rig], t0: 0, t1: DUR, yaw: Math.atan2(1, .62) });   // towards the camera
+  rest.forEach((p, i) => {
+    const ang = (i / rest.length) * Math.PI * 2 + .6, r0 = 11 + (i % 3) * 3.5, r1 = 1.15 + (i % 4) * .33;
+    const ar = 1.9 + i * .22;                                     // they arrive one after another, not as a wall
     paths[`${win}:${p.rig}#${p.num}`] = [
-      [0,         GX + ux * 15.0 * lane + 2, GZ + uz * 15.0 * lane],
-      [DUR * .5,  GX + ux * 10.0 * lane,     GZ + uz * 10.0 * lane],
-      [DUR,       GX + ux * 7.4 * lane,      GZ + uz * 7.4 * lane]];
-    acts.push({ type: "wide2", p: [win, p.rig], t0: .15 + i * .09 });
-    if (i % 3 === 0) acts.push({ type: "hop", p: [win, p.rig], t0: 1.0 + i * .12, h: .22 });
+      [0,  GX + Math.sin(ang) * r0,        GZ + Math.cos(ang) * r0],
+      [ar, GX + Math.sin(ang) * (r1 + .9), GZ + Math.cos(ang) * (r1 + .9)],
+      [DUR, GX + Math.sin(ang) * r1,       GZ + Math.cos(ang) * r1]];
+    acts.push({ type: "face", p: [win, p.rig], t0: ar - .35, t1: DUR, at: [GX, GZ] },   // everyone turns inwards
+               { type: "wide2", p: [win, p.rig], t0: Math.max(.2, ar - .5) },
+               { type: "hop", p: [win, p.rig], t0: ar + .15, h: .26 });
   });
   if (loseGK) acts.push({ type: "slump", p: [lose, loseGK.rig], t0: .2 });
   return {
     minute: 90 + kicks, kicks, team: win, scorer: "", num: "", handle: "",
     before: score, after: score, dirZ: 1, dirS: -1, dur: DUR, tGoal: 999, pen: true, scored: false, celebration: true,
     paths,
-    ball: [{ type: "pass", t0: 0, t1: DUR, from: [52.0, .22, 6.5], to: [52.0, .22, 6.5] }],
+    ball: [{ type: "pass", t0: 0, t1: DUR, from: [52.0, .22, 7.5], to: [52.0, .22, 7.5] }],
     acts,
     cam: [
-      { t0: 0, t1: DUR * .5, pos: [GX + 22.0, 4.6, 19.0], pos1: [GX + 19.0, 3.9, 16.5], look: [GX + 2, 1.4, GZ], fov: 40, fov1: 38, smooth: .18 },
-      { t0: DUR * .5, pos: [GX + 18.0, 3.6, 15.5], pos1: [GX + 15.5, 3.0, 13.5], look: [GX + 1, 1.35, GZ], look1: [GX, 1.3, GZ], fov: 38, fov1: 35, smooth: .2 },
+      { t0: 0, t1: DUR * .45, pos: [GX + 13.5, 3.4, 12.0], pos1: [GX + 11.5, 2.9, 10.2], look: [GX, 1.35, GZ], fov: 40, fov1: 38, smooth: .18 },
+      { t0: DUR * .45, pos: [GX + 10.5, 2.6, 9.2], pos1: [GX + 8.6, 2.15, 7.6], look: [GX, 1.3, GZ], fov: 38, fov1: 36, smooth: .2 },
     ],
   };
 }
+
 function buildShootout(homeName, awayName, seed) {
   const H = club(homeName), A = club(awayName);
   const pick = t => t.xi.map(p => ({ rig: rigName(p.u), num: String(p.n), u: p.u, pos: p.spot }));
@@ -115,7 +123,9 @@ function buildShootout(homeName, awayName, seed) {
   goals = goals.slice(0, end);
   const last = goals[goals.length - 1], score = [last.after[0], last.after[1]];
   const win = score[0] > score[1] ? "Z" : "S";
-  goals.push(teamCelebration({ win, lose: win === "Z" ? "S" : "Z", winXI: win === "Z" ? hx : ax,
+  const winXI = win === "Z" ? hx : ax;
+  const hero = winXI.find(p => p.rig === last.scorer && last.team === win) || winXI.find(p => p.pos === "GK") || winXI[0];
+  goals.push(teamCelebration({ win, lose: win === "Z" ? "S" : "Z", winXI, hero,
                                loseGK: gk(win === "Z" ? ax : hx), score, kicks: goals.length }));
   return { CUP: { home: H, away: A, seed }, GOALS: goals, result: score };
 }
