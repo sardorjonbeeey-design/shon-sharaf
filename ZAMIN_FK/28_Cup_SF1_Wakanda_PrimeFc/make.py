@@ -1,4 +1,4 @@
-"""Mix narration + hits + crowd + music onto build/silent.mp4 -> exports/ZFK_EP28_sf1.mp4, write .srt + caption.txt.
+"""Mix narration + hits + crowd + music onto build/silent.mp4 -> exports/ZFK_EP27_sf1.mp4, write .srt + caption.txt.
 Order: node render_seq.js ; python3 prep_voice.py 1.0 ; node render.js video build/silent.mp4 ; python3 make.py"""
 import json, os, subprocess
 HERE = os.path.dirname(os.path.abspath(__file__)); Z = os.path.dirname(HERE)
@@ -34,14 +34,14 @@ k += 1; ins += ["-i", Z + "/06_Episode_06/sfx/music.mp3"]
 fc.append(f"[{k}:a]aresample=48000,aloop=loop=-1:size=2e9,atrim=0:{END:.2f},volume=0.19,afade=t=in:d=0.5,"
           f"afade=t=out:st={END-1.6:.2f}:d=1.6[mu]"); mix.append("[mu]")
 fc.append("".join(mix) + f"amix=inputs={len(mix)}:normalize=0,apad,atrim=0:{END:.3f},loudnorm=I=-14:TP=-1.5:LRA=9[aout]")
-os.makedirs(EXP, exist_ok=True); out = EXP + "/ZFK_EP28_sf1.mp4"
+os.makedirs(EXP, exist_ok=True); out = EXP + "/ZFK_EP27_sf1.mp4"
 subprocess.run(["ffmpeg", "-loglevel", "error", "-y", *ins, "-filter_complex", ";".join(fc), "-map", "0:v", "-map", "[aout]",
                 "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", "-t", f"{END:.3f}",
                 "-movflags", "+faststart", out], check=True)
 def ts(x):
     h, r = divmod(x, 3600); m, s = divmod(r, 60); return f"{int(h):02d}:{int(m):02d}:{int(s):02d},{int(round((s-int(s))*1000))%1000:03d}"
 cues = [(s["a"], s["b"] + .2, " ".join(w["w"] for w in s["words"])) for x in W for s in x["sents"]]
-with open(EXP + "/ZFK_EP28_sf1.srt", "w", encoding="utf-8") as f:
+with open(EXP + "/ZFK_EP27_sf1.srt", "w", encoding="utf-8") as f:
     for n, (a, c, t) in enumerate(cues, 1):
         f.write(f"{n}\n{ts(a)} --> {ts(min(c, cues[n][0]-.02) if n < len(cues) else c)}\n{t}\n\n")
 open(EXP + "/caption.txt", "w", encoding="utf-8").write("""1-YARIM FINAL: WAKANDA TEAM 3–2 PRIME FC 🏆

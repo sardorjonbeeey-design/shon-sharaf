@@ -32,5 +32,5 @@ Qolgan 30 s: hook, kontekst, natija va CTA.
 node render_seq.js            # 3D plitalar (build/seq/*.mp4 + stop.png)
 python3 prep_voice.py 1.05    # voice/NN.mp3 -> NN_fit.wav + build/words.json
 node render.js video build/silent.mp4
-python3 make.py               # ovoz + sfx + musiqa -> exports/ZFK_EP28_sf1.mp4 + .srt + caption.txt
+python3 make.py               # ovoz + sfx + musiqa -> exports/ZFK_EP27_sf1.mp4 + .srt + caption.txt
 ```
