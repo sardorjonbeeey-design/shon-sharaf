@@ -123,7 +123,39 @@ function applyActs(G, p, t) {
   p.g.position.y = y; p.r.root.rotation.set(pitch, 0, roll);
 }
 let ARM = { i: 2, sg: 1, fi: 2, fsg: 1 };       // set by pose calibration
-function armsUp(p, k, wide) { const a = k * (wide ? 1.9 : 2.5); for (const [s, sg] of [["Left", 1], ["Right", -1]]) { const e = [0, 0, 0]; e[ARM.i] = a * sg * ARM.sg; rot(p, s + "Arm", ...e); const f = [0, 0, 0]; f[ARM.fi] = k * .5 * sg * ARM.fsg; rot(p, s + "ForeArm", ...f); } }
+function armsUpEP09(p, k, wide) { const a = k * (wide ? 1.9 : 2.5); for (const [s, sg] of [["Left", 1], ["Right", -1]]) { const e = [0, 0, 0]; e[ARM.i] = a * sg * ARM.sg; rot(p, s + "Arm", ...e); const f = [0, 0, 0]; f[ARM.fi] = k * .5 * sg * ARM.fsg; rot(p, s + "ForeArm", ...f); } }
+
+// ---------- arms, cup version ----------
+// EP09 rotates the arm bone about its own local Z. That bone's rest frame is itself turned (-120, 46, 89 deg),
+// so a local-axis rotation mixes in humerus twist: the palms end up supinated and the wrist, which nothing
+// corrects, stays at its scan angle and reads as hyperextended ("claw hands"). Here the rotation is done about
+// real world axes instead, and the wrist is straightened against the forearm.
+const _pq = new T.Quaternion(), _aq = new T.Quaternion(), _dq = new T.Quaternion(), _ID = new T.Quaternion(), _AX = new T.Vector3();
+function parentQuat(bone, out) {                // world rotation of the bone's parent (matrices are stale here)
+  const chain = []; for (let b = bone.parent; b; b = b.parent) chain.push(b);
+  out.identity(); for (let i = chain.length - 1; i >= 0; i--) out.multiply(chain[i].quaternion);
+  return out;
+}
+function rotWorld(p, name, axis, ang) {         // rotate a bone about a WORLD axis: no twist leaks into the joint
+  const b = p.bones[name]; if (!b || !ang) return;
+  parentQuat(b, _pq); _aq.setFromAxisAngle(axis, ang);
+  b.quaternion.premultiply(_dq.copy(_pq).invert().multiply(_aq).multiply(_pq));
+}
+const ARMC = { up: 2.30, wide: 2.50, fwd: .12, elbow: .45, wrist: .85, asym: .055, wob: .06 };
+function armsUp(p, k, wide) {
+  if (!CUP) return armsUpEP09(p, k, wide);
+  const yaw = p.g ? p.g.rotation.y : 0, c = Math.cos(yaw), s2 = Math.sin(yaw);
+  const FWD = _AX.set(s2, 0, c).clone(), LAT = new T.Vector3(c, 0, -s2);   // body forward / sideways in world
+  const t = (S.t || 0) + p.id * .7, base = k * (wide ? ARMC.wide : ARMC.up);
+  for (const [sd, sg] of [["Left", 1], ["Right", -1]]) {
+    const wob = Math.sin(t * 5.2 + (sg > 0 ? 0 : 1.4)) * ARMC.wob * k;     // never two arms frozen in a mirror
+    const a = base * (1 + sg * ARMC.asym) + wob;
+    rotWorld(p, sd + "Arm", FWD, -a * sg);                                  // raise sideways-up
+    rotWorld(p, sd + "Arm", LAT, k * ARMC.fwd);                             // and a little in front of the body
+    rotWorld(p, sd + "ForeArm", LAT, k * ARMC.elbow * sg);                  // soft elbow, mirrored per side
+    const h = p.bones[sd + "Hand"]; if (h) h.quaternion.slerp(_ID, k * ARMC.wrist);  // unbend the wrist
+  }
+}
 
 // ---------- world step ----------
 const S = { goal: -1, t: -1, face: new Map(), cam: null };
@@ -193,7 +225,7 @@ function drawHud(G, t) {
 }
 
 const D = window.D = {
-  P, pl, ARM: v => { ARM = v; },
+  P, pl, ARM: v => { ARM = v; }, ARMC, armc: v => Object.assign(ARMC, v),
   async setup() {
     Z.loadRig(); await new Promise(ok => { const w = () => Z.RIG.base ? ok() : setTimeout(w, 50); w(); });
     Z.heroObjs.forEach(o => { o.visible = false; }); Z.SQUAD.forEach(s => Z.scene.remove(s.g)); Z.controls.enabled = false;
