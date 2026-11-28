@@ -27,6 +27,7 @@ One place for everything content-related: where files live, how videos are made,
 | Reel | `10_Reel_Trial15/` | `exports/ZFK_REEL_trial15.mp4` (+ `.srt`) | 15 s trial Reel «Klubni SIZ boshqarasiz»: 3D stadium reveal → new player ("SIZ ?" shirt) → old→new stadium wipe → goat into the lens → end card. 3D via Day 9 harness (`render3d.js`), overlays `overlay.html`, voice `prep_voice.py`, mix `assemble.py`; `script.md`. |
 | 10 | `11_Episode_10/` | `exports/ZFK_EP10_reel.mp4` (+ `.srt`, `caption.txt`, `ZFK_EP10_story1/2.png`) | 39.8 s Reel: new manager (original winning-comment screenshot `assets/comment_winner.jpg`), then open «G‘oya sizdan!» for club AND city, most-liked comment after 24 h wins. Cartoon engine over 3D stadium/town plates (`plates.js`); `prep_voice.py` → `anim_ep10.py` (`--frames`, `--stories`, `--audio-only`); `script.md`. |
 | Trial | `12_Reel_Trial_Stadium/` | `exports/ZFK_TRIAL_stadium.mp4` (+ `.srt`, `caption.txt`) | 49 s sinov video «Stadionni to‘ldiring» (namuna struktura, o‘z tasvirimiz): yangi vokselli neon 3D sahna `stadium.html` (three.js, `render.js`), real 305/500 muxlis. Build: `prep_voice.py` → `render.js` → `make.py`. |
+| Wall | `13_Reel_Wall_of_Honor/` | — | Script draft only (not approved for production): WALL OF HONOR launch Reel, 50 founders, 39 000 so‘m, ~38 s. See `script.md` incl. open decisions. |
 
 Each episode folder: `assets/` (images), `voice/` (narration per line), `sfx/`, `exports/` (deliverables), `build/` (temp, ignored).
 
