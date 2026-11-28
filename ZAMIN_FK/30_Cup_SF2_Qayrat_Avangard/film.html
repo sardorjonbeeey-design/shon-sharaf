@@ -1,0 +1,183 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:MZ;src:url(../web/city/assets/fonts/Montserrat_900Black.ttf);font-weight:900}
+@font-face{font-family:MZ;src:url(../web/city/assets/fonts/Montserrat_700Bold.ttf);font-weight:700}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;background:#06122c;font-family:MZ;color:#fff;overflow:hidden}
+#stage{position:absolute;inset:0;overflow:hidden}
+#plate{position:absolute;left:50%;top:50%;width:1080px;height:1920px;object-fit:cover;transform-origin:50% 50%}
+#veil{position:absolute;inset:0;opacity:0;background:linear-gradient(180deg,rgba(6,18,44,.80) 0%,rgba(6,18,44,.10) 34%,rgba(6,18,44,.86) 100%)}
+#flash{position:absolute;inset:0;background:#fff;opacity:0}
+.grain{position:absolute;inset:0;opacity:.05;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:4px 4px}
+/* live scorebug — never shows the final score early */
+#bug{position:absolute;left:70px;right:70px;top:110px;display:flex;align-items:stretch;border-radius:20px;overflow:hidden;
+  box-shadow:0 14px 40px rgba(0,0,0,.55);opacity:0;font-weight:900}
+#bug .t{flex:1;padding:22px 26px;font-size:38px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bug .w{background:#5b2d8e}#bug .p{background:#8e1f1f;text-align:right}
+#bug .n{background:#fff;color:#0D2557;padding:22px 30px;font-size:46px}
+#min{position:absolute;left:70px;top:200px;background:#0D2557;border:5px solid #1F4FB8;border-radius:16px;padding:12px 24px;
+  font-weight:900;font-size:44px;opacity:0}
+/* hook text */
+#hook{position:absolute;left:60px;right:60px;top:620px;text-align:center;opacity:0}
+#hook .b{font-weight:900;font-size:96px;line-height:1.02;-webkit-text-stroke:12px #0D2557;paint-order:stroke fill}
+#hook .y{color:#FFD23F}
+#names{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:40px}
+#names div{font-weight:900;font-size:36px;padding:14px 24px;border-radius:999px;border:4px solid rgba(255,255,255,.45);
+  background:rgba(7,22,62,.9);opacity:0}
+/* goal name card */
+#goal{position:absolute;left:60px;right:60px;bottom:430px;opacity:0;text-align:center}
+#goal .u{font-weight:900;font-size:78px;line-height:1.05;word-break:break-all;-webkit-text-stroke:12px #0D2557;paint-order:stroke fill}
+#goal .s{font-weight:900;font-size:40px;color:#FFD23F;margin-top:14px;letter-spacing:.08em}
+#gol{position:absolute;left:0;right:0;top:470px;text-align:center;font-weight:900;font-size:190px;color:#FFD23F;
+  -webkit-text-stroke:12px #0D2557;paint-order:stroke fill;opacity:0}
+/* yesterday's correct guesses */
+#gs{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  background:linear-gradient(180deg,rgba(6,18,44,.93),rgba(6,18,44,.98))}
+#gs .h{font-weight:900;font-size:50px;letter-spacing:.1em;color:#FFD23F;margin-bottom:14px}
+#gs .row{width:880px;background:rgba(10,30,80,.95);border:5px solid rgba(255,255,255,.3);border-radius:22px;padding:28px 26px;
+  text-align:center;font-weight:900;font-size:56px;word-break:break-all;opacity:0}
+#gs .f{font-weight:900;font-size:64px;color:#FFD23F;margin-top:20px;opacity:0}
+/* scorers list: the result line, then each club's scorers by minute */
+#sc{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  background:linear-gradient(180deg,rgba(6,18,44,.93),rgba(6,18,44,.98))}
+#sc .res{display:flex;align-items:center;gap:30px;margin-bottom:60px}
+#sc .res .c{font-weight:900;font-size:58px;line-height:1.05;width:330px}
+#sc .res .cl{text-align:right}#sc .res .cr{text-align:left}
+#sc .res .n{font-weight:900;font-size:96px;color:#FFD23F;-webkit-text-stroke:10px #0D2557;paint-order:stroke fill}
+#sc .cols{display:flex;gap:22px;width:1010px}
+#sc .col{flex:1}
+#sc .row{display:flex;gap:16px;margin-bottom:22px;opacity:0;align-items:baseline}
+#sc .col.r .row{justify-content:flex-end}
+#sc .row .m{font-weight:900;font-size:38px;color:#FFD23F;min-width:92px}
+#sc .col.r .row .m{order:2;min-width:0;text-align:right}
+#sc .row .u{font-weight:900;font-size:36px;white-space:nowrap;line-height:1.1}
+#sc .fin{font-weight:900;font-size:66px;margin-top:40px;opacity:0;text-align:center;line-height:1.06}
+/* semifinal 2 */
+#sf2{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:#06122c}
+#sf2 .t{font-weight:900;font-size:50px;letter-spacing:.12em;color:#cfe0ff}
+#sf2 .card{width:880px;border-radius:26px;padding:38px 30px;text-align:center;font-weight:900;font-size:72px;opacity:0}
+#sf2 .v{font-weight:900;font-size:56px;color:#FFD23F}
+#sf2 .d{font-weight:700;font-size:40px;color:#cfe0ff;margin-top:10px}
+/* CTA */
+#cta{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;
+  background:linear-gradient(180deg,#0a1b45 0%,#06122c 100%)}
+#cta .r{width:930px;border-radius:28px;background:rgba(10,30,80,.96);border:7px solid #1F4FB8;padding:38px 32px;text-align:center;opacity:0}
+#cta .r .h{font-weight:900;font-size:66px;line-height:1.06}
+#cta .r .s{font-weight:700;font-size:38px;color:#cfe0ff;margin-top:12px}
+#end{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:#06122c}
+#end img{width:260px}#end .t{font-weight:900;font-size:56px;letter-spacing:.14em}#end .s{font-weight:700;font-size:34px;color:#8fb0ee}
+#sub{position:absolute;left:70px;right:70px;bottom:230px;text-align:center;font-weight:900;font-size:50px;line-height:1.18;
+  -webkit-text-stroke:11px rgba(5,14,60,.92);paint-order:stroke fill}
+#sub i{opacity:.35;font-style:normal}
+</style></head><body><div id="stage">
+  <img id="plate"><div id="veil"></div>
+  <div id="bug"><div class="t w">QAYRAT FC</div><div class="n" id="bugn">0 : 0</div><div class="t p">AVANGARD</div></div>
+  <div id="min">89’</div>
+  <div id="hook"><div class="b">BU GOLNI<br><span class="y">KIM URDI?</span></div>
+    <div id="names"><div>@mengnoroov</div><div>@islomvc12</div><div>@rasuluvich_09</div><div>@boburbek_012_2</div></div></div>
+  <div id="gol">GOOOL!</div>
+  <div id="goal"><div class="u" id="gu">@username</div><div class="s" id="gsub">31’ · QAYRAT FC</div></div>
+  <div id="gs"><div class="h">KECHA TO‘G‘RI TOPGANLAR</div>
+    <div class="row" id="q1">@abdirax1mov23</div><div class="row" id="q2">@siyouzb</div><div class="row" id="q3">@jasorat416</div>
+    <div class="f" id="qf">FINAL TARKIBIDA</div></div>
+  <div id="sc">
+    <div class="res"><div class="c cl">QAYRAT<br>FC</div><div class="n">1 — 3</div><div class="c cr">PRIME<br>AVANGARD</div></div>
+    <div class="cols">
+      <div class="col l">
+        <div class="row" id="s1"><div class="m">31’</div><div class="u">@alijonov.cls</div></div></div>
+      <div class="col r">
+        <div class="row" id="s2"><div class="m">69’</div><div class="u">@boburbek_012_2</div></div>
+        <div class="row" id="s3"><div class="m">79’</div><div class="u">@islomvc12</div></div>
+        <div class="row" id="s4"><div class="m">89’</div><div class="u">@rasuluvich_09</div></div></div>
+    </div>
+    <div class="fin" id="sfin">PRIME AVANGARD<br><span style="color:#FFD23F">FINALDA</span></div></div>
+  <div id="sf2"><div class="t">FINAL</div>
+    <div class="card" id="c1" style="background:#1a7f3c;border:7px solid #7fe0a0">WAKANDA TEAM</div>
+    <div class="v">—</div>
+    <div class="card" id="c2" style="background:#8e1f1f;border:7px solid #ff8b8b">PRIME AVANGARD</div>
+    <div class="d">ertaga</div></div>
+  <div id="cta">
+    <div class="r" id="r1"><div class="h">ENG FAOL MUXLIS<br>GOL URADI</div><div class="s">finalda ham shunday</div></div>
+    <div class="r" id="r2"><div class="h">IZOHGA POZITSIYANGIZNI YOZING</div><div class="s">GK · CB · CM · ST</div></div>
+    <div class="r" id="r3"><div class="h">24 SOAT · OBUNA SHART</div><div class="s">bir odam — bitta izoh</div></div></div>
+  <div id="end"><img src="../03_Approved_Assets/ZFK_CREST_MASTER_V01_P_2048.png"><div class="t">MUXLISLAR KUBOGI</div><div class="s">2-yarim final · 1–3 · seed 20261128</div></div>
+  <div id="flash"></div><div class="grain"></div><div id="sub"></div>
+</div>
+<script>
+window.END=44.5;
+// [name, t0, t1, image, zoom from, zoom to, pan x, pan y]
+const S=[
+ ["intro", 0.00, 3.45,"assets/hook_shot.png",   1.14,1.02,  40,-20],
+ ["frz",   3.45, 6.85,"assets/hook_shot.png",   1.02,1.09,   0, 10],
+ ["guess", 6.85,11.20, null,                    1,1,0,0],
+ ["g31",  11.20,15.85,"assets/g31_purple.png",  1.12,1.00, -30, 10],
+ ["g69",  15.85,18.10,"assets/g69_red.png",     1.00,1.10,  20,  0],
+ ["g79",  18.10,21.20,"assets/g79_red.png",     1.12,1.02,  30,-10],
+ ["g89",  21.20,24.30,"assets/winner_net.png",  1.16,1.00,   0,  0],
+ ["cel",  24.30,25.70,"assets/celebration.png", 1.00,1.10,   0, 20],
+ ["res",  25.70,28.00, null,1,1,0,0],
+ ["fin",  28.00,31.40, null,1,1,0,0],
+ ["cta",  31.40,41.40, null,1,1,0,0],
+ ["end",  41.40,44.50, null,1,1,0,0]];
+const GOALS={g31:["@alijonov.cls","31’ · QAYRAT FC","ENG FAOL MUXLIS"],g69:["@boburbek_012_2","69’ · PRIME AVANGARD",""],
+             g79:["@islomvc12","79’ · PRIME AVANGARD",""],g89:["@rasuluvich_09","89’ · PRIME AVANGARD","ASOSCHI / KAPITAN"]};
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)), sm=x=>{x=cl(x,0,1);return x*x*(3-2*x);};
+const $=s=>document.querySelector(s);
+function hide(){ for(const id of ["bug","min","hook","goal","gol","gs","sc","sf2","cta","end"]) $("#"+id).style.opacity=0;
+  for(const id of ["s1","s2","s3","s4","sfin","c1","c2","r1","r2","r3","q1","q2","q3","qf"]) $("#"+id).style.opacity=0;
+  document.querySelectorAll("#names div").forEach(d=>d.style.opacity=0); }
+function subtitle(t){ let html="";
+  for(const b of (window.W||[])) if(t>=b.start-0.05&&t<=b.end+0.35)
+    for(const s of b.sents) if(t>=s.a-0.05&&t<=s.b+0.35)
+      html=s.words.map(w=>t>=w.a-0.02?w.w:`<i>${w.w}</i>`).join(" ");
+  $("#sub").innerHTML=html; }
+window.renderAt=function(t){
+  hide(); let seg=S[S.length-1];
+  for(const s of S) if(t>=s[1]&&t<s[2]){ seg=s; break; }
+  const [name,t0,t1,img,z0,z1,px,py]=seg, u=t-t0, k=cl(u/(t1-t0),0,1), p=$("#plate");
+  if(img){ p.style.opacity=1; p.src=img;
+    const z=z0+(z1-z0)*k;
+    p.style.transform=`translate(-50%,-50%) scale(${z}) translate(${px*k}px,${py*k}px)`; }
+  else p.style.opacity=0;
+  $("#veil").style.opacity = name==="frz"?0.86 : ["hook","g1","g2","g3","g4","win","cel","scor"].includes(name)?0.5:0;
+  // white flash on each goal
+  const FL=[12.45,16.75,19.00,22.55];
+  let fl=0; for(const f of FL) fl=Math.max(fl, t>=f&&t<f+0.18 ? 0.55*(1-(t-f)/0.18) : 0);
+  $("#flash").style.opacity=String(fl);
+  if(["intro","frz","g31","g69","g79","g89","cel"].includes(name)){
+    $("#bug").style.opacity="1";
+    const SCO={intro:"0 : 0",frz:"1 : 2",g31:"0 : 0",g69:"1 : 0",g79:"1 : 1",g89:"1 : 2",cel:"1 : 3"};
+    const MIN={intro:"1’",frz:"89’",g31:"31’",g69:"69’",g79:"79’",g89:"89’",cel:"90’"};
+    let sc=SCO[name];
+    if(name==="g31"&&u>1.25) sc="1 : 0"; if(name==="g69"&&u>0.9) sc="1 : 1";
+    if(name==="g79"&&u>0.9) sc="1 : 2"; if(name==="g89"&&u>1.35) sc="1 : 3";
+    $("#bugn").textContent=sc; $("#min").textContent=MIN[name]; $("#min").style.opacity="1"; }
+  if(name==="intro"){ /* image + live scorebug only */ }
+  else if(name==="frz"){ $("#hook").style.opacity=String(sm(u/0.4));
+    document.querySelectorAll("#names div").forEach((d,i)=>{ d.style.opacity=String(sm((u-(1.5+i*0.22))/0.25)); }); }
+  else if(name==="guess"){ $("#gs").style.opacity=String(sm(u/0.25));
+    ["q1","q2","q3"].forEach((id,i)=>{ const k=sm((u-(0.5+i*0.5))/0.3);
+      $("#"+id).style.opacity=String(k); $("#"+id).style.transform=`translateX(${(1-k)*-40}px)`; });
+    $("#qf").style.opacity=String(sm((u-2.4)/0.4)); }
+  else if(GOALS[name]){ const [un,sub2,badge]=GOALS[name], late=name==="g89"?1.35:(name==="g31"?1.25:0.25);
+    if(u>late){ $("#goal").style.opacity=String(sm((u-late)/0.3));
+      $("#gu").textContent=un; $("#gsub").textContent=badge?sub2+" · "+badge:sub2;
+      $("#goal").style.transform=`scale(${1+0.06*Math.exp(-(u-late)*7)})`;
+      $("#gol").style.opacity=String(sm((u-late)/0.2)*(1-sm((u-late-0.9)/0.4)));
+      $("#gol").style.transform=`scale(${1+0.25*Math.exp(-(u-late)*8)})`; } }
+  else if(name==="res"){ $("#sc").style.opacity=String(sm(u/0.3));
+    [["s1",0.15],["s2",0.40],["s3",0.62],["s4",0.84]].forEach(([id,d],i)=>{   // in minute order
+      const q=sm((u-d)/0.26), left=id==="s1";
+      $("#"+id).style.opacity=String(q); $("#"+id).style.transform=`translateX(${(1-q)*(left?-40:40)}px)`; });
+    $("#sfin").style.opacity=String(sm((u-1.25)/0.35)); }
+  else if(name==="fin"){ $("#sf2").style.opacity=String(sm(u/0.3));
+    [["c1",0.3],["c2",0.85]].forEach(([id,d])=>{ const q=sm((u-d)/0.3);
+      $("#"+id).style.opacity=String(q); $("#"+id).style.transform=`scale(${0.92+0.08*q})`; }); }
+  else if(name==="cta"){ $("#cta").style.opacity=String(sm(u/0.3));
+    [31.70,34.60,37.60].forEach((c,i)=>{ const q=sm((t-c)/0.3);
+      $("#r"+(i+1)).style.opacity=String(q); $("#r"+(i+1)).style.transform=`translateY(${(1-q)*40}px)`; }); }
+  else if(name==="end"){ $("#end").style.opacity=String(sm(u/0.4)); }
+  subtitle(t);
+};
+window.ready=async function(){ await document.fonts.load("900 40px MZ"); await document.fonts.load("700 40px MZ");
+  await new Promise(r=>setTimeout(r,400)); };
+</script></body></html>
