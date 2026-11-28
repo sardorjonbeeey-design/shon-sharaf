@@ -9,6 +9,7 @@ Bu kurs emas. Biz jamoa bo'lib, har kim o'z loyihasini 0 dan quradi.
 • Kerakli vositalar: Claude, ChatGPT, Render, GitHub, Telegram bot, Cloudflare. Hammasini 0 dan birga sozlaymiz
 
 🎯 Maqsad: loyihangiz kamida 5000 ko'rishga yetishi. Shunga yetmaguncha doimiy yordam beraman.
+✅ Kafolat: agar loyihangiz 5000 ko'rishga yetmasa, to'langan pulingizni to'liq qaytaraman.
 
 💰 Qatnashish narxi: 149 000 so'm
 👥 Joylar: faqat 10 ta
