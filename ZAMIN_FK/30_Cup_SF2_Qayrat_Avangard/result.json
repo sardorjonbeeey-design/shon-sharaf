@@ -3,11 +3,23 @@
  "home": "QAYRAT FC",
  "away": "PRIME AVANGARD",
  "result": [
-  0,
+  1,
   3
  ],
  "winner": "PRIME AVANGARD",
  "goals": [
+  {
+   "min": 31,
+   "club": "QAYRAT FC",
+   "u": "alijonov.cls",
+   "num": 6,
+   "spot": "CML",
+   "award": "eng faol muxlis",
+   "score": [
+    1,
+    0
+   ]
+  },
   {
    "min": 69,
    "club": "PRIME AVANGARD",
@@ -15,7 +27,7 @@
    "num": 7,
    "spot": "RW",
    "score": [
-    0,
+    1,
     1
    ]
   },
@@ -26,7 +38,7 @@
    "num": 6,
    "spot": "CML",
    "score": [
-    0,
+    1,
     2
    ]
   },
@@ -37,7 +49,7 @@
    "num": 8,
    "spot": "ST",
    "score": [
-    0,
+    1,
     3
    ]
   }
