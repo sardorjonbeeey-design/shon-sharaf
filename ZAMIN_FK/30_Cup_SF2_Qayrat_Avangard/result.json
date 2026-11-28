@@ -1,0 +1,45 @@
+{
+ "seed": 20261128,
+ "home": "QAYRAT FC",
+ "away": "PRIME AVANGARD",
+ "result": [
+  0,
+  3
+ ],
+ "winner": "PRIME AVANGARD",
+ "goals": [
+  {
+   "min": 69,
+   "club": "PRIME AVANGARD",
+   "u": "boburbek_012_2",
+   "num": 7,
+   "spot": "RW",
+   "score": [
+    0,
+    1
+   ]
+  },
+  {
+   "min": 79,
+   "club": "PRIME AVANGARD",
+   "u": "islomvc12",
+   "num": 6,
+   "spot": "CML",
+   "score": [
+    0,
+    2
+   ]
+  },
+  {
+   "min": 89,
+   "club": "PRIME AVANGARD",
+   "u": "rasuluvich_09",
+   "num": 8,
+   "spot": "ST",
+   "score": [
+    0,
+    3
+   ]
+  }
+ ]
+}
